@@ -1,0 +1,129 @@
+# MT5 Runner — 策略参数定义
+# 每个策略版本一个顶层key，脚本通过 --strategy <key> 引用
+
+defaults: &defaults
+  # === OB检测 ===
+  bounce_pct: 0.30
+  timeout_min: 60
+  max_entry_offset_r: 1.5
+  require_double_touch: true
+  double_touch_window_min: 60
+  min_ob_spread_mult: 2.0
+  min_risk_spread_ratio: 3.0
+  min_abs_risk_usd: 0.0
+  consolidate_ob: true
+
+  # === 止损 ===
+  sl_buffer_atr: 0.10
+
+  # === 保本 ===
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+
+  # === 追踪止损 ===
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.2
+      lock_mult: 0.0
+    - trigger_r: 2.5
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+  # === DTP (Dynamic Take Profit) ===
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.30
+  adaptive_dtp: true
+
+  # === 时间退出 ===
+  time_exit_bars: 999
+  time_decay_tp: false
+
+  # === 仓位管理 ===
+  risk_percent: 2.0
+  max_concurrent: 5
+  cooldown_bars: 0
+
+  # === 增强 ===
+  boost_in_1h_ob: 3.0
+  ds_weight: true
+  dt_addon_boost: 0.0
+
+  # === K线 ===
+  bar_period_min: 1   # 1=M1, 5=M5
+  bars: 5000
+
+# === 策略版本 ===
+
+v96b:
+  <<: *defaults
+  version: V96b
+  description: "M1+二推+BE0.2R+DTP1.5R+3xBoost"
+
+v95c:
+  <<: *defaults
+  version: V95c
+  description: "M1+单推+BE0.3R+DTP2.0R"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.1
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  boost_in_1h_ob: 1.0
+
+v94a:
+  <<: *defaults
+  version: V94a
+  description: "M5+二推+保守追踪"
+  bar_period_min: 5
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  max_concurrent: 3
+
+# === 品种列表 ===
+symbols:
+  forex:
+    - EURUSDm
+    - GBPUSDm
+    - USDJPYm
+    - AUDUSDm
+  metals:
+    - XAUUSDm
+    - XAGUSDm
+  crypto:
+    - BTCUSDm
+    - ETHUSDm
+    - SOLUSDm
+  indices:
+    - US30m
+    - US500m
+    - USTECm
+
+# === 回测默认参数 ===
+backtest_defaults:
+  deposit: 200
+  currency: USD
+  leverage: 2000
+  model: 0          # 0=Every tick, 4=Real ticks
+  period: M1
+  visual: 0
+  optimization: 0
+
+# === MT5 账号 ===
+mt5_account:
+  login: 277396794
+  server: Exness-MT5Trial5
+  proxy_enable: 1
+  proxy_type: 0
+  proxy_address: "127.0.0.1:7897"
