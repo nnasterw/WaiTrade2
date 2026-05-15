@@ -541,6 +541,988 @@ v97b:
   trend_be_lock: 0.2
   trend_dtp_retrace: 0.20
 
+# === WR80 实验: 目标80%+胜率 ===
+# 核心思路: 固定TP快进快出 + 极早保本 + 大OB + 顺势 + 单仓
+
+# 基线: 固定TP 1.0R (关闭DTP/trailing)
+wr80_a:
+  <<: *defaults
+  version: WR80-A
+  description: "固定TP1R基线: 无DTP无trailing"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# B: A + 大OB过滤(4x spread)
+wr80_b:
+  <<: *defaults
+  version: WR80-B
+  description: "A+大OB4x: 过滤小噪声OB"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# C: A + 顺势过滤(M15趋势)
+wr80_c:
+  <<: *defaults
+  version: WR80-C
+  description: "A+M15顺势: 只做趋势方向"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+
+# D: A + 更紧offset(0.3R) + bounce40%
+wr80_d:
+  <<: *defaults
+  version: WR80-D
+  description: "A+紧offset0.3R+bounce40%: 精准入场"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  max_concurrent: 1
+  max_entry_offset_r: 0.3
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.40
+
+# E: A + 快超时(5bars=5分钟)
+wr80_e:
+  <<: *defaults
+  version: WR80-E
+  description: "A+5bar超时: 不赢就跑"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  time_exit_bars: 5
+
+# F: 全组合 (大OB + 顺势 + 紧offset + 超时)
+wr80_f:
+  <<: *defaults
+  version: WR80-F
+  description: "全组合: 大OB+顺势+紧offset+5bar超时"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.3
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.40
+  time_exit_bars: 5
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+
+# === WR80 第二轮: 低TP快速止盈 ===
+
+# G: TP=0.5R (更容易命中)
+wr80_g:
+  <<: *defaults
+  version: WR80-G
+  description: "TP0.5R: 半R止盈快进快出"
+  require_double_touch: false
+  fixed_tp_r: 0.5
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  time_exit_bars: 10
+
+# H: TP=0.3R (极速止盈)
+wr80_h:
+  <<: *defaults
+  version: WR80-H
+  description: "TP0.3R: 极速止盈+3bar超时"
+  require_double_touch: false
+  fixed_tp_r: 0.3
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.3
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  time_exit_bars: 3
+
+# I: G + 大OB + 顺势
+wr80_i:
+  <<: *defaults
+  version: WR80-I
+  description: "TP0.5R+大OB+顺势: 精选快出"
+  require_double_touch: false
+  fixed_tp_r: 0.5
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.40
+  time_exit_bars: 10
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+
+# J: H + 大OB (极速+精选)
+wr80_j:
+  <<: *defaults
+  version: WR80-J
+  description: "TP0.3R+大OB4x: 极速精选"
+  require_double_touch: false
+  fixed_tp_r: 0.3
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.3
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.40
+  time_exit_bars: 3
+
+# === WR80 第三轮: 盈亏比修复 ===
+# 核心问题: 70%WR但avg_win=0.05R(BE微赢), avg_loss=1R → 必亏
+# 修复: 让赢的单赚更多(提高BE lock + 固定TP) 或 让亏的单亏更少
+
+# K: TP=1R + 高BE lock(0.3R) — 保本赚更多
+wr80_k:
+  <<: *defaults
+  version: WR80-K
+  description: "TP1R+BElock0.3R: 保本锁住真利润"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.3
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  min_ob_spread_mult: 4.0
+
+# L: TP=0.7R + BE(0.3R/0.2R) + 大OB — 中等TP+保底
+wr80_l:
+  <<: *defaults
+  version: WR80-L
+  description: "TP0.7R+BE0.3/0.2+大OB: 均衡"
+  require_double_touch: false
+  fixed_tp_r: 0.7
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.2
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# M: TP=0.5R + BE(0.2R/0.15R) + 大OB + 顺势
+wr80_m:
+  <<: *defaults
+  version: WR80-M
+  description: "TP0.5R+BE+大OB+顺势: 精选快出"
+  require_double_touch: false
+  fixed_tp_r: 0.5
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.15
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+
+# N: 紧SL(0.05ATR) + TP=1R — 让R更小,TP更容易命中
+wr80_n:
+  <<: *defaults
+  version: WR80-N
+  description: "紧SL0.05ATR+TP1R+大OB: R小TP易中"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  sl_buffer_atr: 0.05
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.2
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# O: 宽SL(0.20ATR) + TP=1R + 大OB — 不容易被扫但WR降?
+wr80_o:
+  <<: *defaults
+  version: WR80-O
+  description: "宽SL0.2ATR+TP1R+大OB: 抗噪音"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  sl_buffer_atr: 0.20
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# P: 最终候选 — B(最高WR) + BE lock 0.3R
+wr80_p:
+  <<: *defaults
+  version: WR80-P
+  description: "B+高lock: 70%WR中赢的赚0.3R"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.15
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# === 第十轮: SMC驱动v97c ===
+
+exp_aj_midsl:
+  <<: *defaults
+  version: ExpAJ-MidSL
+  description: "v97a+SL0.15ATR: 减噪声扫损"
+  require_double_touch: false
+  sl_buffer_atr: 0.15
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+exp_ak_lowbst:
+  <<: *defaults
+  version: ExpAK-LoBst
+  description: "v97a+boost1.5: 控制大仓位"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.5
+
+exp_al_off08:
+  <<: *defaults
+  version: ExpAL-Off08
+  description: "v97a+offset0.8R: 精确入场"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.8
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+exp_an_risk:
+  <<: *defaults
+  version: ExpAN-Risk
+  description: "v97a+并发2+CD3: 避免集中连亏"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_concurrent: 2
+  cooldown_bars: 3
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+v97c:
+  <<: *defaults
+  version: V97c
+  description: "SMC优化: 中SL+低boost+精确入场+风控"
+  require_double_touch: false
+  sl_buffer_atr: 0.15
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.8
+  max_concurrent: 2
+  cooldown_bars: 3
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.5
+
+v97d:
+  <<: *defaults
+  version: V97d
+  description: "v97a+势态过滤+评分: SMC多维"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_concurrent: 2
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.5
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.5
+  range_time_exit: 20
+  trend_be_r: 0.3
+  trend_be_lock: 0.15
+  trend_dtp_retrace: 0.15
+
+# === WR80 第四轮: 90天盈亏平衡点突破 ===
+# wr80_b 90天: 898笔/10日均/48%WR/$200持平
+# 目标: 在持平基础上让avg_win>avg_loss
+
+# Q: b基础 + BE lock 0.15R (赢的赚更多)
+wr80_q:
+  <<: *defaults
+  version: WR80-Q
+  description: "b+BElock0.15R: 赢的赚更多"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.15
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# R: b + TP 0.7R (更容易命中的TP)
+wr80_r:
+  <<: *defaults
+  version: WR80-R
+  description: "b+TP0.7R: 命中更容易"
+  require_double_touch: false
+  fixed_tp_r: 0.7
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# S: b + 并发2 (增加交易量)
+wr80_s:
+  <<: *defaults
+  version: WR80-S
+  description: "b+并发2: 更多机会"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# T: b + 加DTP 1.5R@30% (让部分赢的跑更远)
+wr80_t:
+  <<: *defaults
+  version: WR80-T
+  description: "b+DTP1.5R: 部分赢单跑更远"
+  require_double_touch: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.30
+  adaptive_dtp: true
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# U: 最优组合 (Q+R: BElock0.15 + TP0.7R)
+wr80_u:
+  <<: *defaults
+  version: WR80-U
+  description: "BElock0.15+TP0.7R+大OB: 赢多亏少"
+  require_double_touch: false
+  fixed_tp_r: 0.7
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.15
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# V2: 混合出场 (TP1R + L1 trail 0.7R/0.3R lock)
+wr80_v2:
+  <<: *defaults
+  version: WR80-V2
+  description: "TP1R+trail0.7R/lock0.3R+大OB"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.7
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# === WR80 第五轮: 在持平点微调突破 ===
+# wr80_b 90天: 898/10日均/48%/$200 — 持平点
+# 目标: 不改入场(保持10日均), 只改出场让avg_win微增
+
+# W: b + BE lock 0.08R (微增, 不阻塞)
+wr80_w:
+  <<: *defaults
+  version: WR80-W
+  description: "b+BElock0.08R: 微增赢利"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.08
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# X: b + 并发2 (不阻塞 + 更多机会)
+wr80_x:
+  <<: *defaults
+  version: WR80-X
+  description: "b+并发2: 不阻塞更多单"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# Y: b + 去掉BE(让赢的跑到TP) — 牺牲WR换盈亏比
+wr80_y:
+  <<: *defaults
+  version: WR80-Y
+  description: "b无BE: 要么TP1R要么SL-1R"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# Z: b + trailing(L1: 0.5R trigger, 0.2R lock) 保护利润
+wr80_z:
+  <<: *defaults
+  version: WR80-Z
+  description: "b+轻trailing: 保护中等利润"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.5
+      lock_r: 0.2
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+
+# Z2: 小OB(默认2x) + 并发3 + risk1% (增量更多但小仓)
+wr80_z2:
+  <<: *defaults
+  version: WR80-Z2
+  description: "小OB+并发3+risk1%: 量大仓小"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 2.0
+  max_concurrent: 3
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  risk_percent: 1.0
+
+# === WR80 第六轮: M5时间框架 (江河主周期) ===
+# M1太噪音。江河的主交易周期是M5。OB更大、更稳定
+
+# M5A: M5基线 (TP1R + BE + 大OB + 单仓)
+wr80_m5a:
+  <<: *defaults
+  version: WR80-M5A
+  description: "M5基线: TP1R+BE+大OB4x"
+  bar_period_min: 5
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  timeout_min: 240
+
+# M5B: M5 + 高bounce 50%
+wr80_m5b:
+  <<: *defaults
+  version: WR80-M5B
+  description: "M5+bounce50%: 强impulse确认"
+  bar_period_min: 5
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.50
+  timeout_min: 240
+
+# M5C: M5 + DTP 2.0R (让赢的跑更远)
+wr80_m5c:
+  <<: *defaults
+  version: WR80-M5C
+  description: "M5+DTP2.0R: 大盈亏比"
+  bar_period_min: 5
+  require_double_touch: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  adaptive_dtp: true
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.1
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  timeout_min: 240
+
+# M5D: M5 + 顺势 + 评分
+wr80_m5d:
+  <<: *defaults
+  version: WR80-M5D
+  description: "M5+顺势+评分: 四维M5"
+  bar_period_min: 5
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  timeout_min: 240
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+
+# M5E: M5 + 并发2 + timeout 90min
+wr80_m5e:
+  <<: *defaults
+  version: WR80-M5E
+  description: "M5+并发2+90min超时"
+  bar_period_min: 5
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  timeout_min: 90
+  time_exit_bars: 20
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效

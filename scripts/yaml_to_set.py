@@ -62,6 +62,7 @@ FLAT_MAP = {
     "decay_min_r": "InpDecayMinR",
     "decay_bars": "InpDecayBars",
     "engulf_body_pct": "InpEngulfBodyPct",
+    "fixed_tp_r": "InpFixedTPR",
     # v9.8a EntryEngine状态机
     "enable_entry_engine": "InpEnableEntryEngine",
 }
