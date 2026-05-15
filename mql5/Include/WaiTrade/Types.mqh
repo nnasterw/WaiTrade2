@@ -66,6 +66,10 @@ struct EAState
     int      pos_count;      // 当前跟踪的持仓数量
     double   atr_value;      // 当前ATR值
     double   atr_1h;         // 1H ATR值
+    // v9.8
+    int      market_state;   // MARKET_STATE enum value (1=bull, -1=bear, 0=range)
+    double   target_price;   // 震荡态对面swing点价格
+    double   atr_m15;        // M15 ATR
 };
 
 #endif

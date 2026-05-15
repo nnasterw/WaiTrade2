@@ -70,4 +70,29 @@ input int    InpOBScanDepth      = 200;      // OB扫描深度(bars, 0=全量)
 input string InpVersion          = "V96b";   // 策略版本标识
 input int    InpMagicNumber      = 202605;   // EA Magic Number
 
+// ── v9.8 势位态动 ────────────────────────────────────────────────────────
+// 势(M15趋势)
+input int    InpTrendLookback     = 80;       // M15趋势回溯(bars)
+input int    InpSwingStrength     = 3;        // Swing确认强度(左右bars)
+
+// 态(趋势/震荡)
+input bool   InpEnableStateFilter = false;    // 启用态感知过滤
+input double InpRangeBE_R         = 0.0;      // 震荡态保本R(0=用主BE)
+input int    InpRangeTimeExit     = 999;      // 震荡态超时bars(999=不超时)
+input double InpTrendBE_R         = 0.0;      // 趋势态保本R(0=用主BE)
+input double InpTrendBE_Lock      = 0.0;      // 趋势态保本锁定R(0=用主Lock)
+input double InpTrendDTPRetrace   = 0.0;      // 趋势态DTP回撤%(0=用主Retrace)
+
+// 位(评分系统)
+input bool   InpEnableScoring     = false;    // 启用评分系统
+input int    InpProximityFilter   = 0;        // 0=评分加权, 1=硬过滤
+input double InpProximityATR      = 1.0;      // 接近度阈值(ATR倍数)
+input int    InpMinScore          = 0;        // 最低入场评分(0=不过滤)
+
+// 动(动能衰减)
+input bool   InpEnableDecayExit   = false;    // 启用动能衰减退出
+input double InpDecayMinR         = 1.0;      // 衰减检测启动阈值(R)
+input int    InpDecayBars         = 3;        // 二推不破连续bar数
+input int    InpEngulfBodyPct     = 50;       // 吞没追随实体占比(%)
+
 #endif

@@ -4,6 +4,8 @@
 #include "Types.mqh"
 #include "Config.mqh"
 #include "Utils.mqh"
+#include "MarketState.mqh"
+#include "DecayDetector.mqh"
 
 void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
 {
@@ -19,10 +21,11 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
             continue;
         }
 
-        CheckBreakeven(tracks[i]);
+        CheckBreakeven(tracks[i], state);
         CheckTrailing(tracks[i]);
         CheckDTP(tracks[i], state);
         CheckTimeExit(tracks[i], state);
+        CheckDecay(tracks[i], state);
     }
 }
 
@@ -49,19 +52,35 @@ void SyncPositions(PosTrack &tracks[], int &track_count)
     }
 }
 
-void CheckBreakeven(PosTrack &track)
+void CheckBreakeven(PosTrack &track, const EAState &state)
 {
     if(track.be_applied) return;
-    if(InpBreakevenR <= 0) return;
+
+    double be_r = InpBreakevenR;
+    double be_lock_r = InpBreakevenLockR;
+
+    // v9.8 态感知BE参数
+    if(InpEnableStateFilter)
+    {
+        if(state.market_state == 0 && InpRangeBE_R > 0)
+            be_r = InpRangeBE_R;
+        else if(state.market_state != 0)
+        {
+            if(InpTrendBE_R > 0) be_r = InpTrendBE_R;
+            if(InpTrendBE_Lock > 0) be_lock_r = InpTrendBE_Lock;
+        }
+    }
+
+    if(be_r <= 0) return;
 
     if(!PositionSelectByTicket(track.ticket)) return;
 
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
     double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
 
-    if(current_r >= InpBreakevenR)
+    if(current_r >= be_r)
     {
-        double new_sl = RToPrice(InpBreakevenLockR, track.entry_price, track.risk_price, track.direction);
+        double new_sl = RToPrice(be_lock_r, track.entry_price, track.risk_price, track.direction);
         if(ModifySL(track.ticket, new_sl))
             track.be_applied = true;
     }
@@ -128,6 +147,11 @@ void CheckDTP(PosTrack &track, const EAState &state)
 {
     if(InpDTPTriggerR <= 0) return;
 
+    double dtp_retrace = InpDTPRetrace;
+    // v9.8 趋势态DTP回撤
+    if(InpEnableStateFilter && state.market_state != 0 && InpTrendDTPRetrace > 0)
+        dtp_retrace = InpTrendDTPRetrace / 100.0;
+
     if(!PositionSelectByTicket(track.ticket)) return;
 
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
@@ -143,19 +167,43 @@ void CheckDTP(PosTrack &track, const EAState &state)
     {
         track.dtp_peak_r = MathMax(track.dtp_peak_r, current_r);
         double retrace = track.dtp_peak_r - current_r;
-        double threshold = InpAdaptiveDTP ? track.dtp_peak_r * InpDTPRetrace
-                                          : InpDTPTriggerR * InpDTPRetrace;
+        double threshold = InpAdaptiveDTP ? track.dtp_peak_r * dtp_retrace
+                                          : InpDTPTriggerR * dtp_retrace;
         if(retrace >= threshold)
             ClosePosition(track.ticket);
     }
 }
 
+void CheckDecay(PosTrack &track, const EAState &state)
+{
+    if(!InpEnableDecayExit) return;
+
+    if(!PositionSelectByTicket(track.ticket)) return;
+
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+    if(current_r < InpDecayMinR) return;
+
+    MqlRates m1_rates[];
+    int m1_count = CopyRates(_Symbol, PERIOD_M1, 0, InpDecayBars + 5, m1_rates);
+    if(m1_count < InpDecayBars + 2) return;
+
+    if(CheckMomentumDecay(_Symbol, track.direction, m1_rates, m1_count))
+        ClosePosition(track.ticket);
+}
+
 void CheckTimeExit(PosTrack &track, const EAState &state)
 {
-    if(InpTimeExitBars >= 999) return;
+    int time_exit_bars = InpTimeExitBars;
+
+    // v9.8 震荡态超时
+    if(InpEnableStateFilter && state.market_state == 0 && InpRangeTimeExit < 999)
+        time_exit_bars = InpRangeTimeExit;
+
+    if(time_exit_bars >= 999) return;
 
     int bars_held = state.bar_count - track.open_bar;
-    if(bars_held >= InpTimeExitBars)
+    if(bars_held >= time_exit_bars)
         ClosePosition(track.ticket);
 }
 

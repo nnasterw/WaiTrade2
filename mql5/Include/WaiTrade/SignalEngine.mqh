@@ -4,6 +4,8 @@
 #include "Types.mqh"
 #include "Config.mqh"
 #include "Utils.mqh"
+#include "MarketState.mqh"
+#include "ScoreEngine.mqh"
 
 bool IsZoneTouched(const OBZone &zone, double bid, double ask)
 {
@@ -122,6 +124,10 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!PassDoubleTouchFilter(zone))
       return false;
 
+   // v9.8 态过滤: 趋势态硬过滤逆势
+   if(InpEnableStateFilter && state.market_state != 0 && state.market_state != zone.direction)
+      return false;
+
    double sl = 0;
    if(zone.direction == OB_BUY)
       sl = zone.low - state.atr_value * InpSLBufferATR;
@@ -140,7 +146,31 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!PassSpreadRatio(risk_price, spread))
       return false;
 
-   double pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
+   // v9.8 评分系统
+   double pos_mult = 1.0;
+   if(InpEnableScoring)
+   {
+      double proximity_distance = MathAbs(bid - entry);
+      double tp_est = 0.0;
+      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+         tp_est = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+      else if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+         tp_est = state.target_price;
+      else
+         tp_est = RToPrice(2.0, entry, risk_price, zone.direction);
+      double target_distance = MathAbs(tp_est - entry);
+      int score = CalcSignalScore(zone, state, state.market_state,
+                                  proximity_distance, risk_price, target_distance);
+      if(InpMinScore > 0 && score < InpMinScore)
+         return false;
+      pos_mult = ScoreToMultiplier(score);
+      if(pos_mult < 0)
+         return false;
+   }
+   else
+   {
+      pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
+   }
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
 
    if(!PassMinRisk(final_lot, risk_price, symbol))
@@ -174,6 +204,14 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    double tp = 0.0;
    if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
       tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+
+   // v9.8 震荡态TP: 用对面swing点
+   if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+   {
+      double swing_dist = MathAbs(state.target_price - entry);
+      if(swing_dist > risk_price)
+         tp = state.target_price;
+   }
 
    signal.direction = zone.direction;
    signal.entry = entry;

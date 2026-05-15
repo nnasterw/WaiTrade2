@@ -45,6 +45,23 @@ FLAT_MAP = {
     "bars": "InpBars",
     "version": "InpVersion",
     "spread_floor": "InpSpreadFloor",
+    # v9.8 势位态动
+    "trend_lookback": "InpTrendLookback",
+    "swing_strength": "InpSwingStrength",
+    "enable_state_filter": "InpEnableStateFilter",
+    "range_be_r": "InpRangeBE_R",
+    "range_time_exit": "InpRangeTimeExit",
+    "trend_be_r": "InpTrendBE_R",
+    "trend_be_lock": "InpTrendBE_Lock",
+    "trend_dtp_retrace": "InpTrendDTPRetrace",
+    "enable_scoring": "InpEnableScoring",
+    "proximity_filter": "InpProximityFilter",
+    "proximity_atr": "InpProximityATR",
+    "min_score": "InpMinScore",
+    "enable_decay_exit": "InpEnableDecayExit",
+    "decay_min_r": "InpDecayMinR",
+    "decay_bars": "InpDecayBars",
+    "engulf_body_pct": "InpEngulfBodyPct",
 }
 
 # trail_levels 映射: (层级索引, 子key) → INP名称

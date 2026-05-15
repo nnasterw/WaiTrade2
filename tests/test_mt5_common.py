@@ -262,3 +262,57 @@ def test_strategy_to_set_spread_floor():
     cfg = {'version': 'test', 'spread_floor': 0.30}
     content = strategy_to_set('test', cfg)
     assert 'InpSpreadFloor=0.3' in content
+
+
+# ── v9.8 四维参数映射 ─────────────────────────────────────────────────
+
+def test_v98_trend_params_in_flat_map():
+    assert FLAT_MAP['trend_lookback'] == 'InpTrendLookback'
+    assert FLAT_MAP['swing_strength'] == 'InpSwingStrength'
+
+
+def test_v98_state_params_in_flat_map():
+    assert FLAT_MAP['enable_state_filter'] == 'InpEnableStateFilter'
+    assert FLAT_MAP['range_be_r'] == 'InpRangeBE_R'
+    assert FLAT_MAP['range_time_exit'] == 'InpRangeTimeExit'
+    assert FLAT_MAP['trend_be_r'] == 'InpTrendBE_R'
+    assert FLAT_MAP['trend_be_lock'] == 'InpTrendBE_Lock'
+    assert FLAT_MAP['trend_dtp_retrace'] == 'InpTrendDTPRetrace'
+
+
+def test_v98_scoring_params_in_flat_map():
+    assert FLAT_MAP['enable_scoring'] == 'InpEnableScoring'
+    assert FLAT_MAP['proximity_filter'] == 'InpProximityFilter'
+    assert FLAT_MAP['proximity_atr'] == 'InpProximityATR'
+    assert FLAT_MAP['min_score'] == 'InpMinScore'
+
+
+def test_v98_decay_params_in_flat_map():
+    assert FLAT_MAP['enable_decay_exit'] == 'InpEnableDecayExit'
+    assert FLAT_MAP['decay_min_r'] == 'InpDecayMinR'
+    assert FLAT_MAP['decay_bars'] == 'InpDecayBars'
+    assert FLAT_MAP['engulf_body_pct'] == 'InpEngulfBodyPct'
+
+
+def test_v98_strategy_full_set():
+    cfg = {
+        'version': 'V98',
+        'enable_state_filter': True,
+        'enable_scoring': True,
+        'enable_decay_exit': True,
+        'trend_lookback': 80,
+        'swing_strength': 3,
+        'range_be_r': 1.0,
+        'range_time_exit': 30,
+        'min_score': 2,
+        'decay_min_r': 1.0,
+        'decay_bars': 3,
+        'engulf_body_pct': 50,
+    }
+    content = strategy_to_set('v98', cfg)
+    assert 'InpEnableStateFilter=true' in content
+    assert 'InpEnableScoring=true' in content
+    assert 'InpEnableDecayExit=true' in content
+    assert 'InpTrendLookback=80' in content
+    assert 'InpRangeBE_R=1.0' in content
+    assert 'InpMinScore=2' in content

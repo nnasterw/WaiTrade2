@@ -42,9 +42,13 @@ def sync_sources():
 
 
 def compile_ea(ea_path: str) -> bool:
-    """编译单个EA，返回是否成功"""
-    win_path = f'C:\\Program Files\\MetaTrader 5\\MQL5\\Experts\\{ea_path}.mq5'
-    source_file = Path(MT5_MAIN) / 'MQL5' / 'Experts' / f'{ea_path}.mq5'
+    """编译单个EA，返回是否成功
+
+    使用 /tmp 临时目录 + Z: drive 路径编译（C:\Program Files 含空格静默失败）。
+    目录结构: /tmp/.../WaiTrade_OB.mq5 + WaiTrade/*.mqh
+    """
+    source_file = Path(MQL5_DIR) / 'Experts' / f'{ea_path}.mq5'
+    include_dir = MQL5_DIR / 'Include' / 'WaiTrade'
 
     if not source_file.exists():
         print(f'错误: 源文件不存在 {source_file}')
@@ -54,41 +58,58 @@ def compile_ea(ea_path: str) -> bool:
     env = os.environ.copy()
     env['WINEPREFIX'] = WINEPREFIX
 
+    tmp_dir = Path('/tmp/mt5_compile_WaiTrade_OB/WaiTrade_OB')
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source_file, tmp_dir / source_file.name)
+
+    inc_dest = tmp_dir / 'WaiTrade'
+    if inc_dest.exists():
+        shutil.rmtree(inc_dest)
+    inc_dest.mkdir()
+    for f in include_dir.glob('*.mqh'):
+        shutil.copy2(f, inc_dest / f.name)
+
+    ex5_tmp = tmp_dir / source_file.with_suffix('.ex5').name
+    log_tmp = tmp_dir / source_file.with_suffix('.log').name
+    ex5_tmp.unlink(missing_ok=True)
+    log_tmp.unlink(missing_ok=True)
+
+    win_path = f'Z:\\tmp\\mt5_compile_WaiTrade_OB\\WaiTrade_OB\\{source_file.name}'
     cmd = [WINE, METAEDITOR, f'/compile:{win_path}', '/log']
     result = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=120)
 
-    # 检查编译产物
-    ex5_file = source_file.with_suffix('.ex5')
+    ex5_file = ex5_tmp
     ea_name = Path(ea_path).name
-    log_file = source_file.with_suffix('.log')
 
     # 读取编译日志
     log_content = ''
-    if log_file.exists():
+    if log_tmp.exists():
         try:
-            log_content = log_file.read_text(encoding='utf-16-le', errors='replace')
+            log_content = log_tmp.read_text(encoding='utf-16-le', errors='replace')
         except Exception:
-            log_content = log_file.read_text(errors='replace')
+            log_content = log_tmp.read_text(errors='replace')
 
     # 检查编译结果
     success = False
     if log_content:
-        if re.search(r'0 error\(s\)', log_content):
+        if re.search(r'0 error', log_content) and 'Result' in log_content:
             success = True
-        # 显示警告
         warnings = re.findall(r'warning.*', log_content, re.IGNORECASE)
         for w in warnings:
             print(f'  警告: {w.strip()}')
-        # 显示错误
         if not success:
             errors = re.findall(r'error.*', log_content, re.IGNORECASE)
-            for e in errors:
+            for e in errors[:10]:
                 print(f'  错误: {e.strip()}')
     elif ex5_file.exists():
         success = True
 
     if success:
-        print(f'  编译成功: {ex5_file.name}')
+        # 复制.ex5到MT5目录
+        dst = Path(MT5_MAIN) / 'MQL5' / 'Experts' / f'{ea_path}.ex5'
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ex5_file, dst)
+        print(f'  编译成功: {ea_name}.ex5')
         sync_to_tester(ea_path)
     else:
         print(f'  编译失败: {ea_name}')

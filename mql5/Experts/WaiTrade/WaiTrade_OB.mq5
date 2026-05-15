@@ -5,6 +5,9 @@
 #include <WaiTrade/Config.mqh>
 #include <WaiTrade/Types.mqh>
 #include <WaiTrade/Utils.mqh>
+#include <WaiTrade/MarketState.mqh>
+#include <WaiTrade/ScoreEngine.mqh>
+#include <WaiTrade/DecayDetector.mqh>
 #include <WaiTrade/OBDetector.mqh>
 #include <WaiTrade/SignalEngine.mqh>
 #include <WaiTrade/PositionManager.mqh>
@@ -66,6 +69,19 @@ void OnTick()
 
         int h1_dir = Detect1HOBDirection(symbol);
         Update1HAlignment(g_zones, g_state.ob_count, h1_dir);
+
+        // v9.8: M15 市场状态检测
+        if(InpEnableStateFilter || InpEnableScoring)
+        {
+            double target = 0;
+            g_state.market_state = (int)DetectMarketState(symbol, target);
+            g_state.target_price = target;
+
+            MqlRates rates_m15[];
+            int m15_count = CopyRates(symbol, PERIOD_M15, 0, InpTrendLookback, rates_m15);
+            if(m15_count > 14)
+                g_state.atr_m15 = CalcATR(rates_m15, m15_count, InpATRPeriod);
+        }
     }
 
     // 3. 更新OB状态(每tick)

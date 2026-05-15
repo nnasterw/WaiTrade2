@@ -72,6 +72,39 @@ v96b_live:
   breakeven_lock_r: 0.15
   max_concurrent: 2
 
+v98:
+  <<: *defaults
+  version: V98
+  description: "势位态动四维: M15趋势+评分+态切换+动能衰减"
+  # 势: M15趋势判定
+  trend_lookback: 80
+  swing_strength: 3
+  # 态: 趋势/震荡切换
+  enable_state_filter: true
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+  # 位: 评分系统
+  enable_scoring: true
+  proximity_filter: 0
+  proximity_atr: 1.0
+  min_score: 2
+  # 动: 动能衰减
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  # 基础参数(调优)
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  max_entry_offset_r: 0.8
+  max_concurrent: 2
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+
 v95c:
   <<: *defaults
   version: V95c
@@ -194,6 +227,38 @@ v97a:
   breakeven_r: 0.3
   breakeven_lock_r: 0.20
   bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ── 第六轮: ExpP精选信号加仓 ──
+
+# ExpT: offset 0.3R + 2倍风险 (精选信号重仓)
+exp_t_off03_2x:
+  <<: *defaults
+  version: ExpT-2x
+  description: "offset0.3R + risk4%: 精选高质量信号2倍下注"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.3
+  risk_percent: 4.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ExpU: offset 0.3R + 3倍风险 (激进)
+exp_u_off03_3x:
+  <<: *defaults
+  version: ExpU-3x
+  description: "offset0.3R + risk6%: 精选信号3倍下注"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.3
+  risk_percent: 6.0
   dtp_trigger_r: 2.0
   dtp_retrace: 0.20
   boost_in_1h_ob: 1.0
@@ -560,7 +625,7 @@ backtest_defaults:
   deposit: 200
   currency: USD
   leverage: 2000
-  model: 4          # 0=Every tick, 4=Real ticks (Live对齐)
+  model: 0          # 0=Every tick, 4=Real ticks (暂用0跑实验)
   period: M1
   visual: 0
   optimization: 0
