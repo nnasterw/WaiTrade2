@@ -102,14 +102,49 @@ void OnTick()
     if(InpEnableEntryEngine)
     {
         // v9.8a: EntryEngine 状态机模式
-        // 新 bar 时扫描候选信号并注册到 monitor
+        // 新 bar 时将活跃 OB 注册为 monitor（不做 touch 检查，由 EntryEngine 处理）
         if(new_bar)
         {
-            int sig_count = ScanSignals(symbol, g_zones, g_state.ob_count, g_state, g_signals, 10);
-            for(int i = 0; i < sig_count; i++)
+            double spread = GetSpread(symbol);
+            for(int z = 0; z < g_state.ob_count; z++)
             {
-                if(sig_count > 0 && g_signals[i].ob_index >= 0)
-                    AddEntryMonitor(g_signals[i], g_zones[g_signals[i].ob_index], g_monitors, g_monitor_count);
+                if(g_zones[z].expired || g_zones[z].used) continue;
+
+                // 态过滤：趋势态禁止逆势
+                if(InpEnableStateFilter && g_state.market_state != 0
+                   && g_state.market_state != g_zones[z].direction)
+                    continue;
+
+                // 基本过滤：spread ratio
+                double risk_dist = (g_zones[z].direction == OB_BUY)
+                    ? ((g_zones[z].high + g_zones[z].low) / 2.0) - (g_zones[z].low - g_state.atr_value * InpSLBufferATR)
+                    : (g_zones[z].high + g_state.atr_value * InpSLBufferATR) - ((g_zones[z].high + g_zones[z].low) / 2.0);
+                if(spread > 0 && risk_dist / spread < InpMinRiskSpreadRatio)
+                    continue;
+
+                // 构造临时 signal 用于注册
+                TradeSignal tmp;
+                ZeroMemory(tmp);
+                tmp.direction = g_zones[z].direction;
+                tmp.sl = (g_zones[z].direction == OB_BUY)
+                    ? g_zones[z].low - g_state.atr_value * InpSLBufferATR
+                    : g_zones[z].high + g_state.atr_value * InpSLBufferATR;
+                tmp.risk_price = MathAbs(((g_zones[z].high + g_zones[z].low) / 2.0) - tmp.sl);
+                tmp.ob_index = z;
+                tmp.pos_mult = 1.0;
+
+                // 评分系统
+                if(InpEnableScoring)
+                {
+                    double prox = (g_state.atr_m15 > 0) ? g_state.atr_m15 : g_state.atr_value * 5;
+                    int score = CalcSignalScore(g_zones[z], g_state, g_state.market_state, prox, tmp.risk_price, 0);
+                    if(score < InpMinScore) continue;
+                    double mult = ScoreToMultiplier(score);
+                    if(mult < 0) continue;
+                    tmp.pos_mult = mult;
+                }
+
+                AddEntryMonitor(tmp, g_zones[z], g_monitors, g_monitor_count);
             }
         }
 

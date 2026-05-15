@@ -112,11 +112,11 @@ v98a:
   description: "v97b+EntryEngine状态机: bounce确认入场+势态评分+动能衰减"
   # 核心: 启用入场状态机 (5阶段确认)
   enable_entry_engine: true
-  # 沿用v97b的高盈亏比配置
+  # 有EntryEngine后bounce不需要60%(那是补偿缺状态机的), 30%够了
   require_double_touch: false
   breakeven_r: 0.5
   breakeven_lock_r: 0.2
-  bounce_pct: 0.60
+  bounce_pct: 0.30
   max_concurrent: 1
   max_entry_offset_r: 0.5
   dtp_trigger_r: 3.0
@@ -125,7 +125,7 @@ v98a:
   # 势态动
   enable_state_filter: true
   enable_scoring: true
-  min_score: 4
+  min_score: 2
   enable_decay_exit: true
   decay_min_r: 1.0
   decay_bars: 3
@@ -138,16 +138,16 @@ v98a:
   trend_be_lock: 0.2
   trend_dtp_retrace: 0.20
 
-# v98a_loose: v98a 放宽版 (score3+bounce50%, 增加交易量)
+# v98a_loose: v98a 放宽版 (score3+bounce30%+并发2)
 v98a_loose:
   <<: *defaults
   version: V98a-L
-  description: "v98a放宽: score3+bounce50%+并发2"
+  description: "v98a放宽: score3+bounce30%+并发2"
   enable_entry_engine: true
   require_double_touch: false
   breakeven_r: 0.5
   breakeven_lock_r: 0.2
-  bounce_pct: 0.50
+  bounce_pct: 0.30
   max_concurrent: 2
   max_entry_offset_r: 0.5
   dtp_trigger_r: 3.0
@@ -167,6 +167,108 @@ v98a_loose:
   trend_be_r: 0.5
   trend_be_lock: 0.2
   trend_dtp_retrace: 0.20
+
+# 调试: EntryEngine + 态过滤, 无评分
+v98a_state:
+  <<: *defaults
+  version: V98a-St
+  description: "EntryEngine+态过滤, 无评分"
+  enable_entry_engine: true
+  require_double_touch: false
+  bounce_pct: 0.60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: false
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# 调试D: EntryEngine + bounce30% + 态过滤 (无评分)
+v98a_dbg_b30:
+  <<: *defaults
+  version: V98a-B30
+  description: "EntryEngine+bounce30%+态过滤, 无评分"
+  enable_entry_engine: true
+  require_double_touch: false
+  bounce_pct: 0.30
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  enable_state_filter: true
+  enable_scoring: false
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# 调试B: debug + 只开态过滤 (bounce仍低)
+v98a_dbg_state:
+  <<: *defaults
+  version: V98a-DS
+  description: "debug+态过滤: 定位state_filter影响"
+  enable_entry_engine: true
+  require_double_touch: false
+  bounce_pct: 0.10
+  max_concurrent: 5
+  max_entry_offset_r: 1.5
+  enable_state_filter: true
+  enable_scoring: false
+  enable_decay_exit: false
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# 调试C: debug + 高bounce (无态过滤)
+v98a_dbg_bounce:
+  <<: *defaults
+  version: V98a-DB
+  description: "debug+bounce60%: 定位bounce影响"
+  enable_entry_engine: true
+  require_double_touch: false
+  bounce_pct: 0.60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  enable_state_filter: false
+  enable_scoring: false
+  enable_decay_exit: false
+
+# 调试: EntryEngine only, 无评分无态过滤, 低bounce
+v98a_debug:
+  <<: *defaults
+  version: V98a-Dbg
+  description: "EntryEngine调试: 最宽松配置"
+  enable_entry_engine: true
+  require_double_touch: false
+  bounce_pct: 0.10
+  max_concurrent: 5
+  max_entry_offset_r: 1.5
+  enable_state_filter: false
+  enable_scoring: false
+  enable_decay_exit: false
 
 v95c:
   <<: *defaults
@@ -190,6 +292,207 @@ v95c:
   dtp_retrace: 0.35
   time_exit_bars: 12
   boost_in_1h_ob: 3.0
+
+# === v9子版本(从文档提取) ===
+
+v91:
+  <<: *defaults
+  version: V91
+  description: "M5+1m bar close反弹30%确认"
+  bar_period_min: 5
+  require_double_touch: false
+  bounce_pct: 0.30
+  timeout_min: 10
+  max_entry_offset_r: 0.5
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: false
+  time_exit_bars: 80
+  boost_in_1h_ob: 1.0
+  ds_weight: false
+  consolidate_ob: false
+
+v93:
+  <<: *defaults
+  version: V93
+  description: "M5+实时tick反弹20%确认(5min窗口)"
+  bar_period_min: 5
+  require_double_touch: false
+  bounce_pct: 0.20
+  timeout_min: 5
+  max_entry_offset_r: 0.5
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: false
+  time_exit_bars: 80
+  boost_in_1h_ob: 1.0
+  ds_weight: false
+  consolidate_ob: false
+
+v94aa:
+  <<: *defaults
+  version: V94aa
+  description: "M5+tick确认+1H OB区域2x"
+  bar_period_min: 5
+  require_double_touch: false
+  bounce_pct: 0.30
+  timeout_min: 7
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  boost_in_1h_ob: 2.0
+  adaptive_dtp: false
+  ds_weight: false
+
+v94d:
+  <<: *defaults
+  version: V94d
+  description: "M5+二推不破+1H boost 3x+时间衰减"
+  bar_period_min: 5
+  require_double_touch: true
+  double_touch_window_min: 90
+  bounce_pct: 0.30
+  timeout_min: 90
+  min_ob_spread_mult: 3.0
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  boost_in_1h_ob: 3.0
+  time_exit_bars: 12
+  time_decay_tp: true
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: false
+
+v95a:
+  <<: *defaults
+  version: V95a
+  description: "M1+post30s+二推加仓+DS权重"
+  require_double_touch: false
+  bounce_pct: 0.30
+  timeout_min: 90
+  min_ob_spread_mult: 3.0
+  min_risk_spread_ratio: 5.0
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  boost_in_1h_ob: 3.0
+  ds_weight: true
+  dt_addon_boost: 2.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  time_exit_bars: 12
+  time_decay_tp: true
+
+v95b:
+  <<: *defaults
+  version: V95b
+  description: "M1+限价单回调+post30s+时间衰减"
+  require_double_touch: false
+  bounce_pct: 0.30
+  timeout_min: 90
+  max_entry_offset_r: 1.0
+  min_ob_spread_mult: 3.0
+  min_risk_spread_ratio: 5.0
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  boost_in_1h_ob: 3.0
+  ds_weight: true
+  dt_addon_boost: 2.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: true
+  time_exit_bars: 12
+  time_decay_tp: true
+
+v95d:
+  <<: *defaults
+  version: V95d
+  description: "M1+宽松出场+高位紧保护(极致收益)"
+  require_double_touch: false
+  bounce_pct: 0.40
+  timeout_min: 90
+  max_entry_offset_r: 1.0
+  min_ob_spread_mult: 2.0
+  min_risk_spread_ratio: 3.0
+  min_abs_risk_usd: 0.30
+  consolidate_ob: true
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.05
+  trail_levels:
+    - trigger_r: 0.8
+      lock_r: 0.1
+      lock_mult: 0.0
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.70
+  dtp_trigger_r: 999.0
+  time_exit_bars: 24
+  time_decay_tp: false
 
 v94a:
   <<: *defaults
@@ -226,6 +529,90 @@ v97b:
   enable_state_filter: true
   enable_scoring: true
   min_score: 4
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# === 第九轮: 修复止盈失效 ===
+
+# AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
+exp_af_bigob:
+  <<: *defaults
+  version: ExpAF-BigOB
+  description: "大OB4x+正常SL: R机制恢复正常"
+  require_double_touch: false
+  min_ob_spread_mult: 4.0
+  sl_buffer_atr: 0.10
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  max_entry_offset_r: 0.8
+  max_concurrent: 2
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+
+# AG: 大OB + BE降到0.2R (宽SL下更容易触发)
+exp_ag_lowbe:
+  <<: *defaults
+  version: ExpAG-LowBE
+  description: "exp_v+BE0.2R: 宽SL下降低BE门槛"
+  require_double_touch: false
+  min_ob_spread_mult: 4.0
+  sl_buffer_atr: 0.25
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.1
+  max_entry_offset_r: 0.8
+  max_concurrent: 2
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+
+# AH: 大OB + DTP降到1.0R (宽SL下1R=5pt已不错)
+exp_ah_lowdtp:
+  <<: *defaults
+  version: ExpAH-LowDTP
+  description: "exp_v+DTP1.0R: 宽SL下更早止盈"
+  require_double_touch: false
+  min_ob_spread_mult: 4.0
+  sl_buffer_atr: 0.25
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  max_entry_offset_r: 0.8
+  max_concurrent: 2
+  bounce_pct: 0.40
+  dtp_trigger_r: 1.0
+  dtp_retrace: 0.30
+  boost_in_1h_ob: 3.0
+
+# AI: AF + v98四维 (大OB+正常SL+势态评分)
+exp_ai_full:
+  <<: *defaults
+  version: ExpAI-Full
+  description: "大OB+正常SL+势态评分+动能衰减"
+  require_double_touch: false
+  min_ob_spread_mult: 4.0
+  sl_buffer_atr: 0.10
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  max_entry_offset_r: 0.8
+  max_concurrent: 2
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
   enable_decay_exit: true
   decay_min_r: 1.0
   decay_bars: 3
