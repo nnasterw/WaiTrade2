@@ -1,5 +1,5 @@
-; V97a — v95c + BE lock 0.20R (盈亏比+13%, 利润+75%)
-InpBouncePct=0.3
+; V97a — v95c + BElock0.20R + bounce40% + DTP retrace 20%
+InpBouncePct=0.4
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
 InpRequireDoubleTch=false
@@ -12,7 +12,7 @@ InpSLBufferATR=0.1
 InpBreakevenR=0.3
 InpBreakevenLockR=0.2
 InpDTPTriggerR=2.0
-InpDTPRetrace=0.25
+InpDTPRetrace=0.2
 InpAdaptiveDTP=true
 InpTimeExitBars=999
 InpTimeDecayTP=false
@@ -25,6 +25,7 @@ InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
 InpVersion=V97a
+InpSpreadFloor=0.0
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.2
 InpTrail2TriggerR=2.5

@@ -1,5 +1,5 @@
-; ExpBE020 — v95c + BE lock 0.20R
-InpBouncePct=0.3
+; ExpN-Risk — v97a+并发3+cooldown3: 减少集中爆亏
+InpBouncePct=0.4
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
 InpRequireDoubleTch=false
@@ -17,14 +17,14 @@ InpAdaptiveDTP=true
 InpTimeExitBars=999
 InpTimeDecayTP=false
 InpRiskPercent=2.0
-InpMaxConcurrent=5
-InpCooldownBars=0
+InpMaxConcurrent=3
+InpCooldownBars=3
 InpBoostIn1HOB=1.0
 InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=ExpBE020
+InpVersion=ExpN-Risk
 InpSpreadFloor=0.0
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.2

@@ -251,3 +251,14 @@ def test_strategy_to_set_comment_line():
     content = strategy_to_set('v96b', cfg)
     assert content.startswith('; V96b')
     assert 'M1+二推' in content
+
+
+def test_spread_floor_in_flat_map():
+    assert 'spread_floor' in FLAT_MAP
+    assert FLAT_MAP['spread_floor'] == 'InpSpreadFloor'
+
+
+def test_strategy_to_set_spread_floor():
+    cfg = {'version': 'test', 'spread_floor': 0.30}
+    content = strategy_to_set('test', cfg)
+    assert 'InpSpreadFloor=0.3' in content

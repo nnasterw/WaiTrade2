@@ -112,8 +112,21 @@ void ExecuteSignal(const TradeSignal &sig)
 
     if(!OrderSend(request, result))
     {
-        Print("开仓失败: ", result.comment, " retcode=", result.retcode);
-        return;
+        if(result.retcode == TRADE_RETCODE_REQUOTE)
+        {
+            request.price = sig.direction > 0 ? SymbolInfoDouble(_Symbol, SYMBOL_ASK)
+                                              : SymbolInfoDouble(_Symbol, SYMBOL_BID);
+            if(!OrderSend(request, result))
+            {
+                Print("开仓失败(重试): ", result.comment, " retcode=", result.retcode);
+                return;
+            }
+        }
+        else
+        {
+            Print("开仓失败: ", result.comment, " retcode=", result.retcode);
+            return;
+        }
     }
 
     if(result.retcode == TRADE_RETCODE_DONE)

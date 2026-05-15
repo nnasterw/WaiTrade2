@@ -25,6 +25,7 @@ InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
 InpVersion=ExpF-MidTrail
+InpSpreadFloor=0.0
 InpTrail1TriggerR=0.5
 InpTrail1LockR=0.25
 InpTrail2TriggerR=1.0

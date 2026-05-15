@@ -90,6 +90,11 @@ Report=C:\\bt\\reports\\{report_name}
     ini_path = os.path.join(INI_DIR, 'backtest.ini')
     with open(ini_path, 'w', encoding='utf-8') as f:
         f.write(ini_content)
+
+    mt5_config_ini = os.path.join(MT5_MAIN, 'config', 'backtest.ini')
+    with open(mt5_config_ini, 'w', encoding='utf-8') as f:
+        f.write(ini_content)
+
     print(f'  INI 文件已写入: {ini_path}')
     return ini_path
 
@@ -101,11 +106,47 @@ def kill_mt5():
     time.sleep(3)
 
 
+def clear_tester_cache():
+    """清空Tester缓存并更新terminal.ini中的日期"""
+    import shutil
+    cache_dir = Path(MT5_MAIN) / 'Tester' / 'cache'
+    if cache_dir.exists():
+        shutil.rmtree(cache_dir)
+        cache_dir.mkdir()
+
+
+def patch_terminal_ini_dates(date_from_str, date_to_str):
+    """覆盖terminal.ini中[Tester]段的DateFrom/DateTo(Unix时间戳)
+    MT5忽略backtest.ini的日期，只读terminal.ini的缓存值。
+    """
+    from calendar import timegm
+    import re as re_mod
+
+    d_from = datetime.strptime(date_from_str, '%Y.%m.%d')
+    d_to = datetime.strptime(date_to_str, '%Y.%m.%d')
+    ts_from = int(timegm(d_from.timetuple()))
+    ts_to = int(timegm(d_to.timetuple()))
+
+    ini_path = Path(MT5_MAIN) / 'config' / 'terminal.ini'
+    if not ini_path.exists():
+        return
+
+    content = ini_path.read_bytes().decode('utf-16-le', errors='replace')
+
+    content = re_mod.sub(r'(DateFrom=)\d+', f'\\g<1>{ts_from}', content)
+    content = re_mod.sub(r'(DateTo=)\d+', f'\\g<1>{ts_to}', content)
+    content = re_mod.sub(r'(DateRange=)\d+', '\\g<1>3', content)
+
+    ini_path.write_bytes(content.encode('utf-16-le'))
+    print(f'  已更新terminal.ini日期: {date_from_str}~{date_to_str}')
+
+
 def run_mt5(timeout_sec=300):
     env = os.environ.copy()
     env['WINEPREFIX'] = WINEPREFIX
 
     kill_mt5()
+    clear_tester_cache()
 
     cmd = [
         WINE,
@@ -166,6 +207,7 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
     for i, symbol in enumerate(symbols, 1):
         print(f'\n[{i}/{len(symbols)}] 回测 {symbol}')
         generate_ini(strategy_name, symbol, date_from, date_to, config)
+        patch_terminal_ini_dates(date_from, date_to)
         success = run_mt5(timeout_sec=timeout)
 
         if success:

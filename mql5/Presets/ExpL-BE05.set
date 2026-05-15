@@ -1,5 +1,5 @@
-; ExpBE020 — v95c + BE lock 0.20R
-InpBouncePct=0.3
+; ExpL-BE05 — v97a+BE trigger 0.5R: 需更强确认才保本
+InpBouncePct=0.4
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
 InpRequireDoubleTch=false
@@ -9,7 +9,7 @@ InpMinRiskSpreadRatio=3.0
 InpMinAbsRiskUSD=0.0
 InpConsolidateOB=true
 InpSLBufferATR=0.1
-InpBreakevenR=0.3
+InpBreakevenR=0.5
 InpBreakevenLockR=0.2
 InpDTPTriggerR=2.0
 InpDTPRetrace=0.25
@@ -24,7 +24,7 @@ InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=ExpBE020
+InpVersion=ExpL-BE05
 InpSpreadFloor=0.0
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.2

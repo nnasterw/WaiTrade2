@@ -31,26 +31,35 @@ double GetSpread(string symbol)
    return (double)SymbolInfoInteger(symbol, SYMBOL_SPREAD) * SymbolInfoDouble(symbol, SYMBOL_POINT);
 }
 
-bool ModifySL(ulong ticket, double new_sl)
+bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
 {
-   if(!PositionSelectByTicket(ticket)) return false;
+   for(int attempt = 0; attempt <= max_retries; attempt++)
+   {
+      if(!PositionSelectByTicket(ticket)) return false;
 
-   double tp = PositionGetDouble(POSITION_TP);
-   string symbol = PositionGetString(POSITION_SYMBOL);
-   int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
-   new_sl = NormalizeDouble(new_sl, digits);
+      double tp = PositionGetDouble(POSITION_TP);
+      string symbol = PositionGetString(POSITION_SYMBOL);
+      int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
+      new_sl = NormalizeDouble(new_sl, digits);
 
-   MqlTradeRequest request = {};
-   MqlTradeResult result = {};
-   request.action = TRADE_ACTION_SLTP;
-   request.position = ticket;
-   request.symbol = symbol;
-   request.sl = new_sl;
-   request.tp = tp;
+      MqlTradeRequest request = {};
+      MqlTradeResult result = {};
+      request.action = TRADE_ACTION_SLTP;
+      request.position = ticket;
+      request.symbol = symbol;
+      request.sl = new_sl;
+      request.tp = tp;
 
-   if(!OrderSend(request, result))
-      return false;
-   return (result.retcode == TRADE_RETCODE_DONE || result.retcode == TRADE_RETCODE_PLACED);
+      if(OrderSend(request, result))
+      {
+         if(result.retcode == TRADE_RETCODE_DONE || result.retcode == TRADE_RETCODE_PLACED)
+            return true;
+      }
+
+      if(attempt < max_retries)
+         Sleep(100);
+   }
+   return false;
 }
 
 bool ClosePosition(ulong ticket)

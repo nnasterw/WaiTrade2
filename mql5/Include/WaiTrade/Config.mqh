@@ -15,6 +15,7 @@ input double InpMinOBSpreadMult  = 2.0;      // 最小OB宽度(点差倍数)
 input double InpMinRiskSpreadRatio = 3.0;    // 最小风险/点差比
 input double InpMinAbsRiskUSD    = 0.0;      // 最小绝对风险(USD)
 input bool   InpConsolidateOB    = true;     // 合并重叠OB
+input double InpSpreadFloor      = 0.0;      // 最小spread下限(0=使用实时spread)
 
 // ── Impulse参数 ──────────────────────────────────────────────────────────
 input double InpImpulseATRMult   = 1.5;      // Impulse判定阈值(ATR倍数)

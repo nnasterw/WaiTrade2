@@ -25,6 +25,7 @@ InpDTAddonBoost=0.0
 InpBarTF=5
 InpBars=5000
 InpVersion=V94a
+InpSpreadFloor=0.0
 InpTrail1TriggerR=1.5
 InpTrail1LockR=0.5
 InpTrail2TriggerR=3.0

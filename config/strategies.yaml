@@ -12,6 +12,7 @@ defaults: &defaults
   min_risk_spread_ratio: 3.0
   min_abs_risk_usd: 0.0
   consolidate_ob: true
+  spread_floor: 0.0
 
   # === 止损 ===
   sl_buffer_atr: 0.10
@@ -184,17 +185,235 @@ exp_belock_025:
   dtp_retrace: 0.25
   boost_in_1h_ob: 1.0
 
-# v97a: 最终版 — BE lock 0.20R (网格搜索最优)
+# v97a: 最终版 — BE lock 0.20R + bounce 40% + DTP retrace 20%
 v97a:
   <<: *defaults
   version: V97a
-  description: "v95c + BE lock 0.20R (盈亏比+13%, 利润+75%)"
+  description: "v95c + BElock0.20R + bounce40% + DTP retrace 20%"
   require_double_touch: false
   breakeven_r: 0.3
   breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ── 第五轮续: offset网格搜索 ──
+
+exp_off05:
+  <<: *defaults
+  version: ExpOff05
+  description: "v97a+offset0.5R"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+exp_off07:
+  <<: *defaults
+  version: ExpOff07
+  description: "v97a+offset0.7R"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.7
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+exp_off10:
+  <<: *defaults
+  version: ExpOff10
+  description: "v97a+offset1.0R"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 1.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ── 第五轮实验 (入场位+SL缓冲优化) ──
+
+# ExpP: 收紧offset到0.3R (强制入场接近OB mid, 提高R:R)
+exp_p_offset03:
+  <<: *defaults
+  version: ExpP-Off03
+  description: "v97a+offset0.3R: 入场更接近OB mid"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.3
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ExpQ: ATR buffer 0.10→0.15 (更宽SL, 避免流动性清扫)
+exp_q_buf15:
+  <<: *defaults
+  version: ExpQ-Buf15
+  description: "v97a+SL buffer 0.15ATR: 避免liquidity sweep"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  sl_buffer_atr: 0.15
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ExpR: ATR buffer 0.20 (激进宽SL)
+exp_r_buf20:
+  <<: *defaults
+  version: ExpR-Buf20
+  description: "v97a+SL buffer 0.20ATR: 更宽SL防扫"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  sl_buffer_atr: 0.20
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ExpS: offset 0.3R + buffer 0.15ATR 组合
+exp_s_combined:
+  <<: *defaults
+  version: ExpS-Comb
+  description: "v97a+offset0.3R+buffer0.15ATR: 近mid入场+宽SL"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.3
+  sl_buffer_atr: 0.15
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ── 第四轮实验 (基于90天逐笔深度分析) ──
+
+# ExpL: BE trigger 0.3R→0.5R, lock保持0.2R (更确定趋势才保本)
+exp_l_be05:
+  <<: *defaults
+  version: ExpL-BE05
+  description: "v97a+BE trigger 0.5R: 需更强确认才保本"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
   dtp_trigger_r: 2.0
   dtp_retrace: 0.25
   boost_in_1h_ob: 1.0
+
+# ExpM: DTP retrace 0.25→0.20 (更宽松，让大单多跑)
+exp_m_dtp20:
+  <<: *defaults
+  version: ExpM-DTP20
+  description: "v97a+DTP retrace 20%: 趋势单多跑一段"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ExpN: 限制并发3 + cooldown 3bars (减少高乘数集中亏损)
+exp_n_risk:
+  <<: *defaults
+  version: ExpN-Risk
+  description: "v97a+并发3+cooldown3: 减少集中爆亏"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_concurrent: 3
+  cooldown_bars: 3
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  boost_in_1h_ob: 1.0
+
+# ExpO: 降boost (3.0→1.5) 直接限制高乘数仓位
+exp_o_lowboost:
+  <<: *defaults
+  version: ExpO-LowBst
+  description: "v97a+boost1.5: 减少63%的高手数亏损"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  boost_in_1h_ob: 1.5
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+
+# v97b候选: BE0.5R + DTP retrace 20% + 并发3
+v97b:
+  <<: *defaults
+  version: V97b
+  description: "BE0.5R@lock0.2R + DTP0.20retrace + 并发3 + bounce40%"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  max_concurrent: 3
+  cooldown_bars: 3
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# ── 第三轮实验 (基于90天亏损单分析) ──
+
+# 实验H: 时段过滤 — 避开高危时段(07:00, 17:00-18:00)
+# 注: 当前EA不支持时段过滤input, 暂用cooldown模拟
+# 真正的时段过滤需要修改EA代码
+
+# 实验I: 限制仓位乘数上限 (当前无上限, 加max_pos_mult=5)
+# 注: 当前EA不支持max_pos_mult input
+# 改用降低boost来间接限制: boost 3.0→1.5
+exp_i_lowboost:
+  <<: *defaults
+  version: ExpI-LowBoost
+  description: "v97a+boost降低1.5: 减少高乘数大亏"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  boost_in_1h_ob: 1.5
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+
+# 实验J: 提高入场门槛 — bounce 30%→40%, 减少低质量OB
+exp_j_bounce40:
+  <<: *defaults
+  version: ExpJ-Bounce40
+  description: "v97a+bounce40%: 过滤弱OB减少全亏单"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  boost_in_1h_ob: 1.0
+
+# 实验K: v97a + 双重过滤(bounce40% + 低boost)
+exp_k_combined:
+  <<: *defaults
+  version: ExpK-Comb
+  description: "v97a+bounce40%+boost1.5: 质量+风控双收紧"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  boost_in_1h_ob: 1.5
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
 
 # === 早期版本 ===
 
@@ -341,7 +560,7 @@ backtest_defaults:
   deposit: 200
   currency: USD
   leverage: 2000
-  model: 0          # 0=Every tick, 4=Real ticks
+  model: 4          # 0=Every tick, 4=Real ticks (Live对齐)
   period: M1
   visual: 0
   optimization: 0

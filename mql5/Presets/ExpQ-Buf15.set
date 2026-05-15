@@ -1,5 +1,5 @@
-; ExpBE020 — v95c + BE lock 0.20R
-InpBouncePct=0.3
+; ExpQ-Buf15 — v97a+SL buffer 0.15ATR: 避免liquidity sweep
+InpBouncePct=0.4
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
 InpRequireDoubleTch=false
@@ -8,11 +8,11 @@ InpMinOBSpreadMult=2.0
 InpMinRiskSpreadRatio=3.0
 InpMinAbsRiskUSD=0.0
 InpConsolidateOB=true
-InpSLBufferATR=0.1
+InpSLBufferATR=0.15
 InpBreakevenR=0.3
 InpBreakevenLockR=0.2
 InpDTPTriggerR=2.0
-InpDTPRetrace=0.25
+InpDTPRetrace=0.2
 InpAdaptiveDTP=true
 InpTimeExitBars=999
 InpTimeDecayTP=false
@@ -24,7 +24,7 @@ InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=ExpBE020
+InpVersion=ExpQ-Buf15
 InpSpreadFloor=0.0
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.2

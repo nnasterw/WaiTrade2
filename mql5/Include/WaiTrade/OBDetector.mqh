@@ -263,6 +263,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
 
    string symbol = Symbol();
    double spread = GetSpread(symbol);
+   if(InpSpreadFloor > 0 && spread < InpSpreadFloor)
+      spread = InpSpreadFloor;
    double min_ob_range = spread * InpMinOBSpreadMult;
 
    int scan_start = count - (InpImpulseLookback + 1);

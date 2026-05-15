@@ -44,6 +44,7 @@ FLAT_MAP = {
     "bar_period_min": "InpBarTF",
     "bars": "InpBars",
     "version": "InpVersion",
+    "spread_floor": "InpSpreadFloor",
 }
 
 # trail_levels 映射: (层级索引, 子key) → INP名称

@@ -1,4 +1,4 @@
-; ExpBE020 — v95c + BE lock 0.20R
+; ExpI-LowBoost — v97a+boost降低1.5: 减少高乘数大亏
 InpBouncePct=0.3
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
@@ -19,12 +19,12 @@ InpTimeDecayTP=false
 InpRiskPercent=2.0
 InpMaxConcurrent=5
 InpCooldownBars=0
-InpBoostIn1HOB=1.0
+InpBoostIn1HOB=1.5
 InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=ExpBE020
+InpVersion=ExpI-LowBoost
 InpSpreadFloor=0.0
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.2
