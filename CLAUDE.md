@@ -37,27 +37,18 @@ python scripts/mt5_cli_backtest.py --strategies v95c,v96b --symbol XAUUSDm --day
 python scripts/mt5_backtest_win.py --strategy v96b --symbol XAUUSDm --days 30
 python scripts/mt5_backtest_win.py --strategy v96b --symbols all --days 30
 
-# === Live 交易 (V96b) ===
-# 单品种
-PYTHONUTF8=1 python -u scripts/mt5_demo_trading.py --profile v96b --symbols XAUUSDm --live --loop
-# 12品种（V96b标准品种集）
-PYTHONUTF8=1 python -u scripts/mt5_demo_trading.py --profile v96b \
-  --symbols "XAUUSDm,BTCUSDm,ETHUSDm,AUDUSDm,EURUSDm,GBPUSDm,USDJPYm,USDCHFm,NZDUSDm,USDCADm,GBPJPYm,EURJPYm" \
-  --live --loop
-# 测试连接（不发单）
-PYTHONUTF8=1 python scripts/mt5_demo_trading.py --profile v96b --symbols XAUUSDm --connect-only
-
-# === macOS Wine 实盘管理 ===
-python scripts/mt5_live_runner.py --strategy v96b --symbols XAUUSDm,BTCUSDm
+# === EA Live 部署 (macOS Wine) ===
+python scripts/mt5_live_runner.py --strategy v96b_live --symbols XAUUSDm,BTCUSDm
+python scripts/mt5_live_runner.py --strategy v96b_live --symbols all
 python scripts/mt5_live_runner.py --status
 python scripts/mt5_live_runner.py --stop
 
-# === Python 模拟 ===
-BT_STRATEGIES=v95c python research/tick_backtest_v2_parallel.py
-python research/backtest_unified.py
+# === 测试 ===
+python -m pytest tests/ -v                  # 全部测试
+python -m pytest tests/test_mt5_common.py   # 单个文件
 ```
 
-依赖：`pip install pyyaml`
+依赖：`pip install pyyaml pytest`
 
 ## 架构
 
@@ -67,7 +58,7 @@ python research/backtest_unified.py
 config/strategies.yaml  →  yaml_to_set.py  →  .set preset 文件
                         →  mt5_cli_backtest.py  →  .ini + .set → Wine terminal64.exe
                         →  mt5_backtest_win.py  →  .ini + .set → Windows terminal64.exe
-                        →  mt5_live_runner.py   →  Wine Python 脚本 → MetaTrader5包
+                        →  mt5_live_runner.py   →  .chr profile + EA → Wine MT5 终端
 mql5/Experts/*.mq5      →  mt5_compile.py       →  metaeditor64.exe → .ex5
 ```
 
@@ -77,39 +68,34 @@ mql5/Experts/*.mq5      →  mt5_compile.py       →  metaeditor64.exe → .ex5
 WaiTrade_OB.mq5        OnTick 六步编排: ATR→OB检测→OB更新→信号扫描→执行入场→持仓管理
   ├── Config.mqh       41个 input 参数，完全参数化，无硬编码策略逻辑
   ├── Types.mqh        核心结构: OBZone, TradeSignal, PosTrack, EAState
-  ├── Utils.mqh        ATR计算、手数计算、R倍数转换、持仓操作
-  ├── OBDetector.mqh   OB检测引擎: impulse判定→强度评分→供需权重→触碰/过期/合并
-  ├── SignalEngine.mqh 入场信号: 触碰→过滤→仓位乘数→手数→保证金检查
+  ├── Utils.mqh        转发头文件，包含以下三个子模块:
+  │   ├── MathUtils.mqh   纯计算: CalcATR, PriceToR, RToPrice, GetWorkTF
+  │   ├── TradeOps.mqh    MT5交易: CalcLotSize, GetSpread, ModifySL, ClosePosition, CountPositions
+  │   └── BarTracker.mqh  新bar检测: IsNewBar
+  ├── OBDetector.mqh   OB检测+生命周期: 检测/评分/合并/状态更新/MarkZoneUsed/Update1HAlignment
+  ├── SignalEngine.mqh 入场信号: 链式过滤器(IsZoneTouched→DoubleTouchFilter→OffsetGuard→SpreadRatio→MinRisk→CalcEntryLot)
   └── PositionManager.mqh 持仓管理: 保本→三级追踪→DTP动态止盈→时间退出
 ```
 
 **通用化设计原则**: EA代码中零硬编码策略逻辑。所有行为差异（从v72a固定手数到v96b全增强）完全由 `.set` 文件中的41个参数决定。新增参数时需同步更新：Config.mqh → yaml_to_set.py FLAT_MAP → strategies.yaml defaults。
 
-### Python 统一策略模块
+### Python 脚本模块
 
 ```
-src/strategy/                ← 统一策略模块 (live+回测共用)
-  ob_signals.py                OB信号生成核心 V7.0-V8.4 (generate_ob_signals_v84)
-  engine.py                    策略定义/加载/信号生成/trailing
-  data_provider.py             数据源接口 (BacktestDataProvider/LiveDataProvider)
-  entry_engine.py              入场状态机 (bounce→confirm→offset guard)
-  exit_engine.py               出场逻辑 (SL/trailing/DTP/time_tp)
-  position_sizer.py            仓位计算 (min_risk/1H boost/ds加权)
-  trade_recorder.py            订单记录 (Backtest内存/Live CSV)
-  runner.py                    统一主循环 (逐tick/快速两种模式)
 scripts/
-  mt5_demo_trading.py          Live执行 (V7+ profiles)
-  strategy_v7_v8.py            → shim, re-exports from src/strategy/ob_signals.py
-research/
-  backtest_unified.py          统一回测入口
-  tick_backtest_v2_parallel.py 旧回测 (向量化, 仍可用)
-  preprocess_ticks.py          tick预处理
-strategy_versions/             各版本规格文档
+  mt5_common.py          共享模块: 配置加载/策略解析/日志解析/统计计算/报告格式化
+  yaml_to_set.py         YAML→.set转换 + NON_STRATEGY_KEYS/FLAT_MAP/TRAIL_MAP 定义
+  mt5_compile.py         EA编译: 源码同步→metaeditor64编译→Tester同步
+  mt5_cli_backtest.py    macOS Wine 回测 (引用 mt5_common)
+  mt5_backtest_win.py    Windows 原生回测 (引用 mt5_common)
+  mt5_live_runner.py     EA Live 部署: 生成.chr profile→编译EA→启动Wine MT5终端
+tests/
+  test_mt5_common.py     纯函数测试 (27 cases): 日志解析/统计/策略解析/报告
+strategy_versions/       各版本规格文档 (v6.6~v9.6b)
 ```
 
-**当前Live: V96b** — M1+二推不破+BE0.2R+DTP1.5R+3xBoost, 12品种
+**当前Live: V96b-Live** — V96b参数调优版, EA直接在Wine MT5中运行
 **MT5 Strategy Tester回测** — terminal64.exe /config: 启动, .set文件控制EA参数
-**统一Runner回测** — 逐tick模拟, 1s出场采样, 和live完全相同执行路径
 
 ### 策略配置 (config/strategies.yaml)
 
@@ -185,9 +171,9 @@ data/cache, data/preprocessed, *.npz, *.parquet → .gitignore
 
 新增策略只需修改 `config/strategies.yaml`:
 ```bash
-BT_STRATEGIES=v95c python research/tick_backtest_v2_parallel.py  # 旧回测
-BT_STRATEGY=v95c python research/backtest_unified.py              # 新回测
-python scripts/mt5_demo_trading.py --profile v95c --loop          # Live
+python scripts/yaml_to_set.py --all                                    # 生成所有.set
+python scripts/mt5_cli_backtest.py --strategy v96b_live --symbols all --days 30  # 回测
+python scripts/mt5_live_runner.py --strategy v96b_live --symbols all    # Live部署
 ```
 
 ## 历史教训 (记录防重犯)
