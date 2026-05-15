@@ -48,31 +48,30 @@ MARKET_STATE DetectMarketState(string symbol, double &target_price)
 
     SwingPoint highs[];
     SwingPoint lows[];
-    ArrayResize(highs, 0);
-    ArrayResize(lows, 0);
+    ArrayResize(highs, 32);
+    ArrayResize(lows, 32);
+    int nh = 0, nl = 0;
 
     for(int i = InpSwingStrength; i < count - InpSwingStrength; i++)
     {
         if(IsSwingHigh(rates, i, InpSwingStrength, count))
         {
-            int sz = ArraySize(highs);
-            ArrayResize(highs, sz + 1);
-            highs[sz].price     = rates[i].high;
-            highs[sz].bar_index = i;
-            highs[sz].type      = 1;
+            if(nh >= ArraySize(highs)) ArrayResize(highs, nh * 2);
+            highs[nh].price     = rates[i].high;
+            highs[nh].bar_index = i;
+            highs[nh].type      = 1;
+            nh++;
         }
         if(IsSwingLow(rates, i, InpSwingStrength, count))
         {
-            int sz = ArraySize(lows);
-            ArrayResize(lows, sz + 1);
-            lows[sz].price     = rates[i].low;
-            lows[sz].bar_index = i;
-            lows[sz].type      = -1;
+            if(nl >= ArraySize(lows)) ArrayResize(lows, nl * 2);
+            lows[nl].price     = rates[i].low;
+            lows[nl].bar_index = i;
+            lows[nl].type      = -1;
+            nl++;
         }
     }
 
-    int nh = ArraySize(highs);
-    int nl = ArraySize(lows);
     if(nh < 2 || nl < 2)
     {
         target_price = 0;

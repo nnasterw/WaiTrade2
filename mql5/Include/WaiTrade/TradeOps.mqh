@@ -33,14 +33,22 @@ double GetSpread(string symbol)
 
 bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
 {
+   if(!PositionSelectByTicket(ticket)) return false;
+
+   double current_sl = PositionGetDouble(POSITION_SL);
+   string symbol = PositionGetString(POSITION_SYMBOL);
+   int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
+   new_sl = NormalizeDouble(new_sl, digits);
+
+   // 跳过无效修改: 新SL等于当前SL
+   if(MathAbs(new_sl - current_sl) < SymbolInfoDouble(symbol, SYMBOL_POINT))
+      return true;
+
    for(int attempt = 0; attempt <= max_retries; attempt++)
    {
       if(!PositionSelectByTicket(ticket)) return false;
 
       double tp = PositionGetDouble(POSITION_TP);
-      string symbol = PositionGetString(POSITION_SYMBOL);
-      int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
-      new_sl = NormalizeDouble(new_sl, digits);
 
       MqlTradeRequest request = {};
       MqlTradeResult result = {};

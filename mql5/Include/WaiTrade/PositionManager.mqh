@@ -178,17 +178,25 @@ void CheckDecay(PosTrack &track, const EAState &state)
 {
     if(!InpEnableDecayExit) return;
 
+    // 缓存 M1 rates：同一 bar 内只 CopyRates 一次（bar级模式，tick级检查无意义）
+    static int    s_decay_bar = 0;
+    static MqlRates s_m1_rates[];
+    static int    s_m1_count = 0;
+
+    if(state.bar_count != s_decay_bar)
+    {
+        s_decay_bar = state.bar_count;
+        s_m1_count = CopyRates(_Symbol, PERIOD_M1, 0, InpDecayBars + 5, s_m1_rates);
+    }
+    if(s_m1_count < InpDecayBars + 2) return;
+
     if(!PositionSelectByTicket(track.ticket)) return;
 
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
     double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
     if(current_r < InpDecayMinR) return;
 
-    MqlRates m1_rates[];
-    int m1_count = CopyRates(_Symbol, PERIOD_M1, 0, InpDecayBars + 5, m1_rates);
-    if(m1_count < InpDecayBars + 2) return;
-
-    if(CheckMomentumDecay(_Symbol, track.direction, m1_rates, m1_count))
+    if(CheckMomentumDecay(_Symbol, track.direction, s_m1_rates, s_m1_count))
         ClosePosition(track.ticket);
 }
 
