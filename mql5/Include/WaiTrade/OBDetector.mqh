@@ -207,6 +207,21 @@ int Detect1HOBDirection(string symbol)
    return 0;
 }
 
+void MarkZoneUsed(OBZone &zones[], int index)
+{
+    if(index >= 0 && index < MAX_OB_ZONES)
+        zones[index].used = true;
+}
+
+void Update1HAlignment(OBZone &zones[], int zone_count, int h1_direction)
+{
+    for(int i = 0; i < zone_count; i++)
+    {
+        if(!zones[i].expired && !zones[i].used)
+            zones[i].is_1h_aligned = (zones[i].direction == h1_direction);
+    }
+}
+
 void CompactZones(OBZone &zones[], int &zone_count)
 {
    int write = 0;

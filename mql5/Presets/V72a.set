@@ -1,4 +1,4 @@
-; V72a — M15+单推+固定TP3R
+; V72a — M15+单推+DTP3.0R+无追踪
 InpBouncePct=0.2
 InpTimeoutMin=480
 InpMaxEntryOffsetR=1.5
@@ -11,9 +11,9 @@ InpConsolidateOB=false
 InpSLBufferATR=0.1
 InpBreakevenR=0.0
 InpBreakevenLockR=0.0
-InpDTPTriggerR=0.0
+InpDTPTriggerR=3.0
 InpDTPRetrace=0.3
-InpAdaptiveDTP=true
+InpAdaptiveDTP=false
 InpTimeExitBars=100
 InpTimeDecayTP=false
 InpRiskPercent=1.0

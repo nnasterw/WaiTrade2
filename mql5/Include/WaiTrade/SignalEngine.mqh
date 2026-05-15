@@ -5,6 +5,69 @@
 #include "Config.mqh"
 #include "Utils.mqh"
 
+bool IsZoneTouched(const OBZone &zone, double bid, double ask)
+{
+   if(zone.direction == OB_BUY)
+      return (bid <= zone.high);
+   else
+      return (ask >= zone.low);
+}
+
+bool PassDoubleTouchFilter(const OBZone &zone)
+{
+   if(InpRequireDoubleTch)
+   {
+      if(zone.touch_count < 2)
+         return false;
+      if(zone.last_touch - zone.first_touch > InpDoubleTchWindowMin * 60)
+         return false;
+   }
+   else
+   {
+      if(zone.touch_count < 1)
+         return false;
+   }
+   return true;
+}
+
+bool PassOffsetGuard(double entry_price, double risk_price, int direction, double zone_mid, double max_offset_r)
+{
+   double offset = MathAbs(entry_price - zone_mid) / risk_price;
+   return (offset <= max_offset_r);
+}
+
+bool PassSpreadRatio(double risk_distance, double spread)
+{
+   if(spread > 0 && risk_distance / spread < InpMinRiskSpreadRatio)
+      return false;
+   return true;
+}
+
+bool PassMinRisk(double final_lot, double risk_price, string symbol)
+{
+   if(InpMinAbsRiskUSD <= 0)
+      return true;
+
+   double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+   double tick_value = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
+
+   if(point <= 0 || tick_value <= 0)
+      return true;
+
+   double risk_usd = final_lot * (risk_price / point) * tick_value;
+   return (risk_usd >= InpMinAbsRiskUSD);
+}
+
+double CalcEntryLot(string symbol, double risk_pct, double risk_price, double pos_mult)
+{
+   double base_lot;
+   if(InpFixedLotSize > 0)
+      base_lot = InpFixedLotSize;
+   else
+      base_lot = CalcLotSize(symbol, risk_pct, risk_price);
+   return base_lot * pos_mult;
+}
+
 int ScanSignals(string symbol, const OBZone &zones[], int zone_count,
                 const EAState &state, TradeSignal &signals[], int max_signals)
 {
@@ -53,29 +116,11 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
    double spread = GetSpread(symbol);
 
-   if(zone.direction == OB_BUY)
-   {
-      if(bid > zone.high)
-         return false;
-   }
-   else
-   {
-      if(ask < zone.low)
-         return false;
-   }
+   if(!IsZoneTouched(zone, bid, ask))
+      return false;
 
-   if(InpRequireDoubleTch)
-   {
-      if(zone.touch_count < 2)
-         return false;
-      if(zone.last_touch - zone.first_touch > InpDoubleTchWindowMin * 60)
-         return false;
-   }
-   else
-   {
-      if(zone.touch_count < 1)
-         return false;
-   }
+   if(!PassDoubleTouchFilter(zone))
+      return false;
 
    double sl = 0;
    if(zone.direction == OB_BUY)
@@ -89,30 +134,17 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(risk_price <= 0)
       return false;
 
-   double offset = MathAbs(entry - zone.mid) / risk_price;
-   if(offset > InpMaxEntryOffsetR)
+   if(!PassOffsetGuard(entry, risk_price, zone.direction, zone.mid, InpMaxEntryOffsetR))
       return false;
 
-   if(spread > 0 && risk_price / spread < InpMinRiskSpreadRatio)
+   if(!PassSpreadRatio(risk_price, spread))
       return false;
 
    double pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
-   double base_lot;
-   if(InpFixedLotSize > 0)
-      base_lot = InpFixedLotSize;
-   else
-      base_lot = CalcLotSize(symbol, InpRiskPercent, risk_price);
-   double final_lot = base_lot * pos_mult;
+   double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
 
-   double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
-   double tick_value = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
-
-   if(point > 0 && tick_value > 0 && InpMinAbsRiskUSD > 0)
-   {
-      double risk_usd = final_lot * (risk_price / point) * tick_value;
-      if(risk_usd < InpMinAbsRiskUSD)
-         return false;
-   }
+   if(!PassMinRisk(final_lot, risk_price, symbol))
+      return false;
 
    double margin_required = 0;
    ENUM_ORDER_TYPE order_type = (zone.direction == OB_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;

@@ -1,4 +1,4 @@
-; V78b — M5+单推+1%+BE0.5R
+; V78b — M5+单推+1%+BE0.5R+DTP2.0R
 InpBouncePct=0.25
 InpTimeoutMin=180
 InpMaxEntryOffsetR=1.5
@@ -11,9 +11,9 @@ InpConsolidateOB=true
 InpSLBufferATR=0.1
 InpBreakevenR=0.5
 InpBreakevenLockR=0.1
-InpDTPTriggerR=0.0
+InpDTPTriggerR=2.0
 InpDTPRetrace=0.3
-InpAdaptiveDTP=true
+InpAdaptiveDTP=false
 InpTimeExitBars=200
 InpTimeDecayTP=false
 InpRiskPercent=1.0

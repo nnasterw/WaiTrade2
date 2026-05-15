@@ -19,7 +19,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from yaml_to_set import FLAT_MAP, TRAIL_MAP, format_value
+from yaml_to_set import FLAT_MAP, TRAIL_MAP, format_value, NON_STRATEGY_KEYS
 
 # ── Wine / MT5 路径 ────────────────────────────────────────────────────────
 WINE = '/Applications/MetaTrader 5.app/Contents/SharedSupport/wine/bin/wine'
@@ -46,9 +46,8 @@ def load_config() -> dict:
 
 
 def get_strategy(config: dict, name: str) -> dict:
-    non_strategy_keys = {'defaults', 'symbols', 'backtest_defaults', 'mt5_account'}
-    if name not in config or name in non_strategy_keys:
-        available = [k for k in config if k not in non_strategy_keys and isinstance(config[k], dict)]
+    if name not in config or name in NON_STRATEGY_KEYS:
+        available = [k for k in config if k not in NON_STRATEGY_KEYS and isinstance(config[k], dict)]
         print(f'错误: 策略 "{name}" 不存在。可用: {", ".join(available)}')
         sys.exit(1)
     return config[name]

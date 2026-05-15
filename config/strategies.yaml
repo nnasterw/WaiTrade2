@@ -100,12 +100,85 @@ v94a:
   dtp_trigger_r: 2.0
   max_concurrent: 3
 
+# === 实验组 (基于v95c优化) ===
+
+# 实验A: 放宽保本 (0.3R→1.0R)
+exp_a_be:
+  <<: *defaults
+  version: ExpA-BE
+  description: "v95c+BE1.0R: 放宽保本避免噪声扫出"
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  boost_in_1h_ob: 1.0
+
+# 实验B: 放宽DTP (2.0R→3.0R@35%)
+exp_b_dtp:
+  <<: *defaults
+  version: ExpB-DTP
+  description: "v95c+DTP3.0R@35%: 让利润跑更远"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.1
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.35
+  boost_in_1h_ob: 1.0
+
+# 实验C: 优化追踪 (L1: 1.5R→0.5R)
+exp_c_trail:
+  <<: *defaults
+  version: ExpC-Trail
+  description: "v95c+Trail升级: L1=1.5R→0.5R"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  boost_in_1h_ob: 1.0
+
+# 实验D: 全组合 → v97a候选
+v97a:
+  <<: *defaults
+  version: V97a
+  description: "BE1.0R+DTP3.0R@35%+Trail1.5R→0.5R+过滤收紧"
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.35
+  adaptive_dtp: true
+  min_risk_spread_ratio: 5.0
+  time_exit_bars: 20
+  boost_in_1h_ob: 1.0
+
 # === 早期版本 ===
 
 v72a:
   <<: *defaults
   version: V72a
-  description: "M15+单推+固定TP3R"
+  description: "M15+单推+DTP3.0R+无追踪"
   bar_period_min: 15
   bars: 1000
   timeout_min: 480
@@ -126,7 +199,9 @@ v72a:
     - trigger_r: 0.0
       lock_r: 0.0
       lock_mult: 0.0
-  dtp_trigger_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  adaptive_dtp: false
   boost_in_1h_ob: 1.0
   ds_weight: false
   time_exit_bars: 100
@@ -134,7 +209,7 @@ v72a:
 v78b:
   <<: *defaults
   version: V78b
-  description: "M5+单推+1%+BE0.5R"
+  description: "M5+单推+1%+BE0.5R+DTP2.0R"
   bar_period_min: 5
   bars: 2000
   timeout_min: 180
@@ -154,7 +229,9 @@ v78b:
     - trigger_r: 0.0
       lock_r: 0.0
       lock_mult: 0.0
-  dtp_trigger_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  adaptive_dtp: false
   boost_in_1h_ob: 1.0
   ds_weight: false
   time_exit_bars: 200
@@ -162,7 +239,7 @@ v78b:
 v84b:
   <<: *defaults
   version: V84b
-  description: "M5+单推+1%+BE0.5R+单级追踪"
+  description: "M5+单推+1%+BE0.5R+单级追踪+DTP2.5R"
   bar_period_min: 5
   bars: 2000
   timeout_min: 240
@@ -182,7 +259,9 @@ v84b:
     - trigger_r: 0.0
       lock_r: 0.0
       lock_mult: 0.0
-  dtp_trigger_r: 0.0
+  dtp_trigger_r: 2.5
+  dtp_retrace: 0.30
+  adaptive_dtp: false
   boost_in_1h_ob: 1.0
   ds_weight: false
 

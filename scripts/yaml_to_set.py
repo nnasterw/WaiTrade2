@@ -14,6 +14,8 @@ except ImportError:
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_YAML = SCRIPT_DIR.parent / "config" / "strategies.yaml"
 
+NON_STRATEGY_KEYS = {'defaults', 'symbols', 'backtest_defaults', 'mt5_account'}
+
 # YAML key → .set INP 名称映射
 FLAT_MAP = {
     "bounce_pct": "InpBouncePct",
@@ -130,7 +132,7 @@ def main():
 
     if args.all:
         # 批量模式 — 跳过非策略key
-        non_strategy_keys = {'defaults', 'symbols', 'backtest_defaults', 'mt5_account'}
+        non_strategy_keys = NON_STRATEGY_KEYS
         output_dir = args.output_dir or (SCRIPT_DIR.parent / "mql5" / "Presets")
         count = 0
         for name, cfg in strategies.items():

@@ -65,11 +65,7 @@ void OnTick()
             g_state.atr_1h = CalcATR(rates_h1, h1_count, InpATRPeriod);
 
         int h1_dir = Detect1HOBDirection(symbol);
-        for(int i = 0; i < g_state.ob_count; i++)
-        {
-            if(!g_zones[i].expired && !g_zones[i].used)
-                g_zones[i].is_1h_aligned = (g_zones[i].direction == h1_dir);
-        }
+        Update1HAlignment(g_zones, g_state.ob_count, h1_dir);
     }
 
     // 3. 更新OB状态(每tick)
@@ -132,6 +128,6 @@ void ExecuteSignal(const TradeSignal &sig)
             g_tracks[g_track_count - 1].open_bar = g_state.bar_count;
 
         if(sig.ob_index >= 0 && sig.ob_index < g_state.ob_count)
-            g_zones[sig.ob_index].used = true;
+            MarkZoneUsed(g_zones, sig.ob_index);
     }
 }

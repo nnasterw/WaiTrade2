@@ -3,24 +3,24 @@
 
 import argparse
 import os
-import re
 import subprocess
 import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import yaml
-
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'scripts'))
+
 import yaml_to_set
+from mt5_common import (
+    load_config, resolve_symbols, resolve_strategies,
+    parse_agent_log_content, calc_stats, format_report, RESULTS_DIR,
+)
 
 # ── Windows MT5 路径常量 ──────────────────────────────────────────────
-# MT5 程序路径
 MT5_HOME = Path(os.environ.get('MT5_HOME', r'C:\Program Files\MetaTrader 5'))
 MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
-# MT5 数据目录 (用户 AppData)
 MT5_DATA = Path(os.environ.get(
     'MT5_DATA',
     os.path.expandvars(r'%APPDATA%\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075')
@@ -29,44 +29,11 @@ MT5_TESTER_PROFILES = MT5_DATA / 'MQL5' / 'Profiles' / 'Tester'
 MT5_EXPERTS = MT5_DATA / 'MQL5' / 'Experts'
 MT5_TESTER_DIR = MT5_DATA / 'Tester'
 
-CONFIG_PATH = ROOT / 'config' / 'strategies.yaml'
-RESULTS_DIR = ROOT / 'results' / 'backtest'
-
-# INI 和报告目录
 INI_DIR = MT5_TESTER_DIR
 REPORT_DIR = MT5_TESTER_DIR
 
 
-def load_config():
-    with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f)
-
-
-def resolve_symbols(config, symbol_arg):
-    """解析 --symbol/--symbols 参数，返回品种列表"""
-    if symbol_arg.lower() == 'all':
-        symbols = []
-        for category in config.get('symbols', {}).values():
-            if isinstance(category, list):
-                symbols.extend(category)
-        return symbols
-    return [s.strip() for s in symbol_arg.split(',')]
-
-
-def resolve_strategies(config, strategy_arg):
-    """解析 --strategy/--strategies 参数，返回策略名列表"""
-    names = [s.strip() for s in strategy_arg.split(',')]
-    non_strategy_keys = {'defaults', 'symbols', 'backtest_defaults', 'mt5_account'}
-    available = [k for k in config if k not in non_strategy_keys and isinstance(config[k], dict)]
-    for name in names:
-        if name not in available:
-            print(f'[错误] 策略 {name} 在 strategies.yaml 中不存在，可用: {", ".join(available)}')
-            sys.exit(1)
-    return names
-
-
 def ensure_mt5_dirs():
-    """确保 MT5 MQL5 目录结构存在"""
     dirs = [
         MT5_DATA / 'MQL5' / 'Profiles' / 'Tester',
         MT5_DATA / 'MQL5' / 'Experts',
@@ -77,7 +44,6 @@ def ensure_mt5_dirs():
 
 
 def generate_set_file(strategy_name, config):
-    """生成 .set 文件并写入 MT5 Tester 目录"""
     strategy_cfg = config[strategy_name]
     content = yaml_to_set.strategy_to_set(strategy_name, strategy_cfg)
     ensure_mt5_dirs()
@@ -89,7 +55,6 @@ def generate_set_file(strategy_name, config):
 
 
 def generate_ini(strategy_name, symbol, date_from, date_to, config):
-    """生成回测 INI 文件"""
     strategy_cfg = config[strategy_name]
     defaults = config.get('backtest_defaults', {})
     account = config.get('mt5_account', {})
@@ -141,15 +106,12 @@ Report={report_name}
 
 
 def run_mt5(timeout_sec=300):
-    """启动 MT5 Tester 并等待回测完成"""
     ini_path = INI_DIR / 'backtest.ini'
-    # 关键：必须用 Windows 反斜杠路径，否则 /config: 参数会被 MT5 截断
     config_arg = f'/config:{ini_path}'
 
     cmd = [MT5_TERMINAL, config_arg]
 
     print(f'  启动 MT5 回测 (超时 {timeout_sec}s)...', end='', flush=True)
-    print(f'  命令: MT5_TERMINAL {config_arg}')
 
     proc = subprocess.Popen(
         cmd,
@@ -175,7 +137,6 @@ def run_mt5(timeout_sec=300):
 
 
 def parse_agent_log():
-    """解析 Tester Agent 日志，提取回测结果"""
     today_str = datetime.now().strftime('%Y%m%d')
     log_path = MT5_DATA / 'Tester' / 'Agent-127.0.0.1-3000' / 'logs' / f'{today_str}.log'
 
@@ -190,195 +151,10 @@ def parse_agent_log():
         print(f'  [错误] 读取日志失败: {e}')
         return None
 
-    lines = content.splitlines()
-
-    segments = []
-    current = []
-    for line in lines:
-        if 'testing of' in line.lower():
-            if current:
-                segments.append(current)
-            current = [line]
-        else:
-            current.append(line)
-    if current:
-        segments.append(current)
-
-    if not segments:
-        print('  [警告] 日志中未找到测试记录')
-        return None
-
-    last_segment = segments[-1]
-
-    result = {
-        'trades': 0,
-        'wins': 0,
-        'losses': 0,
-        'final_balance': None,
-        'deals': [],
-        'ticks': None,
-        'bars': None,
-    }
-
-    deal_pattern = re.compile(
-        r'deal #(\d+)\s+(buy|sell)\s+([\d.]+)\s+(\S+)\s+at\s+([\d.]+)'
-        r'(?:\s+sl:\s*([\d.]+))?(?:\s+tp:\s*([\d.]+))?'
-    )
-    balance_pattern = re.compile(r'final balance\s+([\d.]+)')
-    ticks_pattern = re.compile(r'(\d+)\s+ticks.*?(\d+)\s+bars')
-
-    for line in last_segment:
-        m = deal_pattern.search(line)
-        if m:
-            deal = {
-                'ticket': int(m.group(1)),
-                'direction': m.group(2),
-                'lots': float(m.group(3)),
-                'symbol': m.group(4),
-                'price': float(m.group(5)),
-                'sl': float(m.group(6)) if m.group(6) else None,
-                'tp': float(m.group(7)) if m.group(7) else None,
-            }
-            result['deals'].append(deal)
-
-        m = balance_pattern.search(line)
-        if m:
-            result['final_balance'] = float(m.group(1))
-
-        m = ticks_pattern.search(line)
-        if m:
-            result['ticks'] = int(m.group(1))
-            result['bars'] = int(m.group(2))
-
-    deals = result['deals']
-    if len(deals) >= 2:
-        result['trades'] = len(deals) // 2
-
-    return result
-
-
-def calc_stats(result, deposit, days):
-    """从解析结果计算统计指标"""
-    if not result:
-        return None
-
-    trades = result['trades']
-    final_balance = result['final_balance'] or deposit
-    profit = final_balance - deposit
-
-    deals = result['deals']
-    wins = 0
-    losses = 0
-    gross_profit = 0.0
-    gross_loss = 0.0
-    r_total = 0.0
-    r_count = 0
-
-    for i in range(0, len(deals) - 1, 2):
-        entry = deals[i]
-        exit_deal = deals[i + 1]
-
-        if entry['direction'] == 'buy':
-            pnl = exit_deal['price'] - entry['price']
-        else:
-            pnl = entry['price'] - exit_deal['price']
-
-        if pnl > 0:
-            wins += 1
-            gross_profit += pnl * entry['lots']
-        else:
-            losses += 1
-            gross_loss += abs(pnl) * entry['lots']
-
-        if entry['sl'] is not None and entry['sl'] != 0:
-            risk = abs(entry['price'] - entry['sl'])
-            if risk > 0:
-                r = pnl / risk
-                r_total += r
-                r_count += 1
-
-    win_rate = (wins / trades * 100) if trades > 0 else 0
-    profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else float('inf')
-    daily_trades = trades / days if days > 0 else 0
-    net_r = r_total if r_count > 0 else None
-
-    return {
-        'trades': trades,
-        'wins': wins,
-        'losses': losses,
-        'win_rate': win_rate,
-        'profit_factor': profit_factor,
-        'daily_trades': daily_trades,
-        'final_balance': final_balance,
-        'profit': profit,
-        'net_r': net_r,
-    }
-
-
-def format_report(strategy_name, date_from, date_to, days, deposit, leverage, symbol_results):
-    """格式化回测报告"""
-    header = f"""
-=====================================================================
-MT5 Strategy Tester 回测报告 — {strategy_name.upper()}
-日期: {date_from} ~ {date_to} ({days}天) | 资金: ${deposit} | 杠杆: 1:{leverage}
-=====================================================================
-
-品种         交易  日均  胜率   盈亏比  净R     余额
----------------------------------------------------------------------"""
-
-    lines = [header]
-    total_trades = 0
-    total_wins = 0
-    total_losses = 0
-    total_balance = 0
-    total_r = 0.0
-    r_count = 0
-
-    for symbol, stats in symbol_results.items():
-        if stats is None:
-            lines.append(f'{symbol:<13}回测失败或无数据')
-            continue
-
-        t = stats['trades']
-        d = stats['daily_trades']
-        w = stats['win_rate']
-        pf = stats['profit_factor']
-        bal = stats['final_balance']
-        nr = stats['net_r']
-
-        nr_str = f"+{nr:.1f}" if nr is not None and nr >= 0 else (f"{nr:.1f}" if nr is not None else 'N/A')
-        pf_str = f"{pf:.2f}" if pf != float('inf') else 'inf'
-
-        lines.append(f'{symbol:<13}{t:<6}{d:<6.1f}{w:<7.1f}%{pf_str:<8}{nr_str:<8}${bal:.2f}')
-
-        total_trades += t
-        total_wins += stats['wins']
-        total_losses += stats['losses']
-        total_balance += bal
-        if nr is not None:
-            total_r += nr
-            r_count += 1
-
-    lines.append('---------------------------------------------------------------------')
-
-    if total_trades > 0:
-        total_wr = total_wins / total_trades * 100
-        total_daily = total_trades / days if days > 0 else 0
-        total_nr_str = f"+{total_r:.1f}" if total_r >= 0 else f"{total_r:.1f}"
-        if r_count == 0:
-            total_nr_str = 'N/A'
-
-        lines.append(
-            f'{"合计":<12}{total_trades:<6}{total_daily:<6.1f}{total_wr:<7.1f}%{"":<8}{total_nr_str:<8}'
-            f'${total_balance:.2f}'
-        )
-
-    lines.append('=====================================================================')
-    return '\n'.join(lines)
+    return parse_agent_log_content(content)
 
 
 def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeout):
-    """对一个策略执行完整回测流程"""
     strategy_cfg = config[strategy_name]
     defaults = config.get('backtest_defaults', {})
     deposit = strategy_cfg.get('deposit', defaults.get('deposit', 200))
@@ -386,12 +162,10 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
     if isinstance(leverage, str) and ':' in leverage:
         leverage = leverage.split(':')[-1]
 
-    # 检查 EA 是否存在
     expert = strategy_cfg.get('expert', defaults.get('expert', r'WaiTrade\WaiTrade_OB'))
     expert_path = MT5_EXPERTS / f'{expert}.ex5'
     if not expert_path.exists():
         print(f'[警告] EA 文件不存在: {expert_path}')
-        print(f'  请先编译 EA 或放置 .ex5 文件到该路径')
 
     print(f'\n策略: {strategy_name} | 品种数: {len(symbols)} | 周期: {date_from} ~ {date_to}')
     print('=' * 60)
