@@ -45,15 +45,20 @@ void OnTick()
     string symbol = _Symbol;
     ENUM_TIMEFRAMES tf = GetWorkTF();
 
-    // 1. 加载K线数据并更新ATR
-    MqlRates rates[];
-    int copied = CopyRates(symbol, tf, 0, InpBars, rates);
+    // 1+2. K线数据仅新bar时加载（每tick拷贝5000 bars是最大性能杀手）
+    static MqlRates rates[];
+    static int copied = 0;
+    bool new_bar = IsNewBar(symbol, tf) || copied == 0;
+
+    if(new_bar)
+    {
+        copied = CopyRates(symbol, tf, 0, InpBars, rates);
+        if(copied < 100) { copied = 0; return; }
+        g_state.atr_value = CalcATR(rates, copied, InpATRPeriod);
+    }
     if(copied < 100) return;
 
-    g_state.atr_value = CalcATR(rates, copied, InpATRPeriod);
-
-    // 2. 新bar处理
-    if(IsNewBar(symbol, tf))
+    if(new_bar)
     {
         g_state.bar_count++;
 
