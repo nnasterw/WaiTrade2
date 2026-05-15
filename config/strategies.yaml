@@ -105,6 +105,69 @@ v98:
   dtp_trigger_r: 2.0
   dtp_retrace: 0.20
 
+# v98a: v97b + EntryEngine状态机 (SMC bounce确认)
+v98a:
+  <<: *defaults
+  version: V98a
+  description: "v97b+EntryEngine状态机: bounce确认入场+势态评分+动能衰减"
+  # 核心: 启用入场状态机 (5阶段确认)
+  enable_entry_engine: true
+  # 沿用v97b的高盈亏比配置
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  # 势态动
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 4
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# v98a_loose: v98a 放宽版 (score3+bounce50%, 增加交易量)
+v98a_loose:
+  <<: *defaults
+  version: V98a-L
+  description: "v98a放宽: score3+bounce50%+并发2"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.50
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 3
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
 v95c:
   <<: *defaults
   version: V95c

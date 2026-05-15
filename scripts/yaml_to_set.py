@@ -62,6 +62,8 @@ FLAT_MAP = {
     "decay_min_r": "InpDecayMinR",
     "decay_bars": "InpDecayBars",
     "engulf_body_pct": "InpEngulfBodyPct",
+    # v9.8a EntryEngine状态机
+    "enable_entry_engine": "InpEnableEntryEngine",
 }
 
 # trail_levels 映射: (层级索引, 子key) → INP名称

@@ -1,5 +1,5 @@
 #property copyright "WaiTrade"
-#property version   "96.02"
+#property version   "98.01"
 #property strict
 
 #include <WaiTrade/Config.mqh>
@@ -10,6 +10,7 @@
 #include <WaiTrade/DecayDetector.mqh>
 #include <WaiTrade/OBDetector.mqh>
 #include <WaiTrade/SignalEngine.mqh>
+#include <WaiTrade/EntryEngine.mqh>
 #include <WaiTrade/PositionManager.mqh>
 
 OBZone      g_zones[MAX_OB_ZONES];
@@ -18,12 +19,17 @@ EAState     g_state;
 TradeSignal g_signals[10];
 int         g_track_count = 0;
 
+// v9.8a EntryEngine
+EntryMonitor g_monitors[MAX_MONITORS];
+int          g_monitor_count = 0;
+
 int OnInit()
 {
     ZeroMemory(g_state);
     ZeroMemory(g_zones);
     ZeroMemory(g_tracks);
     g_track_count = 0;
+    g_monitor_count = 0;
 
     if(InpRiskPercent <= 0 || InpRiskPercent > 50)
     {
@@ -45,19 +51,15 @@ void OnTick()
     string symbol = _Symbol;
     ENUM_TIMEFRAMES tf = GetWorkTF();
 
-    // 1+2. K线数据仅新bar时加载（每tick拷贝5000 bars是最大性能杀手）
-    static MqlRates rates[];
-    static int copied = 0;
-    bool new_bar = IsNewBar(symbol, tf) || copied == 0;
-
-    if(new_bar)
-    {
-        copied = CopyRates(symbol, tf, 0, InpBars, rates);
-        if(copied < 100) { copied = 0; return; }
-        g_state.atr_value = CalcATR(rates, copied, InpATRPeriod);
-    }
+    // 1. 加载K线数据
+    MqlRates rates[];
+    int copied = CopyRates(symbol, tf, 0, InpBars, rates);
     if(copied < 100) return;
 
+    g_state.atr_value = CalcATR(rates, copied, InpATRPeriod);
+
+    // 2. 新bar处理
+    bool new_bar = IsNewBar(symbol, tf);
     if(new_bar)
     {
         g_state.bar_count++;
@@ -96,15 +98,57 @@ void OnTick()
 
     // 4. 扫描入场信号
     g_state.pos_count = CountPositions();
-    int sig_count = ScanSignals(symbol, g_zones, g_state.ob_count, g_state, g_signals, 10);
 
-    // 5. 执行入场
-    for(int i = 0; i < sig_count; i++)
+    if(InpEnableEntryEngine)
     {
-        if(g_state.pos_count >= InpMaxConcurrent) break;
-        ExecuteSignal(g_signals[i]);
-        g_state.last_entry_bar = g_state.bar_count;
-        g_state.pos_count++;
+        // v9.8a: EntryEngine 状态机模式
+        // 新 bar 时扫描候选信号并注册到 monitor
+        if(new_bar)
+        {
+            int sig_count = ScanSignals(symbol, g_zones, g_state.ob_count, g_state, g_signals, 10);
+            for(int i = 0; i < sig_count; i++)
+            {
+                if(sig_count > 0 && g_signals[i].ob_index >= 0)
+                    AddEntryMonitor(g_signals[i], g_zones[g_signals[i].ob_index], g_monitors, g_monitor_count);
+            }
+        }
+
+        // 每 tick 更新 monitors，获取确认的入场
+        TradeSignal confirmed[10];
+        int conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), g_monitors, g_monitor_count, confirmed, 10);
+
+        // 5. 执行确认的入场
+        for(int i = 0; i < conf_count; i++)
+        {
+            if(g_state.pos_count >= InpMaxConcurrent) break;
+
+            // 计算手数（EntryEngine 输出的 lot=0，需要这里算）
+            confirmed[i].lot = CalcLotSize(symbol, InpRiskPercent, confirmed[i].risk_price);
+            if(InpEnablePosMult && confirmed[i].pos_mult > 0)
+                confirmed[i].lot = NormalizeDouble(confirmed[i].lot * confirmed[i].pos_mult, 2);
+            double min_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+            double max_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+            if(confirmed[i].lot < min_lot) confirmed[i].lot = min_lot;
+            if(confirmed[i].lot > max_lot) confirmed[i].lot = max_lot;
+
+            ExecuteSignal(confirmed[i]);
+            g_state.last_entry_bar = g_state.bar_count;
+            g_state.pos_count++;
+        }
+    }
+    else
+    {
+        // 原始模式: 直接入场
+        int sig_count = ScanSignals(symbol, g_zones, g_state.ob_count, g_state, g_signals, 10);
+
+        // 5. 执行入场
+        for(int i = 0; i < sig_count; i++)
+        {
+            if(g_state.pos_count >= InpMaxConcurrent) break;
+            ExecuteSignal(g_signals[i]);
+            g_state.last_entry_bar = g_state.bar_count;
+            g_state.pos_count++;
+        }
     }
 
     // 6. 持仓管理

@@ -316,3 +316,25 @@ def test_v98_strategy_full_set():
     assert 'InpTrendLookback=80' in content
     assert 'InpRangeBE_R=1.0' in content
     assert 'InpMinScore=2' in content
+
+
+# ── v9.8a EntryEngine 参数映射 ────────────────────────────────────────
+
+def test_v98a_entry_engine_params():
+    assert FLAT_MAP['enable_entry_engine'] == 'InpEnableEntryEngine'
+
+
+def test_v98a_strategy_set():
+    cfg = {
+        'version': 'V98a',
+        'enable_entry_engine': True,
+        'enable_state_filter': True,
+        'enable_scoring': True,
+        'enable_decay_exit': True,
+        'bounce_pct': 0.60,
+        'min_score': 4,
+    }
+    content = strategy_to_set('v98a', cfg)
+    assert 'InpEnableEntryEngine=true' in content
+    assert 'InpBouncePct=0.6' in content
+    assert 'InpMinScore=4' in content
