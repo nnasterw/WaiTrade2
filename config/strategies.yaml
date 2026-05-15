@@ -54,7 +54,7 @@ defaults: &defaults
 
   # === K线 ===
   bar_period_min: 1   # 1=M1, 5=M5
-  bars: 5000
+  bars: 300            # OBScanDepth=200 + ATR(14) + buffer
 
 # === 策略版本 ===
 
@@ -108,13 +108,25 @@ v98:
 v95c:
   <<: *defaults
   version: V95c
-  description: "M1+单推+BE0.3R+DTP2.0R"
+  description: "M1+单推+BE0.5R+DTP2.0R@35%+12bars+3xBoost (原始盈利配置)"
   require_double_touch: false
-  breakeven_r: 0.3
+  timeout_min: 90
+  breakeven_r: 0.5
   breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
   dtp_trigger_r: 2.0
-  dtp_retrace: 0.25
-  boost_in_1h_ob: 1.0
+  dtp_retrace: 0.35
+  time_exit_bars: 12
+  boost_in_1h_ob: 3.0
 
 v94a:
   <<: *defaults
@@ -133,6 +145,300 @@ v94a:
       lock_mult: 0.0
   dtp_trigger_r: 2.0
   max_concurrent: 3
+
+# v97b: Real Ticks下唯一盈利策略 (ExpX定版)
+v97b:
+  <<: *defaults
+  version: V97b
+  description: "极致精选: score4+bounce60%+并发1+DTP3.0R (Real Ticks盈利)"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 4
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# === 第八轮: ExpX精选方向细化 ===
+
+# ExpX回顾: 8笔/62.5%WR/2.64盈亏比/$221 — 唯一盈利
+# 目标: 从8笔→20-30笔, 保持盈亏比>2.0
+
+# AA: min_score 4→3 (放宽评分门槛)
+exp_aa_score3:
+  <<: *defaults
+  version: ExpAA-S3
+  description: "ExpX+score3: 放宽评分增加交易量"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 3
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# AB: bounce 60%→50% (放宽OB确认)
+exp_ab_b50:
+  <<: *defaults
+  version: ExpAB-B50
+  description: "ExpX+bounce50%: 放宽OB确认"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.50
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 4
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# AC: 并发 1→2 (允许同时两仓)
+exp_ac_c2:
+  <<: *defaults
+  version: ExpAC-C2
+  description: "ExpX+并发2: 允许更多同时持仓"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.60
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 4
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# AD: offset 0.5→0.8R (放宽入场偏移)
+exp_ad_off08:
+  <<: *defaults
+  version: ExpAD-O08
+  description: "ExpX+offset0.8R: 放宽入场距离"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.60
+  max_concurrent: 1
+  max_entry_offset_r: 0.8
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 4
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# AE: 最优组合 (score3 + bounce50% + 并发2)
+exp_ae_best:
+  <<: *defaults
+  version: ExpAE-Best
+  description: "score3+bounce50%+并发2: 平衡量质"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.50
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 3
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# === 第七轮实验 (v98 Real Ticks改进) ===
+
+# 实验V: SL加宽 + 大OB (降低spread成本占比)
+exp_v_widesl:
+  <<: *defaults
+  version: ExpV-WideSL
+  description: "v98+SL宽0.25ATR+大OB4x: 减少噪声扫损"
+  require_double_touch: false
+  sl_buffer_atr: 0.25
+  min_ob_spread_mult: 4.0
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  max_entry_offset_r: 0.8
+  bounce_pct: 0.40
+  max_concurrent: 2
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+
+# 实验W: 放宽BE+禁TimeExit (让利润跑)
+exp_w_letrun:
+  <<: *defaults
+  version: ExpW-LetRun
+  description: "v98+BE1.5R+无TimeExit: 让交易充分发展"
+  require_double_touch: false
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.3
+  time_exit_bars: 999
+  max_entry_offset_r: 0.8
+  bounce_pct: 0.40
+  max_concurrent: 2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+
+# 实验X: 只做最高评分信号 (极致过滤)
+exp_x_elite:
+  <<: *defaults
+  version: ExpX-Elite
+  description: "v98+min_score4+bounce60%+并发1: 极致精选"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  # v9.8特有
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 4
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# 实验Y: M5周期 (更大结构, 更大R)
+exp_y_m5:
+  <<: *defaults
+  version: ExpY-M5
+  description: "v98框架但M5: 更大K线减少噪声"
+  require_double_touch: false
+  bar_period_min: 5
+  bars: 300
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.3
+  bounce_pct: 0.40
+  max_concurrent: 2
+  max_entry_offset_r: 0.8
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  time_exit_bars: 999
+
+# 实验Z: 全组合 (宽SL + 放BE + 高分过滤 + M1)
+exp_z_combo:
+  <<: *defaults
+  version: ExpZ-Combo
+  description: "宽SL+BE1.5R+score3+大OB: 少而精"
+  require_double_touch: false
+  sl_buffer_atr: 0.20
+  min_ob_spread_mult: 3.0
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.3
+  bounce_pct: 0.50
+  max_concurrent: 2
+  max_entry_offset_r: 0.8
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  time_exit_bars: 999
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 3
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.5
+  range_time_exit: 999
+  trend_be_r: 1.0
+  trend_be_lock: 0.3
+  trend_dtp_retrace: 0.15
 
 # === 实验组 (基于v95c优化) ===
 
@@ -625,7 +931,7 @@ backtest_defaults:
   deposit: 200
   currency: USD
   leverage: 2000
-  model: 0          # 0=Every tick, 4=Real ticks (暂用0跑实验)
+  model: 4          # 0=Every tick, 4=Real ticks
   period: M1
   visual: 0
   optimization: 0
