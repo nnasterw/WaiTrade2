@@ -65,19 +65,28 @@ mql5/Experts/*.mq5      →  mt5_compile.py       →  metaeditor64.exe → .ex5
 ### MQL5 EA 模块架构
 
 ```
-WaiTrade_OB.mq5        OnTick 六步编排: ATR→OB检测→OB更新→信号扫描→执行入场→持仓管理
-  ├── Config.mqh       41个 input 参数，完全参数化，无硬编码策略逻辑
-  ├── Types.mqh        核心结构: OBZone, TradeSignal, PosTrack, EAState
+WaiTrade_OB.mq5        OnTick 八步编排: ATR→OB检测→市场状态→OB更新→信号扫描→执行入场→持仓同步→持仓管理
+  ├── Config.mqh       58个 input 参数，完全参数化，无硬编码策略逻辑
+  ├── Types.mqh        核心结构: OBZone, TradeSignal, PosTrack, EAState(含market_state/target_price)
   ├── Utils.mqh        转发头文件，包含以下三个子模块:
-  │   ├── MathUtils.mqh   纯计算: CalcATR, PriceToR, RToPrice, GetWorkTF
-  │   ├── TradeOps.mqh    MT5交易: CalcLotSize, GetSpread, ModifySL, ClosePosition, CountPositions
-  │   └── BarTracker.mqh  新bar检测: IsNewBar
+  │   ├── MathUtils.mqh     纯计算: CalcATR, PriceToR, RToPrice, GetWorkTF
+  │   ├── TradeOps.mqh      MT5交易: CalcLotSize, GetSpread, ModifySL(重试), ClosePosition, CountPositions
+  │   └── BarTracker.mqh    新bar检测: IsNewBar
+  ├── MarketState.mqh  [v9.8势] M15 swing HH/HL结构→趋势/震荡判定 + 对面swing目标位
+  ├── ScoreEngine.mqh  [v9.8位] 6项评分(动能/初期/空间/共振/接近/确认)→仓位乘数映射
+  ├── DecayDetector.mqh [v9.8动] M1动能衰减(3bar二推不破/吞没+追随)→直接平仓
   ├── OBDetector.mqh   OB检测+生命周期: 检测/评分/合并/状态更新/MarkZoneUsed/Update1HAlignment
-  ├── SignalEngine.mqh 入场信号: 链式过滤器(IsZoneTouched→DoubleTouchFilter→OffsetGuard→SpreadRatio→MinRisk→CalcEntryLot)
-  └── PositionManager.mqh 持仓管理: 保本→三级追踪→DTP动态止盈→时间退出
+  ├── SignalEngine.mqh 入场信号: 态过滤→链式过滤器→评分系统→震荡态swing TP
+  └── PositionManager.mqh 持仓管理: 态感知BE/DTP参数→保本→追踪→DTP→动能衰减→超时
 ```
 
-**通用化设计原则**: EA代码中零硬编码策略逻辑。所有行为差异（从v72a固定手数到v96b全增强）完全由 `.set` 文件中的41个参数决定。新增参数时需同步更新：Config.mqh → yaml_to_set.py FLAT_MAP → strategies.yaml defaults。
+**v9.8 四维框架（势位态动）**: 对齐江河交易员体系。新增参数默认全关闭（向后兼容），v98.set 全开启。
+- **势**: M15 swing 结构判定方向（InpEnableStateFilter）
+- **位**: 接近 M15 swing 点的 OB 评分加权（InpEnableScoring）
+- **态**: 趋势态硬过滤逆势+宽trailing，震荡态双向+对面swing TP+30bar超时
+- **动**: 1R后动能衰减触发直接平仓（InpEnableDecayExit）
+
+**通用化设计原则**: EA代码中零硬编码策略逻辑。所有行为差异完全由 `.set` 文件中的参数决定。新增参数时需同步更新：Config.mqh → yaml_to_set.py FLAT_MAP → strategies.yaml defaults。
 
 ### Python 脚本模块
 
@@ -95,7 +104,8 @@ strategy_versions/       各版本规格文档 (v6.6~v9.6b)
 ```
 
 **当前Live: V96b-Live** — V96b参数调优版, EA直接在Wine MT5中运行
-**MT5 Strategy Tester回测** — terminal64.exe /config: 启动, .set文件控制EA参数
+**最新策略: V98** — 势位态动四维框架, M15趋势+评分+态切换+动能衰减
+**MT5 Strategy Tester回测** — terminal64.exe /config: 启动, .set文件控制EA参数, Model 4 (Real Ticks)
 
 ### 策略配置 (config/strategies.yaml)
 
