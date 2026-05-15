@@ -1,4 +1,4 @@
-; V86a — M1+单推+1.5%+DTP2.5R+单级追踪
+; V86a — M5+单推+1.5%+DTP2.5R+单级追踪
 InpBouncePct=0.28
 InpTimeoutMin=90
 InpMaxEntryOffsetR=1.5
@@ -22,15 +22,8 @@ InpCooldownBars=0
 InpBoostIn1HOB=1.0
 InpDSWeight=false
 InpDTAddonBoost=0.0
-InpBarTF=1
+InpBarTF=5
 InpBars=3000
-InpOBScanDepth=150
-InpImpulseATRMult=1.5
-InpImpulseLookback=3
-InpATRPeriod=14
-InpFixedLotSize=0.0
-InpEnablePosMult=false
-InpFixedTPR=0.0
 InpVersion=V86a
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.3

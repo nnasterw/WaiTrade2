@@ -93,7 +93,8 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     today_str = datetime.now().strftime('%Y%m%d')
     report_name = f'{strategy_name}_{symbol}_{today_str}'
 
-    ini_content = f"""[Common]
+    ini_content = f"""; WaiTrade {strategy_name} / {symbol} 回测
+[Common]
 Login={login}
 Server={server}
 ProxyEnable={proxy_enable}
@@ -106,17 +107,14 @@ ExpertParameters={strategy_name}.set
 Symbol={symbol}
 Period={period}
 Model={model}
+Optimization=0
 DateFrom={date_from}
 DateTo={date_to}
 Deposit={deposit}
-Currency={currency}
 Leverage={leverage}
 ExecutionMode=0
 ShutdownTerminal=1
-Visual=0
-Optimization=0
 Report=C:\\bt\\reports\\{report_name}
-ReplaceReport=1
 """
 
     os.makedirs(INI_DIR, exist_ok=True)
@@ -127,10 +125,24 @@ ReplaceReport=1
     return ini_path
 
 
+def kill_mt5():
+    """关闭MT5 GUI和terminal64进程"""
+    subprocess.run(['pkill', '-f', 'terminal64'], capture_output=True)
+    subprocess.run(['pkill', '-f', 'metatester64'], capture_output=True)
+    subprocess.run(['pkill', '-f', 'MetaTrader 5.app'], capture_output=True)
+    time.sleep(3)
+
+
 def run_mt5(timeout_sec=300):
-    """通过 Wine 启动 MT5 并等待回测完成"""
+    """通过 macOS shell 直接调 Wine terminal64.exe 跑回测
+
+    关键: 必须先杀掉MT5 GUI, 否则 /config: 被已运行实例吸收而不触发测试。
+    ShutdownTerminal=1 让MT5测试完成后自动退出 (~32秒/品种)。
+    """
     env = os.environ.copy()
     env['WINEPREFIX'] = WINEPREFIX
+
+    kill_mt5()
 
     cmd = [
         WINE,
@@ -138,22 +150,22 @@ def run_mt5(timeout_sec=300):
         r'/config:C:\\bt\\backtest.ini',
     ]
 
-    print(f'  启动 MT5 回测 (超时 {timeout_sec}s)...', end='', flush=True)
-    proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+    print(f'  启动回测 (超时 {timeout_sec}s)...', end='', flush=True)
     start = time.time()
-    while proc.poll() is None:
+    try:
+        result = subprocess.run(
+            cmd, env=env,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            timeout=timeout_sec
+        )
         elapsed = time.time() - start
-        if elapsed > timeout_sec:
-            proc.kill()
-            print(f'\n  [超时] MT5 运行超过 {timeout_sec}s，已终止')
-            return False
-        print('.', end='', flush=True)
-        time.sleep(3)
-
-    elapsed = time.time() - start
-    print(f'\n  MT5 已退出 (耗时 {elapsed:.0f}s, 返回码 {proc.returncode})')
-    return True
+        print(f' 完成 ({elapsed:.0f}s)')
+        return True
+    except subprocess.TimeoutExpired:
+        elapsed = time.time() - start
+        print(f'\n  [超时] {elapsed:.0f}s')
+        kill_mt5()
+        return False
 
 
 def parse_agent_log():

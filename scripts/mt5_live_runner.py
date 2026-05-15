@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""MT5 Live交易执行管理器 - 通过Wine Python + MetaTrader5包在macOS上运行实盘交易"""
+"""MT5 EA Live 部署管理器 — 在 macOS Wine MT5 中部署 EA 并管理终端进程"""
 
 import argparse
-import json
 import os
+import random
+import shutil
 import signal
 import subprocess
 import sys
@@ -14,40 +15,200 @@ from pathlib import Path
 
 import yaml
 
-# ── Wine环境常量 ──────────────────────────────────────────────────────────────
-WINE = '/Applications/MetaTrader 5.app/Contents/SharedSupport/wine/bin/wine'
-WINEPREFIX = os.path.expanduser('~/Library/Application Support/net.metaquotes.wine.metatrader5')
-MT5_TESTER = os.path.join(WINEPREFIX, 'drive_c/Program Files/MetaTrader 5 Tester')
-WINE_PYTHON = r'C:\Python311\python.exe'
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
+sys.path.insert(0, str(SCRIPT_DIR))
+
+from yaml_to_set import FLAT_MAP, TRAIL_MAP, format_value
+
+# ── Wine / MT5 路径 ────────────────────────────────────────────────────────
+WINE = '/Applications/MetaTrader 5.app/Contents/SharedSupport/wine/bin/wine'
+WINEPREFIX = os.path.expanduser('~/Library/Application Support/net.metaquotes.wine.metatrader5')
+MT5_MAIN = os.path.join(WINEPREFIX, 'drive_c/Program Files/MetaTrader 5')
+TERMINAL_EXE = os.path.join(MT5_MAIN, 'terminal64.exe')
+
+PROFILES_DIR = Path(MT5_MAIN) / 'MQL5' / 'Profiles' / 'Charts'
+LIVE_PROFILE_NAME = 'WaiTrade_Live'
+
+CONFIG_FILE = PROJECT_ROOT / 'config' / 'strategies.yaml'
 PID_FILE = PROJECT_ROOT / 'results' / 'live' / 'live.pid'
 LOG_DIR = PROJECT_ROOT / 'results' / 'live'
-CONFIG_FILE = PROJECT_ROOT / 'config' / 'strategies.yaml'
 
-# Wine内部脚本路径（无空格路径）
-WINE_SCRIPT_DIR = r'C:\bt'
-WINE_SCRIPT_NAME = 'live_trading.py'
-WINE_SCRIPT_WIN_PATH = f'{WINE_SCRIPT_DIR}\\{WINE_SCRIPT_NAME}'
-# macOS上对应的实际路径
-MAC_SCRIPT_DIR = os.path.join(WINEPREFIX, 'drive_c', 'bt')
-MAC_SCRIPT_PATH = os.path.join(MAC_SCRIPT_DIR, WINE_SCRIPT_NAME)
+EA_NAME = 'WaiTrade\\WaiTrade_OB'
+EA_PATH = 'WaiTrade/WaiTrade_OB'
 
 
-def load_strategy_config(strategy_name: str) -> dict:
-    if not CONFIG_FILE.exists():
-        print(f'错误: 策略配置文件不存在: {CONFIG_FILE}')
-        sys.exit(1)
+# ── 配置加载 ───────────────────────────────────────────────────────────────
+
+def load_config() -> dict:
     with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-        all_config = yaml.safe_load(f)
-    strategies = all_config.get('strategies', all_config)
-    if strategy_name not in strategies:
-        available = ', '.join(strategies.keys()) if isinstance(strategies, dict) else '无'
-        print(f'错误: 策略 "{strategy_name}" 不存在，可用策略: {available}')
-        sys.exit(1)
-    return strategies[strategy_name]
+        return yaml.safe_load(f)
 
+
+def get_strategy(config: dict, name: str) -> dict:
+    non_strategy_keys = {'defaults', 'symbols', 'backtest_defaults', 'mt5_account'}
+    if name not in config or name in non_strategy_keys:
+        available = [k for k in config if k not in non_strategy_keys and isinstance(config[k], dict)]
+        print(f'错误: 策略 "{name}" 不存在。可用: {", ".join(available)}')
+        sys.exit(1)
+    return config[name]
+
+
+def resolve_symbols(config: dict, symbol_arg: str) -> list:
+    if symbol_arg.lower() == 'all':
+        symbols = []
+        for category in config.get('symbols', {}).values():
+            if isinstance(category, list):
+                symbols.extend(category)
+        return symbols
+    return [s.strip() for s in symbol_arg.split(',')]
+
+
+# ── EA 参数生成（chr inputs 格式）────────────────────────────────────────
+
+def generate_inputs_block(cfg: dict) -> str:
+    """生成 <inputs> 块内容，格式: 参数名=值||0||0||0||N"""
+    lines = []
+    for yaml_key, inp_name in FLAT_MAP.items():
+        if yaml_key in cfg:
+            val = format_value(cfg[yaml_key])
+            lines.append(f'{inp_name}={val}||0||0||0||N')
+
+    trail_levels = cfg.get('trail_levels', [])
+    for idx, level in enumerate(trail_levels):
+        if not isinstance(level, dict):
+            continue
+        for sub_key, val in level.items():
+            inp_name = TRAIL_MAP.get((idx, sub_key))
+            if inp_name:
+                lines.append(f'{inp_name}={format_value(val)}||0||0||0||N')
+
+    return '\n'.join(lines)
+
+
+# ── .chr 图表文件生成 ──────────────────────────────────────────────────────
+
+def generate_chart_chr(symbol: str, period_size: int, inputs_block: str, chart_id: int = None) -> str:
+    """生成单个品种的 .chr 图表配置（纯文本，写入时转 UTF-16LE）"""
+    if chart_id is None:
+        chart_id = random.randint(10**18, 10**19 - 1)
+
+    return f"""<chart>
+id={chart_id}
+symbol={symbol}
+period_type=0
+period_size={period_size}
+expertmode=1
+scroll=1
+shift=1
+shift_size=20.000000
+ohlc=1
+one_click=0
+bidline=1
+askline=1
+lastline=0
+tradehistory=1
+windows_total=1
+
+<window>
+height=100.000000
+objects=0
+
+<indicator>
+name=Main
+path=
+apply=1
+show_data=1
+scale_inherit=0
+scale_line=0
+scale_line_percent=50
+scale_line_value=0.000000
+scale_fix_min=0
+scale_fix_min_val=0.000000
+scale_fix_max=0
+scale_fix_max_val=0.000000
+expertmode=1
+fixed_height=-1
+</indicator>
+
+<expert>
+name={EA_NAME}
+path=
+flags=339
+window_num=0
+
+<inputs>
+{inputs_block}
+</inputs>
+</expert>
+
+</window>
+</chart>
+"""
+
+
+def generate_order_wnd(chart_count: int) -> str:
+    """生成 order.wnd 窗口布局文件"""
+    lines = [f'charts_count={chart_count}']
+    for i in range(chart_count):
+        lines.append(f'chart{i:02d}=chart{i + 1:02d}.chr')
+    return '\n'.join(lines) + '\n'
+
+
+def write_chr_file(path: Path, content: str):
+    """以 UTF-16LE 编码写入 .chr 文件"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, 'w', encoding='utf-16-le') as f:
+        f.write(content)
+
+
+# ── Profile 创建 ──────────────────────────────────────────────────────────
+
+def create_live_profile(strategy_name: str, symbols: list, cfg: dict):
+    """创建 MT5 Live Profile 目录，为每个品种生成带 EA 的图表"""
+    profile_dir = PROFILES_DIR / LIVE_PROFILE_NAME
+
+    if profile_dir.exists():
+        shutil.rmtree(profile_dir)
+    profile_dir.mkdir(parents=True)
+
+    period_size = cfg.get('bar_period_min', 1)
+    inputs_block = generate_inputs_block(cfg)
+
+    print(f'创建 Live Profile: {LIVE_PROFILE_NAME}')
+    print(f'  策略: {strategy_name} | 周期: M{period_size} | 品种数: {len(symbols)}')
+
+    for i, symbol in enumerate(symbols, 1):
+        chart_content = generate_chart_chr(symbol, period_size, inputs_block)
+        chart_path = profile_dir / f'chart{i:02d}.chr'
+        write_chr_file(chart_path, chart_content)
+        print(f'  图表 {i:02d}: {symbol} M{period_size} + EA')
+
+    order_content = generate_order_wnd(len(symbols))
+    order_path = profile_dir / 'order.wnd'
+    with open(order_path, 'w', encoding='utf-16-le') as f:
+        f.write(order_content)
+
+    print(f'  Profile 已写入: {profile_dir}')
+    return profile_dir
+
+
+# ── EA 编译 ───────────────────────────────────────────────────────────────
+
+def compile_ea():
+    """编译 EA，调用 mt5_compile.py 的逻辑"""
+    from mt5_compile import sync_sources, compile_ea as do_compile
+
+    print('同步源码并编译 EA...')
+    sync_sources()
+    success = do_compile(EA_PATH)
+    if not success:
+        print('错误: EA 编译失败，无法部署')
+        sys.exit(1)
+    print('EA 编译成功')
+
+
+# ── 进程管理 ──────────────────────────────────────────────────────────────
 
 def is_process_running(pid: int) -> bool:
     try:
@@ -57,199 +218,78 @@ def is_process_running(pid: int) -> bool:
         return False
 
 
-def check_existing_process():
+def find_mt5_pid() -> int | None:
+    """查找 MT5 Main 终端进程 PID"""
+    result = subprocess.run(
+        ['pgrep', '-f', 'MetaTrader 5/terminal64'],
+        capture_output=True, text=True
+    )
+    if result.returncode == 0:
+        pids = result.stdout.strip().split('\n')
+        if pids and pids[0]:
+            return int(pids[0])
+    return None
+
+
+def read_saved_pid() -> int | None:
     if not PID_FILE.exists():
-        return False
+        return None
     try:
         pid = int(PID_FILE.read_text().strip())
+        if is_process_running(pid):
+            return pid
     except (ValueError, OSError):
-        PID_FILE.unlink(missing_ok=True)
-        return False
-    if is_process_running(pid):
-        return True
-    PID_FILE.unlink(missing_ok=True)
-    return False
-
-
-def ensure_tester_terminal():
-    result = subprocess.run(['pgrep', '-f', 'MetaTrader 5 Tester'], capture_output=True)
-    if result.returncode == 0:
-        print('Tester终端已在运行')
-        return
-    print('启动Tester MT5终端...')
-    env = os.environ.copy()
-    env['WINEPREFIX'] = WINEPREFIX
-    terminal_exe = r'C:\Program Files\MetaTrader 5 Tester\terminal64.exe'
-    subprocess.Popen(
-        [WINE, terminal_exe, '/portable'],
-        env=env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    print('等待终端初始化(10秒)...')
-    time.sleep(10)
-    result = subprocess.run(['pgrep', '-f', 'MetaTrader 5 Tester'], capture_output=True)
-    if result.returncode != 0:
-        print('警告: 终端可能未成功启动，继续尝试...')
-    else:
-        print('Tester终端已就绪')
-
-
-def generate_trading_script(config: dict, symbols: list) -> str:
-    config_json = json.dumps(config, ensure_ascii=False, indent=4)
-    symbols_json = json.dumps(symbols, ensure_ascii=False)
-    version = config.get('version', 'unknown')
-
-    script = f'''# -*- coding: utf-8 -*-
-"""WaiTrade Live Trading Script - 运行于Wine Python环境"""
-import MetaTrader5 as mt5
-import time
-import json
-from datetime import datetime
-
-CONFIG = {config_json}
-SYMBOLS = {symbols_json}
-
-def main():
-    if not mt5.initialize(path=r'C:\\Program Files\\MetaTrader 5 Tester\\terminal64.exe'):
-        print(f'MT5初始化失败: {{mt5.last_error()}}')
-        return
-
-    account = mt5.account_info()
-    if account is None:
-        print('无法获取账户信息，请检查终端是否已登录')
-        mt5.shutdown()
-        return
-
-    print(f'已连接: {{account.login}} | 余额: {{account.balance}} | 杠杆: 1:{{account.leverage}}')
-    print(f'策略: {version} | 品种: {{", ".join(SYMBOLS)}}')
-    print(f'启动时间: {{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}}')
-    print('-' * 60)
-
-    for symbol in SYMBOLS:
-        info = mt5.symbol_info(symbol)
-        if info is None:
-            print(f'警告: 品种 {{symbol}} 不存在')
-        elif not info.visible:
-            if not mt5.symbol_select(symbol, True):
-                print(f'警告: 无法选择品种 {{symbol}}')
-            else:
-                print(f'已启用品种: {{symbol}}')
-        else:
-            print(f'品种就绪: {{symbol}} | 点差: {{info.spread}}')
-
-    print('-' * 60)
-    tick_count = 0
-    while True:
-        for symbol in SYMBOLS:
-            check_signals(symbol)
-            manage_positions(symbol)
-        tick_count += 1
-        if tick_count % 60 == 0:
-            print(f'[{{datetime.now().strftime("%H:%M:%S")}}] 心跳 #{{tick_count // 60}} | 已运行{{tick_count}}秒')
-        time.sleep(1)
-
-
-def check_signals(symbol):
-    rates = mt5.copy_rates_from_pos(symbol, mt5.TIMEFRAME_M1, 0, CONFIG.get('bars', 5000))
-    if rates is None:
-        return
-    # TODO: OB检测和信号生成
-    # 实际的OB检测逻辑将从MQL5移植或从独立模块加载
-    pass
-
-
-def manage_positions(symbol):
-    positions = mt5.positions_get(symbol=symbol)
-    if positions is None:
-        return
-    for pos in positions:
-        # TODO: 移动止损、保本、DTP逻辑
         pass
+    PID_FILE.unlink(missing_ok=True)
+    return None
 
 
-def place_order(symbol, direction, lot, sl, tp):
-    tick = mt5.symbol_info_tick(symbol)
-    if tick is None:
-        print(f'获取{{symbol}}报价失败')
-        return None
-    request = {{
-        'action': mt5.TRADE_ACTION_DEAL,
-        'symbol': symbol,
-        'volume': lot,
-        'type': mt5.ORDER_TYPE_BUY if direction == 'buy' else mt5.ORDER_TYPE_SELL,
-        'price': tick.ask if direction == 'buy' else tick.bid,
-        'sl': sl,
-        'tp': tp,
-        'magic': 202605,
-        'comment': f'WaiTrade {version}',
-        'type_time': mt5.ORDER_TIME_GTC,
-        'type_filling': mt5.ORDER_FILLING_IOC,
-    }}
-    result = mt5.order_send(request)
-    if result is None:
-        print(f'下单请求失败 {{symbol}}: 返回None')
-        return None
-    if result.retcode != mt5.TRADE_RETCODE_DONE:
-        print(f'下单失败 {{symbol}}: {{result.comment}} (code={{result.retcode}})')
-    else:
-        print(f'下单成功 {{symbol}} {{direction}} {{lot}}手 @ {{request["price"]}}  SL={{sl}} TP={{tp}}')
-    return result
+def save_pid(pid: int):
+    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PID_FILE.write_text(str(pid))
 
 
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        print('收到停止信号')
-    finally:
-        mt5.shutdown()
-        print('MT5连接已断开')
-'''
-    return script
-
+# ── 命令实现 ──────────────────────────────────────────────────────────────
 
 def cmd_start(strategy: str, symbols: list):
-    if check_existing_process():
-        pid = int(PID_FILE.read_text().strip())
-        print(f'错误: 已有实盘进程在运行 (PID={pid})，请先执行 --stop')
-        sys.exit(1)
+    existing_pid = read_saved_pid() or find_mt5_pid()
+    if existing_pid:
+        print(f'警告: MT5 终端已在运行 (PID={existing_pid})')
+        print('Profile 将被更新，但需要手动重启终端或切换 Profile')
+        print('如需重启，请先执行: python mt5_live_runner.py --stop')
 
-    print(f'加载策略: {strategy}')
-    config = load_strategy_config(strategy)
-    if 'version' not in config:
-        config['version'] = strategy
+    config = load_config()
+    cfg = get_strategy(config, strategy)
 
-    print(f'交易品种: {", ".join(symbols)}')
+    if 'version' not in cfg:
+        cfg['version'] = strategy
 
-    ensure_tester_terminal()
+    symbol_list = resolve_symbols(config, symbols) if isinstance(symbols, str) else symbols
 
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    os.makedirs(MAC_SCRIPT_DIR, exist_ok=True)
+    compile_ea()
 
-    print('生成交易脚本...')
-    script_content = generate_trading_script(config, symbols)
-    with open(MAC_SCRIPT_PATH, 'w', encoding='utf-8') as f:
-        f.write(script_content)
-    print(f'交易脚本已写入: {MAC_SCRIPT_PATH}')
+    create_live_profile(strategy, symbol_list, cfg)
 
-    log_filename = f'live_{datetime.now().strftime("%Y%m%d")}.log'
-    log_path = LOG_DIR / log_filename
+    if existing_pid:
+        print(f'\nProfile 已更新。终端正在运行中 (PID={existing_pid})。')
+        print('请在 MT5 中手动切换到 WaiTrade_Live Profile，或 --stop 后重新 --start')
+        return
 
+    print('\n启动 MT5 终端...')
     env = os.environ.copy()
     env['WINEPREFIX'] = WINEPREFIX
-    env['PYTHONIOENCODING'] = 'utf-8'
 
-    cmd = [WINE, WINE_PYTHON, '-X', 'utf8', '-u', WINE_SCRIPT_WIN_PATH]
-    print(f'启动Wine Python交易进程...')
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = LOG_DIR / f'live_{datetime.now().strftime("%Y%m%d")}.log'
+
+    cmd = [WINE, TERMINAL_EXE, f'/profile:{LIVE_PROFILE_NAME}']
     print(f'命令: {" ".join(cmd)}')
 
     log_file = open(log_path, 'a', encoding='utf-8')
     log_file.write(f'\n{"=" * 60}\n')
-    log_file.write(f'启动时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
-    log_file.write(f'策略: {strategy} | 品种: {", ".join(symbols)}\n')
+    log_file.write(f'启动: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
+    log_file.write(f'策略: {strategy} | 品种: {", ".join(symbol_list)}\n')
     log_file.write(f'{"=" * 60}\n')
-    log_file.flush()
 
     proc = subprocess.Popen(
         cmd,
@@ -258,124 +298,98 @@ def cmd_start(strategy: str, symbols: list):
         stderr=subprocess.STDOUT,
     )
 
-    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PID_FILE.write_text(str(proc.pid))
-
-    time.sleep(2)
+    time.sleep(3)
     if proc.poll() is not None:
-        print(f'错误: 进程启动后立即退出 (返回码={proc.returncode})')
-        print(f'请检查日志: {log_path}')
-        PID_FILE.unlink(missing_ok=True)
-        log_file.close()
+        print(f'错误: 终端进程立即退出 (code={proc.returncode})')
         sys.exit(1)
 
-    log_file.close()
+    actual_pid = find_mt5_pid() or proc.pid
+    save_pid(actual_pid)
 
-    print(f'\n实盘交易已启动')
-    print(f'  PID:    {proc.pid}')
-    print(f'  策略:   {strategy}')
-    print(f'  品种:   {", ".join(symbols)}')
-    print(f'  日志:   {log_path}')
-    print(f'  PID文件: {PID_FILE}')
-    print(f'\n使用 --status 查看状态，--stop 停止交易')
+    print(f'MT5 终端已启动 (PID={actual_pid})')
+    print(f'日志: {log_path}')
+    print(f'\n注意: 首次运行需在 MT5 GUI 中点击 "AutoTrading" 按钮启用自动交易')
+    print(f'查看状态: python {Path(__file__).name} --status')
+    print(f'停止交易: python {Path(__file__).name} --stop')
 
 
 def cmd_status():
-    if not PID_FILE.exists():
-        print('当前没有运行中的实盘进程')
-        return
-
-    try:
-        pid = int(PID_FILE.read_text().strip())
-    except (ValueError, OSError):
-        print('PID文件损坏')
+    pid = read_saved_pid() or find_mt5_pid()
+    if not pid:
+        print('MT5 终端未运行')
         return
 
     running = is_process_running(pid)
-    status = '运行中' if running else '已停止'
-    print(f'实盘状态: {status}')
-    print(f'PID: {pid}')
+    print(f'MT5 终端: {"运行中" if running else "已停止"} (PID={pid})')
 
     if not running:
-        print('进程已不存在，清理PID文件')
         PID_FILE.unlink(missing_ok=True)
+        return
 
-    today = datetime.now().strftime('%Y%m%d')
-    log_path = LOG_DIR / f'live_{today}.log'
-    if log_path.exists():
-        print(f'\n── 最近日志 ({log_path.name}) ──')
-        try:
-            with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
-                lines = f.readlines()
-            for line in lines[-20:]:
-                print(f'  {line.rstrip()}')
-        except OSError as e:
-            print(f'读取日志失败: {e}')
-    else:
-        print(f'今日日志不存在: {log_path}')
+    profile_dir = PROFILES_DIR / LIVE_PROFILE_NAME
+    if profile_dir.exists():
+        charts = list(profile_dir.glob('chart*.chr'))
+        print(f'Live Profile: {len(charts)} 个图表')
+
+    ea_log_dir = Path(MT5_MAIN) / 'MQL5' / 'Logs'
+    if ea_log_dir.exists():
+        today = datetime.now().strftime('%Y%m%d')
+        log_files = sorted(ea_log_dir.glob(f'{today}*.log'), reverse=True)
+        if log_files:
+            latest = log_files[0]
+            print(f'\n── EA 最近日志 ({latest.name}) ──')
+            try:
+                content = latest.read_text(encoding='utf-16-le', errors='replace')
+                lines = content.strip().split('\n')
+                for line in lines[-15:]:
+                    print(f'  {line.rstrip()}')
+            except Exception as e:
+                print(f'  读取日志失败: {e}')
 
 
 def cmd_stop():
-    if not PID_FILE.exists():
-        print('当前没有运行中的实盘进程')
+    pid = read_saved_pid() or find_mt5_pid()
+    if not pid:
+        print('MT5 终端未运行')
         return
 
-    try:
-        pid = int(PID_FILE.read_text().strip())
-    except (ValueError, OSError):
-        print('PID文件损坏，已清理')
-        PID_FILE.unlink(missing_ok=True)
-        return
-
-    if not is_process_running(pid):
-        print(f'进程 {pid} 已不存在，清理PID文件')
-        PID_FILE.unlink(missing_ok=True)
-        return
-
-    print(f'发送SIGTERM到进程 {pid}...')
+    print(f'停止 MT5 终端 (PID={pid})...')
     try:
         os.kill(pid, signal.SIGTERM)
-    except OSError as e:
-        print(f'发送信号失败: {e}')
-        PID_FILE.unlink(missing_ok=True)
-        return
-
-    for i in range(5):
-        time.sleep(1)
-        if not is_process_running(pid):
-            print('进程已优雅退出')
-            PID_FILE.unlink(missing_ok=True)
-            print('实盘交易已停止')
-            return
-        print(f'等待进程退出... ({i + 1}/5)')
-
-    print('进程未响应SIGTERM，发送SIGKILL...')
-    try:
-        os.kill(pid, signal.SIGKILL)
-        time.sleep(1)
-    except OSError:
+        time.sleep(2)
+        if is_process_running(pid):
+            os.kill(pid, signal.SIGKILL)
+            time.sleep(1)
+    except ProcessLookupError:
         pass
 
     PID_FILE.unlink(missing_ok=True)
-    print('实盘交易已强制停止')
 
+    subprocess.run(['pkill', '-f', 'MetaTrader 5/terminal64'],
+                   capture_output=True)
+
+    print('MT5 终端已停止')
+
+
+# ── CLI ────────────────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(
-        description='MT5 实盘交易执行管理器',
+        description='MT5 EA Live 部署管理器',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent('''
             使用示例:
-              启动交易:  python %(prog)s --strategy v96b --symbols XAUUSDm,BTCUSDm,ETHUSDm
-              查看状态:  python %(prog)s --status
-              停止交易:  python %(prog)s --stop
+              部署并启动:  python %(prog)s --strategy v96b_live --symbols XAUUSDm,BTCUSDm
+              全品种启动:  python %(prog)s --strategy v96b_live --symbols all
+              查看状态:    python %(prog)s --status
+              停止交易:    python %(prog)s --stop
         '''),
     )
-    parser.add_argument('--strategy', '-s', help='策略名称（对应strategies.yaml中的配置）')
-    parser.add_argument('--symbols', help='交易品种，逗号分隔（如 XAUUSDm,BTCUSDm）')
-    parser.add_argument('--status', action='store_true', help='查看实盘运行状态')
-    parser.add_argument('--stop', action='store_true', help='停止实盘交易')
-
+    parser.add_argument('--strategy', '-s', help='策略名称（对应 strategies.yaml 中的 key）')
+    parser.add_argument('--symbols', help='交易品种（逗号分隔，或 "all"）')
+    parser.add_argument('--status', action='store_true', help='查看运行状态')
+    parser.add_argument('--stop', action='store_true', help='停止 MT5 终端')
+    parser.add_argument('--no-compile', action='store_true', help='跳过 EA 编译')
     args = parser.parse_args()
 
     if args.status:
@@ -383,11 +397,10 @@ def main():
     elif args.stop:
         cmd_stop()
     elif args.strategy and args.symbols:
-        symbols = [s.strip() for s in args.symbols.split(',') if s.strip()]
-        if not symbols:
-            print('错误: 品种列表为空')
-            sys.exit(1)
-        cmd_start(args.strategy, symbols)
+        if args.no_compile:
+            global compile_ea
+            compile_ea = lambda: print('跳过编译')
+        cmd_start(args.strategy, args.symbols)
     else:
         parser.print_help()
         sys.exit(1)

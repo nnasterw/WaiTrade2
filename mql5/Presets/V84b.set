@@ -1,4 +1,4 @@
-; V84b — M5+单推+1%+TP2.5R+单级追踪
+; V84b — M5+单推+1%+BE0.5R+单级追踪
 InpBouncePct=0.25
 InpTimeoutMin=240
 InpMaxEntryOffsetR=1.5
@@ -24,13 +24,6 @@ InpDSWeight=false
 InpDTAddonBoost=0.0
 InpBarTF=5
 InpBars=2000
-InpOBScanDepth=100
-InpImpulseATRMult=1.5
-InpImpulseLookback=3
-InpATRPeriod=14
-InpFixedLotSize=0.0
-InpEnablePosMult=false
-InpFixedTPR=2.5
 InpVersion=V84b
 InpTrail1TriggerR=1.5
 InpTrail1LockR=0.5

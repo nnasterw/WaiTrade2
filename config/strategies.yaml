@@ -62,6 +62,15 @@ v96b:
   version: V96b
   description: "M1+二推+BE0.2R+DTP1.5R+3xBoost"
 
+v96b_live:
+  <<: *defaults
+  version: V96b-Live
+  description: "V96b live调优: 放宽BE+收紧offset+限并发"
+  max_entry_offset_r: 0.8
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.15
+  max_concurrent: 2
+
 v95c:
   <<: *defaults
   version: V95c
@@ -90,6 +99,121 @@ v94a:
       lock_mult: 0.0
   dtp_trigger_r: 2.0
   max_concurrent: 3
+
+# === 早期版本 ===
+
+v72a:
+  <<: *defaults
+  version: V72a
+  description: "M15+单推+固定TP3R"
+  bar_period_min: 15
+  bars: 1000
+  timeout_min: 480
+  require_double_touch: false
+  bounce_pct: 0.20
+  consolidate_ob: false
+  risk_percent: 1.0
+  max_concurrent: 1
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 0.0
+  boost_in_1h_ob: 1.0
+  ds_weight: false
+  time_exit_bars: 100
+
+v78b:
+  <<: *defaults
+  version: V78b
+  description: "M5+单推+1%+BE0.5R"
+  bar_period_min: 5
+  bars: 2000
+  timeout_min: 180
+  require_double_touch: false
+  bounce_pct: 0.25
+  risk_percent: 1.0
+  max_concurrent: 2
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 0.0
+  boost_in_1h_ob: 1.0
+  ds_weight: false
+  time_exit_bars: 200
+
+v84b:
+  <<: *defaults
+  version: V84b
+  description: "M5+单推+1%+BE0.5R+单级追踪"
+  bar_period_min: 5
+  bars: 2000
+  timeout_min: 240
+  require_double_touch: false
+  bounce_pct: 0.25
+  risk_percent: 1.0
+  max_concurrent: 2
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 0.0
+  boost_in_1h_ob: 1.0
+  ds_weight: false
+
+v86a:
+  <<: *defaults
+  version: V86a
+  description: "M5+单推+1.5%+DTP2.5R+单级追踪"
+  bar_period_min: 5
+  bars: 3000
+  timeout_min: 90
+  require_double_touch: false
+  bounce_pct: 0.28
+  risk_percent: 1.5
+  max_concurrent: 3
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.05
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.5
+  dtp_retrace: 0.25
+  adaptive_dtp: false
+  boost_in_1h_ob: 1.0
+  ds_weight: false
 
 # === 品种列表 ===
 symbols:

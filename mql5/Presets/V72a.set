@@ -1,4 +1,4 @@
-; V72a — M15+单推+固定手数+固定TP3R
+; V72a — M15+单推+固定TP3R
 InpBouncePct=0.2
 InpTimeoutMin=480
 InpMaxEntryOffsetR=1.5
@@ -24,13 +24,6 @@ InpDSWeight=false
 InpDTAddonBoost=0.0
 InpBarTF=15
 InpBars=1000
-InpOBScanDepth=50
-InpImpulseATRMult=2.0
-InpImpulseLookback=5
-InpATRPeriod=14
-InpFixedLotSize=0.01
-InpEnablePosMult=false
-InpFixedTPR=3.0
 InpVersion=V72a
 InpTrail1TriggerR=0.0
 InpTrail1LockR=0.0
