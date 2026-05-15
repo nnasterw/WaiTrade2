@@ -1,4 +1,4 @@
-; V97a — v95c + BE lock 0.20R (盈亏比+13%, 利润+75%)
+; ExpF-MidTrail — v95c+中间追踪: L1=0.5R→0.25R, L2=1.0R→0.5R, L3=2.5R→×0.65
 InpBouncePct=0.3
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
@@ -10,7 +10,7 @@ InpMinAbsRiskUSD=0.0
 InpConsolidateOB=true
 InpSLBufferATR=0.1
 InpBreakevenR=0.3
-InpBreakevenLockR=0.2
+InpBreakevenLockR=0.1
 InpDTPTriggerR=2.0
 InpDTPRetrace=0.25
 InpAdaptiveDTP=true
@@ -24,12 +24,12 @@ InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=V97a
-InpTrail1TriggerR=1.0
-InpTrail1LockR=0.2
-InpTrail2TriggerR=2.5
-InpTrail2LockR=0.0
-InpTrail2LockMult=0.65
-InpTrail3TriggerR=0.0
+InpVersion=ExpF-MidTrail
+InpTrail1TriggerR=0.5
+InpTrail1LockR=0.25
+InpTrail2TriggerR=1.0
+InpTrail2LockR=0.5
+InpTrail2LockMult=0.0
+InpTrail3TriggerR=2.5
 InpTrail3LockR=0.0
-InpTrail3LockMult=0.0
+InpTrail3LockMult=0.65

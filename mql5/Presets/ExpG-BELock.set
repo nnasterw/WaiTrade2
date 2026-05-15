@@ -1,4 +1,4 @@
-; V97a — v95c + BE lock 0.20R (盈亏比+13%, 利润+75%)
+; ExpG-BELock — v95c+BE lock0.15R: 57笔BE单各多赚0.05R
 InpBouncePct=0.3
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
@@ -10,7 +10,7 @@ InpMinAbsRiskUSD=0.0
 InpConsolidateOB=true
 InpSLBufferATR=0.1
 InpBreakevenR=0.3
-InpBreakevenLockR=0.2
+InpBreakevenLockR=0.15
 InpDTPTriggerR=2.0
 InpDTPRetrace=0.25
 InpAdaptiveDTP=true
@@ -24,7 +24,7 @@ InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=V97a
+InpVersion=ExpG-BELock
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.2
 InpTrail2TriggerR=2.5

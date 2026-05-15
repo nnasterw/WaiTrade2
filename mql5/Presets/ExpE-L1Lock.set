@@ -1,4 +1,4 @@
-; V97a — v95c + BE lock 0.20R (盈亏比+13%, 利润+75%)
+; ExpE-L1Lock — v95c+L1lock0.5R: 24笔MFE>1R的交易多锁0.3R
 InpBouncePct=0.3
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
@@ -10,7 +10,7 @@ InpMinAbsRiskUSD=0.0
 InpConsolidateOB=true
 InpSLBufferATR=0.1
 InpBreakevenR=0.3
-InpBreakevenLockR=0.2
+InpBreakevenLockR=0.1
 InpDTPTriggerR=2.0
 InpDTPRetrace=0.25
 InpAdaptiveDTP=true
@@ -24,9 +24,9 @@ InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=V97a
+InpVersion=ExpE-L1Lock
 InpTrail1TriggerR=1.0
-InpTrail1LockR=0.2
+InpTrail1LockR=0.5
 InpTrail2TriggerR=2.5
 InpTrail2LockR=0.0
 InpTrail2LockMult=0.65

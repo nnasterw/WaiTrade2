@@ -1,4 +1,4 @@
-; V97a — v95c + BE lock 0.20R (盈亏比+13%, 利润+75%)
+; ExpBE020 — v95c + BE lock 0.20R
 InpBouncePct=0.3
 InpTimeoutMin=60
 InpMaxEntryOffsetR=1.5
@@ -24,7 +24,7 @@ InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=1
 InpBars=5000
-InpVersion=V97a
+InpVersion=ExpBE020
 InpTrail1TriggerR=1.0
 InpTrail1LockR=0.2
 InpTrail2TriggerR=2.5
