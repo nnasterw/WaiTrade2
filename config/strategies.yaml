@@ -3300,6 +3300,130 @@ r20f_xag_m15:
   max_concurrent: 1
   max_entry_offset_r: 0.5
 
+# === 加密专项R2: 更大SL+更大时间框架+更晚BE ===
+# BTC: M5 ATR≈50pt, sl_buffer 0.10=5pt → 一个tick跳5-10pt就扫
+# 需要: M15/M30 + buffer 0.25-0.50 + BE 1.5-2.0R
+
+# CRY2-A: BTC M15 + 宽SL(0.30ATR) + 晚BE(1.5R)
+cry2_a:
+  <<: *defaults
+  version: CRY2A
+  description: "BTC M15+宽SL0.3+BE1.5R"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.30
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY2-B: BTC M30 + 宽SL(0.50ATR) + 晚BE(2.0R)
+cry2_b:
+  <<: *defaults
+  version: CRY2B
+  description: "BTC M30+宽SL0.5+BE2.0R: 最宽配置"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY2-C: BTC M15 + OB6x + 宽SL(0.25ATR) + BE(1.0/0.5)
+cry2_c:
+  <<: *defaults
+  version: CRY2C
+  description: "BTC M15+OB6x+SL0.25: 平衡"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.25
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 6.0
+
+# CRY2-D: ETH M15 + 宽SL(0.30ATR) + 晚BE(1.5R)
+cry2_d:
+  <<: *defaults
+  version: CRY2D
+  description: "ETH M15+宽SL0.3+BE1.5R"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.30
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY2-E: BTC H1 (最大时间框架, spread/risk<3%)
+cry2_e:
+  <<: *defaults
+  version: CRY2E
+  description: "BTC H1: spread/risk<3%"
+  bar_period_min: 60
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.30
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 1440
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY2-F: BTC M15 + 禁BE + DTP3R (不保本,只追大赢)
+cry2_f:
+  <<: *defaults
+  version: CRY2F
+  description: "BTC M15+禁BE+DTP3R: 只追大赢"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.30
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
