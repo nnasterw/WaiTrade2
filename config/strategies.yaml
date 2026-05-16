@@ -1628,6 +1628,194 @@ wr80_pd:
   partial_close_r: 0.3
   partial_close_pct: 50
 
+# === 第八轮: 基于逐笔分析的精准优化 ===
+# 数据: 621笔, 29%直接刺破(180R损失), 59%微赢(仅17.95R)
+# 目标: 减刺破 + 提高微赢收益
+
+# R8A: 宽SL减刺破 (0.10→0.25 ATR)
+r8a_widesl:
+  <<: *defaults
+  version: R8A-WideSL
+  description: "宽SL0.25ATR: 减少刺破"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  sl_buffer_atr: 0.25
+
+# R8B: 高BE lock (0.05→0.30R)
+r8b_hilock:
+  <<: *defaults
+  version: R8B-HiLock
+  description: "BElock0.30R: 微赢变真赢"
+  require_double_touch: false
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R8C: A+B组合
+r8c_combo:
+  <<: *defaults
+  version: R8C-Combo
+  description: "宽SL+高lock: 减刺+增赢"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  sl_buffer_atr: 0.25
+
+# R8D: A+B + 大OB (减少噪声OB被刺破)
+r8d_full:
+  <<: *defaults
+  version: R8D-Full
+  description: "宽SL+高lock+大OB4x: 全组合"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  sl_buffer_atr: 0.25
+  min_ob_spread_mult: 4.0
+
+# R8E: A+B + 部分平仓0.5R/50% (早锁利)
+r8e_partial:
+  <<: *defaults
+  version: R8E-Part
+  description: "宽SL+高lock+0.5R平50%"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  sl_buffer_atr: 0.25
+  partial_close_r: 0.5
+  partial_close_pct: 50
+
+# R8F: exp_m基线 + 只提高lock到0.15R (最小改动)
+r8f_minfix:
+  <<: *defaults
+  version: R8F-MinFix
+  description: "exp_m+BElock0.15: 最小改动"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# === 第九轮: R8F微调突破盈利 ===
+# R8F: 779笔/8.7日均/46.1%/$200 (只改lock 0.05→0.15)
+# 围绕R8F微调，目标: $200+
+
+# R9A: R8F + lock 0.20R (比0.15稍高)
+r9a_lock20:
+  <<: *defaults
+  version: R9A-L20
+  description: "R8F+lock0.20: 稍高锁利"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R9B: R8F + lock 0.10R (比0.15稍低)
+r9b_lock10:
+  <<: *defaults
+  version: R9B-L10
+  description: "R8F+lock0.10: 稍低不阻塞"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.10
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R9C: R8F + DTP 3.0R (让大赢跑更远)
+r9c_dtp3:
+  <<: *defaults
+  version: R9C-DTP3
+  description: "R8F+DTP3.0R: 大赢跑更远"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R9D: R8F + 并发1 (减关联亏损)
+r9d_c1:
+  <<: *defaults
+  version: R9D-C1
+  description: "R8F+并发1: 减关联亏损"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  max_concurrent: 1
+
+# R9E: R8F + bounce 0.30 (默认更低)
+r9e_b30:
+  <<: *defaults
+  version: R9E-B30
+  description: "R8F+bounce30%: 更多信号"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R9F: R8F + 部分平仓0.5R/50%
+r9f_partial:
+  <<: *defaults
+  version: R9F-Part
+  description: "R8F+0.5R平50%: 锁利+跑趋势"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  partial_close_r: 0.5
+  partial_close_pct: 50
+
+# R9G: 最优组合预测 (lock0.15+DTP3R+并发1)
+r9g_best:
+  <<: *defaults
+  version: R9G-Best
+  description: "lock0.15+DTP3R+并发1: 预测最优"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  max_concurrent: 1
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效

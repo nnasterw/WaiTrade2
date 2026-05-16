@@ -76,7 +76,7 @@ def parse_agent_log_content(content):
         r'deal #(\d+)\s+(buy|sell)\s+([\d.]+)\s+(\S+)\s+at\s+([\d.]+)'
         r'(?:\s+sl:\s*([\d.]+))?(?:\s+tp:\s*([\d.]+))?'
     )
-    balance_pattern = re.compile(r'final balance\s+([\d.]+)')
+    balance_pattern = re.compile(r'final balance\s+(-?[\d.]+)')
     ticks_pattern = re.compile(r'(\d+)\s+ticks.*?(\d+)\s+bars')
 
     for line in last_segment:

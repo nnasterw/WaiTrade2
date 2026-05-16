@@ -106,6 +106,15 @@ def test_parse_log_balance():
     assert result['final_balance'] == 215.0
 
 
+def test_parse_log_negative_balance():
+    log = """testing of EA started
+deal #1 buy 0.01 EURUSD at 1.10000
+final balance -0.16 USD
+"""
+    result = parse_agent_log_content(log)
+    assert result['final_balance'] == -0.16
+
+
 def test_parse_log_ticks_bars():
     result = parse_agent_log_content(SAMPLE_LOG)
     assert result['ticks'] == 50000
