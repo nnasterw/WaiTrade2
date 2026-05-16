@@ -2598,8 +2598,11 @@ r16f_all:
   max_entry_offset_r: 0.5
 
 # ═══════════════════════════════════════════
-# v99 定版 — 首次Real Ticks盈利策略
-# 180天: $200→$607 (+203.5%), 983笔, 54.9%WR
+# v99 系列定版策略
+# v99    — 基础盈利版 (M5, bounce30%, timeout120)
+# v99a   — 入场优化版 (bounce40%)
+# v99g1  — 贵金属+外汇最优版 (R20A: timeout90)
+# v99j1  — 加密货币专用版 (CRY4-A: M30+SL1.5+BE2.0)
 # ═══════════════════════════════════════════
 v99:
   <<: *defaults
@@ -2634,6 +2637,46 @@ v99a:
   timeout_min: 120
   max_concurrent: 1
   max_entry_offset_r: 0.5
+
+# v99g1 — 贵金属+外汇最优配置 (XAU+XAG+EUR)
+# 180天3品种: $200→$842(+321%)
+v99g1:
+  <<: *defaults
+  version: V99g1
+  description: "贵金属+外汇: M5+bounce40%+timeout90(XAU+74%/XAG+53%)"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# v99j1 — 加密货币专用配置 (BTC+ETH)
+# 365天: BTC $354(+77%)/PF1.34, ETH $322(+61%)/PF1.38
+v99j1:
+  <<: *defaults
+  version: V99j1
+  description: "加密货币: M30+SL1.5ATR+BE2.0R(BTC+77%/ETH+61%)"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 1.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
 
 # === 第十七轮: v99逐笔分析后精准改进 ===
 # 数据: 111全亏(-111R) + 68微赢(+10R) + 60大赢(+93.7R) = -7.3R
