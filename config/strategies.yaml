@@ -3066,6 +3066,124 @@ cry_i_btc_b50:
   max_entry_offset_r: 0.5
   min_ob_spread_mult: 10.0
 
+# === 第十九轮: 动态止盈优化(提高盈亏比) ===
+# v99a: 60笔DTP avg+1.56R, 68笔BE avg+0.15R
+# 目标: 让BE微赢多赚 + 让大赢跑更远 + 部分锁利
+
+# R19A: 1R部分平仓50% + DTP2R (锁一半利润,另一半追)
+r19a_partial:
+  <<: *defaults
+  version: R19A-Part
+  description: "v99a+1R平50%+DTP2R: 锁利+追"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  partial_close_r: 1.0
+  partial_close_pct: 50
+
+# R19B: 0.5R部分平仓50% + DTP2R (更早锁利)
+r19b_early_part:
+  <<: *defaults
+  version: R19B-EarlyPart
+  description: "v99a+0.5R平50%: 更早锁利"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  partial_close_r: 0.5
+  partial_close_pct: 50
+
+# R19C: DTP retrace 15% (让大赢多跑15%)
+r19c_dtp15:
+  <<: *defaults
+  version: R19C-DTP15
+  description: "v99a+DTP回撤15%: 大赢跑更远"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R19D: DTP 1.5R触发(更早激活) + retrace 25%(更紧)
+r19d_early_dtp:
+  <<: *defaults
+  version: R19D-EarlyDTP
+  description: "DTP1.5R/retrace25%: 更多单触发DTP"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.25
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R19E: 1R平50% + DTP3R/15% (锁利+让剩余跑到3R)
+r19e_part_dtp3:
+  <<: *defaults
+  version: R19E-PartDTP3
+  description: "1R平50%+DTP3R/15%: 锁利+大追"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  partial_close_r: 1.0
+  partial_close_pct: 50
+
+# R19F: BE lock 0.7R (实际收益从0.15→0.55R)
+r19f_hilock:
+  <<: *defaults
+  version: R19F-HiLock
+  description: "BElock0.7R: BE微赢变真赢"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
