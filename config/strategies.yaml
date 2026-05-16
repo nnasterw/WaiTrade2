@@ -2890,6 +2890,182 @@ r18f_quality:
   max_entry_offset_r: 0.5
   min_ob_spread_mult: 6.0
 
+# === 加密货币专项: BTC/ETH 盈利探索 ===
+# BTC: spread≈15pt, M5 risk≈30pt, spread/risk=50% → 必须M15+大OB
+# ETH: spread≈1.5pt, M5 risk≈10pt, spread/risk=15% → M5可能可行
+
+# CRY-A: M15 BTC (降spread比到10%)
+cry_a_btc_m15:
+  <<: *defaults
+  version: CRY-A-BTC15
+  description: "BTC M15: 降spread/risk到10%"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY-B: M30 BTC (spread/risk降到5%)
+cry_b_btc_m30:
+  <<: *defaults
+  version: CRY-B-BTC30
+  description: "BTC M30: 更大OB更低spread比"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY-C: M5 BTC + 极大OB(10x) — 只做巨型OB
+cry_c_btc_huge:
+  <<: *defaults
+  version: CRY-C-BTCHuge
+  description: "BTC M5+OB10x: 只做巨型OB"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 240
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 10.0
+
+# CRY-D: ETH M5 (v99a同参数, spread相对低)
+cry_d_eth_m5:
+  <<: *defaults
+  version: CRY-D-ETHM5
+  description: "ETH M5: v99a同参数"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# CRY-E: ETH M15 + 大OB
+cry_e_eth_m15:
+  <<: *defaults
+  version: CRY-E-ETHM15
+  description: "ETH M15+大OB: 降spread比"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY-F: BTC M15 + DTP3R (大波动品种让赢跑更远)
+cry_f_btc_dtp3:
+  <<: *defaults
+  version: CRY-F-DTP3
+  description: "BTC M15+DTP3R: 大波动追趋势"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# === BTC微调: CRY-C($200.45)突破盈利 ===
+
+# CRY-G: M5+OB10x + BE更晚(1.5R)
+cry_g_btc_latebe:
+  <<: *defaults
+  version: CRY-G-LateBE
+  description: "BTC M5+OB10x+BE1.5R: 更晚保本"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 240
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 10.0
+
+# CRY-H: M15+OB6x (更大时间框架+中等过滤)
+cry_h_btc_m15big:
+  <<: *defaults
+  version: CRY-H-M15Big
+  description: "BTC M15+OB6x: 平衡量质"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 480
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 6.0
+
+# CRY-I: M5+OB10x + bounce50% (更严入场)
+cry_i_btc_b50:
+  <<: *defaults
+  version: CRY-I-B50
+  description: "BTC M5+OB10x+bounce50%"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.50
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 240
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 10.0
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
