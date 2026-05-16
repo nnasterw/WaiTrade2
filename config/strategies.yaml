@@ -2777,6 +2777,119 @@ r17f_bigwin:
   max_concurrent: 1
   max_entry_offset_r: 0.5
 
+# === 第十八轮: v99a提量+提PF ===
+# 基线: v99a XAU 90d: 228/2.5/56.1%/PF?/$279
+
+# R18A: 并发2 (信号质量高了,并发是否仍伤害?)
+r18a_c2:
+  <<: *defaults
+  version: R18A-C2
+  description: "v99a+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+
+# R18B: timeout 60min (更快轮换OB)
+r18b_t60:
+  <<: *defaults
+  version: R18B-T60
+  description: "v99a+timeout60min"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R18C: DTP retrace 15% (让大赢跑更远)
+r18c_dtp15:
+  <<: *defaults
+  version: R18C-DTP15
+  description: "v99a+DTP回撤15%: 大赢更大"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R18D: 大OB 6x (减弱OB刺破)
+r18d_bigob:
+  <<: *defaults
+  version: R18D-BigOB
+  description: "v99a+大OB6x: 减弱OB"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 6.0
+
+# R18E: 并发2 + timeout60 (提量组合)
+r18e_volume:
+  <<: *defaults
+  version: R18E-Vol
+  description: "并发2+t60: 最大提量"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 60
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+
+# R18F: DTP15% + 大OB (提PF组合)
+r18f_quality:
+  <<: *defaults
+  version: R18F-Qual
+  description: "DTP15%+大OB6x: 最大提PF"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 6.0
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
