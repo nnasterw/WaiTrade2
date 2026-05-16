@@ -130,7 +130,11 @@ void UpdateOBStatus(OBZone &zones[], int &zone_count, double bid, double ask, co
       }
 
       long minutes_alive = (long)(now - zones[i].created) / 60;
-      if(minutes_alive > InpTimeoutMin)
+      // Gap6: 动态TTL — 高strength OB活更久, 低strength快过期
+      int ttl_minutes = InpTimeoutMin;
+      if(zones[i].strength >= 2.0) ttl_minutes = (int)(InpTimeoutMin * 1.5);
+      else if(zones[i].strength < 1.0) ttl_minutes = (int)(InpTimeoutMin * 0.5);
+      if(minutes_alive > ttl_minutes)
       {
          zones[i].expired = true;
          continue;
@@ -281,7 +285,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       {
          if(i + InpImpulseLookback < count && IsImpulse(rates, count, i + 1, OB_BUY, atr))
          {
-            double ob_range = rates[i].high - rates[i].low;
+            double ob_range = MathAbs(rates[i].open - rates[i].close);  // Gap1: 实体大小
             if(ob_range < min_ob_range) continue;
 
             double impulse_high = rates[i + 1].high;
@@ -296,8 +300,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             {
                if(zones[z].expired) continue;
                if(zones[z].direction == OB_BUY &&
-                  MathAbs(zones[z].high - rates[i].high) < atr * 0.1 &&
-                  MathAbs(zones[z].low - rates[i].low) < atr * 0.1)
+                  MathAbs(zones[z].high - rates[i].open) < atr * 0.1 &&
+                  MathAbs(zones[z].low - rates[i].close) < atr * 0.1)
                {
                   duplicate = true;
                   break;
@@ -305,9 +309,28 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             }
             if(duplicate) continue;
 
+            // Gap2: Displacement确认 — impulse bar close必须突破前3根最高点
+            double prior_high = rates[i].high;
+            for(int p = MathMax(0, i-3); p < i; p++)
+               if(rates[p].high > prior_high) prior_high = rates[p].high;
+            if(rates[i+1].close <= prior_high)
+               continue;
+
+            // Gap3: K线质量 — 实体占比 > 50%
+            double body_bull = MathAbs(rates[i].open - rates[i].close);
+            double range_bull = rates[i].high - rates[i].low;
+            if(range_bull > 0 && body_bull / range_bull < 0.50)
+               continue;
+
+            // Gap4: 夜盘过滤 — 23:00~06:00 UTC 不创建OB
+            MqlDateTime dt_bull;
+            TimeToStruct(rates[i].time, dt_bull);
+            if(dt_bull.hour >= 23 || dt_bull.hour < 6)
+               continue;
+
             OBZone zone = {};
-            zone.high = rates[i].high;
-            zone.low = rates[i].low;
+            zone.high = rates[i].open;   // Gap1: bearish candle的open是实体高点
+            zone.low = rates[i].close;   // Gap1: bearish candle的close是实体低点
             zone.mid = (zone.high + zone.low) / 2.0;
             zone.direction = OB_BUY;
             zone.created = rates[i].time;
@@ -333,7 +356,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       {
          if(i + InpImpulseLookback < count && IsImpulse(rates, count, i + 1, OB_SELL, atr))
          {
-            double ob_range = rates[i].high - rates[i].low;
+            double ob_range = MathAbs(rates[i].open - rates[i].close);  // Gap1: 实体大小
             if(ob_range < min_ob_range) continue;
 
             double impulse_low = rates[i + 1].low;
@@ -348,8 +371,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             {
                if(zones[z].expired) continue;
                if(zones[z].direction == OB_SELL &&
-                  MathAbs(zones[z].high - rates[i].high) < atr * 0.1 &&
-                  MathAbs(zones[z].low - rates[i].low) < atr * 0.1)
+                  MathAbs(zones[z].high - rates[i].close) < atr * 0.1 &&
+                  MathAbs(zones[z].low - rates[i].open) < atr * 0.1)
                {
                   duplicate = true;
                   break;
@@ -357,9 +380,28 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             }
             if(duplicate) continue;
 
+            // Gap2: Displacement确认 — impulse bar close必须突破前3根最低点
+            double prior_low = rates[i].low;
+            for(int p = MathMax(0, i-3); p < i; p++)
+               if(rates[p].low < prior_low) prior_low = rates[p].low;
+            if(rates[i+1].close >= prior_low)
+               continue;
+
+            // Gap3: K线质量 — 实体占比 > 50%
+            double body_bear = MathAbs(rates[i].open - rates[i].close);
+            double range_bear = rates[i].high - rates[i].low;
+            if(range_bear > 0 && body_bear / range_bear < 0.50)
+               continue;
+
+            // Gap4: 夜盘过滤 — 23:00~06:00 UTC 不创建OB
+            MqlDateTime dt_bear;
+            TimeToStruct(rates[i].time, dt_bear);
+            if(dt_bear.hour >= 23 || dt_bear.hour < 6)
+               continue;
+
             OBZone zone = {};
-            zone.high = rates[i].high;
-            zone.low = rates[i].low;
+            zone.high = rates[i].close;  // Gap1: bullish candle的close是实体高点
+            zone.low = rates[i].open;    // Gap1: bullish candle的open是实体低点
             zone.mid = (zone.high + zone.low) / 2.0;
             zone.direction = OB_SELL;
             zone.created = rates[i].time;

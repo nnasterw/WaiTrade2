@@ -146,6 +146,18 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!PassSpreadRatio(risk_price, spread))
       return false;
 
+   // Gap5: 信号质量门槛 — strength < 0.5 的OB不入场
+   if(zone.strength < 0.5)
+      return false;
+
+   // Gap7: risk不能太大 (>3×ATR 不合理)
+   if(risk_price > state.atr_value * 3.0)
+      return false;
+
+   // Gap8: 逆势 + risk大 → 丢弃
+   if(zone.is_1h_aligned == false && risk_price > state.atr_value * 1.5)
+      return false;
+
    // v9.8 评分系统
    double pos_mult = 1.0;
    if(InpEnableScoring)

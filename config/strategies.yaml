@@ -2023,6 +2023,61 @@ r11f_optimal:
   min_ob_spread_mult: 6.0
   max_concurrent: 1
 
+# === 第十二轮: 8-Gap修复后验证 ===
+# Gap1-8全部修复: OB实体/displacement突破/body%/夜盘/分级/TTL/risk上限/逆势
+
+# R12A: exp_m_dtp20 同参数 (看信号质量提升)
+r12a_baseline:
+  <<: *defaults
+  version: R12A-Base
+  description: "8Gap修复后baseline: 同exp_m参数"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R12B: 修复后 + 固定TP1R (看WR变化)
+r12b_tp1:
+  <<: *defaults
+  version: R12B-TP1
+  description: "8Gap修复+TP1R: 看WR能否>50%"
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  boost_in_1h_ob: 1.0
+  max_concurrent: 1
+
+# R12C: 修复后 + v97b参数 (高盈亏比配置)
+r12c_v97b:
+  <<: *defaults
+  version: R12C-V97b
+  description: "8Gap修复+v97b出场: 看盈亏比"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.40
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
