@@ -1816,6 +1816,213 @@ r9g_best:
   boost_in_1h_ob: 1.0
   max_concurrent: 1
 
+# === 第十轮: 增大R (解决BE后tick噪音扫损) ===
+# 核心发现: risk=5pt时, BE lock 0.2R=1pt, 被tick噪音秒扫
+# 解决: 增大OB → 增大risk → BE绝对距离安全
+
+# R10A: sl_buffer_atr 0.30 (增大SL距离)
+r10a_bigr:
+  <<: *defaults
+  version: R10A-BigR
+  description: "大SL0.30ATR: risk从5pt→8pt"
+  require_double_touch: false
+  sl_buffer_atr: 0.30
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 4.0
+
+# R10B: min_ob 6x (只做极大OB, risk天然大)
+r10b_huge_ob:
+  <<: *defaults
+  version: R10B-HugeOB
+  description: "极大OB6x: risk天然>8pt"
+  require_double_touch: false
+  sl_buffer_atr: 0.10
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 6.0
+
+# R10C: 大SL + 大OB (双保险)
+r10c_double:
+  <<: *defaults
+  version: R10C-Double
+  description: "大SL0.25+大OB6x: 双保险"
+  require_double_touch: false
+  sl_buffer_atr: 0.25
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 6.0
+
+# R10D: 禁用BE, 只用trailing(0.5R/0.3R锁) — 避免BE的微小SL
+r10d_nobe:
+  <<: *defaults
+  version: R10D-NoBE
+  description: "无BE+trail0.5R/lock0.3R: 避免微小SL"
+  require_double_touch: false
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 0.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 1.5
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 4.0
+
+# R10E: BE触发更晚(0.5R) + lock更高(0.3R) — 确保绝对距离够
+r10e_latebe:
+  <<: *defaults
+  version: R10E-LateBE
+  description: "BE0.5R/lock0.3R: 晚触发+高锁"
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 4.0
+
+# R10F: 最优预测 (大OB6x + 大SL0.25 + BE0.5/0.3 + DTP3R)
+r10f_best:
+  <<: *defaults
+  version: R10F-Best
+  description: "大OB+大SL+晚BE+DTP3R: 大R保护"
+  require_double_touch: false
+  sl_buffer_atr: 0.25
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 6.0
+  max_concurrent: 1
+
+# === 第十一轮: 流动性清除(Liquidity Sweep)规避 ===
+# 核心: SL放在OB边缘+spread+gap之外，避免被sweep扫掉
+# 当前: sl_buffer_atr=0.10 → 只有0.5点buffer → sweep范围内
+# 目标: buffer >= 2×spread (XAU spread≈0.3, 2×spread=0.6, 加gap≈1.5-3点)
+
+# R11A: sl_buffer 0.50ATR (≈2.5点，超过1×spread)
+r11a_buf50:
+  <<: *defaults
+  version: R11A-Buf50
+  description: "SL buffer 0.50ATR: 避开sweep"
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R11B: 极大buffer 1.0ATR (≈5点，超过2×spread+gap)
+r11b_buf100:
+  <<: *defaults
+  version: R11B-Buf100
+  description: "SL buffer 1.0ATR: 完全躲避sweep"
+  require_double_touch: false
+  sl_buffer_atr: 1.0
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R11C: 大OB6x + buf0.5ATR (大OB+宽SL=远离sweep)
+r11c_big_safe:
+  <<: *defaults
+  version: R11C-BigSafe
+  description: "大OB6x+buf0.5ATR: 大R远离sweep"
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 6.0
+
+# R11D: buf0.5 + 不用BE(只trail@0.5R/lock0.3R) — 避免BE微SL
+r11d_nobetrail:
+  <<: *defaults
+  version: R11D-NoBETrail
+  description: "buf0.5+无BE+trail0.5R/0.3R: 远SL+宽trail"
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 0.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 1.5
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+
+# R11E: M5周期 + buf0.5ATR (M5 ATR更大=距离更远)
+r11e_m5_safe:
+  <<: *defaults
+  version: R11E-M5Safe
+  description: "M5+buf0.5ATR: 自然大R"
+  bar_period_min: 5
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 240
+
+# R11F: 最优组合 (大OB + buf0.5 + BE0.5R/0.3R + DTP3R + 单仓)
+r11f_optimal:
+  <<: *defaults
+  version: R11F-Optimal
+  description: "大OB+宽SL+晚BE+DTP3R: 最优预测"
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  min_ob_spread_mult: 6.0
+  max_concurrent: 1
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
