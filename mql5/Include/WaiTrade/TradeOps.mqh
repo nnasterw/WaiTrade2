@@ -70,6 +70,37 @@ bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
    return false;
 }
 
+bool PartialClose(ulong ticket, int close_pct)
+{
+   if(!PositionSelectByTicket(ticket)) return false;
+
+   string symbol = PositionGetString(POSITION_SYMBOL);
+   double volume = PositionGetDouble(POSITION_VOLUME);
+   ENUM_POSITION_TYPE pos_type = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
+
+   double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+   double min_lot  = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+   double close_vol = MathFloor(volume * close_pct / 100.0 / lot_step) * lot_step;
+   if(close_vol < min_lot) close_vol = min_lot;
+   if(close_vol >= volume) return false;  // 不全平，用 ClosePosition
+
+   MqlTradeRequest request = {};
+   MqlTradeResult result = {};
+   request.action = TRADE_ACTION_DEAL;
+   request.position = ticket;
+   request.symbol = symbol;
+   request.volume = close_vol;
+   request.type = (pos_type == POSITION_TYPE_BUY) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+   request.price = (pos_type == POSITION_TYPE_BUY) ?
+                   SymbolInfoDouble(symbol, SYMBOL_BID) :
+                   SymbolInfoDouble(symbol, SYMBOL_ASK);
+   request.deviation = 20;
+
+   if(!OrderSend(request, result))
+      return false;
+   return (result.retcode == TRADE_RETCODE_DONE);
+}
+
 bool ClosePosition(ulong ticket)
 {
    if(!PositionSelectByTicket(ticket)) return false;

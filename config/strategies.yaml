@@ -1523,6 +1523,111 @@ wr80_m5e:
   timeout_min: 90
   time_exit_bars: 20
 
+# === WR80 第七轮: 部分平仓 + 阶梯 ===
+# 1R平50% + 剩余用trailing跑
+
+# PA: exp_m_dtp20 + 1R平50% (最高日均的基础上加锁利)
+wr80_pa:
+  <<: *defaults
+  version: WR80-PA
+  description: "exp_m+1R平50%: 锁利+跑趋势"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  partial_close_r: 1.0
+  partial_close_pct: 50
+
+# PB: wr80_b + 0.5R平50% + trailing(0.7R/0.3R)
+wr80_pb:
+  <<: *defaults
+  version: WR80-PB
+  description: "b+0.5R平50%+trail: 快锁+追"
+  require_double_touch: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  trail_levels:
+    - trigger_r: 0.7
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 1.5
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  partial_close_r: 0.5
+  partial_close_pct: 50
+
+# PC: 1R平50% + 大OB + 阶梯trailing
+wr80_pc:
+  <<: *defaults
+  version: WR80-PC
+  description: "1R平50%+大OB+阶梯trail"
+  require_double_touch: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.1
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  partial_close_r: 1.0
+  partial_close_pct: 50
+
+# PD: 0.3R平50% (极速锁利) + DTP2R跑剩余
+wr80_pd:
+  <<: *defaults
+  version: WR80-PD
+  description: "0.3R平50%极速锁+DTP2R"
+  require_double_touch: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.2
+  breakeven_lock_r: 0.05
+  min_ob_spread_mult: 4.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 1.0
+  bounce_pct: 0.30
+  partial_close_r: 0.3
+  partial_close_pct: 50
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
@@ -2375,3 +2480,274 @@ mt5_account:
   proxy_enable: 1
   proxy_type: 0
   proxy_address: "127.0.0.1:7897"
+
+# === 第十一轮: v98a改进 ===
+
+# AO: v98a + 更早BE(0.3R) + 更高lock(0.15R)
+exp_ao_earlyBE:
+  <<: *defaults
+  version: ExpAO-EBE
+  description: "v98a+BE0.3R@0.15lock: 更早保护"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.30
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.5
+  range_time_exit: 30
+  trend_be_r: 0.3
+  trend_be_lock: 0.15
+  trend_dtp_retrace: 0.15
+
+# AP: v98a + DTP更宽(4.0R@15%) + Trail L2更早(2.0R)
+exp_ap_wideDTP:
+  <<: *defaults
+  version: ExpAP-WDTP
+  description: "v98a+DTP4R@15%+Trail2R: 让利润多跑"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.30
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 4.0
+  dtp_retrace: 0.15
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: true
+  decay_min_r: 1.5
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.12
+
+# AQ: v98a + 大OB(3x)+中SL(0.15ATR) — 减少噪声扫损
+exp_aq_bigob:
+  <<: *defaults
+  version: ExpAQ-BOB
+  description: "v98a+大OB3x+SL0.15ATR: 减少噪声"
+  enable_entry_engine: true
+  require_double_touch: false
+  min_ob_spread_mult: 3.0
+  sl_buffer_atr: 0.15
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.30
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# AR: v98a + min_score3+bounce40% — 减少交易量提高质量
+exp_ar_quality:
+  <<: *defaults
+  version: ExpAR-Qual
+  description: "v98a+score3+bounce40%: 只做最好的"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  bounce_pct: 0.40
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 3
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 30
+  trend_be_r: 0.5
+  trend_be_lock: 0.2
+  trend_dtp_retrace: 0.20
+
+# AS: 全组合 (AO+AP+AQ+AR)
+exp_as_combo:
+  <<: *defaults
+  version: ExpAS-All
+  description: "全组合: 早BE+宽DTP+大OB+高分"
+  enable_entry_engine: true
+  require_double_touch: false
+  min_ob_spread_mult: 3.0
+  sl_buffer_atr: 0.15
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.40
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  dtp_trigger_r: 4.0
+  dtp_retrace: 0.15
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 3
+  enable_decay_exit: true
+  decay_min_r: 1.5
+  decay_bars: 3
+  engulf_body_pct: 50
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.5
+  range_time_exit: 20
+  trend_be_r: 0.3
+  trend_be_lock: 0.15
+  trend_dtp_retrace: 0.12
+
+# === 第十二轮: 固定TP测试 ===
+
+# AT: 固定TP 0.5R (禁用DTP, 看实际胜率)
+exp_at_tp05:
+  <<: *defaults
+  version: ExpAT-TP05
+  description: "v98a+固定TP0.5R: 明确止盈"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.0
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 0.5
+  bounce_pct: 0.30
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: false
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.0
+  range_time_exit: 999
+
+# AU: 固定TP 1.0R
+exp_au_tp10:
+  <<: *defaults
+  version: ExpAU-TP10
+  description: "v98a+固定TP1.0R: 1:1盈亏"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.0
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 1.0
+  bounce_pct: 0.30
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: false
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.0
+  range_time_exit: 999
+
+# AV: 固定TP 0.5R + BE 0.3R保护
+exp_av_tp05be:
+  <<: *defaults
+  version: ExpAV-TP05BE
+  description: "v98a+TP0.5R+BE0.3R: 止盈+保护"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 0.5
+  bounce_pct: 0.30
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: false
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.3
+  range_time_exit: 999
+
+# AW: 固定TP 0.3R (超短止盈, 靠高胜率)
+exp_aw_tp03:
+  <<: *defaults
+  version: ExpAW-TP03
+  description: "v98a+TP0.3R: 超短止盈靠量"
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.0
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 0.3
+  bounce_pct: 0.30
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  boost_in_1h_ob: 3.0
+  enable_state_filter: true
+  enable_scoring: true
+  min_score: 2
+  enable_decay_exit: false
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.0
+  range_time_exit: 999

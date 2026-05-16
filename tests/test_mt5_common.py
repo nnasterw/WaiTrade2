@@ -324,6 +324,18 @@ def test_v98a_entry_engine_params():
     assert FLAT_MAP['enable_entry_engine'] == 'InpEnableEntryEngine'
 
 
+def test_partial_close_params():
+    assert FLAT_MAP['partial_close_r'] == 'InpPartialCloseR'
+    assert FLAT_MAP['partial_close_pct'] == 'InpPartialClosePct'
+
+
+def test_partial_close_in_set():
+    cfg = {'version': 'test', 'partial_close_r': 1.0, 'partial_close_pct': 50}
+    content = strategy_to_set('test', cfg)
+    assert 'InpPartialCloseR=1.0' in content
+    assert 'InpPartialClosePct=50' in content
+
+
 def test_v98a_strategy_set():
     cfg = {
         'version': 'V98a',

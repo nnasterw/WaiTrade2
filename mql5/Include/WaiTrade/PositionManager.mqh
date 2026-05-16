@@ -21,6 +21,7 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
             continue;
         }
 
+        CheckPartialClose(tracks[i]);
         CheckBreakeven(tracks[i], state);
         CheckTrailing(tracks[i]);
         CheckDTP(tracks[i], state);
@@ -49,6 +50,23 @@ void SyncPositions(PosTrack &tracks[], int &track_count)
                 tracks[j] = tracks[j + 1];
             track_count--;
         }
+    }
+}
+
+void CheckPartialClose(PosTrack &track)
+{
+    if(InpPartialCloseR <= 0) return;
+    if(track.partial_closed) return;
+
+    if(!PositionSelectByTicket(track.ticket)) return;
+
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+
+    if(current_r >= InpPartialCloseR)
+    {
+        if(PartialClose(track.ticket, InpPartialClosePct))
+            track.partial_closed = true;
     }
 }
 
@@ -237,6 +255,7 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
     t.trail_level  = 0;
     t.dtp_active   = false;
     t.dtp_peak_r   = 0;
+    t.partial_closed = false;
 
     tracks[track_count] = t;
     track_count++;

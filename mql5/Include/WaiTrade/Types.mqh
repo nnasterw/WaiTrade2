@@ -56,6 +56,7 @@ struct PosTrack
     int      trail_level;    // 当前追踪级别 (0=无, 1-3)
     bool     dtp_active;     // DTP是否已激活
     double   dtp_peak_r;     // DTP激活后的峰值R
+    bool     partial_closed; // 是否已执行部分平仓
 };
 
 struct EAState

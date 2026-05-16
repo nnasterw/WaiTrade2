@@ -63,6 +63,9 @@ FLAT_MAP = {
     "decay_bars": "InpDecayBars",
     "engulf_body_pct": "InpEngulfBodyPct",
     "fixed_tp_r": "InpFixedTPR",
+    # 部分平仓
+    "partial_close_r": "InpPartialCloseR",
+    "partial_close_pct": "InpPartialClosePct",
     # v9.8a EntryEngine状态机
     "enable_entry_engine": "InpEnableEntryEngine",
 }

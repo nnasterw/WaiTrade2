@@ -95,6 +95,10 @@ input double InpDecayMinR         = 1.0;      // 衰减检测启动阈值(R)
 input int    InpDecayBars         = 3;        // 二推不破连续bar数
 input int    InpEngulfBodyPct     = 50;       // 吞没追随实体占比(%)
 
+// 部分平仓
+input double InpPartialCloseR      = 0.0;      // 部分平仓触发R(0=禁用)
+input int    InpPartialClosePct    = 50;       // 部分平仓比例(%)
+
 // 入场引擎
 input bool   InpEnableEntryEngine  = false;    // 启用入场状态机(false=直接入场)
 
