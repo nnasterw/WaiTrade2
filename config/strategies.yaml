@@ -2604,13 +2604,13 @@ r16f_all:
 v99:
   <<: *defaults
   version: V99
-  description: "M5+EntryEngine+8Gap+BE1.0/0.5: 定版盈利策略"
+  description: "M5+EntryEngine+8Gap+BE1.0/0.5+bounce40%: 定版盈利策略"
   bar_period_min: 5
   enable_entry_engine: true
   require_double_touch: false
   breakeven_r: 1.0
   breakeven_lock_r: 0.50
-  bounce_pct: 0.30
+  bounce_pct: 0.40
   dtp_trigger_r: 2.0
   dtp_retrace: 0.20
   boost_in_1h_ob: 1.0
