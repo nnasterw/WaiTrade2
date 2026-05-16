@@ -2078,6 +2078,525 @@ r12c_v97b:
   dtp_retrace: 0.20
   boost_in_1h_ob: 1.0
 
+# === 第十三轮: M5/M15 大时间框架 (8Gap修复后) ===
+# 核心逻辑: spread/risk从M1的6-10%降到M5的1.5-3%
+
+# R13A: M5 基础 (DTP2R + BE0.3/0.2)
+r13a_m5:
+  <<: *defaults
+  version: R13A-M5
+  description: "M5+8Gap: 基础DTP2R"
+  bar_period_min: 5
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R13B: M5 + Trail (追趋势)
+r13b_m5trail:
+  <<: *defaults
+  version: R13B-M5Trail
+  description: "M5+trail追趋势"
+  bar_period_min: 5
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.10
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  bounce_pct: 0.40
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R13C: M15 基础
+r13c_m15:
+  <<: *defaults
+  version: R13C-M15
+  description: "M15+8Gap: spread/risk最低"
+  bar_period_min: 15
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 240
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R13D: M5 + 并发2 + TP1R固定
+r13d_m5tp:
+  <<: *defaults
+  version: R13D-M5TP
+  description: "M5+TP1R固定+并发2"
+  bar_period_min: 5
+  require_double_touch: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.15
+  bounce_pct: 0.40
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+
+# R13E: M5 + EntryEngine bounce确认
+r13e_m5entry:
+  <<: *defaults
+  version: R13E-M5Entry
+  description: "M5+EntryEngine bounce"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R13F: EURUSD M1 (低spread品种验证)
+r13f_eur:
+  <<: *defaults
+  version: R13F-EUR
+  description: "EURUSD M1: 低spread验证"
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# === 第十四轮: R13E (M5+EntryEngine) 微调 ===
+# R13E: 307笔/3.4日均/73%WR/$83 — 最佳！
+# 目标: 提升余额到$200+
+
+# R14A: R13E + DTP3R (让赢的跑更远)
+r14a_dtp3:
+  <<: *defaults
+  version: R14A-DTP3
+  description: "M5+Entry+DTP3R: 大盈亏比"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R14B: R13E + 并发2 (增加交易量)
+r14b_c2:
+  <<: *defaults
+  version: R14B-C2
+  description: "M5+Entry+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+
+# R14C: R13E + 部分平仓(1R平50%)
+r14c_partial:
+  <<: *defaults
+  version: R14C-Part
+  description: "M5+Entry+1R平50%"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  partial_close_r: 1.0
+  partial_close_pct: 50
+
+# R14D: R13E + bounce 20% (更容易确认)
+r14d_b20:
+  <<: *defaults
+  version: R14D-B20
+  description: "M5+Entry+bounce20%"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.3
+  breakeven_lock_r: 0.20
+  bounce_pct: 0.20
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R14E: R13E + BE更晚(0.5R) + lock更高(0.3R)
+r14e_latebe:
+  <<: *defaults
+  version: R14E-LateBE
+  description: "M5+Entry+BE0.5/0.3: 大空间保护"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R14F: 最优预测 (DTP3R + bounce20% + BE0.5/0.3)
+r14f_best:
+  <<: *defaults
+  version: R14F-Best
+  description: "M5最优: DTP3R+b20+BE0.5/0.3"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.20
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# === 第十五轮: R14E (M5+Entry+BE0.5/0.3) 深度微调 ===
+# R14E: 287/3.2/66.6%/$91 — 新最佳
+
+# R15A: BE更晚(0.7R) + lock(0.4R)
+r15a_be07:
+  <<: *defaults
+  version: R15A-BE07
+  description: "M5+Entry+BE0.7/0.4"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.7
+  breakeven_lock_r: 0.40
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R15B: BE(0.5/0.3) + trail(1.5R/lock0.5R)
+r15b_trail:
+  <<: *defaults
+  version: R15B-Trail
+  description: "R14E+trail1.5R/lock0.5R"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 2.5
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R15C: R14E + 动能衰减退出
+r15c_decay:
+  <<: *defaults
+  version: R15C-Decay
+  description: "R14E+动能衰减"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+
+# R15D: R14E + 态过滤
+r15d_state:
+  <<: *defaults
+  version: R15D-State
+  description: "R14E+M15态过滤"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+
+# R15E: 禁用BE + 纯trail(0.5R/0.3R → 2R/50%)
+r15e_puretrail:
+  <<: *defaults
+  version: R15E-PureTrail
+  description: "M5+Entry+纯trail无BE"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 0.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R15F: R14E + 1R部分平仓50% + DTP3R
+r15f_combo:
+  <<: *defaults
+  version: R15F-Combo
+  description: "R14E+1R平50%+DTP3R"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.30
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  partial_close_r: 1.0
+  partial_close_pct: 50
+
+# === 第十六轮: R15A ($165) 冲刺盈利 ===
+
+# R16A: BE(1.0R/0.5R) — 更晚更高
+r16a_be10:
+  <<: *defaults
+  version: R16A-BE10
+  description: "M5+Entry+BE1.0/0.5"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R16B: R15A + DTP3R
+r16b_dtp3:
+  <<: *defaults
+  version: R16B-DTP3
+  description: "R15A+DTP3R"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.7
+  breakeven_lock_r: 0.40
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R16C: R15A + trail(1.5R/lock0.7R)
+r16c_trail:
+  <<: *defaults
+  version: R16C-Trail
+  description: "R15A+trail1.5R/lock0.7R"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.7
+  breakeven_lock_r: 0.40
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.7
+      lock_mult: 0.0
+    - trigger_r: 2.5
+      lock_r: 0.0
+      lock_mult: 0.60
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R16D: 禁BE + 纯trail(0.7R/0.4R → 2R/60%)
+r16d_puretrail:
+  <<: *defaults
+  version: R16D-PureTrail
+  description: "M5无BE+trail0.7R/lock0.4R"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  trail_levels:
+    - trigger_r: 0.7
+      lock_r: 0.4
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.60
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R16E: R15A + risk1% (降杠杆稳定)
+r16e_risk1:
+  <<: *defaults
+  version: R16E-Risk1
+  description: "R15A+risk1%: 降杠杆"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.7
+  breakeven_lock_r: 0.40
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  risk_percent: 1.0
+
+# R16F: 全组合 (BE1.0/0.5 + DTP3R + trail)
+r16f_all:
+  <<: *defaults
+  version: R16F-All
+  description: "BE1.0/0.5+DTP3R+trail: 全组合"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.7
+      lock_mult: 0.0
+    - trigger_r: 2.5
+      lock_r: 0.0
+      lock_mult: 0.60
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
