@@ -96,7 +96,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
 
         double price = (monitors[i].direction == OB_BUY) ? bid : ask;
 
-        // PHASE_WAITING_TOUCH: 等价格触及 OB 范围 → 直接确认（OBDetector已验证有效性）
+        // PHASE_WAITING_TOUCH: 等价格触及 OB 范围 → 记录touch → 进入bounce等待
         if(monitors[i].phase == PHASE_WAITING_TOUCH)
         {
             bool touched = false;
@@ -109,15 +109,31 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 monitors[i].touch_time = now;
                 monitors[i].touch_count++;
 
-                // 二推不破: 需要第二次触及
+                // 二推不破: 需要第二次触及才进入bounce确认
                 if(InpRequireDoubleTch && monitors[i].touch_count < 2)
                 {
                     monitors[i].phase = PHASE_WAITING_DOUBLE;
                     continue;
                 }
 
-                // OBDetector 的 impulse+bounce 已证明 OB 有效
-                // 触及即确认，只做 offset guard
+                // 触及确认，进入bounce等待阶段
+                monitors[i].phase = PHASE_WAITING_BOUNCE;
+            }
+        }
+        // PHASE_WAITING_BOUNCE: tick级bounce确认 — 价格从OB反弹达到阈值才入场
+        else if(monitors[i].phase == PHASE_WAITING_BOUNCE)
+        {
+            bool confirmed = false;
+            // buy: 价格从ob_top向上弹出 ob_height × InpBouncePct
+            if(monitors[i].direction == OB_BUY && price - monitors[i].ob_top >= threshold)
+                confirmed = true;
+            // sell: 价格从ob_bottom向下弹出 ob_height × InpBouncePct
+            if(monitors[i].direction == OB_SELL && monitors[i].ob_bottom - price >= threshold)
+                confirmed = true;
+
+            if(confirmed)
+            {
+                // offset guard: 确认价偏离entry过远则放弃
                 double offset_r = MathAbs(price - entry) / risk;
                 if(offset_r > InpMaxEntryOffsetR)
                 {
@@ -147,8 +163,15 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                     out_count++;
                 }
             }
+
+            // bounce超时: 30 bars未确认则过期
+            if((int)(now - monitors[i].touch_time) > 30 * InpBarTF * 60)
+            {
+                monitors[i].phase = PHASE_EXPIRED;
+                monitors[i].active = false;
+            }
         }
-        // PHASE_WAITING_DOUBLE: 等第二次触及
+        // PHASE_WAITING_DOUBLE: 等第二次触及(二推不破)
         else if(monitors[i].phase == PHASE_WAITING_DOUBLE)
         {
             // 检查第二次触及
@@ -161,34 +184,9 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 monitors[i].touch_count++;
                 if(monitors[i].touch_count >= 2)
                 {
-                    double offset_r = MathAbs(price - entry) / risk;
-                    if(offset_r > InpMaxEntryOffsetR)
-                    {
-                        monitors[i].phase = PHASE_EXPIRED;
-                        monitors[i].active = false;
-                        continue;
-                    }
-
-                    monitors[i].confirm_price = price;
-                    monitors[i].phase = PHASE_ENTERED;
-                    monitors[i].active = false;
-
-                    if(out_count < max_out)
-                    {
-                        TradeSignal ts;
-                        ZeroMemory(ts);
-                        ts.direction  = monitors[i].direction;
-                        ts.entry      = price;
-                        ts.sl         = monitors[i].sl;
-                        ts.tp         = 0;
-                        ts.risk_price = risk;
-                        ts.lot        = 0;
-                        ts.pos_mult   = monitors[i].pos_mult;
-                        ts.ob_index   = monitors[i].ob_index;
-                        ts.comment    = "EntryEngine-DT";
-                        out_signals[out_count] = ts;
-                        out_count++;
-                    }
+                    // 第二次触及确认，进入bounce等待
+                    monitors[i].touch_time = now;
+                    monitors[i].phase = PHASE_WAITING_BOUNCE;
                 }
             }
 
