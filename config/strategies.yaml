@@ -3184,6 +3184,122 @@ r19f_hilock:
   max_concurrent: 1
   max_entry_offset_r: 0.5
 
+# === 第二十轮: 减刺破+XAG优化+时段 ===
+# 数据: 0h有15笔刺破(-15R), timeout120min让22h的OB在0h仍有效
+
+# R20A: timeout 90min (22h的OB在23:30过期,不会在0h触发)
+r20a_t90:
+  <<: *defaults
+  version: R20A-T90
+  description: "v99a+timeout90: 减夜盘刺破"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R20B: timeout 60min (更积极过期)
+r20b_t60:
+  <<: *defaults
+  version: R20B-T60
+  description: "v99a+timeout60: 更快过期"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 60
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R20C: bounce 50% (更严入场减刺破)
+r20c_b50:
+  <<: *defaults
+  version: R20C-B50
+  description: "v99a+bounce50%: 更严减刺破"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.50
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# === XAG独立优化 ===
+# XAG v99a: 170笔/0.9日均/51.2%/PF0.94(亏)
+# 假设: XAG spread更大, 需要更大OB或更晚BE
+
+# R20D: XAG + 大OB 6x
+r20d_xag_bigob:
+  <<: *defaults
+  version: R20D-XAGBig
+  description: "XAG+大OB6x"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 6.0
+
+# R20E: XAG + BE 1.5R/0.7R (更多呼吸空间)
+r20e_xag_latebe:
+  <<: *defaults
+  version: R20E-XAGLateBE
+  description: "XAG+BE1.5/0.7: 更多空间"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.5
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R20F: XAG M15 (更大时间框架)
+r20f_xag_m15:
+  <<: *defaults
+  version: R20F-XAGM15
+  description: "XAG M15: 更大OB"
+  bar_period_min: 15
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 240
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
