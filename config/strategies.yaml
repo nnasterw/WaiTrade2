@@ -3424,6 +3424,214 @@ cry2_f:
   max_entry_offset_r: 0.5
   min_ob_spread_mult: 4.0
 
+# === 加密R3: CRY2-B(BTC M30 $215)微调 ===
+# 基线: 83笔/0.5日均/55.4%WR/$215(+7.5%)
+# 目标: WR→60%+ 和 PF→1.2+
+
+# CRY3-A: bounce 50% (更严入场)
+cry3_a:
+  <<: *defaults
+  version: CRY3A
+  description: "BTC M30+bounce50%: 更严入场"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.50
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY3-B: BE 2.5R/1.2R (更晚保本更多呼吸)
+cry3_b:
+  <<: *defaults
+  version: CRY3B
+  description: "BTC M30+BE2.5R/1.2: 极晚保本"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 2.5
+  breakeven_lock_r: 1.20
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY3-C: DTP 4.0R/15% (让大赢跑到4R)
+cry3_c:
+  <<: *defaults
+  version: CRY3C
+  description: "BTC M30+DTP4R/15%: 追大赢"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 4.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY3-D: 大OB 8x (只做更大的OB)
+cry3_d:
+  <<: *defaults
+  version: CRY3D
+  description: "BTC M30+OB8x: 极精选"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 8.0
+
+# CRY3-E: 最优组合 (bounce50+BE2.5+DTP4R+OB8x)
+cry3_e:
+  <<: *defaults
+  version: CRY3E
+  description: "BTC全组合: b50+BE2.5+DTP4+OB8x"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 0.50
+  breakeven_r: 2.5
+  breakeven_lock_r: 1.20
+  bounce_pct: 0.50
+  dtp_trigger_r: 4.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 8.0
+
+# CRY3-F: SL buffer 1.0ATR (极宽, BTC需要更大缓冲)
+cry3_f:
+  <<: *defaults
+  version: CRY3F
+  description: "BTC M30+SL1.0ATR: 极宽缓冲"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 1.00
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# === 加密R4: CRY3-F($236)极宽SL方向 ===
+
+# CRY4-A: SL 1.5ATR (更宽)
+cry4_a:
+  <<: *defaults
+  version: CRY4A
+  description: "BTC M30+SL1.5ATR"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 1.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY4-B: CRY3-F + OB8x (宽SL+精选)
+cry4_b:
+  <<: *defaults
+  version: CRY4B
+  description: "BTC M30+SL1.0+OB8x: 宽SL精选"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 1.00
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 8.0
+
+# CRY4-C: CRY3-F + BE3.0R/1.5R (极晚)
+cry4_c:
+  <<: *defaults
+  version: CRY4C
+  description: "BTC M30+SL1.0+BE3.0/1.5: 极晚BE"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 1.00
+  breakeven_r: 3.0
+  breakeven_lock_r: 1.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 4.0
+  dtp_retrace: 0.15
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+# CRY4-D: CRY3-F + 部分平仓(1R/50%)
+cry4_d:
+  <<: *defaults
+  version: CRY4D
+  description: "BTC M30+SL1.0+1R平50%"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 1.00
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+  partial_close_r: 1.0
+  partial_close_pct: 50
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
