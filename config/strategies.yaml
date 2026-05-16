@@ -2597,6 +2597,169 @@ r16f_all:
   max_concurrent: 1
   max_entry_offset_r: 0.5
 
+# ═══════════════════════════════════════════
+# v99 定版 — 首次Real Ticks盈利策略
+# 180天: $200→$607 (+203.5%), 983笔, 54.9%WR
+# ═══════════════════════════════════════════
+v99:
+  <<: *defaults
+  version: V99
+  description: "M5+EntryEngine+8Gap+BE1.0/0.5: 定版盈利策略"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# === 第十七轮: v99逐笔分析后精准改进 ===
+# 数据: 111全亏(-111R) + 68微赢(+10R) + 60大赢(+93.7R) = -7.3R
+# 目标: 减刺破+填补0.3-1R空白+提高BE实际收益
+
+# R17A: v99 + trail L1(0.5R/0.3R) 填补空白
+r17a_trail:
+  <<: *defaults
+  version: R17A-Trail
+  description: "v99+trail0.5R/lock0.3R: 填补空白区"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  trail_levels:
+    - trigger_r: 0.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R17B: v99 + BE lock提到0.7R (抵消spread)
+r17b_hilock:
+  <<: *defaults
+  version: R17B-HiLock
+  description: "v99+BElock0.7R: 抵消spread"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R17C: v99 + bounce 40% (更严入场)
+r17c_b40:
+  <<: *defaults
+  version: R17C-B40
+  description: "v99+bounce40%: 更严入场确认"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R17D: BE更早(0.5R) + lock更高(0.7R) → 快保护
+r17d_earlyhi:
+  <<: *defaults
+  version: R17D-EarlyHi
+  description: "BE0.5R/lock0.7R: 快保护高锁利"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.70
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R17E: trail + hilock + b40 全组合
+r17e_combo:
+  <<: *defaults
+  version: R17E-Combo
+  description: "trail+lock0.7+b40: 全组合"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.70
+  trail_levels:
+    - trigger_r: 0.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
+# R17F: DTP3R + trail(1R/0.5R) → 大赢更大
+r17f_bigwin:
+  <<: *defaults
+  version: R17F-BigWin
+  description: "DTP3R+trail1R/lock0.5R: 大赢更大"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.50
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  bounce_pct: 0.30
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
 # === 第九轮: 修复止盈失效 ===
 
 # AF: 大OB过滤(4x) + 正常SL(0.10ATR) — 让R出场机制生效
