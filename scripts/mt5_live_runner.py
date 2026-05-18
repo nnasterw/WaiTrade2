@@ -28,14 +28,14 @@ MT5_MAIN = os.path.join(WINEPREFIX, 'drive_c/Program Files/MetaTrader 5')
 TERMINAL_EXE = os.path.join(MT5_MAIN, 'terminal64.exe')
 
 PROFILES_DIR = Path(MT5_MAIN) / 'MQL5' / 'Profiles' / 'Charts'
-LIVE_PROFILE_NAME = 'WaiTrade_Live'
+LIVE_PROFILE_NAME = 'WaiTrade2_Live'
 
 CONFIG_FILE = PROJECT_ROOT / 'config' / 'strategies.yaml'
 PID_FILE = PROJECT_ROOT / 'results' / 'live' / 'live.pid'
 LOG_DIR = PROJECT_ROOT / 'results' / 'live'
 
-EA_NAME = 'WaiTrade\\WaiTrade_OB'
-EA_PATH = 'WaiTrade/WaiTrade_OB'
+EA_NAME = 'WaiTrade2\\WaiTrade_OB'
+EA_PATH = 'WaiTrade2/WaiTrade_OB'
 
 
 # ── 配置加载 ───────────────────────────────────────────────────────────────
@@ -66,12 +66,12 @@ def resolve_symbols(config: dict, symbol_arg: str) -> list:
 # ── EA 参数生成（chr inputs 格式）────────────────────────────────────────
 
 def generate_inputs_block(cfg: dict) -> str:
-    """生成 <inputs> 块内容，格式: 参数名=值||0||0||0||N"""
+    """生成 <inputs> 块内容，格式: 参数名=值"""
     lines = []
     for yaml_key, inp_name in FLAT_MAP.items():
         if yaml_key in cfg:
             val = format_value(cfg[yaml_key])
-            lines.append(f'{inp_name}={val}||0||0||0||N')
+            lines.append(f'{inp_name}={val}')
 
     trail_levels = cfg.get('trail_levels', [])
     for idx, level in enumerate(trail_levels):
@@ -80,7 +80,7 @@ def generate_inputs_block(cfg: dict) -> str:
         for sub_key, val in level.items():
             inp_name = TRAIL_MAP.get((idx, sub_key))
             if inp_name:
-                lines.append(f'{inp_name}={format_value(val)}||0||0||0||N')
+                lines.append(f'{inp_name}={format_value(val)}')
 
     return '\n'.join(lines)
 

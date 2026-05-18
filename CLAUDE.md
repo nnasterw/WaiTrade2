@@ -230,6 +230,7 @@ python scripts/mt5_live_runner.py --strategy v99j1 --symbols BTCUSDm,ETHUSDm    
 | **Trail伤害大赢** | trail在0.3R退出中断DTP2R+大赢。简单BE+DTP优于复杂trail |
 | **OB含影线** | OB用high/low(含影线)→SL设在价格到过的位置→必被刺破。改用实体 |
 | **Tester缓存** | 批量回测可能复用缓存结果(显示相同数据)。关键结果需单独跑验证 |
+| **MT5 profile .chr 不支持 EA** | .chr是扁平key=value格式，手写`<expert>`嵌套段会被MT5覆盖成默认图表。Windows必须用`/config:`+`[StartUp]`加载EA。`[StartUp]`只支持单图表，多品种需多`/portable`实例或MQL5脚本 |
 
 ## 当前改进方向
 
@@ -239,11 +240,13 @@ python scripts/mt5_live_runner.py --strategy v99j1 --symbols BTCUSDm,ETHUSDm    
 - M5/M30 时间框架发现
 - v99g1(贵金属$842/+321%) + v99j1(加密$677/+238%)
 - 20轮210+策略变体测试
+- v99g2(贵金属DTP partial) + v99j2(BTC SL2.0ATR) 策略版本
+- Windows MT5 Live 启动方式验证(/config: + [StartUp])
 
 ### P0 — Live部署验证
-- v99g1 Live: XAU+XAG+EUR
-- v99j1 Live: BTC+ETH
-- 720天长期验证
+- v99g2 Live: XAU (已运行 2026-05-18)
+- v99j2 Live: BTC (待部署)
+- 剩余品种(XAG/EUR/BTC)多图表方案
 
 ### P1 — 更多品种
 - GBPJPY (14笔/PF1.84 样本太少)

@@ -1,5 +1,5 @@
-; V99j1 — 加密货币: M30+SL1.5ATR+BE2.0R
-InpBouncePct=0.4
+; V99j2 — BTC专属: v99j1+SL2.0ATR(BTC 365d PF1.86)
+InpBouncePct=0.40
 InpTimeoutMin=720
 InpMaxEntryOffsetR=0.5
 InpRequireDoubleTch=false
@@ -8,7 +8,7 @@ InpMinOBSpreadMult=4.0
 InpMinRiskSpreadRatio=3.0
 InpMinAbsRiskUSD=0.0
 InpConsolidateOB=true
-InpSLBufferATR=1.50
+InpSLBufferATR=2.00
 InpBreakevenR=2.0
 InpBreakevenLockR=1.0
 InpDTPTriggerR=3.0
@@ -24,7 +24,7 @@ InpDSWeight=true
 InpDTAddonBoost=0.0
 InpBarTF=30
 InpBars=300
-InpVersion=V99j1
+InpVersion=V99j2
 InpSpreadFloor=0.0
 InpEnableEntryEngine=true
 InpTrail1TriggerR=1.0

@@ -7,6 +7,40 @@
 #include "MarketState.mqh"
 #include "DecayDetector.mqh"
 
+double CurrentR(const PosTrack &track)
+{
+    if(!PositionSelectByTicket(track.ticket)) return 0;
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    return PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+}
+
+void PrintExitDebug(string reason, const PosTrack &track, double current_r, const EAState &state)
+{
+    if(!InpEnableExitDebug) return;
+    double peak_r = MathMax(track.peak_profit_r, track.dtp_peak_r);
+    double giveback_r = peak_r - current_r;
+    Print("EXIT_DIAG reason=", reason,
+          " ticket=", track.ticket,
+          " dir=", track.direction,
+          " entry=", DoubleToString(track.entry_price, _Digits),
+          " current_r=", DoubleToString(current_r, 2),
+          " peak_r=", DoubleToString(peak_r, 2),
+          " dtp_peak_r=", DoubleToString(track.dtp_peak_r, 2),
+          " giveback_r=", DoubleToString(giveback_r, 2),
+          " bars_held=", state.bar_count - track.open_bar,
+          " last_sl=", track.last_sl_reason);
+}
+
+void PrintSLDebug(string reason, const PosTrack &track, double current_r, double new_sl)
+{
+    if(!InpEnableExitDebug) return;
+    Print("SL_DIAG reason=", reason,
+          " ticket=", track.ticket,
+          " current_r=", DoubleToString(current_r, 2),
+          " peak_r=", DoubleToString(track.peak_profit_r, 2),
+          " new_sl=", DoubleToString(new_sl, _Digits));
+}
+
 void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
 {
     for(int i = track_count - 1; i >= 0; i--)
@@ -66,7 +100,10 @@ void CheckPartialClose(PosTrack &track)
     if(current_r >= InpPartialCloseR)
     {
         if(PartialClose(track.ticket, InpPartialClosePct))
+        {
             track.partial_closed = true;
+            PrintSLDebug("partial", track, current_r, 0);
+        }
     }
 }
 
@@ -100,7 +137,11 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
     {
         double new_sl = RToPrice(be_lock_r, track.entry_price, track.risk_price, track.direction);
         if(ModifySL(track.ticket, new_sl))
+        {
             track.be_applied = true;
+            track.last_sl_reason = "be";
+            PrintSLDebug("be", track, current_r, new_sl);
+        }
     }
 }
 
@@ -121,7 +162,11 @@ void CheckTrailing(PosTrack &track)
         double lock_r = InpTrail3LockR > 0 ? InpTrail3LockR : track.peak_profit_r * InpTrail3LockMult;
         double new_sl = RToPrice(lock_r, track.entry_price, track.risk_price, track.direction);
         if(ModifySL(track.ticket, new_sl))
+        {
             track.trail_level = 3;
+            track.last_sl_reason = "trail3";
+            PrintSLDebug("trail3", track, current_r, new_sl);
+        }
         return;
     }
     // Level 2 升级
@@ -130,7 +175,11 @@ void CheckTrailing(PosTrack &track)
         double lock_r = InpTrail2LockR > 0 ? InpTrail2LockR : track.peak_profit_r * InpTrail2LockMult;
         double new_sl = RToPrice(lock_r, track.entry_price, track.risk_price, track.direction);
         if(ModifySL(track.ticket, new_sl))
+        {
             track.trail_level = 2;
+            track.last_sl_reason = "trail2";
+            PrintSLDebug("trail2", track, current_r, new_sl);
+        }
         return;
     }
     // Level 1 升级
@@ -138,7 +187,11 @@ void CheckTrailing(PosTrack &track)
     {
         double new_sl = RToPrice(InpTrail1LockR, track.entry_price, track.risk_price, track.direction);
         if(ModifySL(track.ticket, new_sl))
+        {
             track.trail_level = 1;
+            track.last_sl_reason = "trail1";
+            PrintSLDebug("trail1", track, current_r, new_sl);
+        }
         return;
     }
 
@@ -156,20 +209,32 @@ void CheckTrailing(PosTrack &track)
         if((track.direction > 0 && new_sl > current_sl) ||
            (track.direction < 0 && new_sl < current_sl))
         {
-            ModifySL(track.ticket, new_sl);
+            if(ModifySL(track.ticket, new_sl))
+            {
+                track.last_sl_reason = "trail_dyn";
+                PrintSLDebug("trail_dyn", track, current_r, new_sl);
+            }
         }
     }
+}
+
+double GetDTPRetrace(const PosTrack &track, const EAState &state)
+{
+    double dtp_retrace = InpDTPRetrace;
+    if(InpEnableStateFilter && state.market_state != 0 && InpTrendDTPRetrace > 0)
+        dtp_retrace = InpTrendDTPRetrace / 100.0;
+    if(InpDTPStage2TriggerR > 0 && InpDTPStage2Retrace > 0 && track.dtp_peak_r >= InpDTPStage2TriggerR)
+        dtp_retrace = InpDTPStage2Retrace;
+    if(InpDTPStage3TriggerR > 0 && InpDTPStage3Retrace > 0 && track.dtp_peak_r >= InpDTPStage3TriggerR)
+        dtp_retrace = InpDTPStage3Retrace;
+    if(track.dtp_partial_closed && InpDTPPostPartialRetrace > 0)
+        dtp_retrace = InpDTPPostPartialRetrace;
+    return dtp_retrace;
 }
 
 void CheckDTP(PosTrack &track, const EAState &state)
 {
     if(InpDTPTriggerR <= 0) return;
-
-    double dtp_retrace = InpDTPRetrace;
-    // v9.8 趋势态DTP回撤
-    if(InpEnableStateFilter && state.market_state != 0 && InpTrendDTPRetrace > 0)
-        dtp_retrace = InpTrendDTPRetrace / 100.0;
-
     if(!PositionSelectByTicket(track.ticket)) return;
 
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
@@ -184,11 +249,24 @@ void CheckDTP(PosTrack &track, const EAState &state)
     if(track.dtp_active)
     {
         track.dtp_peak_r = MathMax(track.dtp_peak_r, current_r);
+        double dtp_retrace = GetDTPRetrace(track, state);
         double retrace = track.dtp_peak_r - current_r;
         double threshold = InpAdaptiveDTP ? track.dtp_peak_r * dtp_retrace
                                           : InpDTPTriggerR * dtp_retrace;
         if(retrace >= threshold)
-            ClosePosition(track.ticket);
+        {
+            if(InpDTPExitMode == 1 && !track.dtp_partial_closed)
+            {
+                if(PartialClose(track.ticket, InpDTPPartialPct))
+                {
+                    track.dtp_partial_closed = true;
+                    PrintExitDebug("dtp_partial", track, current_r, state);
+                    return;
+                }
+            }
+            PrintExitDebug(track.dtp_partial_closed ? "dtp2" : "dtp", track, current_r, state);
+            ClosePosition(track.ticket, track.dtp_partial_closed ? "dtp2" : "dtp");
+        }
     }
 }
 
@@ -215,7 +293,10 @@ void CheckDecay(PosTrack &track, const EAState &state)
     if(current_r < InpDecayMinR) return;
 
     if(CheckMomentumDecay(_Symbol, track.direction, s_m1_rates, s_m1_count))
-        ClosePosition(track.ticket);
+    {
+        PrintExitDebug("decay", track, current_r, state);
+        ClosePosition(track.ticket, "decay");
+    }
 }
 
 void CheckTimeExit(PosTrack &track, const EAState &state)
@@ -230,7 +311,11 @@ void CheckTimeExit(PosTrack &track, const EAState &state)
 
     int bars_held = state.bar_count - track.open_bar;
     if(bars_held >= time_exit_bars)
-        ClosePosition(track.ticket);
+    {
+        double current_r = CurrentR(track);
+        PrintExitDebug("time", track, current_r, state);
+        ClosePosition(track.ticket, "time");
+    }
 }
 
 void RegisterPosition(ulong ticket, int direction, double entry, double sl, double risk_price,
@@ -256,6 +341,8 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
     t.dtp_active   = false;
     t.dtp_peak_r   = 0;
     t.partial_closed = false;
+    t.dtp_partial_closed = false;
+    t.last_sl_reason = "";
 
     tracks[track_count] = t;
     track_count++;

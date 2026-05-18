@@ -2,7 +2,7 @@
 #define __WAITRADE_CONFIG_MQH__
 
 // ═══════════════════════════════════════════════════════════════════════════
-// WaiTrade EA — 输入参数定义 (V96b默认值)
+// WaiTrade2 EA — 输入参数定义 (V96b默认值)
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── OB检测 ──────────────────────────────────────────────────────────────────
@@ -43,6 +43,13 @@ input double InpTrail3LockMult   = 0.0;      // 追踪3锁定(乘数)
 input double InpDTPTriggerR      = 1.5;      // DTP激活阈值(R, 0=禁用)
 input double InpDTPRetrace       = 0.30;     // DTP回撤关闭比例
 input bool   InpAdaptiveDTP      = true;     // 自适应DTP
+input double InpDTPStage2TriggerR = 0.0;     // DTP二阶触发峰值R(0=禁用)
+input double InpDTPStage2Retrace = 0.0;      // DTP二阶回撤比例(0=禁用)
+input double InpDTPStage3TriggerR = 0.0;     // DTP三阶触发峰值R(0=禁用)
+input double InpDTPStage3Retrace = 0.0;      // DTP三阶回撤比例(0=禁用)
+input int    InpDTPExitMode      = 0;        // DTP退出模式(0=全平,1=先部分平仓)
+input int    InpDTPPartialPct    = 50;       // DTP部分平仓比例(%)
+input double InpDTPPostPartialRetrace = 0.0; // DTP部分平仓后回撤比例(0=沿用)
 input double InpFixedTPR         = 0.0;      // 固定止盈(R, 0=DTP模式)
 
 // ── 时间退出 ──────────────────────────────────────────────────────────────
@@ -101,5 +108,8 @@ input int    InpPartialClosePct    = 50;       // 部分平仓比例(%)
 
 // 入场引擎
 input bool   InpEnableEntryEngine  = false;    // 启用入场状态机(false=直接入场)
+
+// 诊断
+input bool   InpEnableExitDebug    = false;    // 打印出场诊断日志
 
 #endif

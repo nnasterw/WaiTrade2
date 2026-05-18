@@ -101,7 +101,7 @@ bool PartialClose(ulong ticket, int close_pct)
    return (result.retcode == TRADE_RETCODE_DONE);
 }
 
-bool ClosePosition(ulong ticket)
+bool ClosePosition(ulong ticket, string comment="")
 {
    if(!PositionSelectByTicket(ticket)) return false;
 
@@ -120,6 +120,7 @@ bool ClosePosition(ulong ticket)
                    SymbolInfoDouble(symbol, SYMBOL_BID) :
                    SymbolInfoDouble(symbol, SYMBOL_ASK);
    request.deviation = 20;
+   request.comment = comment;
 
    if(!OrderSend(request, result))
       return false;

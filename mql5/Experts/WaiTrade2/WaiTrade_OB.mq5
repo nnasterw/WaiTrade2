@@ -1,17 +1,17 @@
-#property copyright "WaiTrade"
+#property copyright "WaiTrade2"
 #property version   "98.01"
 #property strict
 
-#include <WaiTrade/Config.mqh>
-#include <WaiTrade/Types.mqh>
-#include <WaiTrade/Utils.mqh>
-#include <WaiTrade/MarketState.mqh>
-#include <WaiTrade/ScoreEngine.mqh>
-#include <WaiTrade/DecayDetector.mqh>
-#include <WaiTrade/OBDetector.mqh>
-#include <WaiTrade/SignalEngine.mqh>
-#include <WaiTrade/EntryEngine.mqh>
-#include <WaiTrade/PositionManager.mqh>
+#include <WaiTrade2/Config.mqh>
+#include <WaiTrade2/Types.mqh>
+#include <WaiTrade2/Utils.mqh>
+#include <WaiTrade2/MarketState.mqh>
+#include <WaiTrade2/ScoreEngine.mqh>
+#include <WaiTrade2/DecayDetector.mqh>
+#include <WaiTrade2/OBDetector.mqh>
+#include <WaiTrade2/SignalEngine.mqh>
+#include <WaiTrade2/EntryEngine.mqh>
+#include <WaiTrade2/PositionManager.mqh>
 
 OBZone      g_zones[MAX_OB_ZONES];
 PosTrack    g_tracks[MAX_POSITIONS];
@@ -37,13 +37,13 @@ int OnInit()
         return INIT_PARAMETERS_INCORRECT;
     }
 
-    Print("WaiTrade ", InpVersion, " 已加载 | ", _Symbol, " | Magic=", InpMagicNumber);
+    Print("WaiTrade2 ", InpVersion, " 已加载 | ", _Symbol, " | Magic=", InpMagicNumber);
     return INIT_SUCCEEDED;
 }
 
 void OnDeinit(const int reason)
 {
-    Print("WaiTrade ", InpVersion, " 已卸载 | 原因=", reason);
+    Print("WaiTrade2 ", InpVersion, " 已卸载 | 原因=", reason);
 }
 
 void OnTick()
@@ -186,7 +186,25 @@ void OnTick()
         }
     }
 
-    // 6. 持仓管理
+    // 6. 每小时存活日志
+    {
+        static datetime s_last_hb = 0;
+        datetime now_t = TimeCurrent();
+        if(now_t - s_last_hb >= 3600)
+        {
+            s_last_hb = now_t;
+            double spread = (double)(SymbolInfoInteger(symbol, SYMBOL_SPREAD));
+            Print("HEARTBEAT ", InpVersion, " | ", symbol, " ", EnumToString(tf),
+                  " | bar=", g_state.bar_count,
+                  " | ob=", g_state.ob_count,
+                  " | pos=", g_state.pos_count,
+                  " | atr=", DoubleToString(g_state.atr_value, _Digits),
+                  " | spread=", spread,
+                  " | state=", g_state.market_state);
+        }
+    }
+
+    // 7. 持仓管理
     SyncPositions(g_tracks, g_track_count);
     ManagePositions(g_tracks, g_track_count, g_state);
 }

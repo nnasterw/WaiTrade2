@@ -2,7 +2,7 @@
 #define __WAITRADE_TYPES_MQH__
 
 // ═══════════════════════════════════════════════════════════════════════════
-// WaiTrade EA — 核心数据结构
+// WaiTrade2 EA — 核心数据结构
 // ═══════════════════════════════════════════════════════════════════════════
 
 #define MAX_OB_ZONES   100
@@ -57,6 +57,8 @@ struct PosTrack
     bool     dtp_active;     // DTP是否已激活
     double   dtp_peak_r;     // DTP激活后的峰值R
     bool     partial_closed; // 是否已执行部分平仓
+    bool     dtp_partial_closed; // DTP是否已执行部分平仓
+    string   last_sl_reason; // 最近一次SL修改来源
 };
 
 struct EAState

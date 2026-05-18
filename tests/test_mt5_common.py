@@ -345,6 +345,29 @@ def test_partial_close_in_set():
     assert 'InpPartialClosePct=50' in content
 
 
+def test_dtp_stage_params_in_set():
+    cfg = {
+        'version': 'test',
+        'dtp_stage2_trigger_r': 3.0,
+        'dtp_stage2_retrace': 0.25,
+        'dtp_stage3_trigger_r': 4.0,
+        'dtp_stage3_retrace': 0.30,
+        'dtp_exit_mode': 1,
+        'dtp_partial_pct': 50,
+        'dtp_post_partial_retrace': 0.35,
+        'enable_exit_debug': True,
+    }
+    content = strategy_to_set('test', cfg)
+    assert 'InpDTPStage2TriggerR=3.0' in content
+    assert 'InpDTPStage2Retrace=0.25' in content
+    assert 'InpDTPStage3TriggerR=4.0' in content
+    assert 'InpDTPStage3Retrace=0.3' in content
+    assert 'InpDTPExitMode=1' in content
+    assert 'InpDTPPartialPct=50' in content
+    assert 'InpDTPPostPartialRetrace=0.35' in content
+    assert 'InpEnableExitDebug=true' in content
+
+
 def test_v98a_strategy_set():
     cfg = {
         'version': 'V98a',

@@ -33,6 +33,13 @@ FLAT_MAP = {
     "dtp_trigger_r": "InpDTPTriggerR",
     "dtp_retrace": "InpDTPRetrace",
     "adaptive_dtp": "InpAdaptiveDTP",
+    "dtp_stage2_trigger_r": "InpDTPStage2TriggerR",
+    "dtp_stage2_retrace": "InpDTPStage2Retrace",
+    "dtp_stage3_trigger_r": "InpDTPStage3TriggerR",
+    "dtp_stage3_retrace": "InpDTPStage3Retrace",
+    "dtp_exit_mode": "InpDTPExitMode",
+    "dtp_partial_pct": "InpDTPPartialPct",
+    "dtp_post_partial_retrace": "InpDTPPostPartialRetrace",
     "time_exit_bars": "InpTimeExitBars",
     "time_decay_tp": "InpTimeDecayTP",
     "risk_percent": "InpRiskPercent",
@@ -68,6 +75,7 @@ FLAT_MAP = {
     "partial_close_pct": "InpPartialClosePct",
     # v9.8a EntryEngine状态机
     "enable_entry_engine": "InpEnableEntryEngine",
+    "enable_exit_debug": "InpEnableExitDebug",
 }
 
 # trail_levels 映射: (层级索引, 子key) → INP名称

@@ -37,6 +37,13 @@ defaults: &defaults
   dtp_trigger_r: 1.5
   dtp_retrace: 0.30
   adaptive_dtp: true
+  dtp_stage2_trigger_r: 0.0
+  dtp_stage2_retrace: 0.0
+  dtp_stage3_trigger_r: 0.0
+  dtp_stage3_retrace: 0.0
+  dtp_exit_mode: 0
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.0
 
   # === 时间退出 ===
   time_exit_bars: 999
@@ -55,6 +62,9 @@ defaults: &defaults
   # === K线 ===
   bar_period_min: 1   # 1=M1, 5=M5
   bars: 300            # OBScanDepth=200 + ATR(14) + buffer
+
+  # === 诊断 ===
+  enable_exit_debug: false
 
 # === 策略版本 ===
 
@@ -2657,6 +2667,26 @@ v99g1:
   max_concurrent: 1
   max_entry_offset_r: 0.5
 
+v99g2:
+  <<: *defaults
+  version: V99g2
+  description: "贵金属+外汇: v99g1+DTP首次回撤50%落袋+余仓0.30回撤"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+
 # v99j1 — 加密货币专用配置 (BTC+ETH)
 # 365天: BTC $354(+77%)/PF1.34, ETH $322(+61%)/PF1.38
 v99j1:
@@ -2667,6 +2697,25 @@ v99j1:
   enable_entry_engine: true
   require_double_touch: false
   sl_buffer_atr: 1.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+v99j2:
+  <<: *defaults
+  version: V99j2
+  description: "BTC专属: v99j1+SL2.0ATR(BTC 365d PF1.86)"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 2.00
   breakeven_r: 2.0
   breakeven_lock_r: 1.00
   bounce_pct: 0.40
