@@ -22,6 +22,7 @@ int         g_track_count = 0;
 // v9.8a EntryEngine
 EntryMonitor g_monitors[MAX_MONITORS];
 int          g_monitor_count = 0;
+datetime     g_last_entry_attempt = 0;
 
 int OnInit()
 {
@@ -30,6 +31,7 @@ int OnInit()
     ZeroMemory(g_tracks);
     g_track_count = 0;
     g_monitor_count = 0;
+    g_last_entry_attempt = 0;
 
     if(InpRiskPercent <= 0 || InpRiskPercent > 50)
     {
@@ -109,6 +111,7 @@ void OnTick()
             for(int z = 0; z < g_state.ob_count; z++)
             {
                 if(g_zones[z].expired || g_zones[z].used) continue;
+                if(!PassOBReentryCooldown(g_zones[z])) continue;
 
                 // 态过滤：趋势态禁止逆势
                 if(InpEnableStateFilter && g_state.market_state != 0
@@ -156,19 +159,16 @@ void OnTick()
         for(int i = 0; i < conf_count; i++)
         {
             if(g_state.pos_count >= InpMaxConcurrent) break;
+            if(confirmed[i].ob_index < 0 || confirmed[i].ob_index >= g_state.ob_count)
+                continue;
+            if(!FinalizeEntryEngineSignal(symbol, g_zones[confirmed[i].ob_index], g_state, confirmed[i]))
+                continue;
 
-            // 计算手数（EntryEngine 输出的 lot=0，需要这里算）
-            confirmed[i].lot = CalcLotSize(symbol, InpRiskPercent, confirmed[i].risk_price);
-            if(InpEnablePosMult && confirmed[i].pos_mult > 0)
-                confirmed[i].lot = NormalizeDouble(confirmed[i].lot * confirmed[i].pos_mult, 2);
-            double min_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
-            double max_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
-            if(confirmed[i].lot < min_lot) confirmed[i].lot = min_lot;
-            if(confirmed[i].lot > max_lot) confirmed[i].lot = max_lot;
-
-            ExecuteSignal(confirmed[i]);
-            g_state.last_entry_bar = g_state.bar_count;
-            g_state.pos_count++;
+            if(ExecuteSignal(confirmed[i]))
+            {
+                g_state.last_entry_bar = g_state.bar_count;
+                g_state.pos_count++;
+            }
         }
     }
     else
@@ -180,9 +180,11 @@ void OnTick()
         for(int i = 0; i < sig_count; i++)
         {
             if(g_state.pos_count >= InpMaxConcurrent) break;
-            ExecuteSignal(g_signals[i]);
-            g_state.last_entry_bar = g_state.bar_count;
-            g_state.pos_count++;
+            if(ExecuteSignal(g_signals[i]))
+            {
+                g_state.last_entry_bar = g_state.bar_count;
+                g_state.pos_count++;
+            }
         }
     }
 
@@ -209,8 +211,29 @@ void OnTick()
     ManagePositions(g_tracks, g_track_count, g_state);
 }
 
-void ExecuteSignal(const TradeSignal &sig)
+bool ShouldSkipEntryAttempt()
 {
+    if(InpCloseRetryCooldownSec <= 0)
+        return false;
+
+    datetime now = TimeCurrent();
+    return (g_last_entry_attempt > 0 &&
+            now - g_last_entry_attempt < InpCloseRetryCooldownSec);
+}
+
+void MarkEntryAttemptFailed()
+{
+    if(InpCloseRetryCooldownSec <= 0)
+        return;
+    datetime now = TimeCurrent();
+    g_last_entry_attempt = now;
+}
+
+bool ExecuteSignal(const TradeSignal &sig)
+{
+    if(ShouldSkipEntryAttempt())
+        return false;
+
     MqlTradeRequest request = {};
     MqlTradeResult  result  = {};
 
@@ -237,13 +260,15 @@ void ExecuteSignal(const TradeSignal &sig)
             if(!OrderSend(request, result))
             {
                 Print("开仓失败(重试): ", result.comment, " retcode=", result.retcode);
-                return;
+                MarkEntryAttemptFailed();
+                return false;
             }
         }
         else
         {
             Print("开仓失败: ", result.comment, " retcode=", result.retcode);
-            return;
+            MarkEntryAttemptFailed();
+            return false;
         }
     }
 
@@ -260,5 +285,9 @@ void ExecuteSignal(const TradeSignal &sig)
 
         if(sig.ob_index >= 0 && sig.ob_index < g_state.ob_count)
             MarkZoneUsed(g_zones, sig.ob_index);
+
+        return true;
     }
+
+    return false;
 }

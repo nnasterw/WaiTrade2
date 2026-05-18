@@ -60,6 +60,53 @@ bool PassMinRisk(double final_lot, double risk_price, string symbol)
    return (risk_usd >= InpMinAbsRiskUSD);
 }
 
+bool PassNoEntryHours(datetime now)
+{
+   if(StringLen(InpNoEntryHours) == 0)
+      return true;
+
+   MqlDateTime dt;
+   TimeToStruct(now, dt);
+
+   string parts[];
+   ushort sep = StringGetCharacter(",", 0);
+   int count = StringSplit(InpNoEntryHours, sep, parts);
+   for(int i = 0; i < count; i++)
+   {
+      string token = parts[i];
+      StringTrimLeft(token);
+      StringTrimRight(token);
+      if(StringLen(token) == 0)
+         continue;
+      int hour = (int)StringToInteger(token);
+      if(hour == dt.hour)
+         return false;
+   }
+
+   return true;
+}
+
+double ApplyPositionMultiplierCap(double pos_mult)
+{
+   if(InpMaxPosMult > 0 && pos_mult > InpMaxPosMult)
+      return InpMaxPosMult;
+   return pos_mult;
+}
+
+double ApplyLotCap(double lot)
+{
+   if(InpMaxLotSize > 0 && lot > InpMaxLotSize)
+      return InpMaxLotSize;
+   return lot;
+}
+
+bool PassOBReentryCooldown(const OBZone &zone)
+{
+   if(InpOBReentryCooldownMin <= 0 || zone.last_entry_time == 0)
+      return true;
+   return (TimeCurrent() - zone.last_entry_time >= InpOBReentryCooldownMin * 60);
+}
+
 double CalcEntryLot(string symbol, double risk_pct, double risk_price, double pos_mult)
 {
    double base_lot;
@@ -68,6 +115,126 @@ double CalcEntryLot(string symbol, double risk_pct, double risk_price, double po
    else
       base_lot = CalcLotSize(symbol, risk_pct, risk_price);
    return base_lot * pos_mult;
+}
+
+bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState &state,
+                               TradeSignal &signal)
+{
+   if(zone.expired || zone.used)
+      return false;
+
+   if(!PassOBReentryCooldown(zone))
+      return false;
+
+   if(!PassNoEntryHours(TimeCurrent()))
+      return false;
+
+   double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
+   double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+   double spread = GetSpread(symbol);
+
+   double entry = (signal.direction == OB_BUY) ? ask : bid;
+   double risk_price = MathAbs(entry - signal.sl);
+   if(risk_price <= 0)
+      return false;
+
+   double confirm_entry = signal.entry;
+   if(confirm_entry <= 0)
+      confirm_entry = (signal.direction == OB_BUY) ? zone.high : zone.low;
+   if(InpMaxEntryOffsetR > 0 && MathAbs(entry - confirm_entry) / risk_price > InpMaxEntryOffsetR)
+      return false;
+
+   if(!PassSpreadRatio(risk_price, spread))
+      return false;
+
+   // EntryEngine确认后用真实可成交价重新过8-Gap，避免监控阶段和执行阶段口径漂移。
+   if(InpMinOBStrength > 0 && zone.strength < InpMinOBStrength)
+      return false;
+
+   if(InpMaxRiskATR > 0 && state.atr_value > 0 && risk_price > state.atr_value * InpMaxRiskATR)
+      return false;
+
+   if(InpMaxCounterRiskATR > 0 && state.atr_value > 0 &&
+      zone.is_1h_aligned == false && risk_price > state.atr_value * InpMaxCounterRiskATR)
+      return false;
+
+   double pos_mult = signal.pos_mult;
+   if(InpEnableScoring)
+   {
+      double proximity_distance = MathAbs(bid - entry);
+      double tp_est = 0.0;
+      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+         tp_est = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+      else if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+         tp_est = state.target_price;
+      else
+         tp_est = RToPrice(2.0, entry, risk_price, signal.direction);
+      double target_distance = MathAbs(tp_est - entry);
+      int score = CalcSignalScore(zone, state, state.market_state,
+                                  proximity_distance, risk_price, target_distance);
+      if(InpMinScore > 0 && score < InpMinScore)
+         return false;
+      pos_mult = ScoreToMultiplier(score);
+      if(pos_mult < 0)
+         return false;
+   }
+   else
+   {
+      pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
+   }
+   pos_mult = ApplyPositionMultiplierCap(pos_mult);
+
+   double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
+   final_lot = ApplyLotCap(final_lot);
+   if(!PassMinRisk(final_lot, risk_price, symbol))
+      return false;
+
+   double margin_required = 0;
+   ENUM_ORDER_TYPE order_type = (signal.direction == OB_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+   if(!OrderCalcMargin(order_type, symbol, final_lot, entry, margin_required))
+      return false;
+
+   double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+   if(margin_required > free_margin)
+   {
+      if(free_margin <= 0)
+         return false;
+      final_lot = final_lot * (free_margin / margin_required) * 0.95;
+      final_lot = ApplyLotCap(final_lot);
+   }
+
+   double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+   double lot_max = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+   double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+   if(lot_step <= 0)
+      return false;
+
+   final_lot = MathFloor(final_lot / lot_step) * lot_step;
+   if(final_lot < lot_min)
+      return false;
+   if(final_lot > lot_max)
+      final_lot = lot_max;
+
+   double tp = 0.0;
+   if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+      tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+
+   if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+   {
+      double swing_dist = MathAbs(state.target_price - entry);
+      if(swing_dist > risk_price)
+         tp = state.target_price;
+   }
+
+   signal.entry = entry;
+   signal.risk_price = risk_price;
+   signal.lot = NormalizeDouble(final_lot, 2);
+   signal.pos_mult = pos_mult;
+   signal.tp = tp;
+   signal.comment = "WT " + InpVersion + " " + (signal.direction > 0 ? "B" : "S") +
+                    " x" + DoubleToString(pos_mult, 1);
+
+   return true;
 }
 
 int ScanSignals(string symbol, const OBZone &zones[], int zone_count,
@@ -114,6 +281,12 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(CountPositions() >= InpMaxConcurrent)
       return false;
 
+   if(!PassOBReentryCooldown(zone))
+      return false;
+
+   if(!PassNoEntryHours(TimeCurrent()))
+      return false;
+
    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
    double spread = GetSpread(symbol);
@@ -146,16 +319,17 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!PassSpreadRatio(risk_price, spread))
       return false;
 
-   // Gap5: 信号质量门槛 — strength < 0.5 的OB不入场
-   if(zone.strength < 0.5)
+   // Gap5: 信号质量门槛
+   if(InpMinOBStrength > 0 && zone.strength < InpMinOBStrength)
       return false;
 
-   // Gap7: risk不能太大 (>3×ATR 不合理)
-   if(risk_price > state.atr_value * 3.0)
+   // Gap7: risk不能太大
+   if(InpMaxRiskATR > 0 && state.atr_value > 0 && risk_price > state.atr_value * InpMaxRiskATR)
       return false;
 
    // Gap8: 逆势 + risk大 → 丢弃
-   if(zone.is_1h_aligned == false && risk_price > state.atr_value * 1.5)
+   if(InpMaxCounterRiskATR > 0 && state.atr_value > 0 &&
+      zone.is_1h_aligned == false && risk_price > state.atr_value * InpMaxCounterRiskATR)
       return false;
 
    // v9.8 评分系统
@@ -183,7 +357,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    {
       pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
    }
+   pos_mult = ApplyPositionMultiplierCap(pos_mult);
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
+   final_lot = ApplyLotCap(final_lot);
 
    if(!PassMinRisk(final_lot, risk_price, symbol))
       return false;
@@ -199,6 +375,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       if(free_margin <= 0)
          return false;
       final_lot = final_lot * (free_margin / margin_required) * 0.95;
+      final_lot = ApplyLotCap(final_lot);
       double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
       double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
       final_lot = MathFloor(final_lot / lot_step) * lot_step;

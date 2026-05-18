@@ -41,6 +41,24 @@ void PrintSLDebug(string reason, const PosTrack &track, double current_r, double
           " new_sl=", DoubleToString(new_sl, _Digits));
 }
 
+bool ShouldSkipCloseAttempt(PosTrack &track)
+{
+    if(InpCloseRetryCooldownSec <= 0)
+        return false;
+
+    datetime now = TimeCurrent();
+    return (track.last_close_attempt > 0 &&
+            now - track.last_close_attempt < InpCloseRetryCooldownSec);
+}
+
+void MarkCloseAttemptFailed(PosTrack &track)
+{
+    if(InpCloseRetryCooldownSec <= 0)
+        return;
+    datetime now = TimeCurrent();
+    track.last_close_attempt = now;
+}
+
 void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
 {
     for(int i = track_count - 1; i >= 0; i--)
@@ -99,11 +117,16 @@ void CheckPartialClose(PosTrack &track)
 
     if(current_r >= InpPartialCloseR)
     {
+        if(ShouldSkipCloseAttempt(track))
+            return;
+
         if(PartialClose(track.ticket, InpPartialClosePct))
         {
             track.partial_closed = true;
             PrintSLDebug("partial", track, current_r, 0);
         }
+        else
+            MarkCloseAttemptFailed(track);
     }
 }
 
@@ -136,12 +159,17 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
     if(current_r >= be_r)
     {
         double new_sl = RToPrice(be_lock_r, track.entry_price, track.risk_price, track.direction);
+        if(ShouldSkipCloseAttempt(track))
+            return;
+
         if(ModifySL(track.ticket, new_sl))
         {
             track.be_applied = true;
             track.last_sl_reason = "be";
             PrintSLDebug("be", track, current_r, new_sl);
         }
+        else
+            MarkCloseAttemptFailed(track);
     }
 }
 
@@ -161,12 +189,17 @@ void CheckTrailing(PosTrack &track)
     {
         double lock_r = InpTrail3LockR > 0 ? InpTrail3LockR : track.peak_profit_r * InpTrail3LockMult;
         double new_sl = RToPrice(lock_r, track.entry_price, track.risk_price, track.direction);
+        if(ShouldSkipCloseAttempt(track))
+            return;
+
         if(ModifySL(track.ticket, new_sl))
         {
             track.trail_level = 3;
             track.last_sl_reason = "trail3";
             PrintSLDebug("trail3", track, current_r, new_sl);
         }
+        else
+            MarkCloseAttemptFailed(track);
         return;
     }
     // Level 2 升级
@@ -174,24 +207,34 @@ void CheckTrailing(PosTrack &track)
     {
         double lock_r = InpTrail2LockR > 0 ? InpTrail2LockR : track.peak_profit_r * InpTrail2LockMult;
         double new_sl = RToPrice(lock_r, track.entry_price, track.risk_price, track.direction);
+        if(ShouldSkipCloseAttempt(track))
+            return;
+
         if(ModifySL(track.ticket, new_sl))
         {
             track.trail_level = 2;
             track.last_sl_reason = "trail2";
             PrintSLDebug("trail2", track, current_r, new_sl);
         }
+        else
+            MarkCloseAttemptFailed(track);
         return;
     }
     // Level 1 升级
     else if(InpTrail1TriggerR > 0 && current_r >= InpTrail1TriggerR && track.trail_level < 1)
     {
         double new_sl = RToPrice(InpTrail1LockR, track.entry_price, track.risk_price, track.direction);
+        if(ShouldSkipCloseAttempt(track))
+            return;
+
         if(ModifySL(track.ticket, new_sl))
         {
             track.trail_level = 1;
             track.last_sl_reason = "trail1";
             PrintSLDebug("trail1", track, current_r, new_sl);
         }
+        else
+            MarkCloseAttemptFailed(track);
         return;
     }
 
@@ -209,11 +252,16 @@ void CheckTrailing(PosTrack &track)
         if((track.direction > 0 && new_sl > current_sl) ||
            (track.direction < 0 && new_sl < current_sl))
         {
+            if(ShouldSkipCloseAttempt(track))
+                return;
+
             if(ModifySL(track.ticket, new_sl))
             {
                 track.last_sl_reason = "trail_dyn";
                 PrintSLDebug("trail_dyn", track, current_r, new_sl);
             }
+            else
+                MarkCloseAttemptFailed(track);
         }
     }
 }
@@ -230,6 +278,40 @@ double GetDTPRetrace(const PosTrack &track, const EAState &state)
     if(track.dtp_partial_closed && InpDTPPostPartialRetrace > 0)
         dtp_retrace = InpDTPPostPartialRetrace;
     return dtp_retrace;
+}
+
+void ApplyDTPPostPartialLock(PosTrack &track, double current_r)
+{
+    if(InpDTPPostPartialLockR <= 0) return;
+    if(current_r <= InpDTPPostPartialLockR) return;
+    if(!PositionSelectByTicket(track.ticket)) return;
+
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    double current_sl = PositionGetDouble(POSITION_SL);
+    double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+    double new_sl = RToPrice(InpDTPPostPartialLockR, track.entry_price, track.risk_price, track.direction);
+
+    if(track.direction > 0)
+    {
+        if(new_sl <= current_sl || new_sl >= current_price - point)
+            return;
+    }
+    else
+    {
+        if(new_sl >= current_sl || new_sl <= current_price + point)
+            return;
+    }
+
+    if(ShouldSkipCloseAttempt(track))
+        return;
+
+    if(ModifySL(track.ticket, new_sl))
+    {
+        track.last_sl_reason = "dtp_part_lock";
+        PrintSLDebug("dtp_part_lock", track, current_r, new_sl);
+    }
+    else
+        MarkCloseAttemptFailed(track);
 }
 
 void CheckDTP(PosTrack &track, const EAState &state)
@@ -255,17 +337,24 @@ void CheckDTP(PosTrack &track, const EAState &state)
                                           : InpDTPTriggerR * dtp_retrace;
         if(retrace >= threshold)
         {
+            if(ShouldSkipCloseAttempt(track))
+                return;
+
             if(InpDTPExitMode == 1 && !track.dtp_partial_closed)
             {
                 if(PartialClose(track.ticket, InpDTPPartialPct))
                 {
                     track.dtp_partial_closed = true;
+                    ApplyDTPPostPartialLock(track, current_r);
                     PrintExitDebug("dtp_partial", track, current_r, state);
+                    if(InpDTPResetPeakAfterPartial)
+                        track.dtp_peak_r = current_r;
                     return;
                 }
             }
             PrintExitDebug(track.dtp_partial_closed ? "dtp2" : "dtp", track, current_r, state);
-            ClosePosition(track.ticket, track.dtp_partial_closed ? "dtp2" : "dtp");
+            if(!ClosePosition(track.ticket, track.dtp_partial_closed ? "dtp2" : "dtp"))
+                MarkCloseAttemptFailed(track);
         }
     }
 }
@@ -294,8 +383,12 @@ void CheckDecay(PosTrack &track, const EAState &state)
 
     if(CheckMomentumDecay(_Symbol, track.direction, s_m1_rates, s_m1_count))
     {
+        if(ShouldSkipCloseAttempt(track))
+            return;
+
         PrintExitDebug("decay", track, current_r, state);
-        ClosePosition(track.ticket, "decay");
+        if(!ClosePosition(track.ticket, "decay"))
+            MarkCloseAttemptFailed(track);
     }
 }
 
@@ -312,9 +405,13 @@ void CheckTimeExit(PosTrack &track, const EAState &state)
     int bars_held = state.bar_count - track.open_bar;
     if(bars_held >= time_exit_bars)
     {
+        if(ShouldSkipCloseAttempt(track))
+            return;
+
         double current_r = CurrentR(track);
         PrintExitDebug("time", track, current_r, state);
-        ClosePosition(track.ticket, "time");
+        if(!ClosePosition(track.ticket, "time"))
+            MarkCloseAttemptFailed(track);
     }
 }
 
@@ -342,6 +439,7 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
     t.dtp_peak_r   = 0;
     t.partial_closed = false;
     t.dtp_partial_closed = false;
+    t.last_close_attempt = 0;
     t.last_sl_reason = "";
 
     tracks[track_count] = t;

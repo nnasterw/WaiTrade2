@@ -11,8 +11,17 @@ defaults: &defaults
   min_ob_spread_mult: 2.0
   min_risk_spread_ratio: 3.0
   min_abs_risk_usd: 0.0
+  min_ob_body_pct: 50.0
+  no_ob_start_hour: 23
+  no_ob_end_hour: 6
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
   consolidate_ob: true
   spread_floor: 0.0
+  impulse_atr_mult: 1.5
+  impulse_lookback: 3
+  atr_period: 14
 
   # === 止损 ===
   sl_buffer_atr: 0.10
@@ -44,6 +53,8 @@ defaults: &defaults
   dtp_exit_mode: 0
   dtp_partial_pct: 50
   dtp_post_partial_retrace: 0.0
+  dtp_post_partial_lock_r: 0.0
+  dtp_reset_peak_after_partial: false
 
   # === 时间退出 ===
   time_exit_bars: 999
@@ -51,8 +62,16 @@ defaults: &defaults
 
   # === 仓位管理 ===
   risk_percent: 2.0
+  fixed_lot_size: 0.0
+  enable_pos_mult: true
+  max_pos_mult: 0.0
+  max_lot_size: 0.0
   max_concurrent: 5
   cooldown_bars: 0
+  no_entry_hours: ""
+  close_retry_cooldown_sec: 0
+  max_entries_per_ob: 1
+  ob_reentry_cooldown_min: 0
 
   # === 增强 ===
   boost_in_1h_ob: 3.0
@@ -62,6 +81,8 @@ defaults: &defaults
   # === K线 ===
   bar_period_min: 1   # 1=M1, 5=M5
   bars: 300            # OBScanDepth=200 + ATR(14) + buffer
+  ob_scan_depth: 200
+  magic_number: 202605
 
   # === 诊断 ===
   enable_exit_debug: false
@@ -302,6 +323,222 @@ v95c:
   dtp_retrace: 0.35
   time_exit_bars: 12
   boost_in_1h_ob: 3.0
+
+v95c_newob_legacyparams:
+  <<: *defaults
+  version: V95c-NewOBLegacy
+  description: "新版WaiTrade2 OB复刻旧v95c参数: M1+EntryEngine+单推+BE0.5R+DTP2R@35%+12bars"
+  expert: "WaiTrade2\\WaiTrade_OB"
+  enable_entry_engine: true
+  require_double_touch: false
+  double_touch_window_min: 90
+  bounce_pct: 0.30
+  timeout_min: 90
+  max_entry_offset_r: 1.0
+  min_ob_spread_mult: 3.0
+  min_risk_spread_ratio: 5.0
+  min_abs_risk_usd: 0.30
+  # 关闭新版额外8-Gap过滤，尽量只保留旧版参数口径；实体OB/新版OB结构仍无法完全等同旧版。
+  min_ob_body_pct: 0.0
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  min_ob_strength: 0.0
+  max_risk_atr: 0.0
+  max_counter_risk_atr: 0.0
+  impulse_atr_mult: 1.5
+  impulse_lookback: 3
+  consolidate_ob: true
+  sl_buffer_atr: 0.10
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: true
+  dtp_exit_mode: 0
+  dtp_post_partial_retrace: 0.0
+  dtp_post_partial_lock_r: 0.0
+  dtp_reset_peak_after_partial: false
+  time_exit_bars: 12
+  time_decay_tp: true
+  risk_percent: 2.0
+  enable_pos_mult: true
+  max_concurrent: 5
+  cooldown_bars: 0
+  boost_in_1h_ob: 3.0
+  ds_weight: true
+  dt_addon_boost: 2.0
+  bar_period_min: 1
+  bars: 5000
+  ob_scan_depth: 0
+  enable_state_filter: false
+  enable_scoring: false
+  enable_decay_exit: false
+  partial_close_r: 0.0
+  fixed_tp_r: 0.0
+
+v95c_oldob_control:
+  <<: *defaults
+  version: V95c-OldOB
+  description: "旧WaiTrade OB对照: 同v95c参数, expert=WaiTrade\\WaiTrade_OB"
+  expert: "WaiTrade\\WaiTrade_OB"
+  require_double_touch: false
+  double_touch_window_min: 90
+  timeout_min: 90
+  max_entry_offset_r: 1.0
+  min_ob_spread_mult: 3.0
+  min_risk_spread_ratio: 5.0
+  min_abs_risk_usd: 0.30
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: true
+  time_exit_bars: 12
+  time_decay_tp: true
+  risk_percent: 2.0
+  max_concurrent: 5
+  cooldown_bars: 0
+  boost_in_1h_ob: 3.0
+  ds_weight: true
+  dt_addon_boost: 2.0
+  bar_period_min: 1
+  bars: 5000
+
+v95c_newob_legacyfast:
+  <<: *defaults
+  version: V95c-NewOBFast
+  description: "新版WaiTrade2 OB复刻旧v95c参数烟测版: 限制近端OB扫描, 便于MT5 RealTicks对比"
+  expert: "WaiTrade2\\WaiTrade_OB"
+  enable_entry_engine: true
+  require_double_touch: false
+  double_touch_window_min: 90
+  bounce_pct: 0.30
+  timeout_min: 90
+  max_entry_offset_r: 1.0
+  min_ob_spread_mult: 3.0
+  min_risk_spread_ratio: 5.0
+  min_abs_risk_usd: 0.30
+  min_ob_body_pct: 0.0
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  min_ob_strength: 0.0
+  max_risk_atr: 0.0
+  max_counter_risk_atr: 0.0
+  impulse_atr_mult: 1.5
+  impulse_lookback: 3
+  consolidate_ob: true
+  sl_buffer_atr: 0.10
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: true
+  dtp_exit_mode: 0
+  time_exit_bars: 12
+  time_decay_tp: true
+  risk_percent: 2.0
+  enable_pos_mult: true
+  max_concurrent: 5
+  cooldown_bars: 0
+  boost_in_1h_ob: 3.0
+  ds_weight: true
+  dt_addon_boost: 2.0
+  bar_period_min: 1
+  bars: 300
+  ob_scan_depth: 8
+  enable_state_filter: false
+  enable_scoring: false
+  enable_decay_exit: false
+  partial_close_r: 0.0
+  fixed_tp_r: 0.0
+
+v95c_newob_direct:
+  <<: *defaults
+  version: V95c-NewOBDirect
+  description: "新版WaiTrade2 OB复刻旧v95c参数: 直接入场模式, 对齐旧WaiTrade默认EntryEngine=false"
+  expert: "WaiTrade2\\WaiTrade_OB"
+  enable_entry_engine: false
+  require_double_touch: false
+  double_touch_window_min: 90
+  bounce_pct: 0.30
+  timeout_min: 90
+  max_entry_offset_r: 1.0
+  min_ob_spread_mult: 3.0
+  min_risk_spread_ratio: 5.0
+  min_abs_risk_usd: 0.30
+  min_ob_body_pct: 50.0
+  no_ob_start_hour: 23
+  no_ob_end_hour: 6
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  impulse_atr_mult: 1.5
+  impulse_lookback: 3
+  consolidate_ob: true
+  sl_buffer_atr: 0.10
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.1
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+      lock_mult: 0.0
+    - trigger_r: 3.0
+      lock_r: 0.0
+      lock_mult: 0.65
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.35
+  adaptive_dtp: true
+  dtp_exit_mode: 0
+  time_exit_bars: 12
+  time_decay_tp: true
+  risk_percent: 2.0
+  enable_pos_mult: true
+  max_concurrent: 5
+  cooldown_bars: 0
+  boost_in_1h_ob: 3.0
+  ds_weight: true
+  dt_addon_boost: 2.0
+  bar_period_min: 1
+  bars: 300
+  ob_scan_depth: 200
+  enable_state_filter: false
+  enable_scoring: false
+  enable_decay_exit: false
+  partial_close_r: 0.0
+  fixed_tp_r: 0.0
 
 # === v9子版本(从文档提取) ===
 
@@ -2670,7 +2907,7 @@ v99g1:
 v99g2:
   <<: *defaults
   version: V99g2
-  description: "贵金属+外汇: v99g1+DTP首次回撤50%落袋+余仓0.30回撤"
+  description: "贵金属+外汇候选: v99g1+DTP首段落袋50%+余仓锁1R并重置峰值"
   bar_period_min: 5
   enable_entry_engine: true
   require_double_touch: false
@@ -2682,10 +2919,635 @@ v99g2:
   dtp_exit_mode: 1
   dtp_partial_pct: 50
   dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
   boost_in_1h_ob: 1.0
   timeout_min: 90
   max_concurrent: 1
   max_entry_offset_r: 0.5
+
+v99g3:
+  <<: *defaults
+  version: V99g3
+  description: "XAU候选: v99g2+P0守护+并发2(XAU 180d $3474/PF1.11)"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_g2_nohours:
+  <<: *defaults
+  version: XAU-G2-NoHours
+  description: "XAU实验: v99g2避开净负小时(0/9/12/17/18)"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+
+xau_g2_cap8:
+  <<: *defaults
+  version: XAU-G2-Cap8
+  description: "XAU实验: v99g2限制仓位乘数8与手数0.08"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+
+xau_g2_p0_guard:
+  <<: *defaults
+  version: XAU-G2-P0
+  description: "XAU候选: v99g2+净负小时过滤+仓位cap+闭市平仓冷却"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_b30_guard:
+  <<: *defaults
+  version: XAU-HV-B30
+  description: "XAU高频实验: P0守护+bounce30+timeout120"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_b20_guard:
+  <<: *defaults
+  version: XAU-HV-B20
+  description: "XAU高频实验: P0守护+bounce20+timeout120"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.20
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_c2_guard:
+  <<: *defaults
+  version: XAU-HV-C2
+  description: "XAU高频实验: P0守护+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_re2_c1:
+  <<: *defaults
+  version: XAU-HV-Re2C1
+  description: "XAU高频实验: P0守护+每OB最多2次入场+单仓"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+  max_entries_per_ob: 2
+  ob_reentry_cooldown_min: 30
+
+xau_hv_re2_c2:
+  <<: *defaults
+  version: XAU-HV-Re2C2
+  description: "XAU高频实验: P0守护+每OB最多2次入场+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+  max_entries_per_ob: 2
+  ob_reentry_cooldown_min: 30
+
+xau_hv_re3_c2:
+  <<: *defaults
+  version: XAU-HV-Re3C2
+  description: "XAU高频实验: P0守护+每OB最多3次入场+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+
+xau_hv_b30_re2:
+  <<: *defaults
+  version: XAU-HV-B30Re2
+  description: "XAU高频候选: bounce30+timeout120+每OB 2次+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+  max_entries_per_ob: 2
+  ob_reentry_cooldown_min: 30
+
+xau_hv_b30_re2_soft_hours:
+  <<: *defaults
+  version: XAU-HV-B30Re2Soft
+  description: "XAU高频候选: B30Re2但只禁0/9/12点"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+  max_entries_per_ob: 2
+  ob_reentry_cooldown_min: 30
+
+xau_hv_direct_p0:
+  <<: *defaults
+  version: XAU-HV-DirectP0
+  description: "XAU高频实验: P0守护+直接触及入场"
+  bar_period_min: 5
+  enable_entry_engine: false
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_direct_b30:
+  <<: *defaults
+  version: XAU-HV-DirectB30
+  description: "XAU高频实验: 直接触及入场+bounce30+timeout120"
+  bar_period_min: 5
+  enable_entry_engine: false
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_direct_quality:
+  <<: *defaults
+  version: XAU-HV-DirectQual
+  description: "XAU高频实验: 直接触及入场+更高质量门槛"
+  bar_period_min: 5
+  enable_entry_engine: false
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 120
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  min_ob_strength: 1.0
+  min_risk_spread_ratio: 4.0
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_tp1_c2:
+  <<: *defaults
+  version: XAU-HV-TP1C2
+  description: "XAU高频实验: P0守护+固定TP1R+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.7
+  breakeven_lock_r: 0.35
+  bounce_pct: 0.40
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 1.0
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_tp15_c2:
+  <<: *defaults
+  version: XAU-HV-TP15C2
+  description: "XAU高频实验: P0守护+固定TP1.5R+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.8
+  breakeven_lock_r: 0.40
+  bounce_pct: 0.40
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 1.5
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_fastdtp_c2:
+  <<: *defaults
+  version: XAU-HV-FastDTP
+  description: "XAU高频实验: DTP1.5R全平+并发2"
+  bar_period_min: 5
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 0.8
+  breakeven_lock_r: 0.40
+  bounce_pct: 0.40
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.20
+  dtp_exit_mode: 0
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_m3_p0:
+  <<: *defaults
+  version: XAU-HV-M3P0
+  description: "XAU高频实验: M3周期+P0守护"
+  bar_period_min: 3
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_m3_b30:
+  <<: *defaults
+  version: XAU-HV-M3B30
+  description: "XAU高频实验: M3周期+bounce30+P0守护"
+  bar_period_min: 3
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.30
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_m2_p0:
+  <<: *defaults
+  version: XAU-HV-M2P0
+  description: "XAU高频实验: M2周期+P0守护"
+  bar_period_min: 2
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_m3_score3:
+  <<: *defaults
+  version: XAU-HV-M3Score3
+  description: "XAU高频实验: M3+评分过滤3+P0守护"
+  bar_period_min: 3
+  enable_entry_engine: true
+  require_double_touch: false
+  enable_scoring: true
+  min_score: 3
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_direct_score3:
+  <<: *defaults
+  version: XAU-HV-DirectScore3
+  description: "XAU高频实验: direct+评分过滤3+P0守护"
+  bar_period_min: 5
+  enable_entry_engine: false
+  require_double_touch: false
+  enable_scoring: true
+  min_score: 3
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+xau_hv_m3_quality:
+  <<: *defaults
+  version: XAU-HV-M3Quality
+  description: "XAU高频实验: M3+更高OB强度和risk/spread门槛"
+  bar_period_min: 3
+  enable_entry_engine: true
+  require_double_touch: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.50
+  bounce_pct: 0.40
+  min_ob_strength: 1.0
+  min_risk_spread_ratio: 4.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  boost_in_1h_ob: 1.0
+  timeout_min: 90
+  max_concurrent: 2
+  max_entry_offset_r: 0.5
+  no_entry_hours: "0,9,12,17,18"
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
 
 # v99j1 — 加密货币专用配置 (BTC+ETH)
 # 365天: BTC $354(+77%)/PF1.34, ETH $322(+61%)/PF1.38
@@ -2721,6 +3583,30 @@ v99j2:
   bounce_pct: 0.40
   dtp_trigger_r: 3.0
   dtp_retrace: 0.20
+  boost_in_1h_ob: 1.0
+  timeout_min: 720
+  max_concurrent: 1
+  max_entry_offset_r: 0.5
+  min_ob_spread_mult: 4.0
+
+v99j3:
+  <<: *defaults
+  version: V99j3
+  description: "加密货币候选: v99j1+DTP首段落袋50%+余仓锁1.5R并重置峰值"
+  bar_period_min: 30
+  enable_entry_engine: true
+  require_double_touch: false
+  sl_buffer_atr: 1.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.00
+  bounce_pct: 0.40
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.5
+  dtp_reset_peak_after_partial: true
   boost_in_1h_ob: 1.0
   timeout_min: 720
   max_concurrent: 1
@@ -4561,6 +5447,7 @@ symbols:
 
 # === 回测默认参数 ===
 backtest_defaults:
+  expert: "WaiTrade2\\WaiTrade_OB"
   deposit: 200
   currency: USD
   leverage: 2000

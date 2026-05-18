@@ -31,6 +31,36 @@ bool IsImpulse(const MqlRates &rates[], int count, int start_idx, int direction,
    return (move > atr * threshold);
 }
 
+bool IsInNoOBWindow(int hour)
+{
+   if(InpNoOBStartHour < 0 || InpNoOBEndHour < 0)
+      return false;
+
+   int start_hour = InpNoOBStartHour % 24;
+   int end_hour = InpNoOBEndHour % 24;
+
+   if(start_hour == end_hour)
+      return true;
+
+   if(start_hour < end_hour)
+      return (hour >= start_hour && hour < end_hour);
+
+   return (hour >= start_hour || hour < end_hour);
+}
+
+bool PassOBBodyPct(const MqlRates &bar)
+{
+   if(InpMinOBBodyPct <= 0)
+      return true;
+
+   double body = MathAbs(bar.open - bar.close);
+   double range = bar.high - bar.low;
+   if(range <= 0)
+      return false;
+
+   return (body / range * 100.0 >= InpMinOBBodyPct);
+}
+
 double CalcOBStrength(const MqlRates &rates[], int ob_idx, int impulse_end, double atr, int direction)
 {
    if(atr <= 0) return 1.0;
@@ -214,7 +244,16 @@ int Detect1HOBDirection(string symbol)
 void MarkZoneUsed(OBZone &zones[], int index)
 {
     if(index >= 0 && index < MAX_OB_ZONES)
-        zones[index].used = true;
+    {
+        int max_entries = InpMaxEntriesPerOB;
+        if(max_entries < 1)
+            max_entries = 1;
+
+        zones[index].entry_count++;
+        zones[index].last_entry_time = TimeCurrent();
+        if(zones[index].entry_count >= max_entries)
+            zones[index].used = true;
+    }
 }
 
 void Update1HAlignment(OBZone &zones[], int zone_count, int h1_direction)
@@ -316,16 +355,14 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             if(rates[i+1].close <= prior_high)
                continue;
 
-            // Gap3: K线质量 — 实体占比 > 50%
-            double body_bull = MathAbs(rates[i].open - rates[i].close);
-            double range_bull = rates[i].high - rates[i].low;
-            if(range_bull > 0 && body_bull / range_bull < 0.50)
+            // Gap3: K线质量 — 实体占比达标
+            if(!PassOBBodyPct(rates[i]))
                continue;
 
-            // Gap4: 夜盘过滤 — 23:00~06:00 UTC 不创建OB
+            // Gap4: 高噪音时段过滤
             MqlDateTime dt_bull;
             TimeToStruct(rates[i].time, dt_bull);
-            if(dt_bull.hour >= 23 || dt_bull.hour < 6)
+            if(IsInNoOBWindow(dt_bull.hour))
                continue;
 
             OBZone zone = {};
@@ -343,6 +380,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             zone.is_continuation = DetectContinuation(rates, count, i, zone.direction);
             zone.is_1h_aligned = false;
             zone.ds_weight = InpDSWeight ? CalcDSWeight(rates, count, i) : 1.0;
+            zone.entry_count = 0;
+            zone.last_entry_time = 0;
             zone.used = false;
             zone.expired = false;
 
@@ -387,16 +426,14 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             if(rates[i+1].close >= prior_low)
                continue;
 
-            // Gap3: K线质量 — 实体占比 > 50%
-            double body_bear = MathAbs(rates[i].open - rates[i].close);
-            double range_bear = rates[i].high - rates[i].low;
-            if(range_bear > 0 && body_bear / range_bear < 0.50)
+            // Gap3: K线质量 — 实体占比达标
+            if(!PassOBBodyPct(rates[i]))
                continue;
 
-            // Gap4: 夜盘过滤 — 23:00~06:00 UTC 不创建OB
+            // Gap4: 高噪音时段过滤
             MqlDateTime dt_bear;
             TimeToStruct(rates[i].time, dt_bear);
-            if(dt_bear.hour >= 23 || dt_bear.hour < 6)
+            if(IsInNoOBWindow(dt_bear.hour))
                continue;
 
             OBZone zone = {};
@@ -414,6 +451,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             zone.is_continuation = DetectContinuation(rates, count, i, zone.direction);
             zone.is_1h_aligned = false;
             zone.ds_weight = InpDSWeight ? CalcDSWeight(rates, count, i) : 1.0;
+            zone.entry_count = 0;
+            zone.last_entry_time = 0;
             zone.used = false;
             zone.expired = false;
 

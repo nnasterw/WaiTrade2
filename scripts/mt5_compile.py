@@ -44,25 +44,31 @@ def sync_sources():
 def compile_ea(ea_path: str) -> bool:
     """编译单个EA，返回是否成功
 
-    使用 /tmp 临时目录 + Z: drive 路径编译（C:\Program Files 含空格静默失败）。
-    目录结构: /tmp/.../WaiTrade_OB.mq5 + WaiTrade/*.mqh
+    使用 /tmp 临时目录 + Z: drive 路径编译（C:\\Program Files 含空格静默失败）。
+    目录结构: /tmp/.../WaiTrade_OB.mq5 + <EA目录名>/*.mqh
     """
     source_file = Path(MQL5_DIR) / 'Experts' / f'{ea_path}.mq5'
-    include_dir = MQL5_DIR / 'Include' / 'WaiTrade'
+    ea_parts = Path(ea_path).parts
+    include_name = ea_parts[0] if len(ea_parts) > 1 else 'WaiTrade2'
+    include_dir = MQL5_DIR / 'Include' / include_name
 
     if not source_file.exists():
         print(f'错误: 源文件不存在 {source_file}')
+        return False
+    if not include_dir.exists():
+        print(f'错误: Include目录不存在 {include_dir}')
         return False
 
     print(f'编译: {ea_path}')
     env = os.environ.copy()
     env['WINEPREFIX'] = WINEPREFIX
 
-    tmp_dir = Path('/tmp/mt5_compile_WaiTrade_OB/WaiTrade_OB')
+    tmp_root = Path('/tmp/mt5_compile_WaiTrade_OB')
+    tmp_dir = tmp_root / 'WaiTrade_OB'
     tmp_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source_file, tmp_dir / source_file.name)
 
-    inc_dest = tmp_dir / 'WaiTrade'
+    inc_dest = tmp_dir / include_name
     if inc_dest.exists():
         shutil.rmtree(inc_dest)
     inc_dest.mkdir()
@@ -143,7 +149,7 @@ def find_all_eas() -> list[str]:
 
 def main():
     parser = argparse.ArgumentParser(description='MQL5 EA编译器')
-    parser.add_argument('ea_path', nargs='?', help='EA路径，如 WaiTrade/WaiTrade_OB')
+    parser.add_argument('ea_path', nargs='?', help='EA路径，如 WaiTrade2/WaiTrade_OB')
     parser.add_argument('--all', action='store_true', help='编译所有EA')
     args = parser.parse_args()
 

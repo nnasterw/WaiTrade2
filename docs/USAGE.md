@@ -66,13 +66,13 @@ strategies:
   WaiTrade_OB:
     versions:
       v1:
-        ea_path: WaiTrade/WaiTrade_OB
+        ea_path: WaiTrade2/WaiTrade_OB
         params:
           LotSize: 0.1
           StopLoss: 50
           TakeProfit: 100
       v2:
-        ea_path: WaiTrade/WaiTrade_OB
+        ea_path: WaiTrade2/WaiTrade_OB
         params:
           LotSize: 0.2
           StopLoss: 40
@@ -139,7 +139,7 @@ logs/live_WaiTrade_OB_EURUSD.log
 ### 编译单个EA
 
 ```bash
-python scripts/mt5_compile.py WaiTrade/WaiTrade_OB
+python scripts/mt5_compile.py WaiTrade2/WaiTrade_OB
 ```
 
 ### 编译所有EA

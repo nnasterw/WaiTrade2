@@ -346,6 +346,8 @@ def test_partial_close_in_set():
 
 
 def test_dtp_stage_params_in_set():
+    assert FLAT_MAP['dtp_post_partial_lock_r'] == 'InpDTPPostPartialLockR'
+    assert FLAT_MAP['dtp_reset_peak_after_partial'] == 'InpDTPResetPeakAfterPartial'
     cfg = {
         'version': 'test',
         'dtp_stage2_trigger_r': 3.0,
@@ -355,6 +357,8 @@ def test_dtp_stage_params_in_set():
         'dtp_exit_mode': 1,
         'dtp_partial_pct': 50,
         'dtp_post_partial_retrace': 0.35,
+        'dtp_post_partial_lock_r': 1.0,
+        'dtp_reset_peak_after_partial': True,
         'enable_exit_debug': True,
     }
     content = strategy_to_set('test', cfg)
@@ -365,7 +369,82 @@ def test_dtp_stage_params_in_set():
     assert 'InpDTPExitMode=1' in content
     assert 'InpDTPPartialPct=50' in content
     assert 'InpDTPPostPartialRetrace=0.35' in content
+    assert 'InpDTPPostPartialLockR=1.0' in content
+    assert 'InpDTPResetPeakAfterPartial=true' in content
     assert 'InpEnableExitDebug=true' in content
+
+
+def test_gap_quality_params_in_set():
+    assert FLAT_MAP['min_ob_body_pct'] == 'InpMinOBBodyPct'
+    assert FLAT_MAP['no_ob_start_hour'] == 'InpNoOBStartHour'
+    assert FLAT_MAP['no_ob_end_hour'] == 'InpNoOBEndHour'
+    assert FLAT_MAP['min_ob_strength'] == 'InpMinOBStrength'
+    assert FLAT_MAP['max_risk_atr'] == 'InpMaxRiskATR'
+    assert FLAT_MAP['max_counter_risk_atr'] == 'InpMaxCounterRiskATR'
+    cfg = {
+        'version': 'test',
+        'min_ob_body_pct': 55,
+        'no_ob_start_hour': 22,
+        'no_ob_end_hour': 7,
+        'min_ob_strength': 0.8,
+        'max_risk_atr': 2.5,
+        'max_counter_risk_atr': 1.2,
+    }
+    content = strategy_to_set('test', cfg)
+    assert 'InpMinOBBodyPct=55' in content
+    assert 'InpNoOBStartHour=22' in content
+    assert 'InpNoOBEndHour=7' in content
+    assert 'InpMinOBStrength=0.8' in content
+    assert 'InpMaxRiskATR=2.5' in content
+    assert 'InpMaxCounterRiskATR=1.2' in content
+
+
+def test_execution_and_scan_params_in_set():
+    assert FLAT_MAP['impulse_atr_mult'] == 'InpImpulseATRMult'
+    assert FLAT_MAP['impulse_lookback'] == 'InpImpulseLookback'
+    assert FLAT_MAP['atr_period'] == 'InpATRPeriod'
+    assert FLAT_MAP['fixed_lot_size'] == 'InpFixedLotSize'
+    assert FLAT_MAP['enable_pos_mult'] == 'InpEnablePosMult'
+    assert FLAT_MAP['max_pos_mult'] == 'InpMaxPosMult'
+    assert FLAT_MAP['max_lot_size'] == 'InpMaxLotSize'
+    assert FLAT_MAP['no_entry_hours'] == 'InpNoEntryHours'
+    assert FLAT_MAP['close_retry_cooldown_sec'] == 'InpCloseRetryCooldownSec'
+    assert FLAT_MAP['max_entries_per_ob'] == 'InpMaxEntriesPerOB'
+    assert FLAT_MAP['ob_reentry_cooldown_min'] == 'InpOBReentryCooldownMin'
+    assert FLAT_MAP['ob_scan_depth'] == 'InpOBScanDepth'
+    assert FLAT_MAP['magic_number'] == 'InpMagicNumber'
+    cfg = {
+        'version': 'legacy',
+        'impulse_atr_mult': 1.5,
+        'impulse_lookback': 3,
+        'atr_period': 14,
+        'fixed_lot_size': 0.01,
+        'enable_pos_mult': False,
+        'max_pos_mult': 8.0,
+        'max_lot_size': 0.08,
+        'no_entry_hours': '0,9,12',
+        'close_retry_cooldown_sec': 60,
+        'max_entries_per_ob': 2,
+        'ob_reentry_cooldown_min': 30,
+        'ob_scan_depth': 200,
+        'magic_number': 202605,
+        'enable_entry_engine': False,
+    }
+    content = strategy_to_set('legacy', cfg)
+    assert 'InpImpulseATRMult=1.5' in content
+    assert 'InpImpulseLookback=3' in content
+    assert 'InpATRPeriod=14' in content
+    assert 'InpFixedLotSize=0.01' in content
+    assert 'InpEnablePosMult=false' in content
+    assert 'InpMaxPosMult=8.0' in content
+    assert 'InpMaxLotSize=0.08' in content
+    assert 'InpNoEntryHours=0,9,12' in content
+    assert 'InpCloseRetryCooldownSec=60' in content
+    assert 'InpMaxEntriesPerOB=2' in content
+    assert 'InpOBReentryCooldownMin=30' in content
+    assert 'InpOBScanDepth=200' in content
+    assert 'InpMagicNumber=202605' in content
+    assert 'InpEnableEntryEngine=false' in content
 
 
 def test_v98a_strategy_set():

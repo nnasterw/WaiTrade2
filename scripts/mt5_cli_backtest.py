@@ -38,6 +38,11 @@ def generate_set_file(strategy_name, config):
     return set_path
 
 
+def expert_ex5_path(mt5_root, expert):
+    """将 MT5 Expert 名称转换为本机 .ex5 路径。"""
+    return Path(mt5_root) / 'MQL5' / 'Experts' / Path(*expert.split('\\')).with_suffix('.ex5')
+
+
 def generate_ini(strategy_name, symbol, date_from, date_to, config):
     strategy_cfg = config[strategy_name]
     defaults = config.get('backtest_defaults', {})
@@ -48,7 +53,7 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     deposit = strategy_cfg.get('deposit', defaults.get('deposit', 200))
     currency = strategy_cfg.get('currency', defaults.get('currency', 'USD'))
     leverage = strategy_cfg.get('leverage', defaults.get('leverage', '1:2000'))
-    expert = strategy_cfg.get('expert', defaults.get('expert', r'WaiTrade\WaiTrade_OB'))
+    expert = strategy_cfg.get('expert', defaults.get('expert', r'WaiTrade2\WaiTrade_OB'))
 
     login = account.get('login', '')
     server = account.get('server', '')
@@ -62,7 +67,7 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     today_str = datetime.now().strftime('%Y%m%d')
     report_name = f'{strategy_name}_{symbol}_{today_str}'
 
-    ini_content = f"""; WaiTrade {strategy_name} / {symbol} 回测
+    ini_content = f"""; WaiTrade2 {strategy_name} / {symbol} 回测
 [Common]
 Login={login}
 Server={server}
@@ -200,6 +205,11 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
 
     print(f'\n策略: {strategy_name} | 品种数: {len(symbols)} | 周期: {date_from} ~ {date_to}')
     print('=' * 60)
+
+    expert = strategy_cfg.get('expert', defaults.get('expert', r'WaiTrade2\WaiTrade_OB'))
+    expert_path = expert_ex5_path(MT5_MAIN, expert)
+    if not expert_path.exists():
+        print(f'[警告] EA 文件不存在: {expert_path}')
 
     generate_set_file(strategy_name, config)
 

@@ -14,6 +14,12 @@ input int    InpDoubleTchWindowMin = 60;     // 二次触碰窗口(分钟)
 input double InpMinOBSpreadMult  = 2.0;      // 最小OB宽度(点差倍数)
 input double InpMinRiskSpreadRatio = 3.0;    // 最小风险/点差比
 input double InpMinAbsRiskUSD    = 0.0;      // 最小绝对风险(USD)
+input double InpMinOBBodyPct     = 50.0;     // OB蜡烛最小实体占比(%)
+input int    InpNoOBStartHour    = 23;       // 禁止建OB开始小时(服务器时间,-1=禁用)
+input int    InpNoOBEndHour      = 6;        // 禁止建OB结束小时(服务器时间,-1=禁用)
+input double InpMinOBStrength    = 0.5;      // 最低OB强度
+input double InpMaxRiskATR       = 3.0;      // 最大risk/ATR
+input double InpMaxCounterRiskATR = 1.5;     // 逆势最大risk/ATR
 input bool   InpConsolidateOB    = true;     // 合并重叠OB
 input double InpSpreadFloor      = 0.0;      // 最小spread下限(0=使用实时spread)
 
@@ -50,6 +56,8 @@ input double InpDTPStage3Retrace = 0.0;      // DTP三阶回撤比例(0=禁用)
 input int    InpDTPExitMode      = 0;        // DTP退出模式(0=全平,1=先部分平仓)
 input int    InpDTPPartialPct    = 50;       // DTP部分平仓比例(%)
 input double InpDTPPostPartialRetrace = 0.0; // DTP部分平仓后回撤比例(0=沿用)
+input double InpDTPPostPartialLockR = 0.0;   // DTP部分平仓后剩余仓SL锁定R(0=禁用)
+input bool   InpDTPResetPeakAfterPartial = false; // DTP部分平仓后重置余仓峰值
 input double InpFixedTPR         = 0.0;      // 固定止盈(R, 0=DTP模式)
 
 // ── 时间退出 ──────────────────────────────────────────────────────────────
@@ -60,8 +68,14 @@ input bool   InpTimeDecayTP      = false;    // 时间衰减TP
 input double InpRiskPercent      = 2.0;      // 单笔风险(%余额)
 input double InpFixedLotSize     = 0.0;      // 固定手数(>0时忽略风险%)
 input bool   InpEnablePosMult    = true;     // 启用仓位乘数(false=固定1.0)
+input double InpMaxPosMult       = 0.0;      // 最大仓位乘数(0=不限制)
+input double InpMaxLotSize       = 0.0;      // 最大手数(0=不限制)
 input int    InpMaxConcurrent    = 5;        // 最大同时持仓数
 input int    InpCooldownBars     = 0;        // 开仓冷却(bars)
+input string InpNoEntryHours     = "";       // 禁止入场小时CSV, 如"0,9,12"(空=禁用)
+input int    InpCloseRetryCooldownSec = 0;   // 交易请求失败后重试冷却秒数(0=不限制)
+input int    InpMaxEntriesPerOB  = 1;        // 每个OB最多入场次数(1=默认一次)
+input int    InpOBReentryCooldownMin = 0;    // 同一OB再次入场冷却分钟(0=不限制)
 
 // ── 增强 ──────────────────────────────────────────────────────────────────
 input double InpBoostIn1HOB      = 3.0;      // 1H级别OB加仓倍数

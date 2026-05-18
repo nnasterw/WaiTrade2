@@ -26,6 +26,8 @@ struct OBZone
     bool     is_continuation;// 是否顺势OB
     bool     is_1h_aligned;  // 是否与1H OB方向一致
     double   ds_weight;      // 供需权重 (0.5-2.5)
+    int      entry_count;    // 已基于该OB入场次数
+    datetime last_entry_time;// 最近一次基于该OB入场时间
     bool     used;           // 是否已入场
     bool     expired;        // 是否已过期
 };
@@ -58,6 +60,7 @@ struct PosTrack
     double   dtp_peak_r;     // DTP激活后的峰值R
     bool     partial_closed; // 是否已执行部分平仓
     bool     dtp_partial_closed; // DTP是否已执行部分平仓
+    datetime last_close_attempt; // 最近一次主动市价平仓尝试时间
     string   last_sl_reason; // 最近一次SL修改来源
 };
 
