@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 """MT5 Strategy Tester 回测管理器 — Windows 原生版本"""
 
-import argparse
 import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'scripts'))
 
-import yaml_to_set
 from mt5_common import (
     load_config, resolve_symbols, resolve_strategies,
-    parse_agent_log_content, calc_stats, format_report, RESULTS_DIR,
+    calc_stats, format_report, RESULTS_DIR,
+    write_set_file, read_agent_log, backtest_main,
 )
 
 # ── Windows MT5 路径常量 ──────────────────────────────────────────────
@@ -44,14 +43,8 @@ def ensure_mt5_dirs():
 
 
 def generate_set_file(strategy_name, config):
-    strategy_cfg = config[strategy_name]
-    content = yaml_to_set.strategy_to_set(strategy_name, strategy_cfg)
     ensure_mt5_dirs()
-    set_path = MT5_TESTER_PROFILES / f'{strategy_name}.set'
-    with open(set_path, 'w', encoding='utf-8') as f:
-        f.write(content)
-    print(f'  .set 文件已写入: {set_path}')
-    return set_path
+    return write_set_file(strategy_name, config, MT5_TESTER_PROFILES)
 
 
 def expert_ex5_path(experts_root, expert):
@@ -171,22 +164,11 @@ def run_mt5(timeout_sec=300):
     return proc.returncode == 0
 
 
+AGENT_LOG_DIR = MT5_DATA / 'Tester' / 'Agent-127.0.0.1-3000' / 'logs'
+
+
 def parse_agent_log():
-    today_str = datetime.now().strftime('%Y%m%d')
-    log_path = MT5_DATA / 'Tester' / 'Agent-127.0.0.1-3000' / 'logs' / f'{today_str}.log'
-
-    if not log_path.exists():
-        print(f'  [警告] Agent 日志不存在: {log_path}')
-        return None
-
-    try:
-        with open(log_path, 'r', encoding='utf-16-le') as f:
-            content = f.read()
-    except Exception as e:
-        print(f'  [错误] 读取日志失败: {e}')
-        return None
-
-    return parse_agent_log_content(content)
+    return read_agent_log(AGENT_LOG_DIR)
 
 
 def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeout):
@@ -237,60 +219,15 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
     return symbol_results
 
 
-def main():
-    parser = argparse.ArgumentParser(description='MT5 Strategy Tester 回测管理器（Windows）')
-
-    group_s = parser.add_mutually_exclusive_group(required=True)
-    group_s.add_argument('--strategy', help='单个策略名称，如 v96b')
-    group_s.add_argument('--strategies', help='多个策略名称，逗号分隔，如 v95c,v96b')
-
-    group_sym = parser.add_mutually_exclusive_group(required=True)
-    group_sym.add_argument('--symbol', help='单个品种，如 XAUUSDm')
-    group_sym.add_argument('--symbols', help='多个品种（逗号分隔）或 all（全部品种）')
-
-    parser.add_argument('--days', type=int, help='回测天数（从今天往前推算）')
-    parser.add_argument('--from', dest='date_from', help='回测起始日期 YYYY.MM.DD')
-    parser.add_argument('--to', dest='date_to', help='回测结束日期 YYYY.MM.DD')
-    parser.add_argument('--timeout', type=int, default=300, help='每个品种的超时秒数（默认300）')
-
-    args = parser.parse_args()
-
-    config = load_config()
-
-    strategy_arg = args.strategy or args.strategies
-    strategy_names = resolve_strategies(config, strategy_arg)
-
-    symbol_arg = args.symbol or args.symbols
-    symbols = resolve_symbols(config, symbol_arg)
-    if not symbols:
-        print('[错误] 未找到任何品种')
-        sys.exit(1)
-
-    if args.date_from and args.date_to:
-        date_from = args.date_from
-        date_to = args.date_to
-        d1 = datetime.strptime(date_from, '%Y.%m.%d')
-        d2 = datetime.strptime(date_to, '%Y.%m.%d')
-        days = (d2 - d1).days
-    elif args.days:
-        days = args.days
-        date_to_dt = datetime.now()
-        date_from_dt = date_to_dt - timedelta(days=days)
-        date_from = date_from_dt.strftime('%Y.%m.%d')
-        date_to = date_to_dt.strftime('%Y.%m.%d')
-    else:
-        print('[错误] 必须指定 --days 或 --from/--to')
-        sys.exit(1)
-
+def _run(strategy_names, symbols, date_from, date_to, days, config, timeout):
     print(f'MT5 回测管理器 (Windows)')
-    print(f'策略: {", ".join(strategy_names)}')
-    print(f'品种: {", ".join(symbols)}')
-    print(f'周期: {date_from} ~ {date_to} ({days}天)')
-
     for name in strategy_names:
-        run_backtest(name, symbols, date_from, date_to, days, config, args.timeout)
-
+        run_backtest(name, symbols, date_from, date_to, days, config, timeout)
     print('\n全部回测完成。')
+
+
+def main():
+    backtest_main('MT5 Strategy Tester 回测管理器（Windows）', _run)
 
 
 if __name__ == '__main__':

@@ -225,3 +225,92 @@ MT5 Strategy Tester 回测报告 — {strategy_name.upper()}
 
     lines.append('=====================================================================')
     return '\n'.join(lines)
+
+
+def write_set_file(strategy_name, config, set_dir):
+    """生成.set文件并写入指定目录，返回文件路径"""
+    import yaml_to_set
+    content = yaml_to_set.strategy_to_set(strategy_name, config[strategy_name])
+    set_dir.mkdir(parents=True, exist_ok=True)
+    set_path = set_dir / f'{strategy_name}.set'
+    set_path.write_text(content, encoding='utf-8')
+    print(f'  .set 文件已写入: {set_path.name}')
+    return set_path
+
+
+def read_agent_log(log_dir):
+    """从指定目录读取今日Agent日志并解析"""
+    from datetime import datetime
+    today_str = datetime.now().strftime('%Y%m%d')
+    log_path = Path(log_dir) / f'{today_str}.log'
+    if not log_path.exists():
+        print(f'  [警告] Agent 日志不存在: {log_path}')
+        return None
+    try:
+        content = log_path.read_text(encoding='utf-16-le')
+    except Exception as e:
+        print(f'  [错误] 读取日志失败: {e}')
+        return None
+    return parse_agent_log_content(content)
+
+
+def backtest_main(description, run_fn, args=None):
+    """共享CLI参数解析和调度。
+
+    Args:
+        description: argparse description 字符串
+        run_fn: callable(strategy_names, symbols, date_from, date_to, days, config, timeout)
+        args: 命令行参数列表（None时从sys.argv读取）
+    """
+    import argparse
+    from datetime import datetime, timedelta
+
+    parser = argparse.ArgumentParser(description=description)
+
+    group_s = parser.add_mutually_exclusive_group(required=True)
+    group_s.add_argument('--strategy', help='单个策略名称，如 v96b')
+    group_s.add_argument('--strategies', help='多个策略名称，逗号分隔，如 v95c,v96b')
+
+    group_sym = parser.add_mutually_exclusive_group(required=True)
+    group_sym.add_argument('--symbol', help='单个品种，如 XAUUSDm')
+    group_sym.add_argument('--symbols', help='多个品种（逗号分隔）或 all（全部品种）')
+
+    parser.add_argument('--days', type=int, help='回测天数（从今天往前推算）')
+    parser.add_argument('--from', dest='date_from', help='回测起始日期 YYYY.MM.DD')
+    parser.add_argument('--to', dest='date_to', help='回测结束日期 YYYY.MM.DD')
+    parser.add_argument('--timeout', type=int, default=300, help='每个品种的超时秒数（默认300）')
+
+    parsed = parser.parse_args(args)
+
+    config = load_config()
+
+    strategy_arg = parsed.strategy or parsed.strategies
+    strategy_names = resolve_strategies(config, strategy_arg)
+
+    symbol_arg = parsed.symbol or parsed.symbols
+    symbols = resolve_symbols(config, symbol_arg)
+    if not symbols:
+        print('[错误] 未找到任何品种')
+        sys.exit(1)
+
+    if parsed.date_from and parsed.date_to:
+        date_from = parsed.date_from
+        date_to = parsed.date_to
+        d1 = datetime.strptime(date_from, '%Y.%m.%d')
+        d2 = datetime.strptime(date_to, '%Y.%m.%d')
+        days = (d2 - d1).days
+    elif parsed.days:
+        days = parsed.days
+        date_to_dt = datetime.now()
+        date_from_dt = date_to_dt - timedelta(days=days)
+        date_from = date_from_dt.strftime('%Y.%m.%d')
+        date_to = date_to_dt.strftime('%Y.%m.%d')
+    else:
+        print('[错误] 必须指定 --days 或 --from/--to')
+        sys.exit(1)
+
+    print(f'策略: {", ".join(strategy_names)}')
+    print(f'品种: {", ".join(symbols)}')
+    print(f'周期: {date_from} ~ {date_to} ({days}天)')
+
+    run_fn(strategy_names, symbols, date_from, date_to, days, config, parsed.timeout)

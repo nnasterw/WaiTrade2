@@ -603,6 +603,12 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['close_retry_cooldown_sec'] == 'InpCloseRetryCooldownSec'
     assert FLAT_MAP['max_entries_per_ob'] == 'InpMaxEntriesPerOB'
     assert FLAT_MAP['ob_reentry_cooldown_min'] == 'InpOBReentryCooldownMin'
+    assert FLAT_MAP['filter_cont_age_min_bars'] == 'InpFilterContAgeMinBars'
+    assert FLAT_MAP['filter_cont_age_max_bars'] == 'InpFilterContAgeMaxBars'
+    assert FLAT_MAP['filter_cont_non_deep_only'] == 'InpFilterContNonDeepOnly'
+    assert FLAT_MAP['filter_buy_no_h1_min_pos_mult'] == 'InpFilterBuyNoH1MinPosMult'
+    assert FLAT_MAP['filter_buy_no_h1_max_pos_mult'] == 'InpFilterBuyNoH1MaxPosMult'
+    assert FLAT_MAP['filter_buy_no_h1_pos_mult'] == 'InpFilterBuyNoH1PosMult'
     assert FLAT_MAP['ob_scan_depth'] == 'InpOBScanDepth'
     assert FLAT_MAP['magic_number'] == 'InpMagicNumber'
     assert FLAT_MAP['enable_entry_debug'] == 'InpEnableEntryDebug'
@@ -621,6 +627,12 @@ def test_execution_and_scan_params_in_set():
         'close_retry_cooldown_sec': 60,
         'max_entries_per_ob': 2,
         'ob_reentry_cooldown_min': 30,
+        'filter_cont_age_min_bars': 40,
+        'filter_cont_age_max_bars': 79,
+        'filter_cont_non_deep_only': True,
+        'filter_buy_no_h1_min_pos_mult': 5.0,
+        'filter_buy_no_h1_max_pos_mult': 6.5,
+        'filter_buy_no_h1_pos_mult': 0.4,
         'ob_scan_depth': 200,
         'magic_number': 202605,
         'enable_entry_engine': False,
@@ -639,6 +651,12 @@ def test_execution_and_scan_params_in_set():
     assert 'InpCloseRetryCooldownSec=60' in content
     assert 'InpMaxEntriesPerOB=2' in content
     assert 'InpOBReentryCooldownMin=30' in content
+    assert 'InpFilterContAgeMinBars=40' in content
+    assert 'InpFilterContAgeMaxBars=79' in content
+    assert 'InpFilterContNonDeepOnly=true' in content
+    assert 'InpFilterBuyNoH1MinPosMult=5.0' in content
+    assert 'InpFilterBuyNoH1MaxPosMult=6.5' in content
+    assert 'InpFilterBuyNoH1PosMult=0.4' in content
     assert 'InpOBScanDepth=200' in content
     assert 'InpMagicNumber=202605' in content
     assert 'InpEnableEntryEngine=false' in content
@@ -734,3 +752,95 @@ def test_htf_target_and_momentum_params_in_set():
     assert 'InpWeakExitMinR=1.2' in content
     assert 'InpWeakBodyShrinkPct=0.8' in content
     assert 'InpStrongDTPRetraceMult=1.5' in content
+
+
+# ── write_set_file ───────────────────────────────────────────────────
+
+import tempfile
+from mt5_common import write_set_file, read_agent_log, backtest_main
+
+
+def test_write_set_file_creates_file():
+    config = {'v99g1': {'version': 'V99g1', 'bounce_pct': 0.3}}
+    with tempfile.TemporaryDirectory() as tmp:
+        path = write_set_file('v99g1', config, Path(tmp))
+        assert path.exists()
+        assert path.name == 'v99g1.set'
+
+
+def test_write_set_file_content_correct():
+    config = {'v99g1': {'version': 'V99g1', 'bounce_pct': 0.3, 'breakeven_r': 1.0}}
+    with tempfile.TemporaryDirectory() as tmp:
+        path = write_set_file('v99g1', config, Path(tmp))
+        content = path.read_text(encoding='utf-8')
+        assert 'InpBouncePct=0.3' in content
+        assert 'InpBreakevenR=1.0' in content
+        assert 'InpVersion=V99g1' in content
+
+
+# ── read_agent_log ───────────────────────────────────────────────────
+
+def test_read_agent_log_returns_parsed():
+    log_content = """testing of EA started
+deal #1 buy 0.01 XAUUSDm at 3200.500 sl: 3195.000
+deal #2 sell 0.01 XAUUSDm at 3210.500
+final balance 215.00
+50000 ticks, 1500 bars generated
+"""
+    with tempfile.TemporaryDirectory() as tmp:
+        from datetime import datetime
+        today = datetime.now().strftime('%Y%m%d')
+        log_path = Path(tmp) / f'{today}.log'
+        log_path.write_text(log_content, encoding='utf-16-le')
+        result = read_agent_log(Path(tmp))
+        assert result is not None
+        assert result['trades'] == 1
+        assert result['final_balance'] == 215.0
+
+
+def test_read_agent_log_missing_file(capsys):
+    with tempfile.TemporaryDirectory() as tmp:
+        result = read_agent_log(Path(tmp))
+        assert result is None
+        captured = capsys.readouterr()
+        assert '警告' in captured.out
+
+
+# ── backtest_main ────────────────────────────────────────────────────
+
+def test_backtest_main_parses_days():
+    called_with = {}
+
+    def fake_run(strategy_names, symbols, date_from, date_to, days, config, timeout):
+        called_with['strategies'] = strategy_names
+        called_with['symbols'] = symbols
+        called_with['days'] = days
+        called_with['timeout'] = timeout
+
+    backtest_main(
+        'test',
+        fake_run,
+        args=['--strategy', 'v99g1', '--symbol', 'XAUUSDm', '--days', '30'],
+    )
+    assert called_with['strategies'] == ['v99g1']
+    assert called_with['symbols'] == ['XAUUSDm']
+    assert called_with['days'] == 30
+    assert called_with['timeout'] == 300
+
+
+def test_backtest_main_parses_from_to():
+    called_with = {}
+
+    def fake_run(strategy_names, symbols, date_from, date_to, days, config, timeout):
+        called_with['date_from'] = date_from
+        called_with['date_to'] = date_to
+        called_with['days'] = days
+
+    backtest_main(
+        'test',
+        fake_run,
+        args=['--strategy', 'v99g1', '--symbols', 'all', '--from', '2026.01.01', '--to', '2026.04.01'],
+    )
+    assert called_with['date_from'] == '2026.01.01'
+    assert called_with['date_to'] == '2026.04.01'
+    assert called_with['days'] == 90

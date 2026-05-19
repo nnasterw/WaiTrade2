@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 """MT5 Strategy Tester 回测管理器 — 通过 Wine 在 macOS 上运行 MT5 回测"""
 
-import argparse
 import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'scripts'))
 
-import yaml_to_set
 from mt5_common import (
     load_config, resolve_symbols, resolve_strategies,
     parse_agent_log_content, calc_stats, format_report, RESULTS_DIR,
+    write_set_file, backtest_main,
 )
 
 # ── Wine / MT5 路径常量 ──────────────────────────────────────────────
@@ -27,15 +26,8 @@ REPORT_DIR = os.path.join(WINEPREFIX, 'drive_c/bt/reports')
 
 
 def generate_set_file(strategy_name, config):
-    strategy_cfg = config[strategy_name]
-    content = yaml_to_set.strategy_to_set(strategy_name, strategy_cfg)
     set_dir = Path(MT5_MAIN) / 'MQL5' / 'Profiles' / 'Tester'
-    set_dir.mkdir(parents=True, exist_ok=True)
-    set_path = set_dir / f'{strategy_name}.set'
-    with open(set_path, 'w', encoding='utf-8') as f:
-        f.write(content)
-    print(f'  .set 文件已写入: {set_path.name}')
-    return set_path
+    return write_set_file(strategy_name, config, set_dir)
 
 
 def expert_ex5_path(mt5_root, expert):
@@ -105,9 +97,13 @@ Report=C:\\bt\\reports\\{report_name}
 
 
 def kill_mt5():
+    env = os.environ.copy()
+    env['WINEPREFIX'] = WINEPREFIX
     subprocess.run(['pkill', '-f', 'terminal64'], capture_output=True)
     subprocess.run(['pkill', '-f', 'metatester64'], capture_output=True)
     subprocess.run(['pkill', '-f', 'MetaTrader 5.app'], capture_output=True)
+    wineserver = WINE.replace('/wine', '/wineserver')
+    subprocess.run([wineserver, '-k'], env=env, capture_output=True)
     time.sleep(3)
 
 
@@ -168,6 +164,8 @@ def run_mt5(timeout_sec=300):
             timeout=timeout_sec
         )
         elapsed = time.time() - start
+        wait_for_mt5_shutdown(timeout_sec, start)
+        elapsed = time.time() - start
         print(f' 完成 ({elapsed:.0f}s)')
         return True
     except subprocess.TimeoutExpired:
@@ -177,14 +175,36 @@ def run_mt5(timeout_sec=300):
         return False
 
 
+def is_mt5_testing_running():
+    """Wine 下 terminal64 有时会先返回，需等实际 tester 进程退出。"""
+    patterns = [r'[t]erminal64.exe /config:', r'[m]etatester64.exe']
+    for pattern in patterns:
+        result = subprocess.run(['pgrep', '-f', pattern], capture_output=True)
+        if result.returncode == 0:
+            return True
+    return False
+
+
+def wait_for_mt5_shutdown(timeout_sec, start_time):
+    while is_mt5_testing_running():
+        if time.time() - start_time > timeout_sec:
+            raise subprocess.TimeoutExpired('terminal64.exe', timeout_sec)
+        time.sleep(2)
+
+
 def parse_agent_log():
     today_str = datetime.now().strftime('%Y%m%d')
-    log_path = Path(MT5_MAIN) / 'Tester' / 'Agent-127.0.0.1-3000' / 'logs' / f'{today_str}.log'
+    log_paths = [
+        Path(MT5_MAIN) / 'Tester' / 'Agent-127.0.0.1-3000' / 'logs' / f'{today_str}.log',
+        Path(MT5_MAIN) / 'Tester' / 'logs' / f'{today_str}.log',
+    ]
+    existing = [p for p in log_paths if p.exists()]
 
-    if not log_path.exists():
-        print(f'  [警告] Agent 日志不存在: {log_path}')
+    if not existing:
+        print(f'  [警告] Tester 日志不存在: {log_paths[0]} / {log_paths[1]}')
         return None
 
+    log_path = max(existing, key=lambda p: p.stat().st_mtime)
     try:
         with open(log_path, 'r', encoding='utf-16-le') as f:
             content = f.read()
@@ -244,62 +264,17 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
     return symbol_results
 
 
-def main():
-    parser = argparse.ArgumentParser(description='MT5 Strategy Tester 回测管理器（Wine/macOS）')
-
-    group_s = parser.add_mutually_exclusive_group(required=True)
-    group_s.add_argument('--strategy', help='单个策略名称，如 v96b')
-    group_s.add_argument('--strategies', help='多个策略名称，逗号分隔，如 v95c,v96b')
-
-    group_sym = parser.add_mutually_exclusive_group(required=True)
-    group_sym.add_argument('--symbol', help='单个品种，如 XAUUSDm')
-    group_sym.add_argument('--symbols', help='多个品种（逗号分隔）或 all（全部品种）')
-
-    parser.add_argument('--days', type=int, help='回测天数（从今天往前推算）')
-    parser.add_argument('--from', dest='date_from', help='回测起始日期 YYYY.MM.DD')
-    parser.add_argument('--to', dest='date_to', help='回测结束日期 YYYY.MM.DD')
-    parser.add_argument('--timeout', type=int, default=300, help='每个品种的超时秒数（默认300）')
-
-    args = parser.parse_args()
-
-    config = load_config()
-
-    strategy_arg = args.strategy or args.strategies
-    strategy_names = resolve_strategies(config, strategy_arg)
-
-    symbol_arg = args.symbol or args.symbols
-    symbols = resolve_symbols(config, symbol_arg)
-    if not symbols:
-        print('[错误] 未找到任何品种')
-        sys.exit(1)
-
-    if args.date_from and args.date_to:
-        date_from = args.date_from
-        date_to = args.date_to
-        d1 = datetime.strptime(date_from, '%Y.%m.%d')
-        d2 = datetime.strptime(date_to, '%Y.%m.%d')
-        days = (d2 - d1).days
-    elif args.days:
-        days = args.days
-        date_to_dt = datetime.now()
-        date_from_dt = date_to_dt - timedelta(days=days)
-        date_from = date_from_dt.strftime('%Y.%m.%d')
-        date_to = date_to_dt.strftime('%Y.%m.%d')
-    else:
-        print('[错误] 必须指定 --days 或 --from/--to')
-        sys.exit(1)
-
+def _run(strategy_names, symbols, date_from, date_to, days, config, timeout):
     print(f'MT5 回测管理器')
-    print(f'策略: {", ".join(strategy_names)}')
-    print(f'品种: {", ".join(symbols)}')
-    print(f'周期: {date_from} ~ {date_to} ({days}天)')
-
     os.makedirs(REPORT_DIR, exist_ok=True)
-
     for name in strategy_names:
-        run_backtest(name, symbols, date_from, date_to, days, config, args.timeout)
-
+        run_backtest(name, symbols, date_from, date_to, days, config, timeout)
+    kill_mt5()
     print('\n全部回测完成。')
+
+
+def main():
+    backtest_main('MT5 Strategy Tester 回测管理器（Wine/macOS）', _run)
 
 
 if __name__ == '__main__':

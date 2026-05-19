@@ -64,11 +64,13 @@ def test_ini_contains_currency():
     assert 'Currency=USD' in content
 
 
-# ── 测试 3：INI 只有 [Tester] 段，没有 [Common] 段 ─────────────────────────
-def test_ini_has_tester_section_only():
+# ── 测试 3：INI 有 [Common]+[Tester] 两个段（代理注入） ──────────────────────
+def test_ini_has_common_and_tester_sections():
     content = make_ini()
+    assert '[Common]' in content
     assert '[Tester]' in content
-    assert '[Common]' not in content
+    assert 'ProxyEnable=' in content
+    assert 'ProxyAddress=' in content
 
 
 # ── 测试 4：INI Expert 字段正确 ──────────────────────────────────────────────
