@@ -454,6 +454,8 @@ void DetectRangeBreakouts(const MqlRates &rates[], int count, OBZone &zones[], i
    zone.high = range_high;
    zone.low = range_low;
    zone.mid = (zone.high + zone.low) / 2.0;
+   zone.ob_top = zone.high;
+   zone.ob_bottom = zone.low;
    zone.direction = direction;
    zone.created = rates[breakout_idx].time;
    zone.created_bar = state.bar_count;

@@ -253,6 +253,18 @@ bool ExecuteSignal(const TradeSignal &sig)
 
     if(!OrderSend(request, result))
     {
+        // INVALID_STOPS(10016): SL距离不足, 标记OB已用避免反复重试
+        if(result.retcode == 10016)
+        {
+            static int s_invalid_stops_count = 0;
+            s_invalid_stops_count++;
+            if(s_invalid_stops_count <= 10 || s_invalid_stops_count % 1000 == 0)
+                Print("止损无效(已跳过", s_invalid_stops_count, "次): ", sig.comment);
+            if(sig.ob_index >= 0 && sig.ob_index < g_state.ob_count)
+                g_zones[sig.ob_index].used = true;
+            return false;
+        }
+
         if(result.retcode == TRADE_RETCODE_REQUOTE)
         {
             request.price = sig.direction > 0 ? SymbolInfoDouble(_Symbol, SYMBOL_ASK)
@@ -266,7 +278,10 @@ bool ExecuteSignal(const TradeSignal &sig)
         }
         else
         {
-            Print("开仓失败: ", result.comment, " retcode=", result.retcode);
+            static int s_fail_count = 0;
+            s_fail_count++;
+            if(s_fail_count <= 10 || s_fail_count % 500 == 0)
+                Print("开仓失败(第", s_fail_count, "次): ", result.comment, " retcode=", result.retcode);
             MarkEntryAttemptFailed();
             return false;
         }

@@ -86,6 +86,13 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     os.makedirs(INI_DIR, exist_ok=True)
 
     ini_content = f"""; WaiTrade2 {strategy_name} / {symbol} 回测
+[Common]
+Login={login}
+Server={server}
+ProxyEnable={proxy_enable}
+ProxyType={proxy_type}
+ProxyAddress={proxy_address}
+
 [Tester]
 Expert={expert}
 ExpertParameters={strategy_name}.set

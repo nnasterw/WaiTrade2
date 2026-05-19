@@ -40,8 +40,8 @@ bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
    int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
    new_sl = NormalizeDouble(new_sl, digits);
 
-   // 跳过无效修改: 新SL等于当前SL
-   if(MathAbs(new_sl - current_sl) < SymbolInfoDouble(symbol, SYMBOL_POINT))
+   // 跳过无效修改: 新SL与当前SL差距小于3个point（减少MT5日志量）
+   if(MathAbs(new_sl - current_sl) < SymbolInfoDouble(symbol, SYMBOL_POINT) * 3)
       return true;
 
    for(int attempt = 0; attempt <= max_retries; attempt++)

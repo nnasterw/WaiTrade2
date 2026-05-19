@@ -32,6 +32,8 @@ struct OBZone
     bool     expired;        // 是否已过期
     bool     is_range_breakout; // 是否为震荡区间突破信号
     double   range_height;    // 震荡区间高度，用于量度目标
+    double   ob_top;          // OB检测原始顶部(实体边界)
+    double   ob_bottom;       // OB检测原始底部(实体边界)
 };
 
 struct TradeSignal
