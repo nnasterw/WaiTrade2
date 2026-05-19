@@ -110,7 +110,30 @@ Report={report_name}
     return ini_path
 
 
+def kill_mt5():
+    subprocess.run(
+        ['taskkill', '/F', '/IM', 'terminal64.exe'],
+        capture_output=True,
+    )
+    subprocess.run(
+        ['taskkill', '/F', '/IM', 'metatester64.exe'],
+        capture_output=True,
+    )
+    time.sleep(3)
+
+
+def clear_tester_cache():
+    import shutil
+    cache_dir = MT5_TESTER_DIR / 'cache'
+    if cache_dir.exists():
+        shutil.rmtree(cache_dir)
+        cache_dir.mkdir()
+
+
 def run_mt5(timeout_sec=300):
+    kill_mt5()
+    clear_tester_cache()
+
     ini_path = INI_DIR / 'backtest.ini'
     config_arg = f'/config:{ini_path}'
 
