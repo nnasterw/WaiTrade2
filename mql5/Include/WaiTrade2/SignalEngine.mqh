@@ -8,6 +8,14 @@
 #include "ScoreEngine.mqh"
 #include "DecayDetector.mqh"
 
+double CalcOBHeightTP(const OBZone &zone, double entry)
+{
+   if(InpOBHeightTPMult <= 0 || zone.is_range_breakout) return 0.0;
+   double ob_h = zone.ob_top - zone.ob_bottom;
+   if(ob_h <= 0) return 0.0;
+   return entry + zone.direction * ob_h * InpOBHeightTPMult;
+}
+
 bool IsZoneTouched(const OBZone &zone, double bid, double ask)
 {
    if(zone.is_range_breakout)
@@ -294,12 +302,12 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(InpEnableScoring)
    {
       double proximity_distance = MathAbs(bid - entry);
-      double tp_est = 0.0;
-      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+      double tp_est = CalcOBHeightTP(zone, entry);
+      if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
          tp_est = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
-      else if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+      else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
-      else
+      else if(tp_est == 0.0)
          tp_est = RToPrice(2.0, entry, risk_price, signal.direction);
       double target_distance = MathAbs(tp_est - entry);
       int score = CalcSignalScore(zone, state, state.market_state,
@@ -350,14 +358,14 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(final_lot > lot_max)
       final_lot = lot_max;
 
-   double tp = 0.0;
-   if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+   double tp = CalcOBHeightTP(zone, entry);
+   if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
       tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
 
    if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
    {
       double swing_dist = MathAbs(state.target_price - entry);
-      if(swing_dist > risk_price)
+      if(swing_dist > risk_price && tp == 0.0)
          tp = state.target_price;
    }
 
@@ -486,12 +494,12 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(InpEnableScoring)
    {
       double proximity_distance = MathAbs(bid - entry);
-      double tp_est = 0.0;
-      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+      double tp_est = CalcOBHeightTP(zone, entry);
+      if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
          tp_est = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
-      else if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+      else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
-      else
+      else if(tp_est == 0.0)
          tp_est = RToPrice(2.0, entry, risk_price, zone.direction);
       double target_distance = MathAbs(tp_est - entry);
       score = CalcSignalScore(zone, state, state.market_state,
@@ -545,12 +553,14 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    double tp = 0.0;
    if(zone.is_range_breakout && InpRangeBreakoutTPMult > 0 && zone.range_height > 0)
       tp = entry + zone.direction * zone.range_height * InpRangeBreakoutTPMult;
+   else
+      tp = CalcOBHeightTP(zone, entry);
 
-   if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+   if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
       tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
 
    // v9.8 震荡态TP: 用对面swing点
-   if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+   if(tp == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
    {
       double swing_dist = MathAbs(state.target_price - entry);
       if(swing_dist > risk_price)

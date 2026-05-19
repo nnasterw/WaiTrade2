@@ -164,6 +164,7 @@ FLAT_MAP = {
     "strong_max_pullback_pct": "InpStrongMaxPullbackPct",
     "strong_dtp_retrace_mult": "InpStrongDTPRetraceMult",
     "fixed_tp_r": "InpFixedTPR",
+    "ob_height_tp_mult": "InpOBHeightTPMult",
     # 部分平仓
     "partial_close_r": "InpPartialCloseR",
     "partial_close_pct": "InpPartialClosePct",

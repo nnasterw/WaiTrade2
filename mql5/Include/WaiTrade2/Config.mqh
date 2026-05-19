@@ -102,6 +102,7 @@ input double InpDTPPostPartialRetrace = 0.0; // DTP部分平仓后回撤比例(0
 input double InpDTPPostPartialLockR = 0.0;   // DTP部分平仓后剩余仓SL锁定R(0=禁用)
 input bool   InpDTPResetPeakAfterPartial = false; // DTP部分平仓后重置余仓峰值
 input double InpFixedTPR         = 0.0;      // 固定止盈(R, 0=DTP模式)
+input double InpOBHeightTPMult   = 0.0;      // TP=OB高度倍数(0=禁用,2=量度移动)
 
 // ── 时间退出 ──────────────────────────────────────────────────────────────
 input int    InpTimeExitBars     = 999;      // 超时退出(bars, 999=禁用)

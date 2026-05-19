@@ -9245,3 +9245,188 @@ exp_aw_tp03:
   swing_strength: 3
   range_be_r: 0.0
   range_time_exit: 999
+
+# ================================================================
+# v10 TP2R 系列 — 2026-05-19
+# 核心假设: WR70%+TP2R → PF理论4.67，实测能否>2
+# ================================================================
+
+# M3 + IQ55 + TP=2R: 以m3_iq55_tp1(WR71.7%)为基础，目标改TP到2R
+v10_m3_iq55_tp2:
+  <<: *defaults
+  version: V10-M3-IQ55TP2
+  description: "v10实验: M3+IQ55+固定2R止盈+0.5R保本"
+  bar_period_min: 3
+  enable_entry_engine: true
+  bounce_pct: 0.30
+  timeout_min: 120
+  min_impulse_body_pct: 55.0
+  min_impulse_vol_ratio: 1.2
+  no_entry_hours: "0,9,12,17,18"
+  max_concurrent: 2
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.20
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.3
+  dtp_exit_mode: 0
+  fixed_tp_r: 2.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# M3 + IQ50 + TP=2R: 放宽位移门槛增加信号频率
+v10_m3_iq50_tp2:
+  <<: *defaults
+  version: V10-M3-IQ50TP2
+  description: "v10实验: M3+IQ50+固定2R止盈+0.5R保本"
+  bar_period_min: 3
+  enable_entry_engine: true
+  bounce_pct: 0.30
+  timeout_min: 120
+  min_impulse_body_pct: 50.0
+  min_impulse_vol_ratio: 1.0
+  no_entry_hours: "0,9,12,17,18"
+  max_concurrent: 2
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.20
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.3
+  dtp_exit_mode: 0
+  fixed_tp_r: 2.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# M3 + IQ55 + TP=1.5R: 中间值，验证WR vs PF拐点
+v10_m3_iq55_tp15:
+  <<: *defaults
+  version: V10-M3-IQ55TP15
+  description: "v10实验: M3+IQ55+固定1.5R止盈"
+  bar_period_min: 3
+  enable_entry_engine: true
+  bounce_pct: 0.30
+  timeout_min: 120
+  min_impulse_body_pct: 55.0
+  min_impulse_vol_ratio: 1.2
+  no_entry_hours: "0,9,12,17,18"
+  max_concurrent: 2
+  breakeven_r: 0.40
+  breakeven_lock_r: 0.15
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.3
+  dtp_exit_mode: 0
+  fixed_tp_r: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# M5 + IQ55 + TP=2R: 基于WR80.5%经验，换2R目标
+v10_m5_iq55_tp2:
+  <<: *defaults
+  version: V10-M5-IQ55TP2
+  description: "v10实验: M5+IQ55+固定2R止盈"
+  bar_period_min: 5
+  enable_entry_engine: true
+  bounce_pct: 0.40
+  timeout_min: 90
+  min_impulse_body_pct: 55.0
+  min_impulse_vol_ratio: 1.2
+  no_entry_hours: "0,9,12,17,18"
+  max_concurrent: 2
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.20
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.3
+  dtp_exit_mode: 0
+  fixed_tp_r: 2.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# M5 + IQ50 + TP=2R: 放宽门槛提升M5频率
+v10_m5_iq50_tp2:
+  <<: *defaults
+  version: V10-M5-IQ50TP2
+  description: "v10实验: M5+IQ50+固定2R止盈（增加频率）"
+  bar_period_min: 5
+  enable_entry_engine: true
+  bounce_pct: 0.40
+  timeout_min: 90
+  min_impulse_body_pct: 50.0
+  min_impulse_vol_ratio: 1.0
+  no_entry_hours: "0,9,12,17,18"
+  max_concurrent: 2
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.20
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.3
+  dtp_exit_mode: 0
+  fixed_tp_r: 2.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# M3 + IQ55 + BE=1R + TP=2R: 强保本防止小浮盈归零
+v10_m3_iq55_be1_tp2:
+  <<: *defaults
+  version: V10-M3-IQ55BE1TP2
+  description: "v10实验: M3+IQ55+1R保本+2R止盈"
+  bar_period_min: 3
+  enable_entry_engine: true
+  bounce_pct: 0.30
+  timeout_min: 120
+  min_impulse_body_pct: 55.0
+  min_impulse_vol_ratio: 1.2
+  no_entry_hours: "0,9,12,17,18"
+  max_concurrent: 2
+  breakeven_r: 1.00
+  breakeven_lock_r: 0.50
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.3
+  dtp_exit_mode: 0
+  fixed_tp_r: 2.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
