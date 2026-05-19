@@ -102,8 +102,11 @@ def kill_mt5():
     subprocess.run(['pkill', '-f', 'terminal64'], capture_output=True)
     subprocess.run(['pkill', '-f', 'metatester64'], capture_output=True)
     subprocess.run(['pkill', '-f', 'MetaTrader 5.app'], capture_output=True)
-    wineserver = WINE.replace('/wine', '/wineserver')
-    subprocess.run([wineserver, '-k'], env=env, capture_output=True)
+    try:
+        wineserver = WINE.replace('/wine', '/wineserver')
+        subprocess.run([wineserver, '-k'], env=env, capture_output=True)
+    except (FileNotFoundError, OSError):
+        pass
     time.sleep(3)
 
 

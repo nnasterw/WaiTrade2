@@ -11,7 +11,7 @@
 double CalcOBHeightTP(const OBZone &zone, double entry)
 {
    if(InpOBHeightTPMult <= 0 || zone.is_range_breakout) return 0.0;
-   double ob_h = zone.ob_top - zone.ob_bottom;
+   double ob_h = zone.high - zone.low;
    if(ob_h <= 0) return 0.0;
    return entry + zone.direction * ob_h * InpOBHeightTPMult;
 }
@@ -243,6 +243,40 @@ bool PassOBReentryCooldown(const OBZone &zone)
    return (TimeCurrent() - zone.last_entry_time >= InpOBReentryCooldownMin * 60);
 }
 
+bool PassContinuationAgeFilter(const OBZone &zone, const EAState &state, bool deep_entry)
+{
+   if(InpFilterContAgeMaxBars <= 0)
+      return true;
+   if(InpFilterContAgeMaxBars < InpFilterContAgeMinBars)
+      return true;
+   if(!zone.is_continuation)
+      return true;
+
+   int age = state.bar_count - zone.created_bar;
+   if(age < InpFilterContAgeMinBars || age > InpFilterContAgeMaxBars)
+      return true;
+   if(InpFilterContNonDeepOnly && deep_entry)
+      return true;
+
+   return false;
+}
+
+double ApplyBuyNoH1PositionFilter(const OBZone &zone, int direction, double pos_mult)
+{
+   if(InpFilterBuyNoH1MaxPosMult <= 0 || InpFilterBuyNoH1PosMult == 1.0)
+      return pos_mult;
+   if(direction != OB_BUY || zone.is_1h_aligned)
+      return pos_mult;
+
+   double min_mult = MathMax(0.0, InpFilterBuyNoH1MinPosMult);
+   if(pos_mult < min_mult || pos_mult > InpFilterBuyNoH1MaxPosMult)
+      return pos_mult;
+   if(InpFilterBuyNoH1PosMult <= 0)
+      return -1.0;
+
+   return pos_mult * InpFilterBuyNoH1PosMult;
+}
+
 double CalcEntryLot(string symbol, double risk_pct, double risk_price, double pos_mult)
 {
    double base_lot;
@@ -326,6 +360,11 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       pos_mult *= InpDeepEntryBoost;
    pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
+   if(!PassContinuationAgeFilter(zone, state, signal.deep_entry))
+      return false;
+   pos_mult = ApplyBuyNoH1PositionFilter(zone, signal.direction, pos_mult);
+   if(pos_mult < 0)
+      return false;
 
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
@@ -514,10 +553,16 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    {
       pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
    }
+   bool deep_entry = (InpEntryDepthPct > 0);
    if(InpEntryDepthPct > 0 && InpDeepEntryBoost > 1.0)
       pos_mult *= InpDeepEntryBoost;
    pos_mult = ApplyDirectionPosMult(zone.direction, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
+   if(!PassContinuationAgeFilter(zone, state, deep_entry))
+      return false;
+   pos_mult = ApplyBuyNoH1PositionFilter(zone, zone.direction, pos_mult);
+   if(pos_mult < 0)
+      return false;
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
 
@@ -575,7 +620,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    signal.lot = final_lot;
    signal.pos_mult = pos_mult;
    signal.ob_index = zone_idx;
-   signal.deep_entry = (InpEntryDepthPct > 0);
+   signal.deep_entry = deep_entry;
    signal.htf_target = false;
    signal.htf_partial_r = 0;
    signal.htf_partial_pct = 0;

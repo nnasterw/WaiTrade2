@@ -141,6 +141,12 @@ input double InpStrongAddOnMinSpreadRatio = 5.0; // 加仓最小risk/spread
 input int    InpCloseRetryCooldownSec = 0;   // 交易请求失败后重试冷却秒数(0=不限制)
 input int    InpMaxEntriesPerOB  = 1;        // 每个OB最多入场次数(1=默认一次)
 input int    InpOBReentryCooldownMin = 0;    // 同一OB再次入场冷却分钟(0=不限制)
+input int    InpFilterContAgeMinBars = 0;    // 过滤延续OB最小年龄bars(0=禁用)
+input int    InpFilterContAgeMaxBars = 0;    // 过滤延续OB最大年龄bars(0=禁用)
+input bool   InpFilterContNonDeepOnly = false; // 仅过滤未深触的延续OB
+input double InpFilterBuyNoH1MinPosMult = 0.0; // 做多非H1降权最小仓位乘数(0=禁用)
+input double InpFilterBuyNoH1MaxPosMult = 0.0; // 做多非H1降权最大仓位乘数(0=禁用)
+input double InpFilterBuyNoH1PosMult = 1.0; // 做多非H1高仓位降权倍数(<=0=过滤)
 
 // ── 增强 ──────────────────────────────────────────────────────────────────
 input double InpBoostIn1HOB      = 3.0;      // 1H级别OB加仓倍数
