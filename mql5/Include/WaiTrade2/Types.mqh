@@ -42,6 +42,16 @@ struct TradeSignal
     double   lot;            // 计算手数
     double   pos_mult;       // 仓位乘数
     int      ob_index;       // 对应OB数组索引
+    bool     deep_entry;      // 是否深入OB后入场
+    double   touch_price;     // EntryEngine真实触点/最深触点
+    double   confirm_price;   // EntryEngine确认价
+    int      bounce_seconds;  // 从触点到确认耗时
+    double   bounce_ob_pct;   // 确认反弹幅度/OB高度
+    double   confirm_ob_pos;  // 确认价相对OB区间位置(买:高于上沿为正,卖:低于下沿为正)
+    bool     htf_target;      // 是否使用大周期目标位
+    double   htf_partial_r;   // 大周期目标单分批R
+    int      htf_partial_pct; // 大周期目标单分批比例
+    bool     failure_reverse; // 是否失败反手单
     string   comment;        // 订单备注
 };
 
@@ -60,6 +70,13 @@ struct PosTrack
     double   dtp_peak_r;     // DTP激活后的峰值R
     bool     partial_closed; // 是否已执行部分平仓
     bool     dtp_partial_closed; // DTP是否已执行部分平仓
+    bool     deep_entry;      // 是否深入OB后入场
+    bool     htf_target;      // 是否使用大周期目标位
+    double   htf_partial_r;   // 大周期目标单分批R
+    int      htf_partial_pct; // 大周期目标单分批比例
+    bool     failure_reverse; // 是否失败反手单
+    int      addon_count;     // 已触发强势延续加仓次数
+    bool     strong_addon;    // 是否强势延续加仓单
     datetime last_close_attempt; // 最近一次主动市价平仓尝试时间
     string   last_sl_reason; // 最近一次SL修改来源
 };

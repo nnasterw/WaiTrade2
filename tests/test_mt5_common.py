@@ -331,18 +331,62 @@ def test_v98_strategy_full_set():
 
 def test_v98a_entry_engine_params():
     assert FLAT_MAP['enable_entry_engine'] == 'InpEnableEntryEngine'
+    assert FLAT_MAP['entry_depth_pct'] == 'InpEntryDepthPct'
+    assert FLAT_MAP['entry_depth_filter'] == 'InpEntryDepthFilter'
+    assert FLAT_MAP['deep_entry_boost'] == 'InpDeepEntryBoost'
+    assert FLAT_MAP['entry_confirm_bars'] == 'InpEntryConfirmBars'
+    assert FLAT_MAP['bounce_close_confirm_bars'] == 'InpBounceCloseConfirmBars'
+    assert FLAT_MAP['bounce_close_tf'] == 'InpBounceCloseTF'
+    assert FLAT_MAP['bounce_close_buffer_pct'] == 'InpBounceCloseBufferPct'
+    assert FLAT_MAP['bounce_close_require_body'] == 'InpBounceCloseRequireBody'
+    assert FLAT_MAP['enable_entry_momentum_filter'] == 'InpEnableEntryMomentumFilter'
+    assert FLAT_MAP['entry_momentum_tf'] == 'InpEntryMomentumTF'
+    assert FLAT_MAP['entry_block_counter_strong'] == 'InpEntryBlockCounterStrong'
+    assert FLAT_MAP['entry_require_counter_weak'] == 'InpEntryRequireCounterWeak'
+
+
+def test_bounce_close_confirm_params_in_set():
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'bounce_close_confirm_bars': 2,
+        'bounce_close_tf': 1,
+        'bounce_close_buffer_pct': 0.10,
+        'bounce_close_require_body': True,
+    })
+    assert 'InpBounceCloseConfirmBars=2' in content
+    assert 'InpBounceCloseTF=1' in content
+    assert 'InpBounceCloseBufferPct=0.1' in content
+    assert 'InpBounceCloseRequireBody=true' in content
+
+
+def test_entry_momentum_filter_params_in_set():
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'enable_entry_momentum_filter': True,
+        'entry_momentum_tf': 1,
+        'entry_block_counter_strong': True,
+        'entry_require_counter_weak': False,
+    })
+    assert 'InpEnableEntryMomentumFilter=true' in content
+    assert 'InpEntryMomentumTF=1' in content
+    assert 'InpEntryBlockCounterStrong=true' in content
+    assert 'InpEntryRequireCounterWeak=false' in content
 
 
 def test_partial_close_params():
     assert FLAT_MAP['partial_close_r'] == 'InpPartialCloseR'
     assert FLAT_MAP['partial_close_pct'] == 'InpPartialClosePct'
+    assert FLAT_MAP['partial_post_lock_r'] == 'InpPartialPostLockR'
+    assert FLAT_MAP['partial_only_deep'] == 'InpPartialOnlyDeep'
 
 
 def test_partial_close_in_set():
-    cfg = {'version': 'test', 'partial_close_r': 1.0, 'partial_close_pct': 50}
+    cfg = {'version': 'test', 'partial_close_r': 1.0, 'partial_close_pct': 50, 'partial_post_lock_r': 0.2, 'partial_only_deep': True}
     content = strategy_to_set('test', cfg)
     assert 'InpPartialCloseR=1.0' in content
     assert 'InpPartialClosePct=50' in content
+    assert 'InpPartialPostLockR=0.2' in content
+    assert 'InpPartialOnlyDeep=true' in content
 
 
 def test_dtp_stage_params_in_set():
@@ -360,6 +404,7 @@ def test_dtp_stage_params_in_set():
         'dtp_post_partial_lock_r': 1.0,
         'dtp_reset_peak_after_partial': True,
         'enable_exit_debug': True,
+        'enable_entry_debug': True,
     }
     content = strategy_to_set('test', cfg)
     assert 'InpDTPStage2TriggerR=3.0' in content
@@ -372,10 +417,122 @@ def test_dtp_stage_params_in_set():
     assert 'InpDTPPostPartialLockR=1.0' in content
     assert 'InpDTPResetPeakAfterPartial=true' in content
     assert 'InpEnableExitDebug=true' in content
+    assert 'InpEnableEntryDebug=true' in content
+
+
+def test_early_loss_cut_param_in_set():
+    assert FLAT_MAP['early_loss_cut_r'] == 'InpEarlyLossCutR'
+    assert FLAT_MAP['mfe_fail_min_r'] == 'InpMFEFailMinR'
+    assert FLAT_MAP['mfe_fail_exit_r'] == 'InpMFEFailExitR'
+    assert FLAT_MAP['no_mfe_exit_bars'] == 'InpNoMFEExitBars'
+    assert FLAT_MAP['no_mfe_min_peak_r'] == 'InpNoMFEMinPeakR'
+    assert FLAT_MAP['no_mfe_exit_r'] == 'InpNoMFEExitR'
+    assert FLAT_MAP['enable_failure_reverse'] == 'InpEnableFailureReverse'
+    assert FLAT_MAP['reverse_on_early_loss'] == 'InpReverseOnEarlyLoss'
+    assert FLAT_MAP['reverse_on_mfe_fail'] == 'InpReverseOnMFEFail'
+    assert FLAT_MAP['reverse_on_no_mfe'] == 'InpReverseOnNoMFE'
+    assert FLAT_MAP['failure_reverse_risk_mult'] == 'InpFailureReverseRiskMult'
+    assert FLAT_MAP['failure_reverse_lot_mult'] == 'InpFailureReverseLotMult'
+    assert FLAT_MAP['failure_reverse_tp_r'] == 'InpFailureReverseTPR'
+    assert FLAT_MAP['failure_reverse_allow_chain'] == 'InpFailureReverseAllowChain'
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'early_loss_cut_r': 0.35,
+        'mfe_fail_min_r': 0.5,
+        'mfe_fail_exit_r': -0.1,
+        'no_mfe_exit_bars': 3,
+        'no_mfe_min_peak_r': 0.15,
+        'no_mfe_exit_r': -0.2,
+    })
+    assert 'InpEarlyLossCutR=0.35' in content
+    assert 'InpMFEFailMinR=0.5' in content
+    assert 'InpMFEFailExitR=-0.1' in content
+    assert 'InpNoMFEExitBars=3' in content
+    assert 'InpNoMFEMinPeakR=0.15' in content
+    assert 'InpNoMFEExitR=-0.2' in content
+
+
+def test_failure_reverse_params_in_set():
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'enable_failure_reverse': True,
+        'reverse_on_early_loss': True,
+        'reverse_on_mfe_fail': False,
+        'reverse_on_no_mfe': True,
+        'failure_reverse_risk_mult': 1.2,
+        'failure_reverse_lot_mult': 0.8,
+        'failure_reverse_tp_r': 2.0,
+        'failure_reverse_allow_chain': False,
+    })
+    assert 'InpEnableFailureReverse=true' in content
+    assert 'InpReverseOnEarlyLoss=true' in content
+    assert 'InpReverseOnMFEFail=false' in content
+    assert 'InpReverseOnNoMFE=true' in content
+    assert 'InpFailureReverseRiskMult=1.2' in content
+    assert 'InpFailureReverseLotMult=0.8' in content
+    assert 'InpFailureReverseTPR=2.0' in content
+    assert 'InpFailureReverseAllowChain=false' in content
+
+
+def test_direction_override_params_in_set():
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'buy_min_strength': 5.0,
+        'sell_min_strength': 3.0,
+        'buy_pos_mult': 0.5,
+        'sell_pos_mult': 1.2,
+        'buy_be_r': 0.6,
+        'buy_be_lock': 0.2,
+        'sell_be_r': 1.2,
+        'sell_be_lock': 0.6,
+        'buy_dtp_trigger_r': 1.5,
+        'buy_dtp_retrace': 0.15,
+        'sell_dtp_trigger_r': 3.0,
+        'sell_dtp_retrace': 0.35,
+        'enable_confirm_pullback': True,
+        'confirm_pullback_pct': 0.4,
+        'confirm_pullback_wait_sec': 20,
+        'confirm_pullback_max_adverse_pct': 0.1,
+        'enable_strong_addon': True,
+        'strong_addon_trigger_r': 1.2,
+        'strong_addon_step_r': 0.8,
+        'strong_addon_max_count': 2,
+        'strong_addon_lot_mult': 0.4,
+        'strong_addon_risk_mult': 0.6,
+        'strong_addon_min_spread_ratio': 6.0,
+    })
+    assert 'InpBuyMinStrength=5.0' in content
+    assert 'InpSellMinStrength=3.0' in content
+    assert 'InpBuyPosMult=0.5' in content
+    assert 'InpSellPosMult=1.2' in content
+    assert 'InpBuyBE_R=0.6' in content
+    assert 'InpBuyBE_Lock=0.2' in content
+    assert 'InpSellBE_R=1.2' in content
+    assert 'InpSellBE_Lock=0.6' in content
+    assert 'InpBuyDTPTriggerR=1.5' in content
+    assert 'InpBuyDTPRetrace=0.15' in content
+    assert 'InpSellDTPTriggerR=3.0' in content
+    assert 'InpSellDTPRetrace=0.35' in content
+    assert 'InpEnableConfirmPullback=true' in content
+    assert 'InpConfirmPullbackPct=0.4' in content
+    assert 'InpConfirmPullbackWaitSec=20' in content
+    assert 'InpConfirmPullbackMaxAdversePct=0.1' in content
+    assert 'InpEnableStrongAddOn=true' in content
+    assert 'InpStrongAddOnTriggerR=1.2' in content
+    assert 'InpStrongAddOnStepR=0.8' in content
+    assert 'InpStrongAddOnMaxCount=2' in content
+    assert 'InpStrongAddOnLotMult=0.4' in content
+    assert 'InpStrongAddOnRiskMult=0.6' in content
+    assert 'InpStrongAddOnMinSpreadRatio=6.0' in content
 
 
 def test_gap_quality_params_in_set():
     assert FLAT_MAP['min_ob_body_pct'] == 'InpMinOBBodyPct'
+    assert FLAT_MAP['min_impulse_body_pct'] == 'InpMinImpulseBodyPct'
+    assert FLAT_MAP['min_impulse_vol_ratio'] == 'InpMinImpulseVolRatio'
+    assert FLAT_MAP['structure_break_bars'] == 'InpStructureBreakBars'
+    assert FLAT_MAP['structure_break_atr'] == 'InpStructureBreakATR'
+    assert FLAT_MAP['require_impulse_candle_dir'] == 'InpRequireImpulseCandleDir'
     assert FLAT_MAP['no_ob_start_hour'] == 'InpNoOBStartHour'
     assert FLAT_MAP['no_ob_end_hour'] == 'InpNoOBEndHour'
     assert FLAT_MAP['min_ob_strength'] == 'InpMinOBStrength'
@@ -384,6 +541,11 @@ def test_gap_quality_params_in_set():
     cfg = {
         'version': 'test',
         'min_ob_body_pct': 55,
+        'min_impulse_body_pct': 60,
+        'min_impulse_vol_ratio': 1.3,
+        'structure_break_bars': 3,
+        'structure_break_atr': 0.1,
+        'require_impulse_candle_dir': True,
         'no_ob_start_hour': 22,
         'no_ob_end_hour': 7,
         'min_ob_strength': 0.8,
@@ -392,6 +554,11 @@ def test_gap_quality_params_in_set():
     }
     content = strategy_to_set('test', cfg)
     assert 'InpMinOBBodyPct=55' in content
+    assert 'InpMinImpulseBodyPct=60' in content
+    assert 'InpMinImpulseVolRatio=1.3' in content
+    assert 'InpStructureBreakBars=3' in content
+    assert 'InpStructureBreakATR=0.1' in content
+    assert 'InpRequireImpulseCandleDir=true' in content
     assert 'InpNoOBStartHour=22' in content
     assert 'InpNoOBEndHour=7' in content
     assert 'InpMinOBStrength=0.8' in content
@@ -408,11 +575,37 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['max_pos_mult'] == 'InpMaxPosMult'
     assert FLAT_MAP['max_lot_size'] == 'InpMaxLotSize'
     assert FLAT_MAP['no_entry_hours'] == 'InpNoEntryHours'
+    assert FLAT_MAP['no_buy_hours'] == 'InpNoBuyHours'
+    assert FLAT_MAP['no_sell_hours'] == 'InpNoSellHours'
+    assert FLAT_MAP['buy_min_strength'] == 'InpBuyMinStrength'
+    assert FLAT_MAP['sell_min_strength'] == 'InpSellMinStrength'
+    assert FLAT_MAP['buy_pos_mult'] == 'InpBuyPosMult'
+    assert FLAT_MAP['sell_pos_mult'] == 'InpSellPosMult'
+    assert FLAT_MAP['buy_be_r'] == 'InpBuyBE_R'
+    assert FLAT_MAP['buy_be_lock'] == 'InpBuyBE_Lock'
+    assert FLAT_MAP['sell_be_r'] == 'InpSellBE_R'
+    assert FLAT_MAP['sell_be_lock'] == 'InpSellBE_Lock'
+    assert FLAT_MAP['buy_dtp_trigger_r'] == 'InpBuyDTPTriggerR'
+    assert FLAT_MAP['buy_dtp_retrace'] == 'InpBuyDTPRetrace'
+    assert FLAT_MAP['sell_dtp_trigger_r'] == 'InpSellDTPTriggerR'
+    assert FLAT_MAP['sell_dtp_retrace'] == 'InpSellDTPRetrace'
+    assert FLAT_MAP['enable_confirm_pullback'] == 'InpEnableConfirmPullback'
+    assert FLAT_MAP['confirm_pullback_pct'] == 'InpConfirmPullbackPct'
+    assert FLAT_MAP['confirm_pullback_wait_sec'] == 'InpConfirmPullbackWaitSec'
+    assert FLAT_MAP['confirm_pullback_max_adverse_pct'] == 'InpConfirmPullbackMaxAdversePct'
+    assert FLAT_MAP['enable_strong_addon'] == 'InpEnableStrongAddOn'
+    assert FLAT_MAP['strong_addon_trigger_r'] == 'InpStrongAddOnTriggerR'
+    assert FLAT_MAP['strong_addon_step_r'] == 'InpStrongAddOnStepR'
+    assert FLAT_MAP['strong_addon_max_count'] == 'InpStrongAddOnMaxCount'
+    assert FLAT_MAP['strong_addon_lot_mult'] == 'InpStrongAddOnLotMult'
+    assert FLAT_MAP['strong_addon_risk_mult'] == 'InpStrongAddOnRiskMult'
+    assert FLAT_MAP['strong_addon_min_spread_ratio'] == 'InpStrongAddOnMinSpreadRatio'
     assert FLAT_MAP['close_retry_cooldown_sec'] == 'InpCloseRetryCooldownSec'
     assert FLAT_MAP['max_entries_per_ob'] == 'InpMaxEntriesPerOB'
     assert FLAT_MAP['ob_reentry_cooldown_min'] == 'InpOBReentryCooldownMin'
     assert FLAT_MAP['ob_scan_depth'] == 'InpOBScanDepth'
     assert FLAT_MAP['magic_number'] == 'InpMagicNumber'
+    assert FLAT_MAP['enable_entry_debug'] == 'InpEnableEntryDebug'
     cfg = {
         'version': 'legacy',
         'impulse_atr_mult': 1.5,
@@ -423,6 +616,8 @@ def test_execution_and_scan_params_in_set():
         'max_pos_mult': 8.0,
         'max_lot_size': 0.08,
         'no_entry_hours': '0,9,12',
+        'no_buy_hours': '8,10',
+        'no_sell_hours': '16,22',
         'close_retry_cooldown_sec': 60,
         'max_entries_per_ob': 2,
         'ob_reentry_cooldown_min': 30,
@@ -439,6 +634,8 @@ def test_execution_and_scan_params_in_set():
     assert 'InpMaxPosMult=8.0' in content
     assert 'InpMaxLotSize=0.08' in content
     assert 'InpNoEntryHours=0,9,12' in content
+    assert 'InpNoBuyHours=8,10' in content
+    assert 'InpNoSellHours=16,22' in content
     assert 'InpCloseRetryCooldownSec=60' in content
     assert 'InpMaxEntriesPerOB=2' in content
     assert 'InpOBReentryCooldownMin=30' in content
@@ -455,9 +652,85 @@ def test_v98a_strategy_set():
         'enable_scoring': True,
         'enable_decay_exit': True,
         'bounce_pct': 0.60,
+        'entry_depth_pct': 0.67,
+        'entry_depth_filter': False,
+        'deep_entry_boost': 2.0,
+        'entry_confirm_bars': 3,
         'min_score': 4,
     }
     content = strategy_to_set('v98a', cfg)
     assert 'InpEnableEntryEngine=true' in content
     assert 'InpBouncePct=0.6' in content
+    assert 'InpEntryDepthPct=0.67' in content
+    assert 'InpEntryDepthFilter=false' in content
+    assert 'InpDeepEntryBoost=2.0' in content
+    assert 'InpEntryConfirmBars=3' in content
     assert 'InpMinScore=4' in content
+
+
+def test_htf_target_and_momentum_params_in_set():
+    assert FLAT_MAP['enable_htf_target'] == 'InpEnableHTFTarget'
+    assert FLAT_MAP['htf_target_tf'] == 'InpHTFTargetTF'
+    assert FLAT_MAP['htf_target_lookback'] == 'InpHTFTargetLookback'
+    assert FLAT_MAP['htf_swing_strength'] == 'InpHTFSwingStrength'
+    assert FLAT_MAP['htf_min_target_r'] == 'InpHTFMinTargetR'
+    assert FLAT_MAP['htf_max_target_r'] == 'InpHTFMaxTargetR'
+    assert FLAT_MAP['htf_measured_move_r'] == 'InpHTFMeasuredMoveR'
+    assert FLAT_MAP['htf_require_aligned'] == 'InpHTFRequireAligned'
+    assert FLAT_MAP['htf_partial_r'] == 'InpHTFPartialR'
+    assert FLAT_MAP['htf_partial_pct'] == 'InpHTFPartialPct'
+    assert FLAT_MAP['htf_skip_dtp'] == 'InpHTFSkipDTP'
+    assert FLAT_MAP['htf_skip_trail'] == 'InpHTFSkipTrail'
+    assert FLAT_MAP['htf_dtp_trigger_r'] == 'InpHTFDTPTriggerR'
+    assert FLAT_MAP['htf_dtp_retrace'] == 'InpHTFDTPRetrace'
+    assert FLAT_MAP['htf_dtp_post_partial_retrace'] == 'InpHTFDTPPostPartialRetrace'
+    assert FLAT_MAP['enable_momentum_regime'] == 'InpEnableMomentumRegime'
+    assert FLAT_MAP['weak_exit_min_r'] == 'InpWeakExitMinR'
+    assert FLAT_MAP['strong_dtp_retrace_mult'] == 'InpStrongDTPRetraceMult'
+
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'enable_htf_target': True,
+        'htf_target_tf': 15,
+        'htf_target_lookback': 96,
+        'htf_swing_strength': 2,
+        'htf_min_target_r': 2.0,
+        'htf_max_target_r': 6.0,
+        'htf_measured_move_r': 2.5,
+        'htf_require_aligned': True,
+        'htf_partial_r': 1.2,
+        'htf_partial_pct': 50,
+        'htf_skip_dtp': True,
+        'htf_skip_trail': True,
+        'htf_dtp_trigger_r': 3.0,
+        'htf_dtp_retrace': 0.35,
+        'htf_dtp_post_partial_retrace': 0.45,
+        'enable_momentum_regime': True,
+        'weak_exit_min_r': 1.2,
+        'weak_body_shrink_pct': 0.8,
+        'weak_wick_body_ratio': 2.0,
+        'strong_momentum_bars': 4,
+        'strong_min_body_growth': 1.0,
+        'strong_weak_reverse_body_pct': 25.0,
+        'strong_max_pullback_pct': 35.0,
+        'strong_dtp_retrace_mult': 1.5,
+    })
+    assert 'InpEnableHTFTarget=true' in content
+    assert 'InpHTFTargetTF=15' in content
+    assert 'InpHTFTargetLookback=96' in content
+    assert 'InpHTFSwingStrength=2' in content
+    assert 'InpHTFMinTargetR=2.0' in content
+    assert 'InpHTFMaxTargetR=6.0' in content
+    assert 'InpHTFMeasuredMoveR=2.5' in content
+    assert 'InpHTFRequireAligned=true' in content
+    assert 'InpHTFPartialR=1.2' in content
+    assert 'InpHTFPartialPct=50' in content
+    assert 'InpHTFSkipDTP=true' in content
+    assert 'InpHTFSkipTrail=true' in content
+    assert 'InpHTFDTPTriggerR=3.0' in content
+    assert 'InpHTFDTPRetrace=0.35' in content
+    assert 'InpHTFDTPPostPartialRetrace=0.45' in content
+    assert 'InpEnableMomentumRegime=true' in content
+    assert 'InpWeakExitMinR=1.2' in content
+    assert 'InpWeakBodyShrinkPct=0.8' in content
+    assert 'InpStrongDTPRetraceMult=1.5' in content

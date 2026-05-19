@@ -275,9 +275,17 @@ bool ExecuteSignal(const TradeSignal &sig)
     if(result.retcode == TRADE_RETCODE_DONE)
     {
         Print("开仓成功: ", sig.comment, " ticket=", result.order,
-              " price=", result.price, " lot=", sig.lot);
+              " price=", result.price, " lot=", sig.lot,
+              " bounce_sec=", sig.bounce_seconds,
+              " bounce_ob=", DoubleToString(sig.bounce_ob_pct, 3),
+              " confirm_pos=", DoubleToString(sig.confirm_ob_pos, 3),
+              " touch=", DoubleToString(sig.touch_price, _Digits),
+              " confirm=", DoubleToString(sig.confirm_price, _Digits));
 
         RegisterPosition(result.order, sig.direction, result.price, sig.sl, sig.risk_price,
+                         sig.deep_entry,
+                         sig.htf_target, sig.htf_partial_r, sig.htf_partial_pct,
+                         sig.failure_reverse,
                          g_tracks, g_track_count);
 
         if(g_track_count > 0)

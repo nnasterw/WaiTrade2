@@ -111,4 +111,69 @@ MARKET_STATE DetectMarketState(string symbol, double &target_price)
     return state;
 }
 
+bool FindRecentSwingTarget(string symbol, ENUM_TIMEFRAMES tf, int direction, double entry,
+                           double &target_price)
+{
+    target_price = 0;
+
+    int lookback = MathMax(InpHTFTargetLookback, InpHTFSwingStrength * 2 + 10);
+    MqlRates rates[];
+    int count = CopyRates(symbol, tf, 0, lookback, rates);
+    if(count < InpHTFSwingStrength * 2 + 5)
+        return false;
+
+    for(int i = count - InpHTFSwingStrength - 2; i >= InpHTFSwingStrength; i--)
+    {
+        if(direction == OB_BUY && IsSwingHigh(rates, i, InpHTFSwingStrength, count))
+        {
+            if(rates[i].high > entry)
+            {
+                target_price = rates[i].high;
+                return true;
+            }
+        }
+        else if(direction == OB_SELL && IsSwingLow(rates, i, InpHTFSwingStrength, count))
+        {
+            if(rates[i].low < entry)
+            {
+                target_price = rates[i].low;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool CalcHTFTargetPrice(string symbol, int direction, double entry, double risk_price,
+                        double &target_price)
+{
+    target_price = 0;
+    if(!InpEnableHTFTarget || risk_price <= 0)
+        return false;
+
+    ENUM_TIMEFRAMES tf = MinutesToTF(InpHTFTargetTF);
+    double htf_target = 0;
+    MARKET_STATE htf_state = DetectMarketState(symbol, htf_target);
+    if(InpHTFRequireAligned && htf_state != direction)
+        return false;
+
+    bool found = FindRecentSwingTarget(symbol, tf, direction, entry, target_price);
+    if(!found || PriceToR(target_price, entry, risk_price, direction) < InpHTFMinTargetR)
+    {
+        if(InpHTFMeasuredMoveR <= 0)
+            return false;
+        target_price = RToPrice(InpHTFMeasuredMoveR, entry, risk_price, direction);
+    }
+
+    double target_r = PriceToR(target_price, entry, risk_price, direction);
+    if(target_r < InpHTFMinTargetR)
+        return false;
+
+    if(InpHTFMaxTargetR > 0 && target_r > InpHTFMaxTargetR)
+        target_price = RToPrice(InpHTFMaxTargetR, entry, risk_price, direction);
+
+    return true;
+}
+
 #endif // __WAITRADE_MARKET_STATE_MQH__

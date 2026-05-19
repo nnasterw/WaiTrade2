@@ -61,6 +61,82 @@ bool PassOBBodyPct(const MqlRates &bar)
    return (body / range * 100.0 >= InpMinOBBodyPct);
 }
 
+double CalcBodyPct(const MqlRates &bar)
+{
+   double range = bar.high - bar.low;
+   if(range <= 0)
+      return 0.0;
+   return MathAbs(bar.open - bar.close) / range * 100.0;
+}
+
+double CalcVolumeRatio(const MqlRates &rates[], int idx, int lookback)
+{
+   if(lookback <= 0)
+      lookback = 30;
+   int start = MathMax(0, idx - lookback);
+   int count = 0;
+   double sum = 0.0;
+   for(int i = start; i < idx; i++)
+   {
+      sum += (double)rates[i].tick_volume;
+      count++;
+   }
+   if(count <= 0)
+      return 1.0;
+   double avg = sum / count;
+   if(avg < 1.0)
+      avg = 1.0;
+   return (double)rates[idx].tick_volume / avg;
+}
+
+bool PassImpulseQuality(const MqlRates &rates[], int idx)
+{
+   if(InpMinImpulseBodyPct > 0 && CalcBodyPct(rates[idx]) < InpMinImpulseBodyPct)
+      return false;
+
+   if(InpMinImpulseVolRatio > 0 && CalcVolumeRatio(rates, idx, 30) < InpMinImpulseVolRatio)
+      return false;
+
+   return true;
+}
+
+bool PassStrictStructureBreak(const MqlRates &rates[], int count, int ob_idx, int impulse_idx,
+                              int direction, double atr)
+{
+   if(InpRequireImpulseCandleDir)
+   {
+      if(direction == OB_BUY && rates[impulse_idx].close <= rates[impulse_idx].open)
+         return false;
+      if(direction == OB_SELL && rates[impulse_idx].close >= rates[impulse_idx].open)
+         return false;
+   }
+
+   if(InpStructureBreakBars <= 0)
+      return true;
+   if(impulse_idx <= 0 || impulse_idx >= count)
+      return false;
+
+   int lookback = InpStructureBreakBars;
+   double extra = (atr > 0 && InpStructureBreakATR > 0) ? atr * InpStructureBreakATR : 0.0;
+   int start = MathMax(0, impulse_idx - lookback);
+   int end = impulse_idx - 1;
+   if(start > end)
+      return false;
+
+   if(direction == OB_BUY)
+   {
+      double prior_high = rates[start].high;
+      for(int p = start + 1; p <= end; p++)
+         if(rates[p].high > prior_high) prior_high = rates[p].high;
+      return (rates[impulse_idx].close > prior_high + extra);
+   }
+
+   double prior_low = rates[start].low;
+   for(int p = start + 1; p <= end; p++)
+      if(rates[p].low < prior_low) prior_low = rates[p].low;
+   return (rates[impulse_idx].close < prior_low - extra);
+}
+
 double CalcOBStrength(const MqlRates &rates[], int ob_idx, int impulse_end, double atr, int direction)
 {
    if(atr <= 0) return 1.0;
@@ -324,6 +400,11 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       {
          if(i + InpImpulseLookback < count && IsImpulse(rates, count, i + 1, OB_BUY, atr))
          {
+            if(!PassImpulseQuality(rates, i + 1))
+               continue;
+            if(!PassStrictStructureBreak(rates, count, i, i + 1, OB_BUY, atr))
+               continue;
+
             double ob_range = MathAbs(rates[i].open - rates[i].close);  // Gap1: 实体大小
             if(ob_range < min_ob_range) continue;
 
@@ -395,6 +476,11 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       {
          if(i + InpImpulseLookback < count && IsImpulse(rates, count, i + 1, OB_SELL, atr))
          {
+            if(!PassImpulseQuality(rates, i + 1))
+               continue;
+            if(!PassStrictStructureBreak(rates, count, i, i + 1, OB_SELL, atr))
+               continue;
+
             double ob_range = MathAbs(rates[i].open - rates[i].close);  // Gap1: 实体大小
             if(ob_range < min_ob_range) continue;
 

@@ -51,4 +51,25 @@ ENUM_TIMEFRAMES GetWorkTF()
    }
 }
 
+ENUM_TIMEFRAMES MinutesToTF(int minutes)
+{
+   switch(minutes)
+   {
+      case 1:   return PERIOD_M1;
+      case 2:   return PERIOD_M2;
+      case 3:   return PERIOD_M3;
+      case 4:   return PERIOD_M4;
+      case 5:   return PERIOD_M5;
+      case 6:   return PERIOD_M6;
+      case 10:  return PERIOD_M10;
+      case 12:  return PERIOD_M12;
+      case 15:  return PERIOD_M15;
+      case 20:  return PERIOD_M20;
+      case 30:  return PERIOD_M30;
+      case 60:  return PERIOD_H1;
+      case 240: return PERIOD_H4;
+      default:  return PERIOD_M15;
+   }
+}
+
 #endif

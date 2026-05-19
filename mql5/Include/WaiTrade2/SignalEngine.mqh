@@ -6,6 +6,7 @@
 #include "Utils.mqh"
 #include "MarketState.mqh"
 #include "ScoreEngine.mqh"
+#include "DecayDetector.mqh"
 
 bool IsZoneTouched(const OBZone &zone, double bid, double ask)
 {
@@ -60,17 +61,14 @@ bool PassMinRisk(double final_lot, double risk_price, string symbol)
    return (risk_usd >= InpMinAbsRiskUSD);
 }
 
-bool PassNoEntryHours(datetime now)
+bool IsHourBlocked(string csv, int hour)
 {
-   if(StringLen(InpNoEntryHours) == 0)
-      return true;
-
-   MqlDateTime dt;
-   TimeToStruct(now, dt);
+   if(StringLen(csv) == 0)
+      return false;
 
    string parts[];
    ushort sep = StringGetCharacter(",", 0);
-   int count = StringSplit(InpNoEntryHours, sep, parts);
+   int count = StringSplit(csv, sep, parts);
    for(int i = 0; i < count; i++)
    {
       string token = parts[i];
@@ -78,12 +76,117 @@ bool PassNoEntryHours(datetime now)
       StringTrimRight(token);
       if(StringLen(token) == 0)
          continue;
-      int hour = (int)StringToInteger(token);
-      if(hour == dt.hour)
-         return false;
+      int blocked_hour = (int)StringToInteger(token);
+      if(blocked_hour == hour)
+         return true;
    }
 
+   return false;
+}
+
+bool PassNoEntryHours(datetime now)
+{
+   MqlDateTime dt;
+   TimeToStruct(now, dt);
+
+   return !IsHourBlocked(InpNoEntryHours, dt.hour);
+}
+
+bool PassDirectionEntryHours(int direction, datetime now)
+{
+   MqlDateTime dt;
+   TimeToStruct(now, dt);
+
+   if(IsHourBlocked(InpNoEntryHours, dt.hour))
+      return false;
+   if(direction == OB_BUY && IsHourBlocked(InpNoBuyHours, dt.hour))
+      return false;
+   if(direction == OB_SELL && IsHourBlocked(InpNoSellHours, dt.hour))
+      return false;
+
    return true;
+}
+
+bool PassEntryMomentumFilter(int direction)
+{
+   if(!InpEnableEntryMomentumFilter)
+      return true;
+
+   int tf_min = (InpEntryMomentumTF > 0) ? InpEntryMomentumTF : InpBarTF;
+   ENUM_TIMEFRAMES tf = MinutesToTF(tf_min);
+   int need = MathMax(MathMax(InpStrongMomentumBars, InpDecayBars) + 5, 8);
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 0, need, rates);
+   if(count < need)
+      return true;
+
+   bool counter_strong = CheckStrongMomentum(_Symbol, -direction, rates, count);
+   bool counter_weak = CheckMomentumWeakness(_Symbol, -direction, rates, count);
+
+   if(InpEntryBlockCounterStrong && counter_strong && !counter_weak)
+      return false;
+   if(InpEntryRequireCounterWeak && !counter_weak)
+      return false;
+
+   return true;
+}
+
+void ApplyHTFTarget(string symbol, double entry, double risk_price, TradeSignal &signal)
+{
+   if(!InpEnableHTFTarget)
+      return;
+
+   double htf_tp = 0;
+   if(!CalcHTFTargetPrice(symbol, signal.direction, entry, risk_price, htf_tp))
+      return;
+
+   signal.tp = htf_tp;
+   signal.htf_target = true;
+   signal.htf_partial_r = InpHTFPartialR;
+   signal.htf_partial_pct = InpHTFPartialPct;
+}
+
+void PrintEntryDebug(const string stage, const OBZone &zone, const EAState &state,
+                     const TradeSignal &signal, double entry, double risk_price,
+                     double spread, double pos_mult, int score)
+{
+   if(!InpEnableEntryDebug)
+      return;
+
+   int hour = 0;
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   hour = dt.hour;
+
+   double risk_atr = (state.atr_value > 0) ? risk_price / state.atr_value : 0.0;
+   double spread_risk = (risk_price > 0) ? spread / risk_price : 0.0;
+   int age = state.bar_count - zone.created_bar;
+
+   Print("ENTRY_DIAG stage=", stage,
+         " ticket=0",
+         " dir=", signal.direction,
+         " hour=", hour,
+         " ob_age=", age,
+         " touch=", zone.touch_count,
+         " strength=", DoubleToString(zone.strength, 2),
+         " ds=", DoubleToString(zone.ds_weight, 2),
+         " fresh=", zone.is_fresh ? 1 : 0,
+         " cont=", zone.is_continuation ? 1 : 0,
+         " h1=", zone.is_1h_aligned ? 1 : 0,
+         " deep=", signal.deep_entry ? 1 : 0,
+         " htf=", signal.htf_target ? 1 : 0,
+         " bounce_sec=", signal.bounce_seconds,
+         " bounce_ob=", DoubleToString(signal.bounce_ob_pct, 3),
+         " confirm_pos=", DoubleToString(signal.confirm_ob_pos, 3),
+         " touch=", DoubleToString(signal.touch_price, _Digits),
+         " confirm=", DoubleToString(signal.confirm_price, _Digits),
+         " risk_atr=", DoubleToString(risk_atr, 2),
+         " spread_risk=", DoubleToString(spread_risk, 3),
+         " pos_mult=", DoubleToString(pos_mult, 2),
+         " score=", score,
+         " entry=", DoubleToString(entry, _Digits),
+         " sl=", DoubleToString(signal.sl, _Digits));
 }
 
 double ApplyPositionMultiplierCap(double pos_mult)
@@ -98,6 +201,24 @@ double ApplyLotCap(double lot)
    if(InpMaxLotSize > 0 && lot > InpMaxLotSize)
       return InpMaxLotSize;
    return lot;
+}
+
+double GetDirectionMinStrength(int direction)
+{
+   if(direction == OB_BUY && InpBuyMinStrength > 0)
+      return InpBuyMinStrength;
+   if(direction == OB_SELL && InpSellMinStrength > 0)
+      return InpSellMinStrength;
+   return InpMinOBStrength;
+}
+
+double ApplyDirectionPosMult(int direction, double pos_mult)
+{
+   if(direction == OB_BUY)
+      return pos_mult * InpBuyPosMult;
+   if(direction == OB_SELL)
+      return pos_mult * InpSellPosMult;
+   return pos_mult;
 }
 
 bool PassOBReentryCooldown(const OBZone &zone)
@@ -126,7 +247,10 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(!PassOBReentryCooldown(zone))
       return false;
 
-   if(!PassNoEntryHours(TimeCurrent()))
+   if(!PassDirectionEntryHours(signal.direction, TimeCurrent()))
+      return false;
+
+   if(!PassEntryMomentumFilter(signal.direction))
       return false;
 
    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
@@ -148,7 +272,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       return false;
 
    // EntryEngine确认后用真实可成交价重新过8-Gap，避免监控阶段和执行阶段口径漂移。
-   if(InpMinOBStrength > 0 && zone.strength < InpMinOBStrength)
+   double min_strength = GetDirectionMinStrength(signal.direction);
+   if(min_strength > 0 && zone.strength < min_strength)
       return false;
 
    if(InpMaxRiskATR > 0 && state.atr_value > 0 && risk_price > state.atr_value * InpMaxRiskATR)
@@ -182,6 +307,9 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    {
       pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
    }
+   if(signal.deep_entry && InpDeepEntryBoost > 1.0)
+      pos_mult *= InpDeepEntryBoost;
+   pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
 
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
@@ -231,6 +359,15 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    signal.lot = NormalizeDouble(final_lot, 2);
    signal.pos_mult = pos_mult;
    signal.tp = tp;
+   signal.htf_target = false;
+   signal.htf_partial_r = 0;
+   signal.htf_partial_pct = 0;
+   ApplyHTFTarget(symbol, entry, risk_price, signal);
+   PrintEntryDebug("entry_engine", zone, state, signal, entry, risk_price, spread, pos_mult,
+                   InpEnableScoring ? CalcSignalScore(zone, state, state.market_state,
+                                                      MathAbs(bid - entry), risk_price,
+                                                      MathAbs(RToPrice(2.0, entry, risk_price, signal.direction) - entry))
+                                    : -1);
    signal.comment = "WT " + InpVersion + " " + (signal.direction > 0 ? "B" : "S") +
                     " x" + DoubleToString(pos_mult, 1);
 
@@ -284,7 +421,10 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!PassOBReentryCooldown(zone))
       return false;
 
-   if(!PassNoEntryHours(TimeCurrent()))
+   if(!PassDirectionEntryHours(zone.direction, TimeCurrent()))
+      return false;
+
+   if(!PassEntryMomentumFilter(zone.direction))
       return false;
 
    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
@@ -320,7 +460,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       return false;
 
    // Gap5: 信号质量门槛
-   if(InpMinOBStrength > 0 && zone.strength < InpMinOBStrength)
+   double min_strength = GetDirectionMinStrength(zone.direction);
+   if(min_strength > 0 && zone.strength < min_strength)
       return false;
 
    // Gap7: risk不能太大
@@ -334,6 +475,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
 
    // v9.8 评分系统
    double pos_mult = 1.0;
+   int score = -1;
    if(InpEnableScoring)
    {
       double proximity_distance = MathAbs(bid - entry);
@@ -345,8 +487,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       else
          tp_est = RToPrice(2.0, entry, risk_price, zone.direction);
       double target_distance = MathAbs(tp_est - entry);
-      int score = CalcSignalScore(zone, state, state.market_state,
-                                  proximity_distance, risk_price, target_distance);
+      score = CalcSignalScore(zone, state, state.market_state,
+                              proximity_distance, risk_price, target_distance);
       if(InpMinScore > 0 && score < InpMinScore)
          return false;
       pos_mult = ScoreToMultiplier(score);
@@ -357,6 +499,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    {
       pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
    }
+   if(InpEntryDepthPct > 0 && InpDeepEntryBoost > 1.0)
+      pos_mult *= InpDeepEntryBoost;
+   pos_mult = ApplyDirectionPosMult(zone.direction, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
@@ -410,6 +555,12 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    signal.lot = final_lot;
    signal.pos_mult = pos_mult;
    signal.ob_index = zone_idx;
+   signal.deep_entry = (InpEntryDepthPct > 0);
+   signal.htf_target = false;
+   signal.htf_partial_r = 0;
+   signal.htf_partial_pct = 0;
+   ApplyHTFTarget(symbol, entry, risk_price, signal);
+   PrintEntryDebug("direct", zone, state, signal, entry, risk_price, spread, pos_mult, score);
    signal.comment = "WT " + InpVersion + " " + (zone.direction > 0 ? "B" : "S") +
                     " x" + DoubleToString(pos_mult, 1);
 
