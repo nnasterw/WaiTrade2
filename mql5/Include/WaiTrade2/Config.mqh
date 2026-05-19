@@ -36,6 +36,14 @@ input double InpMinImpulseVolRatio = 0.0;    // 位移K线最小成交量倍率(
 input int    InpStructureBreakBars = 0;      // 严格结构突破窗口(0=仅用旧Gap2)
 input double InpStructureBreakATR = 0.0;     // 严格结构突破额外ATR阈值
 input bool   InpRequireImpulseCandleDir = false; // 位移K必须同方向收盘
+input bool   InpEnableRangeBreakout = false; // 启用震荡区间有效突破入场
+input bool   InpRangeBreakoutOnly = false;   // 仅交易震荡区间突破，关闭常规OB
+input int    InpRangeBreakoutBars = 10;      // 震荡区间观察bar数
+input double InpRangeBreakoutMaxATR = 1.20;  // 区间最大高度/ATR
+input double InpRangeBreakoutMinSpreadMult = 3.0; // 区间最小高度/spread
+input double InpRangeBreakoutATR = 0.10;     // 有效突破额外ATR阈值
+input double InpRangeBreakoutTPMult = 1.0;   // TP=区间高度倍数(0=不用固定TP)
+input bool   InpRangeBreakoutBodyDir = true; // 突破K必须同方向实体
 input int    InpNoOBStartHour    = 23;       // 禁止建OB开始小时(服务器时间,-1=禁用)
 input int    InpNoOBEndHour      = 6;        // 禁止建OB结束小时(服务器时间,-1=禁用)
 input double InpMinOBStrength    = 0.5;      // 最低OB强度

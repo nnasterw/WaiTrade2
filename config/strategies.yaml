@@ -33,6 +33,14 @@ defaults: &defaults
   structure_break_bars: 0
   structure_break_atr: 0.0
   require_impulse_candle_dir: false
+  enable_range_breakout: false
+  range_breakout_only: false
+  range_breakout_bars: 10
+  range_breakout_max_atr: 1.20
+  range_breakout_min_spread_mult: 3.0
+  range_breakout_atr: 0.10
+  range_breakout_tp_mult: 1.0
+  range_breakout_body_dir: true
   no_ob_start_hour: 23
   no_ob_end_hour: 6
   min_ob_strength: 0.5
@@ -6137,6 +6145,233 @@ v10a:
   no_buy_hours: "1,6,8,10,23"
   no_sell_hours: "6,16,20,22"
   max_pos_mult: 8.0
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+v10_m3_rb8:
+  <<: *defaults
+  version: V10-M3-RB8
+  description: "v10实验: M3震荡8bar区间有效突破，TP=2倍区间高度"
+  bar_period_min: 3
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 8
+  range_breakout_max_atr: 1.50
+  range_breakout_min_spread_mult: 3.0
+  range_breakout_atr: 0.10
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  require_double_touch: false
+  enable_pos_mult: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  mfe_fail_min_r: 0.6
+  mfe_fail_exit_r: -0.1
+  dtp_trigger_r: 0.0
+  max_concurrent: 3
+  min_ob_strength: 0.0
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 3.0
+  no_entry_hours: "0,9,12,17,18"
+  no_buy_hours: "1,6,8,10,23"
+  no_sell_hours: "6,16,20,22"
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+v10_m3_rb12:
+  <<: *defaults
+  version: V10-M3-RB12
+  description: "v10实验: M3震荡12bar区间有效突破，TP=2倍区间高度"
+  bar_period_min: 3
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 12
+  range_breakout_max_atr: 1.80
+  range_breakout_min_spread_mult: 3.0
+  range_breakout_atr: 0.10
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  require_double_touch: false
+  enable_pos_mult: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  mfe_fail_min_r: 0.6
+  mfe_fail_exit_r: -0.1
+  dtp_trigger_r: 0.0
+  max_concurrent: 3
+  min_ob_strength: 0.0
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 3.0
+  no_entry_hours: "0,9,12,17,18"
+  no_buy_hours: "1,6,8,10,23"
+  no_sell_hours: "6,16,20,22"
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+v10_m3_rb16:
+  <<: *defaults
+  version: V10-M3-RB16
+  description: "v10实验: M3震荡16bar区间有效突破，TP=2倍区间高度"
+  bar_period_min: 3
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 16
+  range_breakout_max_atr: 2.20
+  range_breakout_min_spread_mult: 3.0
+  range_breakout_atr: 0.10
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  require_double_touch: false
+  enable_pos_mult: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  mfe_fail_min_r: 0.6
+  mfe_fail_exit_r: -0.1
+  dtp_trigger_r: 0.0
+  max_concurrent: 3
+  min_ob_strength: 0.0
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 3.0
+  no_entry_hours: "0,9,12,17,18"
+  no_buy_hours: "1,6,8,10,23"
+  no_sell_hours: "6,16,20,22"
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+v10_m3_rb4l:
+  <<: *defaults
+  version: V10-M3-RB4L
+  description: "v10实验: M3震荡4bar宽松突破，TP=2倍区间高度"
+  bar_period_min: 3
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 4
+  range_breakout_max_atr: 2.00
+  range_breakout_min_spread_mult: 2.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  require_double_touch: false
+  enable_pos_mult: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  mfe_fail_min_r: 0.6
+  mfe_fail_exit_r: -0.1
+  dtp_trigger_r: 0.0
+  max_concurrent: 3
+  min_ob_strength: 0.0
+  max_risk_atr: 4.0
+  max_counter_risk_atr: 4.0
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+v10_m3_rb6l:
+  <<: *defaults
+  version: V10-M3-RB6L
+  description: "v10实验: M3震荡6bar宽松突破，TP=2倍区间高度"
+  bar_period_min: 3
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 6
+  range_breakout_max_atr: 2.50
+  range_breakout_min_spread_mult: 2.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  require_double_touch: false
+  enable_pos_mult: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  mfe_fail_min_r: 0.6
+  mfe_fail_exit_r: -0.1
+  dtp_trigger_r: 0.0
+  max_concurrent: 3
+  min_ob_strength: 0.0
+  max_risk_atr: 4.0
+  max_counter_risk_atr: 4.0
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+v10_m3_rb8l:
+  <<: *defaults
+  version: V10-M3-RB8L
+  description: "v10实验: M3震荡8bar宽松突破，TP=2倍区间高度"
+  bar_period_min: 3
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 8
+  range_breakout_max_atr: 3.00
+  range_breakout_min_spread_mult: 2.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  require_double_touch: false
+  enable_pos_mult: false
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  mfe_fail_min_r: 0.6
+  mfe_fail_exit_r: -0.1
+  dtp_trigger_r: 0.0
+  max_concurrent: 3
+  min_ob_strength: 0.0
+  max_risk_atr: 4.0
+  max_counter_risk_atr: 4.0
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_lot_size: 0.08
+  close_retry_cooldown_sec: 60
+
+v10_m3_rb4r:
+  <<: *defaults
+  version: V10-M3-RB4R
+  description: "v10实验: M3震荡4bar突破纯量度目标，不早保本不MFE"
+  bar_period_min: 3
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 4
+  range_breakout_max_atr: 2.00
+  range_breakout_min_spread_mult: 2.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  require_double_touch: false
+  enable_pos_mult: false
+  breakeven_r: 99.0
+  breakeven_lock_r: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  max_concurrent: 3
+  min_ob_strength: 0.0
+  max_risk_atr: 4.0
+  max_counter_risk_atr: 4.0
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
   max_lot_size: 0.08
   close_retry_cooldown_sec: 60
 

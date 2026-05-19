@@ -10,6 +10,13 @@
 
 bool IsZoneTouched(const OBZone &zone, double bid, double ask)
 {
+   if(zone.is_range_breakout)
+   {
+      if(zone.direction == OB_BUY)
+         return (bid >= zone.high);
+      return (ask <= zone.low);
+   }
+
    if(zone.direction == OB_BUY)
       return (bid <= zone.high);
    else
@@ -434,7 +441,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!IsZoneTouched(zone, bid, ask))
       return false;
 
-   if(!PassDoubleTouchFilter(zone))
+   if(!zone.is_range_breakout && !PassDoubleTouchFilter(zone))
       return false;
 
    // v9.8 态过滤: 趋势态硬过滤逆势
@@ -453,7 +460,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(risk_price <= 0)
       return false;
 
-   if(!PassOffsetGuard(entry, risk_price, zone.direction, zone.mid, InpMaxEntryOffsetR))
+   if(!zone.is_range_breakout && !PassOffsetGuard(entry, risk_price, zone.direction, zone.mid, InpMaxEntryOffsetR))
       return false;
 
    if(!PassSpreadRatio(risk_price, spread))
@@ -536,6 +543,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(final_lot > lot_max) final_lot = lot_max;
 
    double tp = 0.0;
+   if(zone.is_range_breakout && InpRangeBreakoutTPMult > 0 && zone.range_height > 0)
+      tp = entry + zone.direction * zone.range_height * InpRangeBreakoutTPMult;
+
    if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
       tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
 
@@ -562,6 +572,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    ApplyHTFTarget(symbol, entry, risk_price, signal);
    PrintEntryDebug("direct", zone, state, signal, entry, risk_price, spread, pos_mult, score);
    signal.comment = "WT " + InpVersion + " " + (zone.direction > 0 ? "B" : "S") +
+                    (zone.is_range_breakout ? " RB" : "") +
                     " x" + DoubleToString(pos_mult, 1);
 
    return true;

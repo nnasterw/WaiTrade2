@@ -247,10 +247,20 @@ void UpdateOBStatus(OBZone &zones[], int &zone_count, double bid, double ask, co
       }
 
       bool touched = false;
-      if(zones[i].direction == OB_BUY && bid <= zones[i].high)
-         touched = true;
-      else if(zones[i].direction == OB_SELL && ask >= zones[i].low)
-         touched = true;
+      if(zones[i].is_range_breakout)
+      {
+         if(zones[i].direction == OB_BUY && bid >= zones[i].high)
+            touched = true;
+         else if(zones[i].direction == OB_SELL && ask <= zones[i].low)
+            touched = true;
+      }
+      else
+      {
+         if(zones[i].direction == OB_BUY && bid <= zones[i].high)
+            touched = true;
+         else if(zones[i].direction == OB_SELL && ask >= zones[i].low)
+            touched = true;
+      }
 
       if(touched)
       {
@@ -273,6 +283,7 @@ void ConsolidateOBs(OBZone &zones[], int &zone_count)
       {
          if(zones[j].expired) continue;
          if(zones[i].direction != zones[j].direction) continue;
+         if(zones[i].is_range_breakout || zones[j].is_range_breakout) continue;
 
          bool overlap = (zones[i].low <= zones[j].high && zones[i].high >= zones[j].low);
          if(!overlap) continue;
@@ -372,6 +383,99 @@ bool DetectContinuation(const MqlRates &rates[], int count, int ob_idx, int dire
       return (rates[ob_idx].close < ma);
 }
 
+void DetectRangeBreakouts(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count,
+                          const EAState &state, double atr, double spread)
+{
+   if(!InpEnableRangeBreakout)
+      return;
+   if(zone_count >= MAX_OB_ZONES)
+      return;
+
+   int range_bars = InpRangeBreakoutBars;
+   if(range_bars < 3)
+      range_bars = 3;
+
+   int breakout_idx = count - 2; // new bar 后，上一根K线已收盘
+   int range_end = breakout_idx - 1;
+   int range_start = range_end - range_bars + 1;
+   if(range_start < 0 || breakout_idx <= 0)
+      return;
+
+   MqlDateTime dt;
+   TimeToStruct(rates[breakout_idx].time, dt);
+   if(IsInNoOBWindow(dt.hour))
+      return;
+
+   double range_high = rates[range_start].high;
+   double range_low = rates[range_start].low;
+   for(int i = range_start + 1; i <= range_end; i++)
+   {
+      if(rates[i].high > range_high) range_high = rates[i].high;
+      if(rates[i].low < range_low) range_low = rates[i].low;
+   }
+
+   double range_height = range_high - range_low;
+   if(range_height <= 0)
+      return;
+   if(InpRangeBreakoutMaxATR > 0 && atr > 0 && range_height > atr * InpRangeBreakoutMaxATR)
+      return;
+   if(InpRangeBreakoutMinSpreadMult > 0 && spread > 0 &&
+      range_height < spread * InpRangeBreakoutMinSpreadMult)
+      return;
+
+   double extra = (atr > 0 && InpRangeBreakoutATR > 0) ? atr * InpRangeBreakoutATR : 0.0;
+   int direction = 0;
+   if(rates[breakout_idx].close > range_high + extra)
+      direction = OB_BUY;
+   else if(rates[breakout_idx].close < range_low - extra)
+      direction = OB_SELL;
+   else
+      return;
+
+   if(InpRangeBreakoutBodyDir)
+   {
+      if(direction == OB_BUY && rates[breakout_idx].close <= rates[breakout_idx].open)
+         return;
+      if(direction == OB_SELL && rates[breakout_idx].close >= rates[breakout_idx].open)
+         return;
+   }
+
+   for(int z = 0; z < zone_count; z++)
+   {
+      if(zones[z].expired) continue;
+      if(!zones[z].is_range_breakout) continue;
+      if(zones[z].direction != direction) continue;
+      if(MathAbs(zones[z].high - range_high) < atr * 0.2 &&
+         MathAbs(zones[z].low - range_low) < atr * 0.2)
+         return;
+   }
+
+   OBZone zone = {};
+   zone.high = range_high;
+   zone.low = range_low;
+   zone.mid = (zone.high + zone.low) / 2.0;
+   zone.direction = direction;
+   zone.created = rates[breakout_idx].time;
+   zone.created_bar = state.bar_count;
+   zone.touch_count = range_bars;
+   zone.first_touch = rates[range_start].time;
+   zone.last_touch = rates[range_end].time;
+   zone.strength = MathMin(5.0, 1.0 + (double)range_bars / 6.0 + MathAbs(rates[breakout_idx].close - rates[breakout_idx].open) / atr);
+   zone.is_fresh = false;
+   zone.is_continuation = true;
+   zone.is_1h_aligned = false;
+   zone.ds_weight = 1.0;
+   zone.entry_count = 0;
+   zone.last_entry_time = 0;
+   zone.used = false;
+   zone.expired = false;
+   zone.is_range_breakout = true;
+   zone.range_height = range_height;
+
+   zones[zone_count] = zone;
+   zone_count++;
+}
+
 void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count, const EAState &state)
 {
    CompactZones(zones, zone_count);
@@ -385,6 +489,10 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
    if(InpSpreadFloor > 0 && spread < InpSpreadFloor)
       spread = InpSpreadFloor;
    double min_ob_range = spread * InpMinOBSpreadMult;
+
+   DetectRangeBreakouts(rates, count, zones, zone_count, state, atr, spread);
+   if(InpRangeBreakoutOnly)
+      return;
 
    int scan_start = count - (InpImpulseLookback + 1);
    int scan_end = 1;

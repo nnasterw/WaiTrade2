@@ -30,6 +30,8 @@ struct OBZone
     datetime last_entry_time;// 最近一次基于该OB入场时间
     bool     used;           // 是否已入场
     bool     expired;        // 是否已过期
+    bool     is_range_breakout; // 是否为震荡区间突破信号
+    double   range_height;    // 震荡区间高度，用于量度目标
 };
 
 struct TradeSignal
