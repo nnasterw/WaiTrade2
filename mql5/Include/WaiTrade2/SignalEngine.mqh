@@ -16,6 +16,15 @@ double CalcOBHeightTP(const OBZone &zone, double entry)
    return entry + zone.direction * ob_h * InpOBHeightTPMult;
 }
 
+double CalcLiquiditySweepTP(const OBZone &zone, double entry)
+{
+   if(!zone.is_liquidity_sweep || InpSweepTPMult <= 0 || zone.range_height <= 0)
+      return 0.0;
+   if(zone.direction == OB_BUY)
+      return zone.high + zone.range_height * InpSweepTPMult;
+   return zone.low - zone.range_height * InpSweepTPMult;
+}
+
 bool IsZoneTouched(const OBZone &zone, double bid, double ask)
 {
    if(zone.is_range_breakout)
@@ -236,6 +245,44 @@ double ApplyDirectionPosMult(int direction, double pos_mult)
    return pos_mult;
 }
 
+double ApplyHourPositionMultiplier(double pos_mult)
+{
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+
+   if(InpLowRiskHourMult != 1.0 && IsHourBlocked(InpLowRiskHours, dt.hour))
+      pos_mult *= InpLowRiskHourMult;
+   if(InpHighRiskHourMult != 1.0 && IsHourBlocked(InpHighRiskHours, dt.hour))
+      pos_mult *= InpHighRiskHourMult;
+
+   return pos_mult;
+}
+
+double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double risk_price, double pos_mult)
+{
+   if(InpLateBounceSec > 0 && InpLateBounceMult != 1.0 &&
+      signal.bounce_seconds > InpLateBounceSec)
+      pos_mult *= InpLateBounceMult;
+
+   if(InpBounceSweetMinPct > 0 && InpBounceSweetMaxPct > InpBounceSweetMinPct &&
+      InpOutsideBounceSweetMult != 1.0 && signal.bounce_ob_pct > 0)
+   {
+      if(signal.bounce_ob_pct < InpBounceSweetMinPct ||
+         signal.bounce_ob_pct > InpBounceSweetMaxPct)
+         pos_mult *= InpOutsideBounceSweetMult;
+   }
+
+   if(InpBadRiskMax > InpBadRiskMin && InpBadRiskMult != 1.0 &&
+      risk_price >= InpBadRiskMin && risk_price < InpBadRiskMax)
+      pos_mult *= InpBadRiskMult;
+
+   if(InpLargeRiskMin > 0 && InpLargeRiskMult != 1.0 &&
+      risk_price >= InpLargeRiskMin)
+      pos_mult *= InpLargeRiskMult;
+
+   return pos_mult;
+}
+
 bool PassOBReentryCooldown(const OBZone &zone)
 {
    if(InpOBReentryCooldownMin <= 0 || zone.last_entry_time == 0)
@@ -336,7 +383,9 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(InpEnableScoring)
    {
       double proximity_distance = MathAbs(bid - entry);
-      double tp_est = CalcOBHeightTP(zone, entry);
+      double tp_est = CalcLiquiditySweepTP(zone, entry);
+      if(tp_est == 0.0)
+         tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
          tp_est = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
       else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
@@ -359,6 +408,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(signal.deep_entry && InpDeepEntryBoost > 1.0)
       pos_mult *= InpDeepEntryBoost;
    pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
+   pos_mult = ApplyHourPositionMultiplier(pos_mult);
+   pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, signal.deep_entry))
       return false;
@@ -397,15 +448,32 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(final_lot > lot_max)
       final_lot = lot_max;
 
-   double tp = CalcOBHeightTP(zone, entry);
-   if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-      tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
-
-   if(InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+   // v11: 入场时按状态决定TP模式
+   double tp = 0.0;
+   if(zone.is_liquidity_sweep)
    {
-      double swing_dist = MathAbs(state.target_price - entry);
-      if(swing_dist > risk_price && tp == 0.0)
-         tp = state.target_price;
+      tp = CalcLiquiditySweepTP(zone, entry);
+      if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+   }
+   else if(InpEnableStateFilter && state.market_state == 0)
+   {
+      // 震荡态: OBHeight TP优先，其次swing目标，最后固定TP
+      tp = CalcOBHeightTP(zone, entry);
+      if(tp == 0.0 && state.target_price > 0)
+      {
+         double swing_dist = MathAbs(state.target_price - entry);
+         if(swing_dist > risk_price)
+            tp = state.target_price;
+      }
+      if(tp == 0.0 && InpFixedTPR > 0)
+         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+   }
+   else
+   {
+      // 趋势态: tp=0让DTP接管，除非没有DTP则用固定TP兜底
+      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
    }
 
    signal.entry = entry;
@@ -423,6 +491,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
                                                       MathAbs(RToPrice(2.0, entry, risk_price, signal.direction) - entry))
                                     : -1);
    signal.comment = "WT " + InpVersion + " " + (signal.direction > 0 ? "B" : "S") +
+                    (zone.is_range_breakout ? " RB" : "") +
+                    (zone.is_liquidity_sweep ? " SWP" : "") +
                     " x" + DoubleToString(pos_mult, 1);
 
    return true;
@@ -533,7 +603,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(InpEnableScoring)
    {
       double proximity_distance = MathAbs(bid - entry);
-      double tp_est = CalcOBHeightTP(zone, entry);
+      double tp_est = CalcLiquiditySweepTP(zone, entry);
+      if(tp_est == 0.0)
+         tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
          tp_est = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
       else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
@@ -556,7 +628,11 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    bool deep_entry = (InpEntryDepthPct > 0);
    if(InpEntryDepthPct > 0 && InpDeepEntryBoost > 1.0)
       pos_mult *= InpDeepEntryBoost;
+   signal.bounce_seconds = 0;
+   signal.bounce_ob_pct = 0.0;
    pos_mult = ApplyDirectionPosMult(zone.direction, pos_mult);
+   pos_mult = ApplyHourPositionMultiplier(pos_mult);
+   pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, deep_entry))
       return false;
@@ -595,21 +671,32 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(final_lot < lot_min) final_lot = lot_min;
    if(final_lot > lot_max) final_lot = lot_max;
 
+   // v11: 入场时按状态决定TP模式（直接入场路径）
    double tp = 0.0;
    if(zone.is_range_breakout && InpRangeBreakoutTPMult > 0 && zone.range_height > 0)
       tp = entry + zone.direction * zone.range_height * InpRangeBreakoutTPMult;
-   else
-      tp = CalcOBHeightTP(zone, entry);
-
-   if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-      tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
-
-   // v9.8 震荡态TP: 用对面swing点
-   if(tp == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+   else if(zone.is_liquidity_sweep)
    {
-      double swing_dist = MathAbs(state.target_price - entry);
-      if(swing_dist > risk_price)
-         tp = state.target_price;
+      tp = CalcLiquiditySweepTP(zone, entry);
+      if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+         tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+   }
+   else if(InpEnableStateFilter && state.market_state == 0)
+   {
+      tp = CalcOBHeightTP(zone, entry);
+      if(tp == 0.0 && state.target_price > 0)
+      {
+         double swing_dist = MathAbs(state.target_price - entry);
+         if(swing_dist > risk_price)
+            tp = state.target_price;
+      }
+      if(tp == 0.0 && InpFixedTPR > 0)
+         tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+   }
+   else
+   {
+      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+         tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
    }
 
    signal.direction = zone.direction;
@@ -621,6 +708,11 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    signal.pos_mult = pos_mult;
    signal.ob_index = zone_idx;
    signal.deep_entry = deep_entry;
+   signal.touch_price = entry;
+   signal.confirm_price = entry;
+   signal.bounce_seconds = 0;
+   signal.bounce_ob_pct = 0.0;
+   signal.confirm_ob_pos = 0.0;
    signal.htf_target = false;
    signal.htf_partial_r = 0;
    signal.htf_partial_pct = 0;
@@ -628,6 +720,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    PrintEntryDebug("direct", zone, state, signal, entry, risk_price, spread, pos_mult, score);
    signal.comment = "WT " + InpVersion + " " + (zone.direction > 0 ? "B" : "S") +
                     (zone.is_range_breakout ? " RB" : "") +
+                    (zone.is_liquidity_sweep ? " SWP" : "") +
                     " x" + DoubleToString(pos_mult, 1);
 
    return true;

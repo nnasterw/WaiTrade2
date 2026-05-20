@@ -284,6 +284,7 @@ void ConsolidateOBs(OBZone &zones[], int &zone_count)
          if(zones[j].expired) continue;
          if(zones[i].direction != zones[j].direction) continue;
          if(zones[i].is_range_breakout || zones[j].is_range_breakout) continue;
+         if(zones[i].is_liquidity_sweep || zones[j].is_liquidity_sweep) continue;
 
          bool overlap = (zones[i].low <= zones[j].high && zones[i].high >= zones[j].low);
          if(!overlap) continue;
@@ -478,6 +479,130 @@ void DetectRangeBreakouts(const MqlRates &rates[], int count, OBZone &zones[], i
    zone_count++;
 }
 
+void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count,
+                           const EAState &state, double atr, double spread)
+{
+   if(!InpEnableLiquiditySweep)
+      return;
+   if(zone_count >= MAX_OB_ZONES)
+      return;
+
+   int lookback = InpSweepLookbackBars;
+   if(lookback < 3)
+      lookback = 3;
+
+   int sweep_idx = count - 2; // new bar 后，上一根K线已收盘
+   int range_end = sweep_idx - 1;
+   int range_start = range_end - lookback + 1;
+   if(range_start < 0 || sweep_idx <= 0 || atr <= 0)
+      return;
+
+   MqlDateTime dt;
+   TimeToStruct(rates[sweep_idx].time, dt);
+   if(IsInNoOBWindow(dt.hour))
+      return;
+
+   double range_high = rates[range_start].high;
+   double range_low = rates[range_start].low;
+   for(int i = range_start + 1; i <= range_end; i++)
+   {
+      if(rates[i].high > range_high) range_high = rates[i].high;
+      if(rates[i].low < range_low) range_low = rates[i].low;
+   }
+
+   double range_height = range_high - range_low;
+   if(range_height <= 0)
+      return;
+   if(InpSweepMaxRangeATR > 0 && range_height > atr * InpSweepMaxRangeATR)
+      return;
+   if(InpSweepMinRangeSpreadMult > 0 && spread > 0 &&
+      range_height < spread * InpSweepMinRangeSpreadMult)
+      return;
+
+   double extra = atr * MathMax(0.0, InpSweepMinPenetrationATR);
+   double body_high = MathMax(rates[sweep_idx].open, rates[sweep_idx].close);
+   double body_low = MathMin(rates[sweep_idx].open, rates[sweep_idx].close);
+   double candle_range = rates[sweep_idx].high - rates[sweep_idx].low;
+   if(candle_range <= 0)
+      return;
+
+   int direction = 0;
+   double zone_high = 0.0;
+   double zone_low = 0.0;
+   double wick_pct = 0.0;
+
+   bool swept_low = (rates[sweep_idx].low < range_low - extra && rates[sweep_idx].close > range_low);
+   bool swept_high = (rates[sweep_idx].high > range_high + extra && rates[sweep_idx].close < range_high);
+
+   if(swept_low)
+   {
+      double lower_wick = body_low - rates[sweep_idx].low;
+      wick_pct = lower_wick / candle_range * 100.0;
+      if(wick_pct < InpSweepMinWickPct)
+         return;
+      direction = OB_BUY;
+      zone_high = range_low;
+      zone_low = rates[sweep_idx].low;
+   }
+   else if(swept_high)
+   {
+      double upper_wick = rates[sweep_idx].high - body_high;
+      wick_pct = upper_wick / candle_range * 100.0;
+      if(wick_pct < InpSweepMinWickPct)
+         return;
+      direction = OB_SELL;
+      zone_high = rates[sweep_idx].high;
+      zone_low = range_high;
+   }
+   else
+      return;
+
+   if(zone_high <= zone_low)
+      return;
+
+   double sweep_height = zone_high - zone_low;
+   if(spread > 0 && sweep_height < spread * InpMinOBSpreadMult)
+      return;
+
+   for(int z = 0; z < zone_count; z++)
+   {
+      if(zones[z].expired) continue;
+      if(!zones[z].is_liquidity_sweep) continue;
+      if(zones[z].direction != direction) continue;
+      if(MathAbs(zones[z].high - zone_high) < atr * 0.2 &&
+         MathAbs(zones[z].low - zone_low) < atr * 0.2)
+         return;
+   }
+
+   OBZone zone = {};
+   zone.high = zone_high;
+   zone.low = zone_low;
+   zone.mid = (zone.high + zone.low) / 2.0;
+   zone.ob_top = zone.high;
+   zone.ob_bottom = zone.low;
+   zone.direction = direction;
+   zone.created = rates[sweep_idx].time;
+   zone.created_bar = state.bar_count;
+   zone.touch_count = 0;
+   zone.first_touch = 0;
+   zone.last_touch = 0;
+   zone.strength = MathMin(5.0, 1.0 + wick_pct / 25.0 + range_height / atr);
+   zone.is_fresh = true;
+   zone.is_continuation = false;
+   zone.is_1h_aligned = false;
+   zone.ds_weight = 1.0;
+   zone.entry_count = 0;
+   zone.last_entry_time = 0;
+   zone.used = false;
+   zone.expired = false;
+   zone.is_range_breakout = false;
+   zone.is_liquidity_sweep = true;
+   zone.range_height = range_height;
+
+   zones[zone_count] = zone;
+   zone_count++;
+}
+
 void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count, const EAState &state)
 {
    CompactZones(zones, zone_count);
@@ -493,6 +618,9 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
    double min_ob_range = spread * InpMinOBSpreadMult;
 
    DetectRangeBreakouts(rates, count, zones, zone_count, state, atr, spread);
+   DetectLiquiditySweeps(rates, count, zones, zone_count, state, atr, spread);
+   if(InpLiquiditySweepOnly)
+      return;
    if(InpRangeBreakoutOnly)
       return;
 

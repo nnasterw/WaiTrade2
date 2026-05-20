@@ -41,6 +41,14 @@ defaults: &defaults
   range_breakout_atr: 0.10
   range_breakout_tp_mult: 1.0
   range_breakout_body_dir: true
+  enable_liquidity_sweep: false
+  liquidity_sweep_only: false
+  sweep_lookback_bars: 12
+  sweep_max_range_atr: 2.50
+  sweep_min_range_spread_mult: 4.0
+  sweep_min_penetration_atr: 0.05
+  sweep_min_wick_pct: 45.0
+  sweep_tp_mult: 1.0
   no_ob_start_hour: 23
   no_ob_end_hour: 6
   min_ob_strength: 0.5
@@ -110,10 +118,25 @@ defaults: &defaults
   max_pos_mult: 0.0
   max_lot_size: 0.0
   max_concurrent: 5
+  free_run_min_r: 0.0
   cooldown_bars: 0
   no_entry_hours: ""
   no_buy_hours: ""
   no_sell_hours: ""
+  low_risk_hours: ""
+  low_risk_hour_mult: 1.0
+  high_risk_hours: ""
+  high_risk_hour_mult: 1.0
+  late_bounce_sec: 0
+  late_bounce_mult: 1.0
+  bounce_sweet_min_pct: 0.0
+  bounce_sweet_max_pct: 0.0
+  outside_bounce_sweet_mult: 1.0
+  bad_risk_min: 0.0
+  bad_risk_max: 0.0
+  bad_risk_mult: 1.0
+  large_risk_min: 0.0
+  large_risk_mult: 1.0
   buy_min_strength: 0.0
   sell_min_strength: 0.0
   buy_pos_mult: 1.0
@@ -185,6 +208,10 @@ defaults: &defaults
   htf_dtp_post_partial_retrace: 0.0
   partial_post_lock_r: 0.0
   partial_only_deep: false
+  layered_entry_count: 0
+  layered_spacing_pct: 0.33
+  layered_lot_mult: 1.5
+  layered_avg_tp_r: 0.0
 
 # === 策略版本 ===
 
@@ -9037,7 +9064,7 @@ backtest_defaults:
 
 # === MT5 账号 ===
 mt5_account:
-  login: 277396794
+  login: 277656700
   server: Exness-MT5Trial5
   proxy_enable: 1
   proxy_type: 0
@@ -11937,7 +11964,7 @@ v10_fage_dtp5_r20_be:
 # ================================================================
 
 # DTP8 + r20
-v10_fage_dtp8_r20:
+v10_fage_dtp8_r20: &v10_fage_dtp8_r20
   <<: *v10a
   version: V10-FAGE-DTP8R20
   description: "FAGE+DTP8R/retrace0.20(精确定位PF2)"
@@ -12171,7 +12198,7 @@ v10_fage_dtp7_r15_f3099:
   mfe_fail_exit_r: 0.0
 
 # DTP7 r15 + buyh1降权: 降低买单非H1坏簇仓位
-v10_fage_dtp7_r15_bh1:
+v10_fage_dtp7_r15_bh1: &v10_fage_dtp7_r15_bh1
   <<: *v10a
   version: V10-FAGE-D7R15BH1
   description: "FAGE+DTP7R/r15+做多非H1仓位4-8降权"
@@ -12788,3 +12815,6682 @@ v10_fage_bh1_prt:
   dtp_post_partial_retrace: 0.30
   dtp_post_partial_lock_r: 1.0
   dtp_reset_peak_after_partial: true
+
+# ================================================================
+# v10 FAGE Round16: 微调PF从1.81→2.0 + 保住$6500+余额
+# ================================================================
+
+# C4 + DTP7 r15 + BH1 + FAGE放宽30-99: 多过滤些坏单
+v10_fage_d7c4bh1_f3099:
+  <<: *v10a
+  version: V10-FAGE-D7C4F30
+  description: "D7R15+BH1+C4+FAGE(30-99)"
+  filter_cont_age_min_bars: 30
+  filter_cont_age_max_bars: 99
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# C4 + DTP7 r15 + BH1 + FAGE(35-89): 中间范围
+v10_fage_d7c4bh1_f3589:
+  <<: *v10a
+  version: V10-FAGE-D7C4F35
+  description: "D7R15+BH1+C4+FAGE(35-89)"
+  filter_cont_age_min_bars: 35
+  filter_cont_age_max_bars: 89
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# C4 + DTP7 r15 + BH1降权更激进(mult=0.20)
+v10_fage_d7c4bh1_bh20:
+  <<: *v10a
+  version: V10-FAGE-D7C4BH20
+  description: "D7R15+BH1降权0.20+C4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# C4 + DTP7.5 r17: DTP/retrace精确值
+v10_fage_d75r17_c4bh1:
+  <<: *v10a
+  version: V10-FAGE-D75R17C4
+  description: "DTP7.5R/r17+BH1+C4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.5
+  dtp_retrace: 0.17
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# C4 + DTP7 r15 + BH1 + IQ55: 质量过滤减少亏损单
+v10_fage_d7c4bh1_iq55:
+  <<: *v10a
+  version: V10-FAGE-D7C4IQ55
+  description: "D7R15+BH1+C4+IQ55质量"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  min_impulse_body_pct: 55.0
+  min_impulse_vol_ratio: 1.2
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 FAGE Round17: bh20基础上微推PF过2
+# ================================================================
+
+# bh20 + DTP8 r15: DTP稍高
+v10_fage_d8r15_c4bh20:
+  <<: *v10a
+  version: V10-FAGE-D8C4B20
+  description: "D8R15+C4+BH1降权0.20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 8.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# bh20 + DTP7 r12: retrace更紧
+v10_fage_d7r12_c4bh20:
+  <<: *v10a
+  version: V10-FAGE-D7R12B20
+  description: "D7R12+C4+BH1降权0.20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.0
+  dtp_retrace: 0.12
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# bh20 + FAGE(30-99): 更多过滤
+v10_fage_d7r15_c4bh20_f30:
+  <<: *v10a
+  version: V10-FAGE-D7B20F30
+  description: "D7R15+C4+BH20+FAGE(30-99)"
+  filter_cont_age_min_bars: 30
+  filter_cont_age_max_bars: 99
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# bh20 + DTP7.5 r14: 精确调节
+v10_fage_d75r14_c4bh20:
+  <<: *v10a
+  version: V10-FAGE-D75R14B20
+  description: "DTP7.5R/r14+C4+BH20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.5
+  dtp_retrace: 0.14
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 FAGE Round19: 365天+30天同时达标
+# ================================================================
+
+# 放开方向时段 + DTP9 r15 + BH1 + C4
+v10_fage_ah_d9r15_c4bh1:
+  <<: *v10a
+  version: V10-FAGE-AHD9C4
+  description: "放时段+D9R15+BH1+C4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 9.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 放开方向时段 + DTP10 r20 + BH1 + C4
+v10_fage_ah_d10r20_c4bh1:
+  <<: *v10a
+  version: V10-FAGE-AHD10C4
+  description: "放时段+D10R20+BH1+C4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 10.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 放开方向时段 + DTP8 r15 + BH20 + C5: 最大频率
+v10_fage_ah_d8r15_c5bh20:
+  <<: *v10a
+  version: V10-FAGE-AHD8C5
+  description: "放时段+D8R15+BH20+C5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.20
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 8.0
+  dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 放all时段 + DTP9 r18 + BH20 + C5
+v10_fage_allh_d9r18_c5:
+  <<: *v10a
+  version: V10-FAGE-ALLHD9C5
+  description: "放全部时段+D9R18+BH20+C5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.20
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 9.0
+  dtp_retrace: 0.18
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 FAGE Round20: 震荡友好 — 固定TP + 高BE锁利
+# 核心思路：高抛低吸=OB回测本质，但出场要快(TP1-2R)
+# ================================================================
+
+# 放时段 + TP1R + BE0.3锁0.25 + C5: 震荡友好
+v10_fage_ah_tp1_c5:
+  <<: *v10a
+  version: V10-FAGE-AHTP1C5
+  description: "放时段+TP1R+BE0.3锁0.25+C5(震荡友好)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.30
+  breakeven_lock_r: 0.25
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 放时段 + TP2R + BE0.5锁0.3 + C5: 中目标
+v10_fage_ah_tp2_c5:
+  <<: *v10a
+  version: V10-FAGE-AHTP2C5
+  description: "放时段+TP2R+BE0.5锁0.3+C5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.30
+  fixed_tp_r: 2.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 放时段 + DTP3R/r30 + BH1 + C5: 中低DTP适应震荡
+v10_fage_ah_d3r30_c5:
+  <<: *v10a
+  version: V10-FAGE-AHD3R30
+  description: "放时段+DTP3R/r30+BH1+C5(低DTP震荡适应)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 全放时段 + TP1.5R + BE0.4锁0.3 + C5: 折中
+v10_fage_allh_tp15_c5:
+  <<: *v10a
+  version: V10-FAGE-ALLTP15C5
+  description: "全放时段+TP1.5R+BE0.4锁0.3+C5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.40
+  breakeven_lock_r: 0.30
+  fixed_tp_r: 1.5
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 FAGE Round21: 时间退出缩小亏损 + 震荡适应
+# ================================================================
+
+# ah_d3r30 + time_exit=10bars: 30分钟未盈利退出
+v10_fage_ah_d3_te10:
+  <<: *v10a
+  version: V10-FAGE-AHD3TE10
+  description: "放时段+DTP3/r30+C5+10bar超时退出"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  time_exit_bars: 10
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ah_d3r30 + time_exit=20bars + no_mfe exit(5bar无0.2R浮盈退出)
+v10_fage_ah_d3_nomfe:
+  <<: *v10a
+  version: V10-FAGE-AHD3NOMFE
+  description: "放时段+DTP3/r30+C5+5bar无浮盈退出"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  no_mfe_exit_bars: 5
+  no_mfe_min_peak_r: 0.2
+  no_mfe_exit_r: -0.3
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ah + DTP3/r30 + SL0.2ATR + C5: 宽SL防清扫
+v10_fage_ah_d3_sl20:
+  <<: *v10a
+  version: V10-FAGE-AHD3SL20
+  description: "放时段+DTP3/r30+C5+SL0.2ATR"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ah + DTP3/r30 + early_loss_cut 0.5R: 限制最大亏损
+v10_fage_ah_d3_elc:
+  <<: *v10a
+  version: V10-FAGE-AHD3ELC
+  description: "放时段+DTP3/r30+C5+ELC0.5R(限最大亏)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  early_loss_cut_r: 0.5
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 FAGE Round22: 解决震荡月亏损
+# ================================================================
+
+# 方向1: 市场状态自适应 — 震荡态用swing TP + 趋势态DTP7
+v10_fage_state_adapt:
+  <<: *v10a
+  version: V10-FAGE-STADAPT
+  description: "FAGE+市场状态自适应(震荡用swing TP,趋势DTP7)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 7.0
+  dtp_retrace: 0.15
+  range_be_r: 0.5
+  range_time_exit: 20
+  trend_be_r: 0.25
+  trend_be_lock: 0.08
+  trend_dtp_retrace: 0.15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方向2: Trail1R锁0.5R + DTP3R: 保证中等赢利
+v10_fage_trail1_dtp3:
+  <<: *v10a
+  version: V10-FAGE-TR1D3
+  description: "FAGE+Trail1R锁0.5R+DTP3R/r30(保中等赢)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.6
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方向3: BE0.25锁0.20R: 提高保本利润贡献
+v10_fage_be20_dtp5:
+  <<: *v10a
+  version: V10-FAGE-BE20D5
+  description: "FAGE+BE0.25锁0.20+DTP5R/r20(高BE锁+中DTP)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.20
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 5.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方向4: SL0.2ATR + Trail1R锁0.5R + DTP3: 宽SL+保利润
+v10_fage_sl20_tr1_d3:
+  <<: *v10a
+  version: V10-FAGE-SL20TR1D3
+  description: "FAGE+SL0.2ATR+Trail1R锁0.5R+DTP3(防清扫+保利)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.6
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方向5: Trail1R锁0.5R + DTP5R + BE锁0.15: 综合方案
+v10_fage_combo_v1:
+  <<: *v10a
+  version: V10-FAGE-COMBO1
+  description: "FAGE综合: Trail1R/0.5R+DTP5/r25+BE锁0.15"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.15
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 5.0
+  dtp_retrace: 0.25
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方向6: 终极组合 — SL0.2ATR + Trail1R/0.5R + DTP5/r25 + BE锁0.15
+v10_fage_combo_v2:
+  <<: *v10a
+  version: V10-FAGE-COMBO2
+  description: "FAGE终极: SL0.2ATR+Trail1R/0.5R+DTP5/r25+BE锁0.15"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.15
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 5.0
+  dtp_retrace: 0.25
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 FAGE Round23: Trail路线推PF — 震荡月不再全损
+# ================================================================
+
+# Trail1R锁0.7R + DTP4/r25: 更高锁利
+v10_fage_tr1_07_d4:
+  <<: *v10a
+  version: V10-FAGE-TR107D4
+  description: "FAGE+Trail1R锁0.7R+DTP4/r25"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 4.0
+  dtp_retrace: 0.25
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.7
+      lock_mult: 0.0
+    - trigger_r: 2.0
+      lock_r: 0.0
+      lock_mult: 0.6
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Trail0.5R锁0.4R + DTP3/r30: 更早Trail保利
+v10_fage_tr05_d3:
+  <<: *v10a
+  version: V10-FAGE-TR05D3
+  description: "FAGE+Trail0.5R锁0.4R+DTP3/r30(早保利)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.5
+      lock_r: 0.4
+      lock_mult: 0.0
+    - trigger_r: 1.5
+      lock_r: 0.0
+      lock_mult: 0.6
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Trail1R锁0.5R + BE锁0.15 + DTP5/r20: 平衡方案
+v10_fage_tr1_be15_d5:
+  <<: *v10a
+  version: V10-FAGE-TR1B15D5
+  description: "FAGE+Trail1R/0.5R+BE锁0.15+DTP5/r20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.15
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 5.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Trail1R锁0.5R + DTP5/r20 + SL0.2ATR: 防清扫+保利
+v10_fage_tr1_d5_sl20:
+  <<: *v10a
+  version: V10-FAGE-TR1D5SL20
+  description: "FAGE+Trail1R/0.5R+DTP5/r20+SL0.2ATR"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 5.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 1.0
+      lock_r: 0.5
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 FAGE Round24: 震荡专项 — 缩小亏损 + 可达TP
+# 核心思路：ELC缩SL到0.5R + TP1R = 盈亏比2:1
+# ================================================================
+
+# ELC0.5R + TP1R + 无BE: 纯粹2:1盈亏比
+v10_fage_elc05_tp1:
+  <<: *v10a
+  version: V10-FAGE-ELC05TP1
+  description: "FAGE震荡专项: ELC0.5R+TP1R+无BE(纯2:1)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  early_loss_cut_r: 0.5
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ELC0.6R + TP1R + BE0.3锁0.2: 带保本保护
+v10_fage_elc06_tp1_be:
+  <<: *v10a
+  version: V10-FAGE-ELC06TP1B
+  description: "FAGE震荡: ELC0.6R+TP1R+BE0.3锁0.2"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.30
+  breakeven_lock_r: 0.20
+  early_loss_cut_r: 0.6
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# SL0.3ATR + TP1R + DTP2/r30: 宽SL防清扫+低DTP震荡适应
+v10_fage_sl30_dtp2:
+  <<: *v10a
+  version: V10-FAGE-SL30DTP2
+  description: "FAGE震荡: SL0.3ATR+DTP2/r30(宽SL+低DTP)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 4
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.15
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# TP0.7R + 无BE + ELC0.35R: 2:1 更容易到达的TP
+v10_fage_tp07_elc035:
+  <<: *v10a
+  version: V10-FAGE-TP07ELC35
+  description: "FAGE震荡: TP0.7R+ELC0.35R(2:1容易到达)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  early_loss_cut_r: 0.35
+  fixed_tp_r: 0.7
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# DTP2/r25 + BE0.5锁0.4 + no_mfe(3bar无0.2浮盈退-0.3R): 多重保护
+v10_fage_dtp2_be5_nomfe:
+  <<: *v10a
+  version: V10-FAGE-D2B5NOMFE
+  description: "FAGE震荡: DTP2/r25+BE0.5锁0.4+3bar无浮盈退"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  no_mfe_exit_bars: 3
+  no_mfe_min_peak_r: 0.2
+  no_mfe_exit_r: -0.3
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# OBHeight TP×1.5 + ELC0.5R: 自适应TP基于OB大小
+v10_fage_obh15_elc05:
+  <<: *v10a
+  version: V10-FAGE-OBH15ELC
+  description: "FAGE震荡: OBH×1.5 TP+ELC0.5R(自适应)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 4
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  early_loss_cut_r: 0.5
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  dtp_trigger_r: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 RANGE 震荡专项 Round1 — 全新高抛低吸策略
+# ================================================================
+
+# 方案A: 宽SL + DTP1.5R/r40 — 震荡中1.5R可达+宽容忍
+v10_range_sl30_dtp15:
+  <<: *v10a
+  version: V10-RANGE-SL30D15
+  description: "震荡专项: 宽SL0.3ATR+DTP1.5R/r40(低目标可达)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.40
+  dtp_exit_mode: 0
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案B: M1高频 + TP0.5R + 超时5bar退出
+v10_range_m1_tp05:
+  <<: *v10a
+  version: V10-RANGE-M1TP05
+  description: "震荡专项: M1高频+TP0.5R+5bar超时(快进快出)"
+  bar_period_min: 1
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  no_entry_hours: "0"
+  sl_buffer_atr: 0.10
+  max_concurrent: 5
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  fixed_tp_r: 0.5
+  dtp_trigger_r: 0.0
+  time_exit_bars: 5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案C: M1 + TP1R + BE0.3锁0.25 + 超时10bar
+v10_range_m1_tp1:
+  <<: *v10a
+  version: V10-RANGE-M1TP1
+  description: "震荡专项: M1+TP1R+BE0.3锁0.25+10bar超时"
+  bar_period_min: 1
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  no_entry_hours: "0"
+  sl_buffer_atr: 0.10
+  max_concurrent: 5
+  breakeven_r: 0.30
+  breakeven_lock_r: 0.25
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 10
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案D: 宽SL + TP1R + BE0.5锁0.4 + time20bar: 让价格呼吸后到TP
+v10_range_sl30_tp1:
+  <<: *v10a
+  version: V10-RANGE-SL30TP1
+  description: "震荡专项: 宽SL0.3ATR+TP1R+BE0.5锁0.4+20bar超时"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案E: M3 + DTP2/r30 + BE0.5锁0.4 + nomfe(3bar) + SL0.2ATR
+v10_range_m3_combo:
+  <<: *v10a
+  version: V10-RANGE-M3COMBO
+  description: "震荡专项: M3+DTP2/r30+BE0.5锁0.4+无浮盈退+SL0.2"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  no_mfe_exit_bars: 5
+  no_mfe_min_peak_r: 0.3
+  no_mfe_exit_r: -0.2
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案F: M3 + DTP1R/r50 + SL0.3ATR + BE0.3锁0.25 + time30: 最简震荡
+v10_range_m3_simple:
+  <<: *v10a
+  version: V10-RANGE-M3SIMPLE
+  description: "震荡专项: M3+DTP1R/r50+SL0.3+BE0.3锁0.25+time30"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.30
+  breakeven_lock_r: 0.25
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 1.0
+  dtp_retrace: 0.50
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 RANGE Round2: 基于sl30_tp1(盈利)推PF/WR
+# ================================================================
+
+# sl30 + TP1.5R + BE0.5锁0.4: 更大TP提PF
+v10_range_sl30_tp15:
+  <<: *v10a
+  version: V10-RANGE-SL30TP15
+  description: "震荡: SL0.3ATR+TP1.5R+BE0.5锁0.4+time20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.5
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# sl30 + DTP2/r30 + BE0.5锁0.4: 放赢跑但限时
+v10_range_sl30_dtp2_be:
+  <<: *v10a
+  version: V10-RANGE-SL30D2BE
+  description: "震荡: SL0.3ATR+DTP2/r30+BE0.5锁0.4+time30"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# sl30 + TP1R + BE0.3锁0.25 + time15: 更快进出
+v10_range_sl30_tp1_t15:
+  <<: *v10a
+  version: V10-RANGE-SL30T1T15
+  description: "震荡: SL0.3ATR+TP1R+BE0.3锁0.25+time15"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.30
+  breakeven_lock_r: 0.25
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 15
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# sl30 + DTP3/r40 + BE0.5锁0.4 + time30: 给赢单空间
+v10_range_sl30_dtp3_be:
+  <<: *v10a
+  version: V10-RANGE-SL30D3BE
+  description: "震荡: SL0.3ATR+DTP3/r40+BE0.5锁0.4+time30"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.40
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# sl50(极宽) + TP1R + BE0.5锁0.4 + time20: 极防清扫
+v10_range_sl50_tp1:
+  <<: *v10a
+  version: V10-RANGE-SL50TP1
+  description: "震荡: SL0.5ATR极宽+TP1R+BE0.5锁0.4+time20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.50
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 RANGE Round3: 全新反手/均值回归策略
+# 核心：OB bounce失败(流动性清扫) → 反手做顺势延续
+# ================================================================
+
+# 方案A: 失败反手 — ELC0.5后反手+TP1R
+v10_rev_elc_reverse:
+  <<: *v10a
+  version: V10-REV-ELCREV
+  description: "反手策略: ELC0.5R后反手+TP1R"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  early_loss_cut_r: 0.5
+  enable_failure_reverse: true
+  reverse_on_early_loss: true
+  reverse_on_mfe_fail: false
+  reverse_on_no_mfe: false
+  failure_reverse_risk_mult: 1.0
+  failure_reverse_lot_mult: 1.5
+  failure_reverse_tp_r: 1.0
+  failure_reverse_allow_chain: false
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案B: MFE fail反手 — 浮盈0.3R后回落到0就反手
+v10_rev_mfe_reverse:
+  <<: *v10a
+  version: V10-REV-MFEREV
+  description: "反手策略: 浮盈0.3R后回0反手+DTP2"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  max_concurrent: 5
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  mfe_fail_min_r: 0.3
+  mfe_fail_exit_r: 0.0
+  enable_failure_reverse: true
+  reverse_on_early_loss: false
+  reverse_on_mfe_fail: true
+  reverse_on_no_mfe: false
+  failure_reverse_risk_mult: 1.0
+  failure_reverse_lot_mult: 1.5
+  failure_reverse_tp_r: 0.0
+  failure_reverse_allow_chain: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# 方案C: 宽SL + DTP1.5/r40 + 无浮盈反手: 综合
+v10_rev_sl30_nomfe_rev:
+  <<: *v10a
+  version: V10-REV-SL30NMREV
+  description: "反手策略: SL0.3ATR+DTP1.5/r40+5bar无浮盈→反手"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.25
+  breakeven_lock_r: 0.08
+  no_mfe_exit_bars: 5
+  no_mfe_min_peak_r: 0.2
+  no_mfe_exit_r: -0.2
+  enable_failure_reverse: true
+  reverse_on_early_loss: false
+  reverse_on_mfe_fail: false
+  reverse_on_no_mfe: true
+  failure_reverse_risk_mult: 1.0
+  failure_reverse_lot_mult: 1.0
+  failure_reverse_tp_r: 0.0
+  failure_reverse_allow_chain: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.40
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案D: OBHeight×1.5 TP + 宽SL + BE0.5锁0.4: 回到OB对面
+v10_rev_obh15_sl30:
+  <<: *v10a
+  version: V10-REV-OBH15SL30
+  description: "均值回归: OBH×1.5TP+SL0.3ATR+BE0.5锁0.4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案E: 全方位组合 — SL0.3 + DTP2/r30 + BE0.5锁0.4 + ELC0.7反手 + time30
+v10_rev_full_combo:
+  <<: *v10a
+  version: V10-REV-FULLCOMBO
+  description: "全反手: SL0.3+DTP2/r30+BE0.5锁0.4+ELC0.7反手+t30"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  early_loss_cut_r: 0.7
+  mfe_fail_min_r: 0.5
+  mfe_fail_exit_r: 0.0
+  enable_failure_reverse: true
+  reverse_on_early_loss: true
+  reverse_on_mfe_fail: true
+  reverse_on_no_mfe: false
+  failure_reverse_risk_mult: 1.0
+  failure_reverse_lot_mult: 1.0
+  failure_reverse_tp_r: 0.0
+  failure_reverse_allow_chain: false
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# ================================================================
+# v10 GRID Round1: 分层/网格入场模拟（用现有参数）
+# ================================================================
+
+# 方案A: 同OB多次入场3笔 + 宽SL + 无BE + OBH TP
+v10_grid_multi3_obh:
+  <<: *v10a
+  version: V10-GRID-M3OBH
+  description: "网格: 同OB入场3次+SL0.3ATR+无BE+OBH×1.5TP"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 0
+  breakeven_r: 0.0
+  breakeven_lock_r: 0.0
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  dtp_trigger_r: 0.0
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案B: 同OB多次3笔 + 宽SL + DTP1.5/r40 + BE0.5锁0.4
+v10_grid_multi3_dtp15:
+  <<: *v10a
+  version: V10-GRID-M3D15
+  description: "网格: 同OB入场3次+SL0.3ATR+DTP1.5/r40+BE0.5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.40
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案C: 同OB多次3笔 + deep入场boost×2 + 宽SL + TP1R
+v10_grid_deep_boost:
+  <<: *v10a
+  version: V10-GRID-DEEPBOOST
+  description: "网格: 同OB3次+deep×2加仓+SL0.3ATR+TP1R"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 0
+  entry_depth_pct: 0.50
+  entry_depth_filter: false
+  deep_entry_boost: 2.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案D: 同OB多次5笔 + 极宽SL0.5ATR + DTP2/r30 + BE0.5锁0.4: 极端网格
+v10_grid_multi5_sl50:
+  <<: *v10a
+  version: V10-GRID-M5SL50
+  description: "极端网格: 同OB5次+SL0.5ATR+DTP2/r30+BE0.5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.50
+  max_concurrent: 8
+  max_entries_per_ob: 5
+  ob_reentry_cooldown_min: 0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案E: StrongAddOn加仓 — 浮盈1R后继续加仓 + DTP2
+v10_grid_addon_dtp2:
+  <<: *v10a
+  version: V10-GRID-ADDOND2
+  description: "加仓: 浮盈1R加仓+DTP2/r30+SL0.3+BE0.5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  enable_strong_addon: true
+  strong_addon_trigger_r: 1.0
+  strong_addon_step_r: 0.5
+  strong_addon_max_count: 2
+  strong_addon_lot_mult: 0.5
+  strong_addon_risk_mult: 0.5
+  strong_addon_min_spread_ratio: 3.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 GRID Round2: 分层限价入场回测
+# ================================================================
+
+# 分层2层 + SL0.3ATR + DTP2/r30 + BE0.5锁0.4
+v10_layer2_dtp2:
+  <<: *v10a
+  version: V10-LAYER2-DTP2
+  description: "分层2层+SL0.3ATR+DTP2/r30+BE0.5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 8
+  layered_entry_count: 2
+  layered_spacing_pct: 0.33
+  layered_lot_mult: 1.5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 分层3层 + SL0.3ATR + DTP2/r30 + BE0.5锁0.4
+v10_layer3_dtp2:
+  <<: *v10a
+  version: V10-LAYER3-DTP2
+  description: "分层3层+SL0.3ATR+DTP2/r30+BE0.5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 10
+  layered_entry_count: 3
+  layered_spacing_pct: 0.25
+  layered_lot_mult: 2.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 分层2层 + SL0.3ATR + TP1R + BE0.5锁0.4
+v10_layer2_tp1:
+  <<: *v10a
+  version: V10-LAYER2-TP1
+  description: "分层2层+SL0.3ATR+TP1R+BE0.5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 8
+  layered_entry_count: 2
+  layered_spacing_pct: 0.33
+  layered_lot_mult: 1.5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 分层3层 + SL0.5ATR + DTP1.5/r40: 极防清扫
+v10_layer3_sl50:
+  <<: *v10a
+  version: V10-LAYER3-SL50
+  description: "分层3层+SL0.5ATR+DTP1.5/r40(极防清扫)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.50
+  max_concurrent: 10
+  layered_entry_count: 3
+  layered_spacing_pct: 0.30
+  layered_lot_mult: 2.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.40
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 RANGE Round4: 高风险% + 深入+紧SL + 区间TP
+# ================================================================
+
+# 方案1: risk5% + sl30_tp1(最佳震荡策略): 提高资金效率
+v10_range_r5_sl30tp1:
+  <<: *v10a
+  version: V10-RANGE-R5SL30
+  description: "震荡: risk5%+SL0.3ATR+TP1R+BE0.5锁0.4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  risk_percent: 5.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案2: risk8% + sl30_tp1: 极端复利
+v10_range_r8_sl30tp1:
+  <<: *v10a
+  version: V10-RANGE-R8SL30
+  description: "震荡: risk8%+SL0.3ATR+TP1R+BE0.5锁0.4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  risk_percent: 8.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案3: risk5% + m3_combo(日均最高): 频率×风险
+v10_range_r5_combo:
+  <<: *v10a
+  version: V10-RANGE-R5COMBO
+  description: "震荡: risk5%+M3 combo"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 5
+  risk_percent: 5.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  no_mfe_exit_bars: 5
+  no_mfe_min_peak_r: 0.3
+  no_mfe_exit_r: -0.2
+  time_exit_bars: 30
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案4: risk5% + deep入场 + SL极紧(不加buffer) + TP=OBH×2
+v10_range_r5_deep_tight:
+  <<: *v10a
+  version: V10-RANGE-R5DTIGHT
+  description: "震荡: risk5%+deep50%+SL紧(无buffer)+OBH×2TP"
+  entry_depth_pct: 0.50
+  entry_depth_filter: true
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.0
+  max_concurrent: 5
+  risk_percent: 5.0
+  breakeven_r: 0.30
+  breakeven_lock_r: 0.20
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 2.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# 方案5: risk10% + sl30_tp1 + C3: 极端风险复利
+v10_range_r10_sl30:
+  <<: *v10a
+  version: V10-RANGE-R10SL30
+  description: "震荡极端: risk10%+SL0.3ATR+TP1R+BE0.5锁0.4+C3"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 3
+  risk_percent: 10.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ================================================================
+# v10 RANGE Round5: 彻底换框架 — M5/M15 + 高bounce + RangeBreakout
+# ================================================================
+
+# M5 + 高bounce60% + SL0.2ATR + DTP2/r30 + BE1R锁0.5R: v99g1震荡版
+v10_range_m5_hb:
+  <<: *defaults
+  version: V10-RANGE-M5HB
+  description: "M5震荡: 高bounce60%+SL0.2ATR+DTP2/r30+BE1/0.5"
+  bar_period_min: 5
+  enable_entry_engine: true
+  bounce_pct: 0.60
+  timeout_min: 90
+  min_ob_spread_mult: 2.0
+  sl_buffer_atr: 0.20
+  max_concurrent: 3
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.5
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  fixed_tp_r: 0.0
+  dtp_exit_mode: 0
+  risk_percent: 5.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# M15 + bounce40% + DTP3/r25 + BE1R锁0.5R: 大周期质量OB
+v10_range_m15_dtp3:
+  <<: *defaults
+  version: V10-RANGE-M15D3
+  description: "M15震荡: bounce40%+DTP3/r25+BE1/0.5+risk5%"
+  bar_period_min: 15
+  enable_entry_engine: true
+  bounce_pct: 0.40
+  timeout_min: 360
+  min_ob_spread_mult: 3.0
+  sl_buffer_atr: 0.15
+  max_concurrent: 3
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  fixed_tp_r: 0.0
+  dtp_exit_mode: 0
+  risk_percent: 5.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# RangeBreakout: 震荡区间突破+量度目标×2 + risk5%
+v10_range_rb_m5:
+  <<: *defaults
+  version: V10-RANGE-RBM5
+  description: "RangeBreakout: M5区间突破+TP=区间×2+risk5%"
+  bar_period_min: 5
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 12
+  range_breakout_max_atr: 1.5
+  range_breakout_min_spread_mult: 3.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  bounce_pct: 0.0
+  timeout_min: 120
+  sl_buffer_atr: 0.10
+  max_concurrent: 3
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.5
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 0.0
+  risk_percent: 5.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# M5 + OB + RangeBreakout混合: 两种信号同时启用
+v10_range_m5_hybrid:
+  <<: *defaults
+  version: V10-RANGE-M5HYB
+  description: "M5混合: OB bounce+RangeBreakout+risk5%"
+  bar_period_min: 5
+  enable_entry_engine: true
+  bounce_pct: 0.50
+  enable_range_breakout: true
+  range_breakout_only: false
+  range_breakout_bars: 10
+  range_breakout_max_atr: 1.2
+  range_breakout_min_spread_mult: 3.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  timeout_min: 90
+  sl_buffer_atr: 0.15
+  max_concurrent: 4
+  breakeven_r: 0.8
+  breakeven_lock_r: 0.4
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  fixed_tp_r: 0.0
+  risk_percent: 5.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# v99g3原版(已验证赚钱): 在2345月测试
+v10_range_v99g3:
+  <<: *defaults
+  version: V10-RANGE-V99G3
+  description: "v99g3原版(已验证)在2345月测试"
+  bar_period_min: 5
+  enable_entry_engine: true
+  bounce_pct: 0.40
+  no_entry_hours: "0,9,12,17,18"
+  max_concurrent: 2
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.5
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  timeout_min: 90
+  max_entry_offset_r: 0.5
+  risk_percent: 5.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+
+# ================================================================
+# v10 HYBRID: FAGE入场质量 + RANGE出场保护
+# FAGE提供: structure_break + FAGE坏簇过滤 + BH1降权
+# RANGE提供: SL0.3ATR + BE0.5锁0.4 + DTP2-3R(可达) + time_exit
+# ================================================================
+
+# Hybrid-A: FAGE入场 + SL0.2ATR + DTP2/r30 + BE0.5锁0.4 + time30
+v10_hybrid_a:
+  <<: *v10a
+  version: V10-HYBRID-A
+  description: "混合A: FAGE入场+SL0.2ATR+DTP2/r30+BE0.5锁0.4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-B: FAGE入场 + SL0.3ATR + DTP3/r30 + BE0.5锁0.4 + time30
+v10_hybrid_b:
+  <<: *v10a
+  version: V10-HYBRID-B
+  description: "混合B: FAGE入场+SL0.3ATR+DTP3/r30+BE0.5锁0.4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 4
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-C: FAGE + SL0.2ATR + DTP3/r25 + BE0.5锁0.4 + nomfe5bar
+v10_hybrid_c:
+  <<: *v10a
+  version: V10-HYBRID-C
+  description: "混合C: FAGE+SL0.2+DTP3/r25+BE0.5+nomfe5bar"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 4
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  no_mfe_exit_bars: 5
+  no_mfe_min_peak_r: 0.3
+  no_mfe_exit_r: -0.2
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-D: FAGE + SL0.3ATR + DTP2/r30 + BE0.5锁0.4 + C5(高频)
+v10_hybrid_d:
+  <<: *v10a
+  version: V10-HYBRID-D
+  description: "混合D: FAGE+SL0.3+DTP2/r30+BE0.5+C5"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-E: 不用FAGE过滤(纯v10a入场) + SL0.3 + DTP2/r30 + BE0.5锁0.4
+v10_hybrid_e:
+  <<: *v10a
+  version: V10-HYBRID-E
+  description: "混合E: v10a入场(无FAGE)+SL0.3+DTP2/r30+BE0.5"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-P: hybrid_i + partial(1R平50%+剩余DTP2/r30)
+v10_hybrid_p:
+  <<: *v10a
+  version: V10-HYBRID-P
+  description: "混合P: FAGE+SL0.3+partial(1R平50%+DTP2)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  dtp_exit_mode: 1
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.30
+  dtp_post_partial_lock_r: 1.0
+  dtp_reset_peak_after_partial: true
+  time_exit_bars: 25
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-M: hybrid_i + 只在London/NY重叠段交易(13-17时=GMT+3)
+v10_hybrid_m:
+  <<: *v10a
+  version: V10-HYBRID-M
+  description: "混合M: hybrid_i+London/NY重叠(13-17)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: "0,1,2,3,4,5,6,7,8,9,18,19,20,21,22,23"
+  no_sell_hours: "0,1,2,3,4,5,6,7,8,9,18,19,20,21,22,23"
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-N: 更窄FAGE(50-70)+SL0.3+TP1R(精选高质量OB)
+v10_hybrid_n:
+  <<: *v10a
+  version: V10-HYBRID-N
+  description: "混合N: FAGE窄50-70+SL0.3+TP1R"
+  filter_cont_age_min_bars: 50
+  filter_cont_age_max_bars: 70
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-O: hybrid_i + BE更低(0.3R锁0.2R) 让更多单持续
+v10_hybrid_o:
+  <<: *v10a
+  version: V10-HYBRID-O
+  description: "混合O: hybrid_i+BE0.3锁0.2(给呼吸空间)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.30
+  breakeven_lock_r: 0.20
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-K: FAGE+SL0.3+DTP2/r30+time15(快切亏损)+C5
+v10_hybrid_k:
+  <<: *v10a
+  version: V10-HYBRID-K
+  description: "混合K: FAGE+SL0.3+DTP2/r30+BE0.5+time15"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 15
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-L: FAGE+SL0.3+TP1R+DTP2(dual exit: 先TP1R，允许DTP2大赢)
+v10_hybrid_l:
+  <<: *v10a
+  version: V10-HYBRID-L
+  description: "混合L: FAGE+SL0.3+TP1R+DTP2/r30(dual)"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-H: FAGE入场 + TP1R(固定1R止盈) + SL0.2ATR
+v10_hybrid_h:
+  <<: *v10a
+  version: V10-HYBRID-H
+  description: "混合H: FAGE+SL0.2+TP1R+BE0.5锁0.4+time20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-I: FAGE入场 + TP1R + SL0.3ATR + C5
+v10_hybrid_i:
+  <<: *v10a
+  version: V10-HYBRID-I
+  description: "混合I: FAGE+SL0.3+TP1R+BE0.5锁0.4+time20"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-J: FAGE + TP1.5R + SL0.2ATR(中间目标)
+v10_hybrid_j:
+  <<: *v10a
+  version: V10-HYBRID-J
+  description: "混合J: FAGE+SL0.2+TP1.5R+BE0.5锁0.4+time25"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.5
+  dtp_trigger_r: 0.0
+  time_exit_bars: 25
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-F: hybrid_a + risk5%(高复利)
+v10_hybrid_f:
+  <<: *v10a
+  version: V10-HYBRID-F
+  description: "混合F: FAGE+SL0.2+DTP2/r30+BE0.5+risk5%"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 4
+  risk_percent: 5.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# Hybrid-G: hybrid_c + risk5%(高复利)
+v10_hybrid_g:
+  <<: *v10a
+  version: V10-HYBRID-G
+  description: "混合G: FAGE+SL0.2+DTP3/r25+BE0.5+nomfe+risk5%"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.20
+  max_concurrent: 4
+  risk_percent: 5.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  no_mfe_exit_bars: 5
+  no_mfe_min_peak_r: 0.3
+  no_mfe_exit_r: -0.2
+  time_exit_bars: 30
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+
+# ════════════════════════════════════════════════════════════════════
+# V11 BTC SMC策略 — 中胜率大盈亏比趋势追踪
+# ════════════════════════════════════════════════════════════════════
+
+v11_xau_m3_fage:
+  <<: *v10_fage_dtp8_r20
+  version: V11-XAU-M3-FAGE
+  description: "v11组合XAU主腿: FAGE+DTP8R/r20，负责日均/WR/PF"
+  magic_number: 202612
+
+v11_btc_m5: &v11_btc_m5
+  <<: *defaults
+  version: V11-BTC-M5E
+  description: "v11 BTC M5: 基线+debug分析盈亏规律"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  # === 入场 ===
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_spread_mult: 2.0
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  min_impulse_vol_ratio: 1.0
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  consolidate_ob: true
+  # === 时段（全天候）===
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  # === 止损 ===
+  sl_buffer_atr: 1.5
+  # === 保本 ===
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  # === 出场: DTP + 高BE lock ===
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  dtp_exit_mode: 0
+  dtp_partial_pct: 50
+  dtp_post_partial_retrace: 0.0
+  dtp_post_partial_lock_r: 0.0
+  dtp_reset_peak_after_partial: false
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  # === Trail全禁用 ===
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  # === 状态自适应 ===
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  trend_be_r: 0.0
+  trend_be_lock: 0.0
+  trend_dtp_retrace: 0.0
+  # === 动能衰减 ===
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  # === 仓位管理 ===
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  # === H1降权（不硬过滤）===
+  boost_in_1h_ob: 2.0
+  filter_cont_age_min_bars: 0
+  filter_cont_age_max_bars: 0
+  filter_cont_non_deep_only: false
+  filter_buy_no_h1_min_pos_mult: 0.0
+  filter_buy_no_h1_max_pos_mult: 0.0
+  filter_buy_no_h1_pos_mult: 1.0
+  ds_weight: false
+  dt_addon_boost: 0.0
+  # === 评分（只影响仓位）===
+  enable_scoring: true
+  min_score: 0
+  proximity_atr: 1.0
+  # === 超时 ===
+  time_exit_bars: 80
+  timeout_min: 120
+  # === 禁用项 ===
+  enable_failure_reverse: false
+  enable_strong_addon: false
+  enable_momentum_regime: false
+  enable_range_breakout: false
+  enable_htf_target: false
+  enable_entry_momentum_filter: false
+  entry_block_counter_strong: true
+  entry_require_counter_weak: false
+  early_loss_cut_r: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+  no_mfe_exit_bars: 0
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+  enable_entry_debug: true
+
+# === V11 BTC 新信号源：流动性扫损反转 ===
+
+v11_swp_m5_tp1: &v11_swp_m5_tp1
+  <<: *v11_btc_m5
+  version: V11-SWP-M5TP1
+  description: "v11 BTC sweep: M5扫损回归+对侧区间TP"
+  enable_liquidity_sweep: true
+  liquidity_sweep_only: true
+  enable_state_filter: false
+  enable_scoring: false
+  entry_depth_pct: 0.50
+  entry_depth_filter: true
+  bounce_pct: 0.20
+  min_risk_spread_ratio: 4.0
+  sl_buffer_atr: 0.30
+  max_risk_atr: 4.0
+  max_counter_risk_atr: 4.0
+  sweep_lookback_bars: 12
+  sweep_max_range_atr: 2.50
+  sweep_min_range_spread_mult: 4.0
+  sweep_min_penetration_atr: 0.05
+  sweep_min_wick_pct: 45.0
+  sweep_tp_mult: 1.0
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 0.0
+  max_entries_per_ob: 1
+  max_concurrent: 5
+  free_run_min_r: 0.0
+  magic_number: 202613
+
+v11_swp_m5_dtp: &v11_swp_m5_dtp
+  <<: *v11_swp_m5_tp1
+  version: V11-SWP-M5DTP
+  description: "v11 BTC sweep: M5扫损回归+DTP2.5R"
+  sweep_tp_mult: 0.0
+  dtp_trigger_r: 2.5
+  dtp_retrace: 0.30
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  magic_number: 202614
+
+v11_swp_m15_tp1:
+  <<: *v11_swp_m5_tp1
+  version: V11-SWP-M15TP1
+  description: "v11 BTC sweep: M15扫损回归+对侧区间TP"
+  bar_period_min: 15
+  sweep_lookback_bars: 10
+  sweep_max_range_atr: 2.00
+  sweep_min_range_spread_mult: 5.0
+  sl_buffer_atr: 0.40
+  timeout_min: 360
+  time_exit_bars: 48
+  magic_number: 202615
+
+v11_swp_m5_loose: &v11_swp_m5_loose
+  <<: *v11_swp_m5_dtp
+  version: V11-SWP-M5LOOSE
+  description: "v11 BTC sweep: M5放宽扫损+DTP2.5R"
+  entry_depth_pct: 0.0
+  bounce_pct: 0.10
+  min_risk_spread_ratio: 3.0
+  sl_buffer_atr: 0.20
+  sweep_lookback_bars: 6
+  sweep_max_range_atr: 4.00
+  sweep_min_range_spread_mult: 2.0
+  sweep_min_penetration_atr: 0.0
+  sweep_min_wick_pct: 25.0
+  max_concurrent: 5
+  magic_number: 202616
+
+v11_swp_m5_ltp15:
+  <<: *v11_swp_m5_loose
+  version: V11-SWP-M5LTP15
+  description: "v11 BTC sweep: M5放宽扫损+1.5区间TP"
+  sweep_tp_mult: 1.5
+  dtp_trigger_r: 0.0
+  magic_number: 202617
+
+v11_swp_m5_combo:
+  <<: *v11_swp_m5_loose
+  version: V11-SWP-M5COMBO
+  description: "v11 BTC sweep: 放宽扫损+常规OB混合"
+  liquidity_sweep_only: false
+  min_risk_spread_ratio: 4.0
+  sl_buffer_atr: 0.50
+  sweep_tp_mult: 0.0
+  dtp_trigger_r: 3.0
+  magic_number: 202618
+
+# === V11 迭代实验 ===
+
+# 实验1: MFE失败退出 — 曾浮盈0.3R后回落到-0.1R退出
+v11_exp1_mfe:
+  <<: *defaults
+  version: V11-EXP1-MFE
+  description: "基线+MFE fail(0.3R→-0.1R退)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  mfe_fail_min_r: 0.3
+  mfe_fail_exit_r: -0.1
+  enable_exit_debug: true
+
+# 实验2: DTP降到2R — 捕获BE单峰值
+v11_exp2_dtp2:
+  <<: *defaults
+  version: V11-EXP2-DTP2
+  description: "基线+DTP2R(捕获2.59R平均峰值)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验3: MFE+DTP2R组合
+v11_exp3_combo:
+  <<: *defaults
+  version: V11-EXP3-COMBO
+  description: "MFE fail+DTP2R组合"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.30
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  mfe_fail_min_r: 0.3
+  mfe_fail_exit_r: -0.1
+  enable_exit_debug: true
+
+# 实验4: 放宽入场+Trail2R锁1R — 目标: 单数↑+中间利润捕获
+v11_exp4_wide_trail:
+  <<: *defaults
+  version: V11-EXP4-WTRAIL
+  description: "放宽入场(depth0.5+ratio3)+Trail2R锁1R+DTP3R"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.5
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 3.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 2.0
+      lock_r: 1.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验5: 同实验4但不深入入场(depth=0) — 最大单数测试
+v11_exp5_nofilter:
+  <<: *defaults
+  version: V11-EXP5-NOFLTR
+  description: "无深入过滤(depth0)+ratio3+Trail2R+DTP3R+C5"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.0
+  entry_depth_filter: false
+  bounce_pct: 0.30
+  max_entry_offset_r: 1.0
+  require_double_touch: false
+  min_risk_spread_ratio: 3.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 2.0
+      lock_r: 1.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 1
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 60
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验6: exp5基础+ratio4折中 — 目标: 日均>3且盈利
+v11_exp6_ratio4:
+  <<: *defaults
+  version: V11-EXP6-R4
+  description: "无深入+ratio4+DTP3+C5(折中过滤)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.0
+  entry_depth_filter: false
+  bounce_pct: 0.30
+  max_entry_offset_r: 1.0
+  require_double_touch: false
+  min_risk_spread_ratio: 4.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 1
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 60
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验7: 同exp6但增加SL buffer让risk更大(降spread/risk)
+v11_exp7_bigsl:
+  <<: *defaults
+  version: V11-EXP7-BIGSL
+  description: "ratio3+SL2.0ATR(大risk降spread占比)+C5"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.0
+  entry_depth_filter: false
+  bounce_pct: 0.30
+  max_entry_offset_r: 1.0
+  require_double_touch: false
+  min_risk_spread_ratio: 3.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 2.0
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 1
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 60
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验8: ratio5质量+无深入+C5+短冷却 — 用质量过滤代替深入过滤
+v11_exp8_r5nodepth:
+  <<: *defaults
+  version: V11-EXP8-R5ND
+  description: "ratio5质量过滤+无深入+C5+cooldown0"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.0
+  entry_depth_filter: false
+  bounce_pct: 0.30
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验9: M3周期+ratio5+无深入 — M3每天产生更多OB
+v11_exp9_m3:
+  <<: *defaults
+  version: V11-EXP9-M3
+  description: "M3+ratio5+无深入+C5(更高频OB产出)"
+  bar_period_min: 3
+  bars: 500
+  ob_scan_depth: 300
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.0
+  entry_depth_filter: false
+  bounce_pct: 0.30
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 100
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验10: 基线E + 部分平仓1R/50% — 锁住中间利润
+v11_exp10_partial:
+  <<: *defaults
+  version: V11-EXP10-PART
+  description: "基线E+partial1R/50%+DTP3R(锁中间利润)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  partial_close_r: 1.0
+  partial_close_pct: 50
+  partial_post_lock_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验11: 基线E + 放宽到depth0.5+ratio5+C5+cooldown0
+v11_exp11_loosen:
+  <<: *defaults
+  version: V11-EXP11-LOOSE
+  description: "depth0.5+ratio5+C5+cooldown0(最小放宽)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.5
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  partial_close_r: 1.0
+  partial_close_pct: 50
+  partial_post_lock_r: 0.5
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验12: 基线E + RangeBreakout补充信号
+v11_exp12_rb:
+  <<: *defaults
+  version: V11-EXP12-RB
+  description: "基线E+RangeBreakout(区间突破补单数)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  # === RangeBreakout ===
+  enable_range_breakout: true
+  range_breakout_only: false
+  range_breakout_bars: 12
+  range_breakout_max_atr: 1.5
+  range_breakout_min_spread_mult: 5.0
+  range_breakout_atr: 0.10
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验13: RangeBreakout + 放宽并发C5
+v11_exp13_rb_c5:
+  <<: *defaults
+  version: V11-EXP13-RBC5
+  description: "基线E+RangeBreakout+C5(最大并发)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  # === RangeBreakout ===
+  enable_range_breakout: true
+  range_breakout_only: false
+  range_breakout_bars: 12
+  range_breakout_max_atr: 1.5
+  range_breakout_min_spread_mult: 5.0
+  range_breakout_atr: 0.10
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验14: 降低impulse门槛(1.2)增加OB产出 + 保持其他基线参数
+v11_exp14_lowimpulse:
+  <<: *defaults
+  version: V11-EXP14-LIMP
+  description: "impulse1.2(更多OB)+depth0.67+ratio5+DTP3"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  impulse_atr_mult: 1.2
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验15: impulse1.2 + C5 + cooldown0 + reentry30
+v11_exp15_limp_c5:
+  <<: *defaults
+  version: V11-EXP15-LC5
+  description: "impulse1.2+depth0.67+ratio5+C5+cooldown0"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  impulse_atr_mult: 1.2
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验16: depth为boost非filter + 延长OB生命周期
+v11_exp16_depthboost:
+  <<: *defaults
+  version: V11-EXP16-DBST
+  description: "depth=boost非filter+timeout180+ratio5+DTP3"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: false
+  deep_entry_boost: 1.5
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  timeout_min: 180
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  enable_exit_debug: true
+
+# 实验17: 分层入场 — 同一OB 2层限价单(深入不同位置)
+v11_exp17_layered2:
+  <<: *defaults
+  version: V11-EXP17-LAY2
+  description: "基线E+分层2层(每个OB产出2单)+ratio5"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  # === 分层入场 ===
+  layered_entry_count: 2
+  layered_spacing_pct: 0.33
+  layered_lot_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验18: 分层3层 + 更高SL(因为分层最深位需要更多空间)
+v11_exp18_layered3:
+  <<: *defaults
+  version: V11-EXP18-LAY3
+  description: "基线E+分层3层+ratio5+SL2.0"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 2.0
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  # === 分层入场3层 ===
+  layered_entry_count: 3
+  layered_spacing_pct: 0.25
+  layered_lot_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验19: BE 0.5R触发(更多单转为BE赢) + 保持其他基线参数
+v11_exp19_earlyBE:
+  <<: *defaults
+  version: V11-EXP19-EBE
+  description: "基线E+BE0.5R触发(转化更多赢单)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.15
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.5
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验20: BE0.5R + C5 + cooldown0 提频率
+v11_exp20_earlyBE_c5:
+  <<: *defaults
+  version: V11-EXP20-EBEC5
+  description: "BE0.5R+C5+cooldown0(早BE释放并发=更多机会)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.15
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.5
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验21: 固定TP1.5R + ELC0.6R — 数学最优解
+v11_exp21_tp15_elc:
+  <<: *defaults
+  version: V11-EXP21-TPELC
+  description: "TP1.5R+ELC0.6R+BE0.5/0.3(数学PF3解)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.3
+  early_loss_cut_r: 0.6
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 1.5
+  ob_height_tp_mult: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: false
+  enable_decay_exit: false
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验22: 同21但C5+cooldown0提单数
+v11_exp22_tp15_elc_c5:
+  <<: *defaults
+  version: V11-EXP22-TEC5
+  description: "TP1.5R+ELC0.6R+C5+cooldown0"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.3
+  early_loss_cut_r: 0.6
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 1.5
+  ob_height_tp_mult: 0.0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: false
+  enable_decay_exit: false
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# ═══ V11 Round2: 基于盈亏日志分析的精准改进 ═══
+
+# 实验23: 时段过滤 — 禁止0-10时入场(杀区WR15%)
+v11_r2_hours:
+  <<: *defaults
+  version: V11-R2-HOURS
+  description: "基线E+禁止0-10时入场(杀区WR15%)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "0,1,2,3,4,5,6,7,8,9,10"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+  enable_entry_debug: true
+
+# 实验24: 评分门槛 — min_score=5(过滤低分亏单)
+v11_r2_score5:
+  <<: *defaults
+  version: V11-R2-SCORE5
+  description: "基线E+min_score5(只做高评分OB)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 5
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+  enable_entry_debug: true
+
+# 实验25: 时段+评分组合 — 最大过滤
+v11_r2_combo:
+  <<: *defaults
+  version: V11-R2-COMBO
+  description: "禁0-10时+score5+C5(极精选)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "0,1,2,3,4,5,6,7,8,9,10"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 5
+  free_run_min_r: 5.0
+  cooldown_bars: 0
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 5
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+  enable_entry_debug: true
+
+# 实验26: 时段过滤+score4 — 两重过滤叠加
+v11_r2_hours_s4:
+  <<: *defaults
+  version: V11-R2-HS4
+  description: "禁0-10时+score4+基线E"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "0,1,2,3,4,5,6,7,8,9,10"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 4
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验27: 只禁0-7时(更窄杀区) — 保留更多8-10时的单
+v11_r2_hours07:
+  <<: *defaults
+  version: V11-R2-H07
+  description: "禁0-7时(更窄杀区)+基线E"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "0,1,2,3,4,5,6,7"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验28: 时段过滤 + DTP partial(1R平50%保利) — 出场改进
+v11_r2_hours_partial:
+  <<: *defaults
+  version: V11-R2-HPART
+  description: "禁0-10时+DTP3但1R平50%锁利"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "0,1,2,3,4,5,6,7,8,9,10"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  partial_close_r: 1.5
+  partial_close_pct: 50
+  partial_post_lock_r: 1.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验29: 时段过滤+BE0.5(快释放并发)+risk3%(加大赢单美元值)
+v11_r2_hours_be05_r3:
+  <<: *defaults
+  version: V11-R2-HBR3
+  description: "禁0-10时+BE0.5+risk3%(大赢单更大)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "0,1,2,3,4,5,6,7,8,9,10"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 0.5
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 3.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.10
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验30: 基线E(不过滤时段) + risk3%(单纯放大DTP赢单价值)
+v11_r2_risk3:
+  <<: *defaults
+  version: V11-R2-RISK3
+  description: "基线E+risk3%(放大DTP美元利润)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 3.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.10
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验31: 只禁最差时段3,5,6,7(WR=0%) — 精准砍亏保留赢
+v11_r2_hours3567:
+  <<: *defaults
+  version: V11-R2-H3567
+  description: "基线E+只禁3,5,6,7时(WR0%纯杀区)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "3,5,6,7"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验32: 精准时段+WR<20%的16/22时也砍
+v11_r2_hours_precise:
+  <<: *defaults
+  version: V11-R2-HPRC
+  description: "禁WR<20%时段(3,5,6,7,16,22)+基线E"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: "3,5,6,7,16,22"
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# ═══ V11 Round3: 基于pos_mult/方向/age深度分析 ═══
+
+# 实验33: 过滤pos_mult<2(砍110笔纯亏) — 只做H1对齐的高质量单
+v11_r3_mult2:
+  <<: *defaults
+  version: V11-R3-MULT2
+  description: "基线E+仅做mult>=2(h1对齐高质量)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 4
+  proximity_filter: 1
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+  enable_entry_debug: true
+
+# 实验34: H1对齐作为硬过滤(不是boost) — 直接等效mult>=2
+# 通过 filter_buy_no_h1_pos_mult=0 把非H1单完全过滤
+v11_r3_h1hard:
+  <<: *defaults
+  version: V11-R3-H1HD
+  description: "基线E+H1对齐硬过滤(非H1不入)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  filter_buy_no_h1_min_pos_mult: 0.0
+  filter_buy_no_h1_max_pos_mult: 99.0
+  filter_buy_no_h1_pos_mult: 0.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验35: H1硬过滤 + sell boost + age<=20
+v11_r3_combo:
+  <<: *defaults
+  version: V11-R3-COMBO
+  description: "H1硬过滤+sell1.3x+禁age>20"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  sell_pos_mult: 1.3
+  filter_buy_no_h1_min_pos_mult: 0.0
+  filter_buy_no_h1_max_pos_mult: 99.0
+  filter_buy_no_h1_pos_mult: 0.0
+  filter_cont_age_min_bars: 0
+  filter_cont_age_max_bars: 20
+  filter_cont_non_deep_only: false
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验36: min_score=4 + proximity_filter=0(不硬过滤) — 精准砍score3毒药
+v11_r3_s4soft:
+  <<: *defaults
+  version: V11-R3-S4SOFT
+  description: "基线E+min_score4+proximity软(砍score3)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 4
+  proximity_filter: 0
+  proximity_atr: 1.0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验37: min_score=3 + 提高proximity_atr到2.0(更容易得分) — 让更多单拿到4分
+v11_r3_prox2:
+  <<: *defaults
+  version: V11-R3-PROX2
+  description: "基线E+proximity_atr2.0(更容易得proximity分)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 2.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.08
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  proximity_filter: 0
+  proximity_atr: 2.0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验38: risk4%(放大复利) + DTP retrace 0.20(紧追踪)
+v11_r3_risk4_r20:
+  <<: *defaults
+  version: V11-R3-R4R20
+  description: "基线E+risk4%+DTPr20(放大+紧追)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 4.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.12
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验39: risk4% only (不改DTP, 纯复利放大)
+v11_r3_risk4:
+  <<: *defaults
+  version: V11-R3-R4
+  description: "基线E+risk4%(纯复利放大)"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 4.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.12
+  boost_in_1h_ob: 2.0
+  enable_scoring: true
+  min_score: 0
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# 实验40: 关闭scoring用CalcPositionMultiplier + 禁sell(只做空方向DTP更好)
+# 注: sell WR27%(>=1R) vs buy 19% — 但buy和sell各8笔DTP所以不过滤方向
+# 改为: 关闭scoring + DTP retrace0.20 + risk3%
+v11_r3_noscore_r20:
+  <<: *defaults
+  version: V11-R3-NSR20
+  description: "关闭scoring用CalcPosMult+DTPr20+risk3%"
+  bar_period_min: 5
+  bars: 300
+  ob_scan_depth: 200
+  magic_number: 202611
+  enable_entry_engine: true
+  entry_depth_pct: 0.67
+  entry_depth_filter: true
+  bounce_pct: 0.25
+  max_entry_offset_r: 0.5
+  require_double_touch: false
+  min_risk_spread_ratio: 5.0
+  min_ob_strength: 0.5
+  max_risk_atr: 3.0
+  max_counter_risk_atr: 1.5
+  structure_break_bars: 3
+  structure_break_atr: 0.1
+  require_impulse_candle_dir: true
+  min_ob_body_pct: 50.0
+  min_impulse_body_pct: 50.0
+  consolidate_ob: true
+  no_ob_start_hour: -1
+  no_ob_end_hour: -1
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 1.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  adaptive_dtp: true
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 1.5
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  enable_state_filter: true
+  trend_lookback: 80
+  swing_strength: 3
+  range_be_r: 1.0
+  range_time_exit: 20
+  enable_decay_exit: true
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  risk_percent: 3.0
+  max_concurrent: 3
+  free_run_min_r: 5.0
+  cooldown_bars: 2
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 60
+  enable_pos_mult: true
+  max_pos_mult: 8.0
+  max_lot_size: 0.10
+  boost_in_1h_ob: 3.0
+  enable_scoring: false
+  time_exit_bars: 80
+  timeout_min: 120
+  deep_entry_boost: 1.5
+  enable_exit_debug: true
+
+# ═══ V11 Round4: 保留日均>1，用小时仓位加权集中右尾 ═══
+
+v11_r4_hour_weight: &v11_r4_hour_weight
+  <<: *v11_btc_m5
+  version: V11-R4-HW
+  description: "基线E+小时仓位加权: 坏时段0.25x，右尾时段2.5x"
+  low_risk_hours: "1,3,4,5,6,7,8,10,18,19,21,22"
+  low_risk_hour_mult: 0.25
+  high_risk_hours: "12,14,15,16,17,20,23"
+  high_risk_hour_mult: 2.5
+  max_pos_mult: 20.0
+  max_lot_size: 0.30
+  magic_number: 202641
+
+v11_r4_hour_weight_sweep:
+  <<: *v11_r4_hour_weight
+  version: V11-R4-HWSWP
+  description: "小时仓位加权+严格sweep混合补频"
+  enable_liquidity_sweep: true
+  liquidity_sweep_only: false
+  sweep_lookback_bars: 12
+  sweep_max_range_atr: 2.50
+  sweep_min_range_spread_mult: 4.0
+  sweep_min_penetration_atr: 0.05
+  sweep_min_wick_pct: 45.0
+  sweep_tp_mult: 0.0
+  sl_buffer_atr: 1.0
+  max_concurrent: 5
+  magic_number: 202642
+
+v11_r4_runner_aggressive:
+  <<: *v11_btc_m5
+  version: V11-R4-RUNAGG
+  description: "右尾冲刺: 好时段4x+坏时段0.15x+risk3%，目标验证6000路径"
+  low_risk_hours: "1,3,4,5,6,7,8,10,18,19,21,22"
+  low_risk_hour_mult: 0.15
+  high_risk_hours: "12,14,15,16,17,20,23"
+  high_risk_hour_mult: 4.0
+  risk_percent: 3.0
+  max_pos_mult: 32.0
+  max_lot_size: 0.60
+  max_concurrent: 3
+  magic_number: 202643
+
+v11_r4_pf_guard:
+  <<: *v11_r4_hour_weight
+  version: V11-R4-PFGUARD
+  description: "小时仓位加权+无浮盈失败退出，测试亏损端压缩"
+  no_mfe_exit_bars: 3
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.20
+  mfe_fail_min_r: 0.5
+  mfe_fail_exit_r: -0.10
+  magic_number: 202644
+
+v11_r4_midday_only_big:
+  <<: *v11_btc_m5
+  version: V11-R4-MIDBIG
+  description: "不硬过滤但极端加权: 12-17时5x，其余0.15x"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,9,10,11,18,19,20,21,22,23"
+  low_risk_hour_mult: 0.15
+  high_risk_hours: "12,13,14,15,16,17"
+  high_risk_hour_mult: 5.0
+  risk_percent: 3.0
+  max_pos_mult: 40.0
+  max_lot_size: 0.80
+  magic_number: 202645
+
+# ═══ V11 Round5: 只放大日志验证PF>2的右尾小时，其他小时极低仓保频率 ═══
+
+v11_r5_core_pf: &v11_r5_core_pf
+  <<: *v11_btc_m5
+  version: V11-R5-COREPF
+  description: "核心小时12/14/16/20/23重仓，其他小时0.03x保频"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,9,10,11,13,15,17,18,19,21,22"
+  low_risk_hour_mult: 0.03
+  high_risk_hours: "12,14,16,20,23"
+  high_risk_hour_mult: 8.0
+  risk_percent: 2.0
+  max_pos_mult: 64.0
+  max_lot_size: 1.50
+  magic_number: 202651
+
+v11_r5_core_6k: &v11_r5_core_6k
+  <<: *v11_btc_m5
+  version: V11-R5-CORE6K
+  description: "核心小时12x+risk3%，验证BTC M5 $6000路径"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,9,10,11,13,15,17,18,19,21,22"
+  low_risk_hour_mult: 0.02
+  high_risk_hours: "12,14,16,20,23"
+  high_risk_hour_mult: 12.0
+  risk_percent: 3.0
+  max_pos_mult: 96.0
+  max_lot_size: 2.50
+  magic_number: 202652
+
+v11_r5_core_pfguard:
+  <<: *v11_r5_core_pf
+  version: V11-R5-COREGUARD
+  description: "核心小时重仓+无浮盈失败退出，尝试把PF推过2"
+  no_mfe_exit_bars: 3
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.20
+  mfe_fail_min_r: 0.5
+  mfe_fail_exit_r: -0.10
+  magic_number: 202653
+
+v11_r5_core17_6k:
+  <<: *v11_r5_core_6k
+  version: V11-R5-C17-6K
+  description: "核心小时加入17时，扩大右尾样本"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,9,10,11,13,15,18,19,21,22"
+  high_risk_hours: "12,14,16,17,20,23"
+  magic_number: 202654
+
+# ═══ V11 Round6: 修正低仓过低导致低频，回到可成交仓位区间 ═══
+
+v11_r6_core_l15: &v11_r6_core_l15
+  <<: *v11_btc_m5
+  version: V11-R6-COREL15
+  description: "核心小时6x，非核心0.15x，保持日均>1"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,9,10,11,13,15,17,18,19,21,22"
+  low_risk_hour_mult: 0.15
+  high_risk_hours: "12,14,16,20,23"
+  high_risk_hour_mult: 6.0
+  risk_percent: 2.0
+  max_pos_mult: 48.0
+  max_lot_size: 1.00
+  magic_number: 202661
+
+v11_r6_core_l15_r3:
+  <<: *v11_r6_core_l15
+  version: V11-R6-L15R3
+  description: "核心小时6x+risk3%，冲击利润但保留可成交低仓"
+  risk_percent: 3.0
+  max_pos_mult: 72.0
+  max_lot_size: 1.50
+  magic_number: 202662
+
+v11_r6_core_l20_h5:
+  <<: *v11_btc_m5
+  version: V11-R6-L20H5
+  description: "核心小时5x，非核心0.20x，较稳PF路线"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,9,10,11,13,15,17,18,19,21,22"
+  low_risk_hour_mult: 0.20
+  high_risk_hours: "12,14,16,20,23"
+  high_risk_hour_mult: 5.0
+  risk_percent: 2.5
+  max_pos_mult: 50.0
+  max_lot_size: 1.20
+  magic_number: 202663
+
+v11_r6_hw_no15:
+  <<: *v11_btc_m5
+  version: V11-R6-HWNO15
+  description: "Round4改良: 高仓去掉15时，0/2/11/15降权"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,10,11,15,18,19,21,22"
+  low_risk_hour_mult: 0.20
+  high_risk_hours: "12,14,16,17,20,23"
+  high_risk_hour_mult: 4.0
+  risk_percent: 2.5
+  max_pos_mult: 50.0
+  max_lot_size: 1.20
+  magic_number: 202664
+
+# ═══ V11 Round7: 低仓不低于0.25，优先满足日均>1后再推PF/利润 ═══
+
+v11_r7_freq_pf: &v11_r7_freq_pf
+  <<: *v11_btc_m5
+  version: V11-R7-FREQPF
+  description: "非核心0.25x保日均，核心小时6x"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,9,10,11,13,15,17,18,19,21,22"
+  low_risk_hour_mult: 0.25
+  high_risk_hours: "12,14,16,20,23"
+  high_risk_hour_mult: 6.0
+  risk_percent: 2.0
+  max_pos_mult: 60.0
+  max_lot_size: 1.20
+  magic_number: 202671
+
+v11_r7_freq_profit:
+  <<: *v11_r7_freq_pf
+  version: V11-R7-FREQPROF
+  description: "非核心0.25x，核心小时8x+risk2.5%，利润优先"
+  high_risk_hour_mult: 8.0
+  risk_percent: 2.5
+  max_pos_mult: 80.0
+  max_lot_size: 1.80
+  magic_number: 202672
+
+v11_r7_freq_6k:
+  <<: *v11_r7_freq_pf
+  version: V11-R7-FREQ6K
+  description: "非核心0.30x保频，核心10x+risk3%，最终冲击6000"
+  low_risk_hour_mult: 0.30
+  high_risk_hour_mult: 10.0
+  risk_percent: 3.0
+  max_pos_mult: 100.0
+  max_lot_size: 2.50
+  magic_number: 202673
+
+# ═══ V11 Round8: 沿用Round4频率，修正15时高仓毒点 ═══
+
+v11_r8_hw_fix15: &v11_r8_hw_fix15
+  <<: *v11_btc_m5
+  version: V11-R8-HWFIX15
+  description: "Round4频率框架: 15时降权，核心小时6x"
+  low_risk_hours: "1,3,4,5,6,7,8,10,15,18,19,21,22"
+  low_risk_hour_mult: 0.25
+  high_risk_hours: "12,14,16,17,20,23"
+  high_risk_hour_mult: 6.0
+  risk_percent: 2.5
+  max_pos_mult: 72.0
+  max_lot_size: 1.50
+  magic_number: 202681
+
+v11_r8_hw_fix15_6k:
+  <<: *v11_r8_hw_fix15
+  version: V11-R8-HW6K
+  description: "Round8加速版: 核心8x+risk3%，测试利润上限"
+  high_risk_hour_mult: 8.0
+  risk_percent: 3.0
+  max_pos_mult: 96.0
+  max_lot_size: 2.00
+  magic_number: 202682
+
+# ═══ V11 Round9: 基于入场价格日志的确认质量降权/加权 ═══
+
+v11_r9_hour_fix: &v11_r9_hour_fix
+  <<: *v11_btc_m5
+  version: V11-R9-HFIX
+  description: "修正小时集合: 12/17/23高仓，13/14/0/9默认，16/20降权"
+  low_risk_hours: "1,2,3,4,5,6,7,8,10,11,15,16,18,19,20,21,22"
+  low_risk_hour_mult: 0.35
+  high_risk_hours: "12,17,23"
+  high_risk_hour_mult: 7.0
+  risk_percent: 2.5
+  max_pos_mult: 72.0
+  max_lot_size: 1.50
+  magic_number: 202691
+
+v11_r9_quality_soft: &v11_r9_quality_soft
+  <<: *v11_r9_hour_fix
+  version: V11-R9-QSOFT
+  description: "小时修正+软入场质量降权: 晚确认/非甜点bounce/150-200风险档降权，大风险结构加权"
+  late_bounce_sec: 30
+  late_bounce_mult: 0.60
+  bounce_sweet_min_pct: 0.26
+  bounce_sweet_max_pct: 0.34
+  outside_bounce_sweet_mult: 0.70
+  bad_risk_min: 150.0
+  bad_risk_max: 200.0
+  bad_risk_mult: 0.60
+  large_risk_min: 300.0
+  large_risk_mult: 1.50
+  magic_number: 202692
+
+v11_r9_quality_core: &v11_r9_quality_core
+  <<: *v11_btc_m5
+  version: V11-R9-QCORE
+  description: "可成交低仓+质量加权: 保日均同时压缩亏损档"
+  low_risk_hours: "0,1,2,3,4,5,6,7,8,10,11,15,16,18,19,20,21,22"
+  low_risk_hour_mult: 0.40
+  high_risk_hours: "12,14,17,23"
+  high_risk_hour_mult: 7.0
+  late_bounce_sec: 30
+  late_bounce_mult: 0.60
+  bounce_sweet_min_pct: 0.26
+  bounce_sweet_max_pct: 0.34
+  outside_bounce_sweet_mult: 0.70
+  bad_risk_min: 150.0
+  bad_risk_max: 200.0
+  bad_risk_mult: 0.60
+  large_risk_min: 300.0
+  large_risk_mult: 1.50
+  risk_percent: 2.5
+  max_pos_mult: 80.0
+  max_lot_size: 1.60
+  magic_number: 202693
+
+v11_r9_profit_push:
+  <<: *v11_r9_quality_core
+  version: V11-R9-PROFIT
+  description: "Round9质量加权利润版: 若PF改善则测试盈利上限"
+  high_risk_hour_mult: 9.0
+  large_risk_mult: 1.80
+  risk_percent: 3.0
+  max_pos_mult: 110.0
+  max_lot_size: 2.20
+  magic_number: 202694
+
+# ═══ V11 Round10: 以QSOFT为底座，补频并放大已验证优质小时 ═══
+
+v11_r10_qsoft_h13: &v11_r10_qsoft_h13
+  <<: *v11_r9_quality_soft
+  version: V11-R10-QH13
+  description: "QSOFT基础上把13时纳入高仓，尝试提升余额并间接补足可成交低仓"
+  high_risk_hours: "12,13,17,23"
+  high_risk_hour_mult: 7.0
+  max_pos_mult: 84.0
+  max_lot_size: 1.70
+  magic_number: 202701
+
+v11_r10_qsoft_h1314:
+  <<: *v11_r9_quality_soft
+  version: V11-R10-QH1314
+  description: "QSOFT基础上把13/14时纳入高仓，测试优质小时扩容"
+  high_risk_hours: "12,13,14,17,23"
+  high_risk_hour_mult: 5.0
+  max_pos_mult: 84.0
+  max_lot_size: 1.70
+  magic_number: 202702
+
+v11_r10_qsoft_freq:
+  <<: *v11_r9_quality_soft
+  version: V11-R10-QFREQ
+  description: "QSOFT轻微放松质量降权，优先补足日均>1"
+  late_bounce_mult: 0.75
+  outside_bounce_sweet_mult: 0.85
+  bad_risk_mult: 0.75
+  low_risk_hour_mult: 0.45
+  high_risk_hours: "12,13,14,17,23"
+  high_risk_hour_mult: 5.0
+  max_pos_mult: 84.0
+  max_lot_size: 1.70
+  magic_number: 202703
+
+v11_r10_qsoft_6k:
+  <<: *v11_r10_qsoft_h13
+  version: V11-R10-Q6K
+  description: "QSOFT高仓利润版: 只在PF>2底座上尝试接近6000"
+  high_risk_hour_mult: 9.0
+  large_risk_mult: 1.80
+  risk_percent: 3.0
+  max_pos_mult: 120.0
+  max_lot_size: 2.50
+  magic_number: 202704
+
+# ═══ V11 Round11: 保持QSOFT质量门槛，只补可成交频率 ═══
+
+v11_r11_qsoft_l45:
+  <<: *v11_r9_quality_soft
+  version: V11-R11-QL45
+  description: "QSOFT仅提高低仓倍数到0.45，测试是否补频且守住PF"
+  low_risk_hour_mult: 0.45
+  magic_number: 202711
+
+v11_r11_qsoft_l55:
+  <<: *v11_r9_quality_soft
+  version: V11-R11-QL55
+  description: "QSOFT仅提高低仓倍数到0.55，测试最小手数附近补频"
+  low_risk_hour_mult: 0.55
+  magic_number: 202712
+
+v11_r11_qsoft_add1120: &v11_r11_qsoft_add1120
+  <<: *v11_r9_quality_soft
+  version: V11-R11-Q1120
+  description: "QSOFT释放日志中质量后为正的11/20时，其他保持不变"
+  low_risk_hours: "1,2,3,4,5,6,7,8,10,15,16,18,19,21,22"
+  magic_number: 202713
+
+v11_r11_qsoft_l45_add1120:
+  <<: *v11_r11_qsoft_add1120
+  version: V11-R11-Q45A
+  description: "QSOFT释放11/20时，并把低仓倍数提高到0.45"
+  low_risk_hour_mult: 0.45
+  magic_number: 202714

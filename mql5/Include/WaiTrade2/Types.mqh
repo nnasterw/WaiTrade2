@@ -31,6 +31,7 @@ struct OBZone
     bool     used;           // 是否已入场
     bool     expired;        // 是否已过期
     bool     is_range_breakout; // 是否为震荡区间突破信号
+    bool     is_liquidity_sweep; // 是否为流动性扫损反转信号
     double   range_height;    // 震荡区间高度，用于量度目标
     double   ob_top;          // OB检测原始顶部(实体边界)
     double   ob_bottom;       // OB检测原始底部(实体边界)
@@ -83,6 +84,7 @@ struct PosTrack
     bool     strong_addon;    // 是否强势延续加仓单
     datetime last_close_attempt; // 最近一次主动市价平仓尝试时间
     string   last_sl_reason; // 最近一次SL修改来源
+    int      entry_market_state; // 入场时市场状态(1=bull,-1=bear,0=range)
 };
 
 struct EAState

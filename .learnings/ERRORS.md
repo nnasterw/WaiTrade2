@@ -54,6 +54,36 @@ zsh:1: command not found: python
 
 ---
 
+## [ERR-20260520-001] yaml_anchor_missing_after_strategy_append
+
+**Logged**: 2026-05-20T17:12:00+08:00
+**Priority**: medium
+**Status**: fixed
+**Area**: strategy-config
+
+### Summary
+新增策略配置后，后续实验用 `<<: *v11_r4_hour_weight` 继承，但源策略未声明 `&v11_r4_hour_weight` anchor，导致 YAML 解析失败。
+
+### Error
+```
+yaml.composer.ComposerError: found undefined alias 'v11_r4_hour_weight'
+```
+
+### Context
+- 操作: `python3 scripts/yaml_to_set.py --all --output-dir mql5/Presets`
+- 影响: preset 生成和依赖 `config/strategies.yaml` 的 pytest 失败。
+
+### Suggested Fix
+新增可继承实验底座时，先写成 `strategy_name: &strategy_name`；运行 `python3 scripts/yaml_to_set.py --all` 作为 YAML anchor 烟测。
+
+### Metadata
+- Reproducible: yes
+- Related Files: config/strategies.yaml
+- See Also: 2026-05-20 Round9/Round10 再次发生同类问题，`v11_r9_profit_push` 继承 `*v11_r9_quality_core`、Round10 继承 `*v11_r9_quality_soft` 前未声明对应 anchor；已修复并通过 `yaml_to_set --all`。
+- Recurrence-Count: 3
+
+---
+
 ## [ERR-20260518-002] mt5_backtest_expert_path
 
 **Logged**: 2026-05-18T00:00:00+08:00

@@ -99,7 +99,7 @@ void OnTick()
     UpdateOBStatus(g_zones, g_state.ob_count, bid, ask, g_state);
 
     // 4. 扫描入场信号
-    g_state.pos_count = CountPositions();
+    g_state.pos_count = CountActivePositions();
 
     if(InpEnableEntryEngine)
     {
@@ -211,6 +211,21 @@ void OnTick()
     ManagePositions(g_tracks, g_track_count, g_state);
 }
 
+int CountActivePositions()
+{
+    if(InpFreeRunMinR <= 0)
+        return CountPositions();
+    int count = 0;
+    for(int i = 0; i < g_track_count; i++)
+    {
+        if(g_tracks[i].ticket == 0) continue;
+        if(g_tracks[i].peak_profit_r >= InpFreeRunMinR)
+            continue;
+        count++;
+    }
+    return count;
+}
+
 bool ShouldSkipEntryAttempt()
 {
     if(InpCloseRetryCooldownSec <= 0)
@@ -227,6 +242,51 @@ void MarkEntryAttemptFailed()
         return;
     datetime now = TimeCurrent();
     g_last_entry_attempt = now;
+}
+
+bool ExecuteLayeredOrders(const TradeSignal &sig, double base_price)
+{
+    if(InpLayeredEntryCount < 2) return false;
+    if(sig.ob_index < 0 || sig.ob_index >= g_state.ob_count) return false;
+
+    double ob_h = g_zones[sig.ob_index].high - g_zones[sig.ob_index].low;
+    if(ob_h <= 0) return false;
+
+    double spacing = ob_h * InpLayeredSpacingPct;
+    int layers = MathMin(InpLayeredEntryCount - 1, 3);
+
+    for(int i = 1; i <= layers; i++)
+    {
+        double offset = spacing * i;
+        double limit_price = (sig.direction > 0) ? base_price - offset : base_price + offset;
+
+        double lot_mult = 1.0 + (InpLayeredLotMult - 1.0) * i / layers;
+        double layer_lot = NormalizeDouble(sig.lot * lot_mult, 2);
+        double lot_min = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+        if(layer_lot < lot_min) layer_lot = lot_min;
+
+        MqlTradeRequest req = {};
+        MqlTradeResult  res = {};
+        req.action = TRADE_ACTION_PENDING;
+        req.symbol = _Symbol;
+        req.volume = layer_lot;
+        req.type   = (sig.direction > 0) ? ORDER_TYPE_BUY_LIMIT : ORDER_TYPE_SELL_LIMIT;
+        req.price  = NormalizeDouble(limit_price, _Digits);
+        req.sl     = sig.sl;
+        req.tp     = sig.tp;
+        req.magic  = InpMagicNumber;
+        req.comment = sig.comment + "_L" + IntegerToString(i+1);
+        req.deviation = 20;
+        req.type_filling = ORDER_FILLING_RETURN;
+        req.type_time = ORDER_TIME_GTC;
+
+        if(OrderSend(req, res))
+        {
+            if(res.retcode == TRADE_RETCODE_DONE || res.retcode == TRADE_RETCODE_PLACED)
+                Print("分层挂单L", i+1, ": price=", req.price, " lot=", layer_lot);
+        }
+    }
+    return true;
 }
 
 bool ExecuteSignal(const TradeSignal &sig)
@@ -304,7 +364,13 @@ bool ExecuteSignal(const TradeSignal &sig)
                          g_tracks, g_track_count);
 
         if(g_track_count > 0)
+        {
             g_tracks[g_track_count - 1].open_bar = g_state.bar_count;
+            g_tracks[g_track_count - 1].entry_market_state = g_state.market_state;
+        }
+
+        if(InpLayeredEntryCount >= 2)
+            ExecuteLayeredOrders(sig, result.price);
 
         if(sig.ob_index >= 0 && sig.ob_index < g_state.ob_count)
             MarkZoneUsed(g_zones, sig.ob_index);

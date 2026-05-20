@@ -566,6 +566,37 @@ def test_gap_quality_params_in_set():
     assert 'InpMaxCounterRiskATR=1.2' in content
 
 
+def test_liquidity_sweep_params_in_set():
+    assert FLAT_MAP['enable_liquidity_sweep'] == 'InpEnableLiquiditySweep'
+    assert FLAT_MAP['liquidity_sweep_only'] == 'InpLiquiditySweepOnly'
+    assert FLAT_MAP['sweep_lookback_bars'] == 'InpSweepLookbackBars'
+    assert FLAT_MAP['sweep_max_range_atr'] == 'InpSweepMaxRangeATR'
+    assert FLAT_MAP['sweep_min_range_spread_mult'] == 'InpSweepMinRangeSpreadMult'
+    assert FLAT_MAP['sweep_min_penetration_atr'] == 'InpSweepMinPenetrationATR'
+    assert FLAT_MAP['sweep_min_wick_pct'] == 'InpSweepMinWickPct'
+    assert FLAT_MAP['sweep_tp_mult'] == 'InpSweepTPMult'
+
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'enable_liquidity_sweep': True,
+        'liquidity_sweep_only': True,
+        'sweep_lookback_bars': 12,
+        'sweep_max_range_atr': 2.5,
+        'sweep_min_range_spread_mult': 4.0,
+        'sweep_min_penetration_atr': 0.05,
+        'sweep_min_wick_pct': 45.0,
+        'sweep_tp_mult': 1.5,
+    })
+    assert 'InpEnableLiquiditySweep=true' in content
+    assert 'InpLiquiditySweepOnly=true' in content
+    assert 'InpSweepLookbackBars=12' in content
+    assert 'InpSweepMaxRangeATR=2.5' in content
+    assert 'InpSweepMinRangeSpreadMult=4.0' in content
+    assert 'InpSweepMinPenetrationATR=0.05' in content
+    assert 'InpSweepMinWickPct=45.0' in content
+    assert 'InpSweepTPMult=1.5' in content
+
+
 def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['impulse_atr_mult'] == 'InpImpulseATRMult'
     assert FLAT_MAP['impulse_lookback'] == 'InpImpulseLookback'
@@ -574,9 +605,24 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['enable_pos_mult'] == 'InpEnablePosMult'
     assert FLAT_MAP['max_pos_mult'] == 'InpMaxPosMult'
     assert FLAT_MAP['max_lot_size'] == 'InpMaxLotSize'
+    assert FLAT_MAP['free_run_min_r'] == 'InpFreeRunMinR'
     assert FLAT_MAP['no_entry_hours'] == 'InpNoEntryHours'
     assert FLAT_MAP['no_buy_hours'] == 'InpNoBuyHours'
     assert FLAT_MAP['no_sell_hours'] == 'InpNoSellHours'
+    assert FLAT_MAP['low_risk_hours'] == 'InpLowRiskHours'
+    assert FLAT_MAP['low_risk_hour_mult'] == 'InpLowRiskHourMult'
+    assert FLAT_MAP['high_risk_hours'] == 'InpHighRiskHours'
+    assert FLAT_MAP['high_risk_hour_mult'] == 'InpHighRiskHourMult'
+    assert FLAT_MAP['late_bounce_sec'] == 'InpLateBounceSec'
+    assert FLAT_MAP['late_bounce_mult'] == 'InpLateBounceMult'
+    assert FLAT_MAP['bounce_sweet_min_pct'] == 'InpBounceSweetMinPct'
+    assert FLAT_MAP['bounce_sweet_max_pct'] == 'InpBounceSweetMaxPct'
+    assert FLAT_MAP['outside_bounce_sweet_mult'] == 'InpOutsideBounceSweetMult'
+    assert FLAT_MAP['bad_risk_min'] == 'InpBadRiskMin'
+    assert FLAT_MAP['bad_risk_max'] == 'InpBadRiskMax'
+    assert FLAT_MAP['bad_risk_mult'] == 'InpBadRiskMult'
+    assert FLAT_MAP['large_risk_min'] == 'InpLargeRiskMin'
+    assert FLAT_MAP['large_risk_mult'] == 'InpLargeRiskMult'
     assert FLAT_MAP['buy_min_strength'] == 'InpBuyMinStrength'
     assert FLAT_MAP['sell_min_strength'] == 'InpSellMinStrength'
     assert FLAT_MAP['buy_pos_mult'] == 'InpBuyPosMult'
@@ -621,9 +667,24 @@ def test_execution_and_scan_params_in_set():
         'enable_pos_mult': False,
         'max_pos_mult': 8.0,
         'max_lot_size': 0.08,
+        'free_run_min_r': 5.0,
         'no_entry_hours': '0,9,12',
         'no_buy_hours': '8,10',
         'no_sell_hours': '16,22',
+        'low_risk_hours': '1,3,5',
+        'low_risk_hour_mult': 0.25,
+        'high_risk_hours': '12,14,15',
+        'high_risk_hour_mult': 2.0,
+        'late_bounce_sec': 30,
+        'late_bounce_mult': 0.4,
+        'bounce_sweet_min_pct': 0.26,
+        'bounce_sweet_max_pct': 0.34,
+        'outside_bounce_sweet_mult': 0.5,
+        'bad_risk_min': 150.0,
+        'bad_risk_max': 200.0,
+        'bad_risk_mult': 0.4,
+        'large_risk_min': 300.0,
+        'large_risk_mult': 1.5,
         'close_retry_cooldown_sec': 60,
         'max_entries_per_ob': 2,
         'ob_reentry_cooldown_min': 30,
@@ -645,9 +706,24 @@ def test_execution_and_scan_params_in_set():
     assert 'InpEnablePosMult=false' in content
     assert 'InpMaxPosMult=8.0' in content
     assert 'InpMaxLotSize=0.08' in content
+    assert 'InpFreeRunMinR=5.0' in content
     assert 'InpNoEntryHours=0,9,12' in content
     assert 'InpNoBuyHours=8,10' in content
     assert 'InpNoSellHours=16,22' in content
+    assert 'InpLowRiskHours=1,3,5' in content
+    assert 'InpLowRiskHourMult=0.25' in content
+    assert 'InpHighRiskHours=12,14,15' in content
+    assert 'InpHighRiskHourMult=2.0' in content
+    assert 'InpLateBounceSec=30' in content
+    assert 'InpLateBounceMult=0.4' in content
+    assert 'InpBounceSweetMinPct=0.26' in content
+    assert 'InpBounceSweetMaxPct=0.34' in content
+    assert 'InpOutsideBounceSweetMult=0.5' in content
+    assert 'InpBadRiskMin=150.0' in content
+    assert 'InpBadRiskMax=200.0' in content
+    assert 'InpBadRiskMult=0.4' in content
+    assert 'InpLargeRiskMin=300.0' in content
+    assert 'InpLargeRiskMult=1.5' in content
     assert 'InpCloseRetryCooldownSec=60' in content
     assert 'InpMaxEntriesPerOB=2' in content
     assert 'InpOBReentryCooldownMin=30' in content
@@ -660,6 +736,25 @@ def test_execution_and_scan_params_in_set():
     assert 'InpOBScanDepth=200' in content
     assert 'InpMagicNumber=202605' in content
     assert 'InpEnableEntryEngine=false' in content
+
+
+def test_v11_layered_params_in_set():
+    assert FLAT_MAP['layered_entry_count'] == 'InpLayeredEntryCount'
+    assert FLAT_MAP['layered_spacing_pct'] == 'InpLayeredSpacingPct'
+    assert FLAT_MAP['layered_lot_mult'] == 'InpLayeredLotMult'
+    assert FLAT_MAP['layered_avg_tp_r'] == 'InpLayeredAvgTP_R'
+
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'layered_entry_count': 2,
+        'layered_spacing_pct': 0.33,
+        'layered_lot_mult': 1.5,
+        'layered_avg_tp_r': 0.0,
+    })
+    assert 'InpLayeredEntryCount=2' in content
+    assert 'InpLayeredSpacingPct=0.33' in content
+    assert 'InpLayeredLotMult=1.5' in content
+    assert 'InpLayeredAvgTP_R=0.0' in content
 
 
 def test_v98a_strategy_set():

@@ -44,6 +44,14 @@ input double InpRangeBreakoutMinSpreadMult = 3.0; // 区间最小高度/spread
 input double InpRangeBreakoutATR = 0.10;     // 有效突破额外ATR阈值
 input double InpRangeBreakoutTPMult = 1.0;   // TP=区间高度倍数(0=不用固定TP)
 input bool   InpRangeBreakoutBodyDir = true; // 突破K必须同方向实体
+input bool   InpEnableLiquiditySweep = false; // 启用流动性扫损反转入场
+input bool   InpLiquiditySweepOnly = false;   // 仅交易扫损反转，关闭常规OB
+input int    InpSweepLookbackBars = 12;       // 扫损参考区间bar数
+input double InpSweepMaxRangeATR = 2.50;      // 参考区间最大高度/ATR
+input double InpSweepMinRangeSpreadMult = 4.0; // 参考区间最小高度/spread
+input double InpSweepMinPenetrationATR = 0.05; // 扫破区间额外ATR阈值
+input double InpSweepMinWickPct = 45.0;       // 扫损K最小影线占比
+input double InpSweepTPMult = 1.0;            // TP=原区间高度倍数(0=DTP)
 input int    InpNoOBStartHour    = 23;       // 禁止建OB开始小时(服务器时间,-1=禁用)
 input int    InpNoOBEndHour      = 6;        // 禁止建OB结束小时(服务器时间,-1=禁用)
 input double InpMinOBStrength    = 0.5;      // 最低OB强度
@@ -104,6 +112,12 @@ input bool   InpDTPResetPeakAfterPartial = false; // DTP部分平仓后重置余
 input double InpFixedTPR         = 0.0;      // 固定止盈(R, 0=DTP模式)
 input double InpOBHeightTPMult   = 0.0;      // TP=OB高度倍数(0=禁用,2=量度移动)
 
+// ── 分层入场(震荡网格) ──────────────────────────────────────────────────
+input int    InpLayeredEntryCount = 0;       // 分层入场数(0=禁用,2-3=分层)
+input double InpLayeredSpacingPct = 0.33;    // 分层间距(OB高度百分比)
+input double InpLayeredLotMult    = 1.5;     // 深层仓位倍数(相对首层)
+input double InpLayeredAvgTP_R    = 0.0;     // 从均价算TP(R,0=用其他TP)
+
 // ── 时间退出 ──────────────────────────────────────────────────────────────
 input int    InpTimeExitBars     = 999;      // 超时退出(bars, 999=禁用)
 input bool   InpTimeDecayTP      = false;    // 时间衰减TP
@@ -115,10 +129,25 @@ input bool   InpEnablePosMult    = true;     // 启用仓位乘数(false=固定1
 input double InpMaxPosMult       = 0.0;      // 最大仓位乘数(0=不限制)
 input double InpMaxLotSize       = 0.0;      // 最大手数(0=不限制)
 input int    InpMaxConcurrent    = 5;        // 最大同时持仓数
+input double InpFreeRunMinR      = 0.0;      // 浮盈≥此R不计并发(0=禁用)
 input int    InpCooldownBars     = 0;        // 开仓冷却(bars)
 input string InpNoEntryHours     = "";       // 禁止入场小时CSV, 如"0,9,12"(空=禁用)
 input string InpNoBuyHours       = "";       // 禁止做多小时CSV(空=禁用)
 input string InpNoSellHours      = "";       // 禁止做空小时CSV(空=禁用)
+input string InpLowRiskHours     = "";       // 低仓位小时CSV(空=禁用)
+input double InpLowRiskHourMult  = 1.0;      // 低仓位小时仓位倍数
+input string InpHighRiskHours    = "";       // 高仓位小时CSV(空=禁用)
+input double InpHighRiskHourMult = 1.0;      // 高仓位小时仓位倍数
+input int    InpLateBounceSec    = 0;        // Bounce确认超过N秒后降权(0=禁用)
+input double InpLateBounceMult   = 1.0;      // 晚确认仓位倍数
+input double InpBounceSweetMinPct = 0.0;     // Bounce甜点下限(OB高度比例,0=禁用)
+input double InpBounceSweetMaxPct = 0.0;     // Bounce甜点上限(OB高度比例,0=禁用)
+input double InpOutsideBounceSweetMult = 1.0; // 非Bounce甜点仓位倍数
+input double InpBadRiskMin       = 0.0;      // 弱风险区间下限(价格距离,0=禁用)
+input double InpBadRiskMax       = 0.0;      // 弱风险区间上限(价格距离,0=禁用)
+input double InpBadRiskMult      = 1.0;      // 弱风险区间仓位倍数
+input double InpLargeRiskMin     = 0.0;      // 大风险结构下限(价格距离,0=禁用)
+input double InpLargeRiskMult    = 1.0;      // 大风险结构仓位倍数
 input double InpBuyMinStrength   = 0.0;      // 做多最低OB强度覆盖(0=用主参数)
 input double InpSellMinStrength  = 0.0;      // 做空最低OB强度覆盖(0=用主参数)
 input double InpBuyPosMult       = 1.0;      // 做多仓位乘数覆盖

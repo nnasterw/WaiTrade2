@@ -440,12 +440,12 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
         if(InpSellBE_Lock > 0) be_lock_r = InpSellBE_Lock;
     }
 
-    // v9.8 态感知BE参数
+    // v11: 用入场时锁定的市场状态
     if(InpEnableStateFilter)
     {
-        if(state.market_state == 0 && InpRangeBE_R > 0)
+        if(track.entry_market_state == 0 && InpRangeBE_R > 0)
             be_r = InpRangeBE_R;
-        else if(state.market_state != 0)
+        else if(track.entry_market_state != 0)
         {
             if(InpTrendBE_R > 0) be_r = InpTrendBE_R;
             if(InpTrendBE_Lock > 0) be_lock_r = InpTrendBE_Lock;
@@ -578,7 +578,7 @@ double GetDTPRetrace(const PosTrack &track, const EAState &state)
         dtp_retrace = InpSellDTPRetrace;
     if(track.htf_target && InpHTFDTPRetrace > 0)
         dtp_retrace = InpHTFDTPRetrace;
-    if(InpEnableStateFilter && state.market_state != 0 && InpTrendDTPRetrace > 0)
+    if(InpEnableStateFilter && track.entry_market_state != 0 && InpTrendDTPRetrace > 0)
         dtp_retrace = InpTrendDTPRetrace / 100.0;
     if(InpDTPStage2TriggerR > 0 && InpDTPStage2Retrace > 0 && track.dtp_peak_r >= InpDTPStage2TriggerR)
         dtp_retrace = InpDTPStage2Retrace;
@@ -697,6 +697,9 @@ void CheckDecay(PosTrack &track, const EAState &state)
 {
     if(!InpEnableDecayExit && !InpEnableMomentumRegime) return;
 
+    // DTP激活后禁用衰减检测，让大赢单自由跑
+    if(track.dtp_active) return;
+
     // 缓存 M1 rates：同一 bar 内只 CopyRates 一次（bar级模式，tick级检查无意义）
     static int    s_decay_bar = 0;
     static MqlRates s_m1_rates[];
@@ -714,7 +717,12 @@ void CheckDecay(PosTrack &track, const EAState &state)
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
     double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
 
-    bool decay = InpEnableDecayExit && current_r >= InpDecayMinR &&
+    // 震荡态入场单衰减门槛更低(0.5R)，趋势态用主参数
+    double effective_decay_min = InpDecayMinR;
+    if(track.entry_market_state == 0 && InpDecayMinR > 0.5)
+        effective_decay_min = 0.5;
+
+    bool decay = InpEnableDecayExit && current_r >= effective_decay_min &&
                  CheckMomentumDecay(_Symbol, track.direction, s_m1_rates, s_m1_count);
     bool weak = InpEnableMomentumRegime && current_r >= InpWeakExitMinR &&
                 CheckMomentumWeakness(_Symbol, track.direction, s_m1_rates, s_m1_count);
@@ -734,8 +742,8 @@ void CheckTimeExit(PosTrack &track, const EAState &state)
 {
     int time_exit_bars = InpTimeExitBars;
 
-    // v9.8 震荡态超时
-    if(InpEnableStateFilter && state.market_state == 0 && InpRangeTimeExit < 999)
+    // v11: 用入场时锁定的市场状态判断超时
+    if(InpEnableStateFilter && track.entry_market_state == 0 && InpRangeTimeExit < 999)
         time_exit_bars = InpRangeTimeExit;
 
     if(time_exit_bars >= 999) return;
@@ -789,6 +797,7 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
     t.strong_addon = false;
     t.last_close_attempt = 0;
     t.last_sl_reason = "";
+    t.entry_market_state = 0;
 
     tracks[track_count] = t;
     track_count++;
