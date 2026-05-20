@@ -19,10 +19,13 @@ from mt5_common import (
 
 # ── Wine / MT5 路径常量 ──────────────────────────────────────────────
 WINE = '/Applications/MetaTrader 5.app/Contents/SharedSupport/wine/bin/wine'
+WINESERVER = WINE.replace('/wine', '/wineserver')
 WINEPREFIX = os.path.expanduser('~/Library/Application Support/net.metaquotes.wine.metatrader5')
 MT5_MAIN = os.path.join(WINEPREFIX, 'drive_c/Program Files/MetaTrader 5')
 INI_DIR = os.path.join(WINEPREFIX, 'drive_c/bt')
 REPORT_DIR = os.path.join(WINEPREFIX, 'drive_c/bt/reports')
+
+_background = False
 
 
 def generate_set_file(strategy_name, config):
@@ -99,12 +102,11 @@ Report=C:\\bt\\reports\\{report_name}
 def kill_mt5():
     env = os.environ.copy()
     env['WINEPREFIX'] = WINEPREFIX
-    subprocess.run(['pkill', '-f', 'terminal64'], capture_output=True)
+    subprocess.run(['pkill', '-f', 'terminal64.exe'], capture_output=True)
     subprocess.run(['pkill', '-f', 'metatester64'], capture_output=True)
-    subprocess.run(['pkill', '-f', 'MetaTrader 5.app'], capture_output=True)
+    subprocess.run(['pkill', '-f', 'explorer.exe /desktop'], capture_output=True)
     try:
-        wineserver = WINE.replace('/wine', '/wineserver')
-        subprocess.run([wineserver, '-k'], env=env, capture_output=True)
+        subprocess.run([WINESERVER, '-k'], env=env, capture_output=True)
     except (FileNotFoundError, OSError):
         pass
     time.sleep(3)
@@ -152,30 +154,56 @@ def run_mt5(timeout_sec=300):
     kill_mt5()
     clear_tester_cache()
 
-    cmd = [
-        WINE,
-        r'C:\Program Files\MetaTrader 5\terminal64.exe',
-        r'/config:C:\\bt\\backtest.ini',
-    ]
+    if _background:
+        cmd = [
+            WINE, 'explorer', '/desktop=backtest,800x600',
+            r'C:\Program Files\MetaTrader 5\terminal64.exe',
+            r'/config:C:\\bt\\backtest.ini',
+        ]
+    else:
+        cmd = [
+            WINE,
+            r'C:\Program Files\MetaTrader 5\terminal64.exe',
+            r'/config:C:\\bt\\backtest.ini',
+        ]
 
-    print(f'  启动回测 (超时 {timeout_sec}s)...', end='', flush=True)
+    mode_str = '后台' if _background else '前台'
+    print(f'  启动回测[{mode_str}] (超时 {timeout_sec}s)...', end='', flush=True)
     start = time.time()
-    try:
-        subprocess.run(
+
+    if _background:
+        subprocess.Popen(
             cmd, env=env,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            timeout=timeout_sec
         )
-        elapsed = time.time() - start
-        wait_for_mt5_shutdown(timeout_sec, start)
-        elapsed = time.time() - start
-        print(f' 完成 ({elapsed:.0f}s)')
-        return True
-    except subprocess.TimeoutExpired:
-        elapsed = time.time() - start
-        print(f'\n  [超时] {elapsed:.0f}s')
-        kill_mt5()
-        return False
+        time.sleep(5)
+        try:
+            wait_for_mt5_shutdown(timeout_sec, start)
+            elapsed = time.time() - start
+            print(f' 完成 ({elapsed:.0f}s)')
+            return True
+        except subprocess.TimeoutExpired:
+            elapsed = time.time() - start
+            print(f'\n  [超时] {elapsed:.0f}s')
+            kill_mt5()
+            return False
+    else:
+        try:
+            subprocess.run(
+                cmd, env=env,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=timeout_sec
+            )
+            elapsed = time.time() - start
+            wait_for_mt5_shutdown(timeout_sec, start)
+            elapsed = time.time() - start
+            print(f' 完成 ({elapsed:.0f}s)')
+            return True
+        except subprocess.TimeoutExpired:
+            elapsed = time.time() - start
+            print(f'\n  [超时] {elapsed:.0f}s')
+            kill_mt5()
+            return False
 
 
 def is_mt5_testing_running():
@@ -277,6 +305,13 @@ def _run(strategy_names, symbols, date_from, date_to, days, config, timeout):
 
 
 def main():
+    global _background
+    if '--background' in sys.argv:
+        sys.argv.remove('--background')
+        _background = True
+    elif '--bg' in sys.argv:
+        sys.argv.remove('--bg')
+        _background = True
     backtest_main('MT5 Strategy Tester 回测管理器（Wine/macOS）', _run)
 
 
