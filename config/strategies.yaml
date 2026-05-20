@@ -208,6 +208,9 @@ defaults: &defaults
   htf_dtp_post_partial_retrace: 0.0
   partial_post_lock_r: 0.0
   partial_only_deep: false
+  partial_close_r: 0.0
+  partial_close_pct: 50
+  proximity_filter: 0
   layered_entry_count: 0
   layered_spacing_pct: 0.33
   layered_lot_mult: 1.5
