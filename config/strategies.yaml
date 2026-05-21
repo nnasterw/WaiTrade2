@@ -19976,3 +19976,39 @@ v11j1:
   max_pos_mult: 150.0
   max_lot_size: 3.20
   magic_number: 202901
+
+# ═══ V11 正式版: XAU 震荡期专用 ═══
+
+v11g1:
+  <<: *v10a
+  version: V11G1
+  description: "v11g1正式版: XAU震荡期FAGE+SL0.3+TP1R+BE0.5锁0.4"
+  filter_cont_age_min_bars: 40
+  filter_cont_age_max_bars: 79
+  filter_cont_non_deep_only: true
+  filter_buy_no_h1_min_pos_mult: 4.0
+  filter_buy_no_h1_max_pos_mult: 8.0
+  filter_buy_no_h1_pos_mult: 0.40
+  no_buy_hours: ""
+  no_sell_hours: ""
+  sl_buffer_atr: 0.30
+  max_concurrent: 5
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  fixed_tp_r: 1.0
+  dtp_trigger_r: 0.0
+  time_exit_bars: 20
+  dtp_exit_mode: 0
+  trail_levels:
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+    - trigger_r: 0.0
+      lock_r: 0.0
+      lock_mult: 0.0
+  mfe_fail_min_r: 0.0
+  mfe_fail_exit_r: 0.0
+  magic_number: 203001
