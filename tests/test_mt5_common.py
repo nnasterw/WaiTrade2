@@ -623,6 +623,15 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['bad_risk_mult'] == 'InpBadRiskMult'
     assert FLAT_MAP['large_risk_min'] == 'InpLargeRiskMin'
     assert FLAT_MAP['large_risk_mult'] == 'InpLargeRiskMult'
+    assert FLAT_MAP['shallow_confirm_pos_min'] == 'InpShallowConfirmPosMin'
+    assert FLAT_MAP['shallow_confirm_pos_mult'] == 'InpShallowConfirmPosMult'
+    assert FLAT_MAP['enable_htf_net_push_filter'] == 'InpEnableHTFNetPushFilter'
+    assert FLAT_MAP['htf_net_push_tf'] == 'InpHTFNetPushTF'
+    assert FLAT_MAP['htf_net_push_bars'] == 'InpHTFNetPushBars'
+    assert FLAT_MAP['htf_net_push_min_atr'] == 'InpHTFNetPushMinATR'
+    assert FLAT_MAP['htf_net_push_aligned_mult'] == 'InpHTFNetPushAlignedMult'
+    assert FLAT_MAP['htf_net_push_neutral_mult'] == 'InpHTFNetPushNeutralMult'
+    assert FLAT_MAP['htf_net_push_counter_mult'] == 'InpHTFNetPushCounterMult'
     assert FLAT_MAP['buy_min_strength'] == 'InpBuyMinStrength'
     assert FLAT_MAP['sell_min_strength'] == 'InpSellMinStrength'
     assert FLAT_MAP['buy_pos_mult'] == 'InpBuyPosMult'
@@ -685,6 +694,15 @@ def test_execution_and_scan_params_in_set():
         'bad_risk_mult': 0.4,
         'large_risk_min': 300.0,
         'large_risk_mult': 1.5,
+        'shallow_confirm_pos_min': -0.6,
+        'shallow_confirm_pos_mult': 0.45,
+        'enable_htf_net_push_filter': True,
+        'htf_net_push_tf': 15,
+        'htf_net_push_bars': 4,
+        'htf_net_push_min_atr': 0.6,
+        'htf_net_push_aligned_mult': 1.2,
+        'htf_net_push_neutral_mult': 0.8,
+        'htf_net_push_counter_mult': 0.35,
         'close_retry_cooldown_sec': 60,
         'max_entries_per_ob': 2,
         'ob_reentry_cooldown_min': 30,
@@ -724,6 +742,15 @@ def test_execution_and_scan_params_in_set():
     assert 'InpBadRiskMult=0.4' in content
     assert 'InpLargeRiskMin=300.0' in content
     assert 'InpLargeRiskMult=1.5' in content
+    assert 'InpShallowConfirmPosMin=-0.6' in content
+    assert 'InpShallowConfirmPosMult=0.45' in content
+    assert 'InpEnableHTFNetPushFilter=true' in content
+    assert 'InpHTFNetPushTF=15' in content
+    assert 'InpHTFNetPushBars=4' in content
+    assert 'InpHTFNetPushMinATR=0.6' in content
+    assert 'InpHTFNetPushAlignedMult=1.2' in content
+    assert 'InpHTFNetPushNeutralMult=0.8' in content
+    assert 'InpHTFNetPushCounterMult=0.35' in content
     assert 'InpCloseRetryCooldownSec=60' in content
     assert 'InpMaxEntriesPerOB=2' in content
     assert 'InpOBReentryCooldownMin=30' in content

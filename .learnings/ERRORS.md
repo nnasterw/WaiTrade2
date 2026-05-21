@@ -79,8 +79,8 @@ yaml.composer.ComposerError: found undefined alias 'v11_r4_hour_weight'
 ### Metadata
 - Reproducible: yes
 - Related Files: config/strategies.yaml
-- See Also: 2026-05-20 Round9/Round10 再次发生同类问题，`v11_r9_profit_push` 继承 `*v11_r9_quality_core`、Round10 继承 `*v11_r9_quality_soft` 前未声明对应 anchor；已修复并通过 `yaml_to_set --all`。
-- Recurrence-Count: 3
+- See Also: 2026-05-20 Round9/Round10 再次发生同类问题，`v11_r9_profit_push` 继承 `*v11_r9_quality_core`、Round10 继承 `*v11_r9_quality_soft` 前未声明对应 anchor；2026-05-21 Round12 再次继承 `*v11_r10_qsoft_freq` / `*v11_r10_qsoft_6k` 前未声明 anchor；Round15 再次继承 `*v11_r11_qsoft_l45_add1120` 前未声明 anchor；Round16 再次继承 `*v11_r15_q1120_h1push` 前未声明 anchor；Round18 再次继承 `*v11_r18_shallow_h1320_r3` 前未声明 anchor，已补齐。
+- Recurrence-Count: 7
 
 ---
 

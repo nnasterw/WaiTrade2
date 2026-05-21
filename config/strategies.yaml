@@ -137,6 +137,15 @@ defaults: &defaults
   bad_risk_mult: 1.0
   large_risk_min: 0.0
   large_risk_mult: 1.0
+  shallow_confirm_pos_min: -999.0
+  shallow_confirm_pos_mult: 1.0
+  enable_htf_net_push_filter: false
+  htf_net_push_tf: 15
+  htf_net_push_bars: 4
+  htf_net_push_min_atr: 0.50
+  htf_net_push_aligned_mult: 1.0
+  htf_net_push_neutral_mult: 1.0
+  htf_net_push_counter_mult: 1.0
   buy_min_strength: 0.0
   sell_min_strength: 0.0
   buy_pos_mult: 1.0
@@ -19443,7 +19452,7 @@ v11_r10_qsoft_h1314:
   max_lot_size: 1.70
   magic_number: 202702
 
-v11_r10_qsoft_freq:
+v11_r10_qsoft_freq: &v11_r10_qsoft_freq
   <<: *v11_r9_quality_soft
   version: V11-R10-QFREQ
   description: "QSOFT轻微放松质量降权，优先补足日均>1"
@@ -19457,7 +19466,7 @@ v11_r10_qsoft_freq:
   max_lot_size: 1.70
   magic_number: 202703
 
-v11_r10_qsoft_6k:
+v11_r10_qsoft_6k: &v11_r10_qsoft_6k
   <<: *v11_r10_qsoft_h13
   version: V11-R10-Q6K
   description: "QSOFT高仓利润版: 只在PF>2底座上尝试接近6000"
@@ -19491,9 +19500,479 @@ v11_r11_qsoft_add1120: &v11_r11_qsoft_add1120
   low_risk_hours: "1,2,3,4,5,6,7,8,10,15,16,18,19,21,22"
   magic_number: 202713
 
-v11_r11_qsoft_l45_add1120:
+v11_r11_qsoft_l45_add1120: &v11_r11_qsoft_l45_add1120
   <<: *v11_r11_qsoft_add1120
   version: V11-R11-Q45A
   description: "QSOFT释放11/20时，并把低仓倍数提高到0.45"
   low_risk_hour_mult: 0.45
   magic_number: 202714
+
+# ═══ V11 Round12: no-progress主动退出，压缩补频坏单亏损 ═══
+
+v11_r12_qsoft_np2:
+  <<: *v11_r9_quality_soft
+  version: V11-R12-QNP2
+  description: "QSOFT+2根M5无0.10R浮盈且跌至-0.20R早退，测试压缩坏单SL"
+  no_mfe_exit_bars: 2
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.20
+  mfe_fail_min_r: 0.50
+  mfe_fail_exit_r: -0.10
+  magic_number: 202721
+
+v11_r12_qsoft_np3:
+  <<: *v11_r9_quality_soft
+  version: V11-R12-QNP3
+  description: "QSOFT+3根M5 no-progress早退，较温和保护大赢回撤空间"
+  no_mfe_exit_bars: 3
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.25
+  mfe_fail_min_r: 0.50
+  mfe_fail_exit_r: -0.10
+  magic_number: 202722
+
+v11_r12_freq_np2:
+  <<: *v11_r10_qsoft_freq
+  version: V11-R12-FNP2
+  description: "补频版+2根M5 no-progress早退，检验早退能否守住PF并保日均>1"
+  no_mfe_exit_bars: 2
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.20
+  mfe_fail_min_r: 0.50
+  mfe_fail_exit_r: -0.10
+  magic_number: 202723
+
+v11_r12_6k_np2:
+  <<: *v11_r10_qsoft_6k
+  version: V11-R12-6KNP
+  description: "QSOFT高仓利润版+no-progress早退，验证盈利上限是否可在保护亏损端后接近6000"
+  no_mfe_exit_bars: 2
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.20
+  mfe_fail_min_r: 0.50
+  mfe_fail_exit_r: -0.10
+  magic_number: 202724
+
+# ═══ V11 Round13: 入场前 M15/H1 反向强动能过滤 ═══
+
+v11_r13_qsoft_m15mom:
+  <<: *v11_r9_quality_soft
+  version: V11-R13-QM15
+  description: "QSOFT+M15反向强动能过滤，测试入场前HTF保护是否优于早退"
+  enable_entry_momentum_filter: true
+  entry_momentum_tf: 15
+  entry_block_counter_strong: true
+  entry_require_counter_weak: false
+  strong_momentum_bars: 3
+  strong_min_body_growth: 1.0
+  strong_max_pullback_pct: 45.0
+  magic_number: 202731
+
+v11_r13_qsoft_h1mom:
+  <<: *v11_r9_quality_soft
+  version: V11-R13-QH1M
+  description: "QSOFT+H1反向强动能过滤，测试更高周期趋势保护"
+  enable_entry_momentum_filter: true
+  entry_momentum_tf: 60
+  entry_block_counter_strong: true
+  entry_require_counter_weak: false
+  strong_momentum_bars: 3
+  strong_min_body_growth: 1.0
+  strong_max_pullback_pct: 45.0
+  magic_number: 202732
+
+v11_r13_freq_m15mom:
+  <<: *v11_r10_qsoft_freq
+  version: V11-R13-FM15
+  description: "补频版+M15反向强动能过滤，目标保日均>1并修复PF"
+  enable_entry_momentum_filter: true
+  entry_momentum_tf: 15
+  entry_block_counter_strong: true
+  entry_require_counter_weak: false
+  strong_momentum_bars: 3
+  strong_min_body_growth: 1.0
+  strong_max_pullback_pct: 45.0
+  magic_number: 202733
+
+v11_r13_freq_h1mom:
+  <<: *v11_r10_qsoft_freq
+  version: V11-R13-FH1M
+  description: "补频版+H1反向强动能过滤，测试高周期保护能否保频提PF"
+  enable_entry_momentum_filter: true
+  entry_momentum_tf: 60
+  entry_block_counter_strong: true
+  entry_require_counter_weak: false
+  strong_momentum_bars: 3
+  strong_min_body_growth: 1.0
+  strong_max_pullback_pct: 45.0
+  magic_number: 202734
+
+# ═══ V11 Round14: 新增HTF净推进仓位分层 ═══
+
+v11_r14_qsoft_m15push:
+  <<: *v11_r9_quality_soft
+  version: V11-R14-QM15P
+  description: "QSOFT+M15净推进分层: 同向加权、反向降权，验证HTF净推进是否提升PF"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 15
+  htf_net_push_bars: 4
+  htf_net_push_min_atr: 0.45
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 1.0
+  htf_net_push_counter_mult: 0.45
+  magic_number: 202741
+
+v11_r14_qsoft_h1push:
+  <<: *v11_r9_quality_soft
+  version: V11-R14-QH1P
+  description: "QSOFT+H1净推进分层，测试更高周期方向推进"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.35
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 1.0
+  htf_net_push_counter_mult: 0.45
+  magic_number: 202742
+
+v11_r14_freq_m15push:
+  <<: *v11_r10_qsoft_freq
+  version: V11-R14-FM15P
+  description: "补频版+M15净推进分层: 目标保日均>1同时修复PF"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 15
+  htf_net_push_bars: 4
+  htf_net_push_min_atr: 0.45
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 0.80
+  htf_net_push_counter_mult: 0.30
+  magic_number: 202743
+
+v11_r14_freq_h1push:
+  <<: *v11_r10_qsoft_freq
+  version: V11-R14-FH1P
+  description: "补频版+H1净推进分层: 测试高周期保护能否保频提PF"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.35
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 0.80
+  htf_net_push_counter_mult: 0.30
+  magic_number: 202744
+
+v11_r14_6k_m15push:
+  <<: *v11_r10_qsoft_6k
+  version: V11-R14-6KM15
+  description: "6K利润版+M15净推进分层，验证高仓在HTF保护后能否接近目标"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 15
+  htf_net_push_bars: 4
+  htf_net_push_min_atr: 0.45
+  htf_net_push_aligned_mult: 1.20
+  htf_net_push_neutral_mult: 0.80
+  htf_net_push_counter_mult: 0.25
+  magic_number: 202745
+
+# ═══ V11 Round15: H1净推进温和化与Round11释放小时组合 ═══
+
+v11_r15_q1120_h1push: &v11_r15_q1120_h1push
+  <<: *v11_r11_qsoft_add1120
+  version: V11-R15-Q1120H1
+  description: "Q1120底座+H1净推进分层，尝试保PF>2并补近180笔"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.35
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 1.0
+  htf_net_push_counter_mult: 0.45
+  magic_number: 202751
+
+v11_r15_q45a_h1push: &v11_r15_q45a_h1push
+  <<: *v11_r11_qsoft_l45_add1120
+  version: V11-R15-Q45AH1
+  description: "Q45A补频底座+H1净推进分层，测试日均>1与PF>2交集"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.35
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 1.0
+  htf_net_push_counter_mult: 0.45
+  magic_number: 202752
+
+v11_r15_freq_h1soft:
+  <<: *v11_r10_qsoft_freq
+  version: V11-R15-FH1SOFT
+  description: "补频版+温和H1净推进: 只轻降反向推进，避免最小手数掉单"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.35
+  htf_net_push_aligned_mult: 1.10
+  htf_net_push_neutral_mult: 1.0
+  htf_net_push_counter_mult: 0.60
+  magic_number: 202753
+
+v11_r15_6k_h1push:
+  <<: *v11_r10_qsoft_6k
+  version: V11-R15-6KH1
+  description: "6K利润版+H1净推进分层，测试H1比M15是否更适合高仓右尾"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.35
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 1.0
+  htf_net_push_counter_mult: 0.45
+  magic_number: 202754
+
+# ═══ V11 Round16: Q1120-H1低仓倍数细化，寻找PF>2与日均>1交点 ═══
+
+v11_r16_q1120_l40_h1:
+  <<: *v11_r15_q1120_h1push
+  version: V11-R16-L40H1
+  description: "Q1120-H1低仓0.40，细化PF>2与181笔交点"
+  low_risk_hour_mult: 0.40
+  magic_number: 202761
+
+v11_r16_q1120_l42_h1:
+  <<: *v11_r15_q1120_h1push
+  version: V11-R16-L42H1
+  description: "Q1120-H1低仓0.42，细化PF>2与181笔交点"
+  low_risk_hour_mult: 0.42
+  magic_number: 202762
+
+v11_r16_q1120_l43_h1:
+  <<: *v11_r15_q1120_h1push
+  version: V11-R16-L43H1
+  description: "Q1120-H1低仓0.43，细化PF>2与181笔交点"
+  low_risk_hour_mult: 0.43
+  magic_number: 202763
+
+v11_r16_q45a_h1hard:
+  <<: *v11_r15_q45a_h1push
+  version: V11-R16-Q45H
+  description: "Q45A-H1加强反向推进降权到0.35，测试181笔附近能否拉回PF"
+  htf_net_push_counter_mult: 0.35
+  magic_number: 202764
+
+# ═══ V11 Round17: 浅确认位置降权，过滤OB边缘假反弹 ═══
+
+v11_r17_q45a_shallow_soft:
+  <<: *v11_r15_q45a_h1push
+  version: V11-R17-Q45S65
+  description: "Q45A-H1浅确认confirm_pos>-0.6软降权，验证OB边缘确认是否是假反弹来源"
+  shallow_confirm_pos_min: -0.60
+  shallow_confirm_pos_mult: 0.65
+  magic_number: 202771
+
+v11_r17_q45a_shallow_hard: &v11_r17_q45a_shallow_hard
+  <<: *v11_r15_q45a_h1push
+  version: V11-R17-Q45S45
+  description: "Q45A-H1浅确认confirm_pos>-0.6硬降权，目标拉回PF"
+  shallow_confirm_pos_min: -0.60
+  shallow_confirm_pos_mult: 0.45
+  magic_number: 202772
+
+v11_r17_q45a_shallow_r120:
+  <<: *v11_r15_q45a_h1push
+  version: V11-R17-Q45SR
+  description: "Q45A-H1浅确认降权+120-200风险档降权，压缩新增边缘亏损单"
+  shallow_confirm_pos_min: -0.60
+  shallow_confirm_pos_mult: 0.55
+  bad_risk_min: 120.0
+  bad_risk_max: 200.0
+  bad_risk_mult: 0.45
+  magic_number: 202773
+
+v11_r17_q1120_l44_shallow:
+  <<: *v11_r15_q1120_h1push
+  version: V11-R17-L44S
+  description: "Q1120-H1低仓0.44+浅确认降权，寻找PF>2与接近180笔交点"
+  low_risk_hour_mult: 0.44
+  shallow_confirm_pos_min: -0.60
+  shallow_confirm_pos_mult: 0.55
+  magic_number: 202774
+
+# ═══ V11 Round18: 在R17前沿上做利润放大，保持浅确认保护 ═══
+
+v11_r18_shallow_h1320:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R18-H1320
+  description: "R17前沿扩展高仓小时到13/14/20，验证优质小时扩容能否接近6000"
+  high_risk_hours: "12,13,14,17,20,23"
+  max_pos_mult: 96.0
+  max_lot_size: 2.00
+  magic_number: 202781
+
+v11_r18_shallow_r3:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R18-R3
+  description: "R17前沿risk3%，只放大风险不改小时集合"
+  risk_percent: 3.0
+  max_pos_mult: 96.0
+  max_lot_size: 2.00
+  magic_number: 202782
+
+v11_r18_shallow_h1320_r3: &v11_r18_shallow_h1320_r3
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R18-H1320R3
+  description: "R17前沿高仓小时扩容+risk3%，测试利润目标路径"
+  high_risk_hours: "12,13,14,17,20,23"
+  risk_percent: 3.0
+  max_pos_mult: 120.0
+  max_lot_size: 2.50
+  magic_number: 202783
+
+v11_r18_shallow_h1320_r3_lg:
+  <<: *v11_r18_shallow_h1320_r3
+  version: V11-R18-H1320R3LG
+  description: "R18利润版叠加大risk结构1.8倍，测试右尾放大上限"
+  large_risk_mult: 1.80
+  magic_number: 202784
+
+# ═══ V11 Round19: 利润放大窄网格，避免小时扩容污染PF ═══
+
+v11_r19_shallow_r28:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R19-R28
+  description: "R17前沿risk2.8%，在PF>2附近寻找更高余额"
+  risk_percent: 2.8
+  max_pos_mult: 96.0
+  max_lot_size: 2.00
+  magic_number: 202791
+
+v11_r19_shallow_r29:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R19-R29
+  description: "R17前沿risk2.9%，验证risk3临界点前的PF余量"
+  risk_percent: 2.9
+  max_pos_mult: 96.0
+  max_lot_size: 2.00
+  magic_number: 202792
+
+v11_r19_shallow_h13:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R19-H13
+  description: "R17前沿仅把13时纳入高仓，避免14/20污染"
+  high_risk_hours: "12,13,17,23"
+  max_pos_mult: 96.0
+  max_lot_size: 2.00
+  magic_number: 202793
+
+v11_r19_shallow_h13_r28:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R19-H13R28
+  description: "R17前沿13时高仓+risk2.8%，测试较温和利润放大"
+  high_risk_hours: "12,13,17,23"
+  risk_percent: 2.8
+  max_pos_mult: 110.0
+  max_lot_size: 2.30
+  magic_number: 202794
+
+# ═══ V11 Round20: 只放大大结构，不扩展高仓小时 ═══
+
+v11_r20_shallow_r28_lg18:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R20-R28LG18
+  description: "R19 risk2.8 + 大结构1.8倍，单独验证risk300-400利润源"
+  risk_percent: 2.8
+  large_risk_mult: 1.80
+  max_pos_mult: 110.0
+  max_lot_size: 2.30
+  magic_number: 202801
+
+v11_r20_shallow_r29_lg18:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R20-R29LG18
+  description: "R19 risk2.9 + 大结构1.8倍，测试PF余量"
+  risk_percent: 2.9
+  large_risk_mult: 1.80
+  max_pos_mult: 110.0
+  max_lot_size: 2.30
+  magic_number: 202802
+
+v11_r20_shallow_r28_lg22:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R20-R28LG22
+  description: "R19 risk2.8 + 大结构2.2倍，测试右尾放大上限"
+  risk_percent: 2.8
+  large_risk_mult: 2.20
+  max_pos_mult: 130.0
+  max_lot_size: 2.80
+  magic_number: 202803
+
+v11_r20_shallow_r29_lg22:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R20-R29LG22
+  description: "R19 risk2.9 + 大结构2.2倍，检验利润与PF临界"
+  risk_percent: 2.9
+  large_risk_mult: 2.20
+  max_pos_mult: 130.0
+  max_lot_size: 2.80
+  magic_number: 202804
+
+# ═══ V11 Round21: 围绕R20最优点继续窄网格，冲击6000但守PF ═══
+
+v11_r21_shallow_r28_lg23:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R21-R28LG23
+  description: "R20最优点邻域: risk2.8 + 大结构2.3倍"
+  risk_percent: 2.8
+  large_risk_mult: 2.30
+  max_pos_mult: 140.0
+  max_lot_size: 3.00
+  magic_number: 202811
+
+v11_r21_shallow_r28_lg24:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R21-R28LG24
+  description: "R20最优点邻域: risk2.8 + 大结构2.4倍，测试6000门槛"
+  risk_percent: 2.8
+  large_risk_mult: 2.40
+  max_pos_mult: 150.0
+  max_lot_size: 3.20
+  magic_number: 202812
+
+v11_r21_shallow_r27_lg24:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R21-R27LG24
+  description: "略降全局风险到2.7并放大大结构2.4，观察是否改善路径"
+  risk_percent: 2.7
+  large_risk_mult: 2.40
+  max_pos_mult: 150.0
+  max_lot_size: 3.20
+  magic_number: 202813
+
+v11_r21_shallow_r275_lg23:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-R21-R275LG23
+  description: "risk2.75 + 大结构2.3倍，测试手数离散中间点"
+  risk_percent: 2.75
+  large_risk_mult: 2.30
+  max_pos_mult: 140.0
+  max_lot_size: 3.00
+  magic_number: 202814
+
+# 当前BTC M5候选：Round21最优
+v11_btc_m5_r21:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11-BTC-M5-R21
+  description: "BTC M5当前候选: 浅确认降权 + H1净推进 + 低全局风险 + 大结构集中放大"
+  risk_percent: 2.7
+  large_risk_mult: 2.40
+  max_pos_mult: 150.0
+  max_lot_size: 3.20
+  magic_number: 202899
+
+v11j1:
+  <<: *v11_r17_q45a_shallow_hard
+  version: V11J1
+  description: "v11j1正式版: BTC M5浅确认降权 + H1净推进 + 低全局风险 + 大结构集中放大"
+  risk_percent: 2.7
+  large_risk_mult: 2.40
+  max_pos_mult: 150.0
+  max_lot_size: 3.20
+  magic_number: 202901

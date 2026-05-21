@@ -280,7 +280,48 @@ double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double ris
       risk_price >= InpLargeRiskMin)
       pos_mult *= InpLargeRiskMult;
 
+   if(InpShallowConfirmPosMin > -999.0 && InpShallowConfirmPosMult != 1.0 &&
+      signal.confirm_ob_pos > InpShallowConfirmPosMin)
+   {
+      if(InpShallowConfirmPosMult <= 0)
+         return -1.0;
+      pos_mult *= InpShallowConfirmPosMult;
+   }
+
    return pos_mult;
+}
+
+double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
+{
+   if(!InpEnableHTFNetPushFilter || InpHTFNetPushMinATR <= 0)
+      return pos_mult;
+
+   int bars = MathMax(InpHTFNetPushBars, 1);
+   int need = bars + InpATRPeriod + 1;
+   ENUM_TIMEFRAMES tf = MinutesToTF(InpHTFNetPushTF);
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 1, need, rates);
+   if(count < bars + 1)
+      return pos_mult;
+
+   double atr = CalcATR(rates, count, InpATRPeriod);
+   if(atr <= 0)
+      return pos_mult;
+
+   int start = count - bars;
+   double net_move = (rates[count - 1].close - rates[start].open) * direction;
+   double net_atr = net_move / atr;
+   double mult = InpHTFNetPushNeutralMult;
+
+   if(net_atr >= InpHTFNetPushMinATR)
+      mult = InpHTFNetPushAlignedMult;
+   else if(net_atr <= -InpHTFNetPushMinATR)
+      mult = InpHTFNetPushCounterMult;
+
+   if(mult <= 0)
+      return -1.0;
+   return pos_mult * mult;
 }
 
 bool PassOBReentryCooldown(const OBZone &zone)
@@ -410,6 +451,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
    pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyHTFNetPushPositionMultiplier(signal.direction, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, signal.deep_entry))
       return false;
@@ -633,6 +675,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    pos_mult = ApplyDirectionPosMult(zone.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
    pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyHTFNetPushPositionMultiplier(zone.direction, pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, deep_entry))
       return false;

@@ -1,0 +1,51 @@
+策略: v11j1
+品种: BTCUSDm, ETHUSDm, XAUUSDm, USOILm
+周期: 2026.04.21 ~ 2026.05.21 (30天)
+MT5 回测管理器
+
+策略: v11j1 | 品种数: 4 | 周期: 2026.04.21 ~ 2026.05.21
+============================================================
+  .set 文件已写入: v11j1.set
+
+[1/4] 回测 BTCUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2026.04.21~2026.05.21
+  启动回测[后台] (超时 300s)... 完成 (19s)
+  结果: 25笔交易, 胜率40.0%, 余额$466.01
+
+[2/4] 回测 ETHUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2026.04.21~2026.05.21
+  启动回测[后台] (超时 300s)... 完成 (17s)
+  结果: 5笔交易, 胜率20.0%, 余额$181.88
+
+[3/4] 回测 XAUUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2026.04.21~2026.05.21
+  启动回测[后台] (超时 300s)... 完成 (23s)
+  结果: 17笔交易, 胜率58.8%, 余额$425.78
+
+[4/4] 回测 USOILm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2026.04.21~2026.05.21
+  启动回测[后台] (超时 300s)... 完成 (29s)
+  结果: 23笔交易, 胜率43.5%, 余额$139.92
+
+=====================================================================
+MT5 Strategy Tester 回测报告 — V11J1
+日期: 2026.04.21 ~ 2026.05.21 (30天) | 资金: $200 | 杠杆: 1:2000
+=====================================================================
+
+品种         交易  日均  胜率   盈亏比  净R     余额
+---------------------------------------------------------------------
+BTCUSDm      25    0.8   40.0   %5.19    N/A     $466.01
+ETHUSDm      5     0.2   20.0   %0.39    N/A     $181.88
+XAUUSDm      17    0.6   58.8   %5.15    N/A     $425.78
+USOILm       23    0.8   43.5   %0.33    N/A     $139.92
+---------------------------------------------------------------------
+合计          70    2.3   44.3   %        N/A     $1213.59
+=====================================================================
+
+报告已保存: /Users/wen/Projects/ClaudeCode/WaiTrade2/results/backtest/v11j1_20260521.txt
+
+全部回测完成。
