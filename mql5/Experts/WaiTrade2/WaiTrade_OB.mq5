@@ -357,6 +357,7 @@ bool ExecuteSignal(const TradeSignal &sig)
               " touch=", DoubleToString(sig.touch_price, _Digits),
               " confirm=", DoubleToString(sig.confirm_price, _Digits));
 
+        RecordMonthlyEntry();
         RegisterPosition(result.order, sig.direction, result.price, sig.sl, sig.risk_price,
                          sig.deep_entry,
                          sig.htf_target, sig.htf_partial_r, sig.htf_partial_pct,

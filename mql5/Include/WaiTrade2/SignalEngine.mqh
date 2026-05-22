@@ -296,6 +296,8 @@ double ApplyBalancePositionMultiplier(double pos_mult)
 
 int g_monthly_risk_key = 0;
 double g_monthly_start_balance = 0.0;
+double g_monthly_peak_balance = 0.0;
+int g_monthly_entry_count = 0;
 
 void SyncMonthlyRiskState()
 {
@@ -306,21 +308,63 @@ void SyncMonthlyRiskState()
    {
       g_monthly_risk_key = key;
       g_monthly_start_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      g_monthly_peak_balance = g_monthly_start_balance;
+      g_monthly_entry_count = 0;
    }
+}
+
+void UpdateMonthlyPeakBalance(double balance)
+{
+   if(balance > g_monthly_peak_balance)
+      g_monthly_peak_balance = balance;
+}
+
+void RecordMonthlyEntry()
+{
+   SyncMonthlyRiskState();
+   g_monthly_entry_count++;
 }
 
 bool PassMonthlyEntryGuard()
 {
-   if(InpMonthlyLossStopPct <= 0)
-      return true;
    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-   if(InpMonthlyGuardMinBalance > 0 && balance < InpMonthlyGuardMinBalance)
+   bool loss_guard_enabled = (InpMonthlyLossStopPct > 0 &&
+      (InpMonthlyGuardMinBalance <= 0 || balance >= InpMonthlyGuardMinBalance));
+   bool profit_lock_enabled = (InpMonthlyProfitLockStartPct > 0 &&
+      InpMonthlyProfitLockKeepPct > 0 &&
+      (InpMonthlyProfitLockMinBalance <= 0 || balance >= InpMonthlyProfitLockMinBalance));
+
+   if(!loss_guard_enabled && !profit_lock_enabled)
       return true;
+
    SyncMonthlyRiskState();
+   UpdateMonthlyPeakBalance(balance);
    if(g_monthly_start_balance <= 0)
       return true;
-   double stop_balance = g_monthly_start_balance * (1.0 - InpMonthlyLossStopPct / 100.0);
-   return (balance > stop_balance);
+
+   if(loss_guard_enabled)
+   {
+      double stop_balance = g_monthly_start_balance * (1.0 - InpMonthlyLossStopPct / 100.0);
+      bool enough_trades = (InpMonthlyLossStopMinTrades <= 0 ||
+         g_monthly_entry_count >= InpMonthlyLossStopMinTrades);
+      if(enough_trades && balance <= stop_balance)
+         return false;
+   }
+
+   if(profit_lock_enabled)
+   {
+      double peak_profit = g_monthly_peak_balance - g_monthly_start_balance;
+      double current_profit = balance - g_monthly_start_balance;
+      double start_profit = g_monthly_start_balance * InpMonthlyProfitLockStartPct / 100.0;
+      if(peak_profit >= start_profit)
+      {
+         double keep_profit = peak_profit * InpMonthlyProfitLockKeepPct / 100.0;
+         if(current_profit < keep_profit)
+            return false;
+      }
+   }
+
+   return true;
 }
 
 double ApplyMonthlyPositionMultiplier(double pos_mult)

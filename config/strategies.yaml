@@ -126,7 +126,11 @@ defaults: &defaults
   low_balance_max_lot_size: 0.0
   monthly_guard_min_balance: 0.0
   monthly_loss_stop_pct: 0.0
+  monthly_loss_stop_min_trades: 0
   monthly_negative_pos_mult: 1.0
+  monthly_profit_lock_min_balance: 0.0
+  monthly_profit_lock_start_pct: 0.0
+  monthly_profit_lock_keep_pct: 0.0
   max_concurrent: 5
   free_run_min_r: 0.0
   cooldown_bars: 0
@@ -21066,3 +21070,135 @@ v11_r49_j2_g30m10_rb_micro:
   range_breakout_pos_mult: 0.10
   range_breakout_max_lot_size: 0.01
   magic_number: 203353
+
+# ═══ V11 Round50: 月内盈利回吐锁 ═══
+
+v11_r50_j2_g30m10_pl2k30: &v11_r50_j2_g30m10_pl2k30
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R50-PL2K30
+  description: "720天月内盈利回吐锁: 月内盈利达到2%后，回吐到峰值盈利30%以下停止新开仓"
+  monthly_profit_lock_start_pct: 2.0
+  monthly_profit_lock_keep_pct: 30.0
+  magic_number: 203361
+
+v11_r50_j2_g30m10_pl2k50:
+  <<: *v11_r50_j2_g30m10_pl2k30
+  version: V11-R50-PL2K50
+  description: "720天月内盈利回吐锁: 月内盈利达到2%后，回吐到峰值盈利50%以下停止新开仓"
+  monthly_profit_lock_keep_pct: 50.0
+  magic_number: 203362
+
+v11_r50_j2_g30m10_pl5k30:
+  <<: *v11_r50_j2_g30m10_pl2k30
+  version: V11-R50-PL5K30
+  description: "720天月内盈利回吐锁: 月内盈利达到5%后，回吐到峰值盈利30%以下停止新开仓"
+  monthly_profit_lock_start_pct: 5.0
+  monthly_profit_lock_keep_pct: 30.0
+  magic_number: 203363
+
+# ═══ V11 Round51: 高余额阶段盈利回吐锁 ═══
+
+v11_r51_j2_g30m10_hpl50_2k30: &v11_r51_j2_g30m10_hpl50_2k30
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R51-HPL50-2K30
+  description: "720天高余额盈利锁: 仅余额>=50000后启用，月内盈利2%后回吐到峰值盈利30%以下停止新开仓"
+  monthly_profit_lock_min_balance: 50000.0
+  monthly_profit_lock_start_pct: 2.0
+  monthly_profit_lock_keep_pct: 30.0
+  magic_number: 203371
+
+v11_r51_j2_g30m10_hpl50_2k50:
+  <<: *v11_r51_j2_g30m10_hpl50_2k30
+  version: V11-R51-HPL50-2K50
+  description: "720天高余额盈利锁: 余额>=50000，月内盈利2%后保留峰值盈利50%"
+  monthly_profit_lock_keep_pct: 50.0
+  magic_number: 203372
+
+v11_r51_j2_g30m10_hpl60_2k30:
+  <<: *v11_r51_j2_g30m10_hpl50_2k30
+  version: V11-R51-HPL60-2K30
+  description: "720天高余额盈利锁: 仅余额>=60000后启用，避免影响低中余额复利段"
+  monthly_profit_lock_min_balance: 60000.0
+  magic_number: 203373
+
+# ═══ V11 Round52: g30月亏阀与负月仓位细扫 ═══
+
+v11_r52_j2_g30_m09: &v11_r52_j2_g30_m09
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R52-G30M09
+  description: "720天月亏阀细扫: g30底座，月亏9%停止新开仓，测试更紧保护是否提升余额"
+  monthly_loss_stop_pct: 9.0
+  monthly_negative_pos_mult: 0.65
+  magic_number: 203381
+
+v11_r52_j2_g30_m11:
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R52-G30M11
+  description: "720天月亏阀细扫: g30底座，月亏11%停止新开仓，测试是否补回交易数且保持余额"
+  monthly_loss_stop_pct: 11.0
+  monthly_negative_pos_mult: 0.65
+  magic_number: 203382
+
+v11_r52_j2_g30_m10_neg055:
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R52-G30M10N55
+  description: "720天负月仓位细扫: 月亏阀仍10%，月内转负后仓位从0.65降到0.55"
+  monthly_negative_pos_mult: 0.55
+  magic_number: 203383
+
+# ═══ V11 Round53: 小时坏簇过滤与高仓修正 ═══
+
+v11_r53_j2_g30m10_noh23boost: &v11_r53_j2_g30m10_noh23boost
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R53-NOH23B
+  description: "720天小时诊断: hour23全周期高仓净负，移出高仓小时保留正常交易"
+  high_risk_hours: "12,13,20"
+  magic_number: 203391
+
+v11_r53_j2_g30m10_no0722: &v11_r53_j2_g30m10_no0722
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R53-NO0722
+  description: "720天小时诊断: 禁止hour0/7/22入场，测试能否切掉全周期净负坏小时"
+  no_entry_hours: "0,7,22"
+  magic_number: 203392
+
+v11_r53_j2_g30m10_no072223:
+  <<: *v11_r53_j2_g30m10_no0722
+  version: V11-R53-NO072223
+  description: "720天小时诊断: 禁止hour0/7/22/23入场，叠加hour23净负过滤"
+  no_entry_hours: "0,7,22,23"
+  magic_number: 203393
+
+# ═══ V11 Round54: 高余额月亏阀提前触发 ═══
+
+v11_r54_j2_g30_m07: &v11_r54_j2_g30_m07
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R54-G30M07
+  description: "720天高余额月亏保护: g30底座，月亏7%停止新开仓，测试是否压缩2026高余额回撤"
+  monthly_guard_min_balance: 30000.0
+  monthly_loss_stop_pct: 7.0
+  monthly_negative_pos_mult: 0.65
+  magic_number: 203401
+
+v11_r54_j2_g30_m05:
+  <<: *v11_r54_j2_g30_m07
+  version: V11-R54-G30M05
+  description: "720天高余额月亏保护: g30底座，月亏5%停止新开仓，更早切断坏月"
+  monthly_loss_stop_pct: 5.0
+  magic_number: 203402
+
+v11_r54_j2_g50_m07:
+  <<: *v11_r54_j2_g30_m07
+  version: V11-R54-G50M07
+  description: "720天高余额月亏保护: 余额>=50000后启用7%月亏阀，尽量不影响2025主升段"
+  monthly_guard_min_balance: 50000.0
+  monthly_loss_stop_pct: 7.0
+  magic_number: 203403
+
+v11_r54_j2_g50_m05:
+  <<: *v11_r54_j2_g30_m07
+  version: V11-R54-G50M05
+  description: "720天高余额月亏保护: 余额>=50000后启用5%月亏阀，专打2026高余额坏月"
+  monthly_guard_min_balance: 50000.0
+  monthly_loss_stop_pct: 5.0
+  magic_number: 203404

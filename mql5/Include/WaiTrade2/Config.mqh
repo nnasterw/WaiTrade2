@@ -137,6 +137,7 @@ input double InpLowBalancePosMult = 1.0;     // 启动期仓位倍数
 input double InpLowBalanceMaxLotSize = 0.0;  // 启动期最大手数(0=不限制)
 input double InpMonthlyGuardMinBalance = 0.0; // 余额达到该值后才启用月内风控(0=始终启用)
 input double InpMonthlyLossStopPct = 0.0;    // 月内余额回撤超过该百分比后停止新开仓(0=禁用)
+input int    InpMonthlyLossStopMinTrades = 0; // 月亏停止前至少允许的月内开仓数(0=达到即停)
 input double InpMonthlyNegativePosMult = 1.0; // 月内余额低于月初时仓位倍数
 input double InpMonthlyProfitLockMinBalance = 0.0; // 余额达到该值后启用月内盈利回吐锁(0=始终启用)
 input double InpMonthlyProfitLockStartPct = 0.0; // 月内盈利达到月初余额百分比后启用回吐锁(0=禁用)
