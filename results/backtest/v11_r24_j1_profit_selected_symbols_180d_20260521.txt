@@ -1,0 +1,13 @@
+策略: v11_r23_j1_profit_r33_lg28
+品种: BTCUSDm, XAUUSDm, USOILm, EURUSDm, GBPUSDm, USTECm, USDJPYm, US500m, AUDUSDm
+周期: 2025.11.22 ~ 2026.05.21 (180天)
+MT5 回测管理器
+
+策略: v11_r23_j1_profit_r33_lg28 | 品种数: 9 | 周期: 2025.11.22 ~ 2026.05.21
+============================================================
+  .set 文件已写入: v11_r23_j1_profit_r33_lg28.set
+
+[1/9] 回测 BTCUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)...

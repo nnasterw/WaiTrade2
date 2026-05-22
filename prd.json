@@ -1,0 +1,113 @@
+{
+  "project": "WaiTrade2",
+  "branchName": "feat/btc-ralph-2y",
+  "description": "优化 BTCUSDm 单品种策略，基于 MT5 Strategy Tester Real Ticks 两年回测持续 diagnose 坏簇并迭代，目标实现日均开单数 > 5、盈利 > 50000u、且每个月都盈利。",
+  "qualityGate": "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q",
+  "techStack": {
+    "language": "Python + MQL5",
+    "framework": "MetaTrader 5 Strategy Tester Real Ticks + Wine/macOS",
+    "constraints": [
+      "正式验收只认 MT5 Strategy Tester Real Ticks，不允许用 Python模拟替代",
+      "365天和720天长回测必须使用 python3 scripts/mt5_cli_backtest.py --bg 后台执行，并等待日志/报告落盘后再判定结果",
+      "优先通过 config/strategies.yaml 做参数迭代；只有配置粒度不足时才修改 MQL5 逻辑",
+      "新增参数必须同步更新 mql5/Include/WaiTrade2/Config.mqh、scripts/yaml_to_set.py、config/strategies.yaml",
+      "回测逻辑与 live 执行路径必须保持一致，不能通过近似/跳过路径来换速度",
+      "不要新建 Markdown 文档；跨轮发现统一写入 progress.txt"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "建立 BTC 两年月度评估门禁",
+      "description": "作为策略研究员，我需要一个可重复执行的月度评估器，自动统计 BTC 两年回测的逐月盈亏、日均交易数、最终余额和 stopout 信息，以便后续迭代能用统一门禁筛选策略。",
+      "acceptanceCriteria": [
+        "新增或扩展脚本后，能对指定 BTC 720 天 Real Ticks 回测结果输出逐月盈亏、亏损月数量、日均交易数、最终余额和 stopout 标记。",
+        "脚本至少能正确评估 v11_r30_j2_selnp3_sh 与 v11_r31_j2_hourcut_tail 的 720 天结果，并输出可比对的摘要。",
+        "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q 全部通过且 exit code 为 0"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "建立 BTC 坏簇归因器",
+      "description": "作为策略研究员，我需要一个坏簇归因器，自动从 Agent 日志归纳 hour/direction/risk/confirm_pos 等维度的最差组合，以便每轮 diagnose 都能稳定定位需要规避的坏单模式。",
+      "acceptanceCriteria": [
+        "新增或扩展脚本后，能从指定 BTC 720 天 Agent 日志中输出 top 坏簇、最差月份、最差小时、最差方向和风险带统计。",
+        "脚本支持对两个策略做差分比较，至少能比较 v11_r30_j2_selnp3_sh 与 v11_r31_j2_hourcut_tail 的长窗坏簇差异。",
+        "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q 全部通过且 exit code 为 0"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "生成配置级 R32 候选并通过 365 天筛选",
+      "description": "作为策略研究员，我需要在不改 MQL5 逻辑的前提下，基于坏簇诊断新增至少 2 个 BTC 配置候选，并先通过 365 天窗口筛出高频高收益版本，以便保留赚钱腿。",
+      "acceptanceCriteria": [
+        "config/strategies.yaml 中新增至少 2 个 BTC 候选版本，且 python3 scripts/yaml_to_set.py --all 能成功生成对应 .set 文件。",
+        "后台执行这些新候选的 365 天 Real Ticks 回测并保存报告。",
+        "至少 1 个新候选在 365 天窗口达到 日均开单数 > 5 且 最终余额 > 30000。",
+        "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q 全部通过且 exit code 为 0"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "为中确认与中大风险坏簇增加参数化控制",
+      "description": "作为策略研究员，我需要把中确认区间和中大风险区间的坏簇控制做成正式参数，这样策略可以精准压缩 (-1.0,-0.6] confirm 与 150-350 risk 的致命组合，而不是只靠粗糙小时过滤。",
+      "acceptanceCriteria": [
+        "如确认配置粒度不足，需要在 mql5/Include/WaiTrade2/Config.mqh、scripts/yaml_to_set.py、config/strategies.yaml 和相关 MQL5 执行逻辑中完整接入新参数。",
+        "基于这些新参数新增至少 1 个 BTC 候选，并完成 720 天 Real Ticks 回测。",
+        "至少 1 个新候选在 720 天窗口的最终余额优于 v11_r31_j2_hourcut_tail 当前基线 -23.21。",
+        "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q 全部通过且 exit code 为 0"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "建立 720 天月度盈利筛选器",
+      "description": "作为策略研究员，我需要一个 720 天候选筛选器，按照亏损月数、最终余额、日均交易数和 stopout 情况对 BTC 候选做排名，以便每轮只保留更接近全月盈利目标的版本。",
+      "acceptanceCriteria": [
+        "新增或扩展脚本后，能对至少 3 个 BTC 720 天候选输出 negative_months、daily_trades、final_balance 与 stopout 情况，并给出排序。",
+        "排序结果中至少 1 个候选满足 negative_months <= 6 且 final_balance > 1000。",
+        "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q 全部通过且 exit code 为 0"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "生成 R33 高频高利润候选",
+      "description": "作为策略研究员，我需要基于最佳候选继续强化总收益和交易频率，先在 720 天窗口拿到 daily_trades > 5 且 final_balance > 50000 的总目标版本，再进入月度修复阶段。",
+      "acceptanceCriteria": [
+        "新增至少 1 个 R33 级 BTC 候选，并完成 720 天 Real Ticks 回测。",
+        "至少 1 个候选在 720 天窗口达到 final_balance > 50000、daily_trades > 5。",
+        "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q 全部通过且 exit code 为 0"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "达成 BTC 两年最终目标",
+      "description": "作为策略研究员，我需要产出一个最终 BTC 候选，在两年 Real Ticks 回测中同时满足高频、高盈利和全月盈利，这样策略才算真正可进入下一阶段。",
+      "acceptanceCriteria": [
+        "最终候选完成 720 天 BTC Real Ticks 回测，并保存报告与对应诊断摘要。",
+        "最终候选在 720 天窗口达到 daily_trades > 5、final_balance > 50000、negative_months = 0。",
+        "python3 -c \"import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))\" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q 全部通过且 exit code 为 0"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

@@ -195,6 +195,7 @@ data/cache, data/preprocessed, *.npz, *.parquet → .gitignore
 - **Agent日志编码**: UTF-16LE，读取时需 `encoding='utf-16-le'`
 - **MT5实例隔离**: Main（编译+回测）和 Tester（/portable实盘）是独立进程
 - **策略文档对齐**: 修改 YAML 策略参数前先核对 `strategy_versions/` 对应文档
+- **回测日志分析工作流**: 常规策略评估只看 `digest.md`(1-3k token); 验特定因子/单子时局部查 `trades.csv`; 禁止让模型直接读原始 Agent 日志(最烧 token 路径)。先用 `python3 scripts/backtest_digest.py` 提炼
 
 ## 策略配置 (可插拔)
 
@@ -230,6 +231,7 @@ python scripts/mt5_live_runner.py --strategy v99j1 --symbols BTCUSDm,ETHUSDm    
 | **Trail伤害大赢** | trail在0.3R退出中断DTP2R+大赢。简单BE+DTP优于复杂trail |
 | **OB含影线** | OB用high/low(含影线)→SL设在价格到过的位置→必被刺破。改用实体 |
 | **Tester缓存** | 批量回测可能复用缓存结果(显示相同数据)。关键结果需单独跑验证 |
+| **Agent日志Token黑洞** | 原始Agent日志325MB(~216k token)直接喂模型=最烧token路径。用`backtest_digest.py`提炼: digest.md仅3.6KB(~1-3k token, 节省99%), trades.csv 62KB(~16-25k token, 节省90%)。常规评估只看MD; 验特定因子才局部查CSV; 禁止整份喂原始日志 |
 
 ## 当前改进方向
 

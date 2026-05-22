@@ -1,5 +1,7 @@
 """mt5_common 纯函数测试"""
 import sys
+import tempfile
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'scripts'))
@@ -7,10 +9,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'scripts'))
 from mt5_common import (
     parse_agent_log_content, calc_stats, format_report,
     resolve_symbols, resolve_strategies,
+    parse_backtest_report_content, split_agent_log_segments,
+    find_matching_log_segment, parse_agent_log_segment_details,
 )
 from yaml_to_set import (
     strategy_to_set, format_value, NON_STRATEGY_KEYS, FLAT_MAP, TRAIL_MAP,
 )
+from backtest_digest import build_digest_data, build_monthly_stats, render_digest_markdown, write_trade_csv
+import mt5_cli_backtest as cli
 
 
 # ── resolve_symbols ───────────────────────────────────────────────────
@@ -119,6 +125,16 @@ def test_parse_log_ticks_bars():
     result = parse_agent_log_content(SAMPLE_LOG)
     assert result['ticks'] == 50000
     assert result['bars'] == 1500
+
+
+def test_parse_log_stopout():
+    log = """testing of EA started
+final balance -0.86 USD
+stop out occurred on 28% of testing interval
+"""
+    result = parse_agent_log_content(log)
+    assert result['stopout'] is True
+    assert result['stopout_pct'] == 28
 
 
 def test_parse_log_empty():
@@ -605,6 +621,16 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['enable_pos_mult'] == 'InpEnablePosMult'
     assert FLAT_MAP['max_pos_mult'] == 'InpMaxPosMult'
     assert FLAT_MAP['max_lot_size'] == 'InpMaxLotSize'
+    assert FLAT_MAP['sweep_pos_mult'] == 'InpSweepPosMult'
+    assert FLAT_MAP['range_breakout_pos_mult'] == 'InpRangeBreakoutPosMult'
+    assert FLAT_MAP['sweep_max_lot_size'] == 'InpSweepMaxLotSize'
+    assert FLAT_MAP['range_breakout_max_lot_size'] == 'InpRangeBreakoutMaxLotSize'
+    assert FLAT_MAP['low_balance_threshold'] == 'InpLowBalanceThreshold'
+    assert FLAT_MAP['low_balance_pos_mult'] == 'InpLowBalancePosMult'
+    assert FLAT_MAP['low_balance_max_lot_size'] == 'InpLowBalanceMaxLotSize'
+    assert FLAT_MAP['monthly_guard_min_balance'] == 'InpMonthlyGuardMinBalance'
+    assert FLAT_MAP['monthly_loss_stop_pct'] == 'InpMonthlyLossStopPct'
+    assert FLAT_MAP['monthly_negative_pos_mult'] == 'InpMonthlyNegativePosMult'
     assert FLAT_MAP['free_run_min_r'] == 'InpFreeRunMinR'
     assert FLAT_MAP['no_entry_hours'] == 'InpNoEntryHours'
     assert FLAT_MAP['no_buy_hours'] == 'InpNoBuyHours'
@@ -625,6 +651,12 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['large_risk_mult'] == 'InpLargeRiskMult'
     assert FLAT_MAP['shallow_confirm_pos_min'] == 'InpShallowConfirmPosMin'
     assert FLAT_MAP['shallow_confirm_pos_mult'] == 'InpShallowConfirmPosMult'
+    assert FLAT_MAP['bad_cluster1_hours'] == 'InpBadCluster1Hours'
+    assert FLAT_MAP['bad_cluster1_risk_min'] == 'InpBadCluster1RiskMin'
+    assert FLAT_MAP['bad_cluster1_risk_max'] == 'InpBadCluster1RiskMax'
+    assert FLAT_MAP['bad_cluster1_confirm_min'] == 'InpBadCluster1ConfirmMin'
+    assert FLAT_MAP['bad_cluster1_confirm_max'] == 'InpBadCluster1ConfirmMax'
+    assert FLAT_MAP['bad_cluster1_mult'] == 'InpBadCluster1Mult'
     assert FLAT_MAP['enable_htf_net_push_filter'] == 'InpEnableHTFNetPushFilter'
     assert FLAT_MAP['htf_net_push_tf'] == 'InpHTFNetPushTF'
     assert FLAT_MAP['htf_net_push_bars'] == 'InpHTFNetPushBars'
@@ -878,7 +910,6 @@ def test_htf_target_and_momentum_params_in_set():
 
 # ── write_set_file ───────────────────────────────────────────────────
 
-import tempfile
 from mt5_common import write_set_file, read_agent_log, backtest_main
 
 
@@ -930,8 +961,15 @@ def test_read_agent_log_missing_file(capsys):
 
 # ── backtest_main ────────────────────────────────────────────────────
 
-def test_backtest_main_parses_days():
+def test_backtest_main_parses_days(monkeypatch):
     called_with = {}
+    fake_config = {
+        'defaults': {},
+        'symbols': {'metals': ['XAUUSDm']},
+        'backtest_defaults': {},
+        'mt5_account': {},
+        'v99g1': {'version': 'V99g1'},
+    }
 
     def fake_run(strategy_names, symbols, date_from, date_to, days, config, timeout):
         called_with['strategies'] = strategy_names
@@ -939,6 +977,7 @@ def test_backtest_main_parses_days():
         called_with['days'] = days
         called_with['timeout'] = timeout
 
+    monkeypatch.setattr('mt5_common.load_config', lambda: fake_config)
     backtest_main(
         'test',
         fake_run,
@@ -950,14 +989,22 @@ def test_backtest_main_parses_days():
     assert called_with['timeout'] == 300
 
 
-def test_backtest_main_parses_from_to():
+def test_backtest_main_parses_from_to(monkeypatch):
     called_with = {}
+    fake_config = {
+        'defaults': {},
+        'symbols': {'metals': ['XAUUSDm'], 'crypto': ['BTCUSDm']},
+        'backtest_defaults': {},
+        'mt5_account': {},
+        'v99g1': {'version': 'V99g1'},
+    }
 
     def fake_run(strategy_names, symbols, date_from, date_to, days, config, timeout):
         called_with['date_from'] = date_from
         called_with['date_to'] = date_to
         called_with['days'] = days
 
+    monkeypatch.setattr('mt5_common.load_config', lambda: fake_config)
     backtest_main(
         'test',
         fake_run,
@@ -966,3 +1013,184 @@ def test_backtest_main_parses_from_to():
     assert called_with['date_from'] == '2026.01.01'
     assert called_with['date_to'] == '2026.04.01'
     assert called_with['days'] == 90
+
+
+def test_cli_parse_agent_log_prefers_matching_new_segment(monkeypatch, tmp_path):
+    today = datetime(2026, 5, 21)
+    log_path = tmp_path / '20260521.log'
+    old_segment = (
+        'CS\t0\t00:00:01\tTester\tBTCUSDm,M1: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 '
+        'from 2026.04.21 00:00 to 2026.05.21 00:00 started with inputs:\n'
+        'CS\t0\t00:00:02\tTrades\tdeal #1 buy 0.01 BTCUSDm at 70000.00 done\n'
+        'CS\t0\t00:00:03\tTrades\tdeal #2 sell 0.01 BTCUSDm at 70100.00 done\n'
+        'CS\t0\t00:00:04\tTester\tfinal balance 210.00\n'
+    )
+    new_segment = (
+        'CS\t0\t00:10:01\tTester\tBTCUSDm,M1: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 '
+        'from 2025.05.21 00:00 to 2026.05.21 00:00 started with inputs:\n'
+        'CS\t0\t00:10:02\tTrades\tdeal #10 buy 0.01 BTCUSDm at 71000.00 done\n'
+        'CS\t0\t00:10:03\tTrades\tdeal #11 sell 0.01 BTCUSDm at 70500.00 done\n'
+        'CS\t0\t00:10:04\tTester\tfinal balance 150.00\n'
+    )
+    log_path.write_text(old_segment + new_segment, encoding='utf-16-le')
+    offset = len(old_segment.encode('utf-16-le'))
+
+    monkeypatch.setattr(cli, 'get_tester_log_paths', lambda now=None: [log_path])
+    result = cli.parse_agent_log(
+        symbol='BTCUSDm',
+        date_from='2025.05.21',
+        date_to='2026.05.21',
+        log_offsets={log_path: offset},
+    )
+
+    assert result is not None
+    assert result['trades'] == 1
+    assert result['final_balance'] == 150.0
+
+
+def test_cli_build_report_path_includes_window_tokens():
+    report_path = cli.build_report_path(
+        'v11j2',
+        '2025.05.21',
+        '2026.05.21',
+        now=datetime(2026, 5, 21),
+    )
+    assert report_path.name == 'v11j2_20250521_20260521_20260521.txt'
+
+
+# ── backtest digest ──────────────────────────────────────────────────
+
+SAMPLE_REPORT = """
+=====================================================================
+MT5 Strategy Tester 回测报告 — V11_BTC_M5_R21
+日期: 2026.03.22 ~ 2026.05.21 (60天) | 资金: $200 | 杠杆: 1:2000
+=====================================================================
+
+品种         交易  日均  胜率   盈亏比  净R     余额
+---------------------------------------------------------------------
+BTCUSDm      2     0.0   50.0   %1.20    N/A     $240.00
+---------------------------------------------------------------------
+合计          2     0.0   50.0   %        N/A     $240.00
+=====================================================================
+"""
+
+SAMPLE_SEGMENT = """CS\t0\t00:14:08.437\tTester\tBTCUSDm,M1: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 from 2026.03.22 00:00 to 2026.05.21 00:00 started with inputs:
+CS\t0\t00:14:09.534\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:41:01   ENTRY_DIAG stage=entry_engine ticket=0 dir=-1 hour=11 ob_age=9 touch=278 strength=5.00 ds=1.00 fresh=0 cont=0 h1=1 deep=1 htf=0 bounce_sec=27 bounce_ob=0.276 confirm_pos=-0.791 touch=71258.60 confirm=71238.77 risk_atr=1.68 spread_risk=0.065 pos_mult=0.52 score=4 entry=71224.77 sl=71441.55
+CS\t0\t00:14:09.536\tTrade\t2026.03.24 11:41:01   market sell 0.01 BTCUSDm sl: 71441.55 tp: 71116.95 (71224.77 / 71238.77)
+CS\t0\t00:14:09.537\tTrades\t2026.03.24 11:41:01   deal #2 sell 0.01 BTCUSDm at 71224.77 done (based on order #2)
+CS\t0\t00:14:09.538\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:41:01   开仓成功: WT V11-R10-Q6K S x0.5 ticket=2 price=71224.77 lot=0.01 bounce_sec=27 bounce_ob=0.276 confirm_pos=-0.791 touch=71258.60 confirm=71238.77
+CS\t0\t00:14:09.541\tTrade\t2026.03.24 11:53:06   take profit triggered #2 sell 0.01 BTCUSDm 71224.77 sl: 71441.55 tp: 71116.95 [#3 buy 0.01 BTCUSDm at 71116.95]
+CS\t0\t00:14:09.541\tTrades\t2026.03.24 11:53:06   deal #3 buy 0.01 BTCUSDm at 71115.61 done (based on order #3)
+CS\t0\t00:14:09.541\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:53:06   POSITION_GONE_DIAG ticket=2 dir=-1 entry=71224.77 sl_initial=71441.55 peak_r=0.49 raw_peak_r=0.49 dtp_peak_r=0.00 open_bar=717 last_sl= be=false trail=0 partial=false dtp_partial=false deep=true htf=false rev=false addon=false
+CS\t0\t00:14:09.551\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 13:33:09   ENTRY_DIAG stage=entry_engine ticket=0 dir=1 hour=13 ob_age=4 touch=119 strength=3.81 ds=1.00 fresh=0 cont=1 h1=1 deep=1 htf=0 bounce_sec=0 bounce_ob=0.281 confirm_pos=-0.456 touch=70778.84 confirm=70751.04 risk_atr=1.74 spread_risk=0.051 pos_mult=13.50 score=4 entry=70737.04 sl=71013.26
+CS\t0\t00:14:09.551\tTrade\t2026.03.24 13:33:09   market buy 0.27 BTCUSDm sl: 71013.26 tp: 70588.60 (70737.04 / 70751.04)
+CS\t0\t00:14:09.551\tTrades\t2026.03.24 13:33:09   deal #4 buy 0.27 BTCUSDm at 70737.04 done (based on order #4)
+CS\t0\t00:14:09.551\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 13:33:09   开仓成功: WT V11-R10-Q6K B x13.5 ticket=4 price=70737.04 lot=0.27 bounce_sec=0 bounce_ob=0.281 confirm_pos=-0.456 touch=70778.84 confirm=70751.04
+CS\t0\t00:14:09.553\tTrade\t2026.03.24 13:38:42   stop loss triggered #4 buy 0.27 BTCUSDm 70737.04 sl: 71013.26 tp: 70588.60 [#5 sell 0.27 BTCUSDm at 70588.60]
+CS\t0\t00:14:09.553\tTrades\t2026.03.24 13:38:42   deal #5 sell 0.27 BTCUSDm at 70588.04 done (based on order #5)
+CS\t0\t00:14:09.553\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 13:38:42   POSITION_GONE_DIAG ticket=4 dir=1 entry=70737.04 sl_initial=71013.26 peak_r=0.52 raw_peak_r=0.52 dtp_peak_r=0.00 open_bar=739 last_sl= be=false trail=0 partial=false dtp_partial=false deep=true htf=false rev=false addon=false
+CS\t0\t00:14:09.554\tTester\tfinal balance 240.00
+CS\t0\t00:14:09.554\tTester\t1000 ticks, 200 bars generated
+"""
+
+SAMPLE_STOP_OUT_SEGMENT = """CS\t0\t00:14:08.437\tTester\tBTCUSDm,M1: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 from 2024.05.31 00:00 to 2026.05.21 00:00 started with inputs:
+CS\t0\t00:14:09.554\tTester\tfinal balance -0.86 USD
+CS\t3\t00:14:09.555\tTester\tstop out occurred on 28% of testing interval
+"""
+
+
+def test_parse_backtest_report_content_extracts_meta():
+    parsed = parse_backtest_report_content(SAMPLE_REPORT)
+    assert parsed['strategy_name'] == 'V11_BTC_M5_R21'
+    assert parsed['date_from'] == '2026.03.22'
+    assert parsed['date_to'] == '2026.05.21'
+    assert parsed['symbols'][0]['symbol'] == 'BTCUSDm'
+    assert parsed['symbols'][0]['final_balance'] == 240.0
+
+
+def test_split_agent_log_segments_extracts_segment_meta():
+    segments = split_agent_log_segments(SAMPLE_SEGMENT)
+    assert len(segments) == 1
+    assert segments[0]['meta']['symbol'] == 'BTCUSDm'
+    assert segments[0]['meta']['date_from'] == '2026.03.22'
+    assert segments[0]['meta']['date_to'] == '2026.05.21'
+
+
+def test_find_matching_log_segment_matches_balance():
+    segment = find_matching_log_segment(SAMPLE_SEGMENT, 'BTCUSDm', '2026.03.22', '2026.05.21', 240.0)
+    assert segment is not None
+    assert segment['meta']['symbol'] == 'BTCUSDm'
+
+
+def test_parse_agent_log_segment_details_extracts_trades():
+    segment = split_agent_log_segments(SAMPLE_SEGMENT)[0]
+    details = parse_agent_log_segment_details(segment['lines'], 'BTCUSDm')
+    assert details['final_balance'] == 240.0
+    assert len(details['trades']) == 2
+    first = details['trades'][0]
+    second = details['trades'][1]
+    assert first['ticket'] == 2
+    assert first['reason'] == 'TP'
+    assert first['dir'] == 'sell'
+    assert round(first['r'], 3) > 0
+    assert second['ticket'] == 4
+    assert second['reason'] == 'SL'
+    assert second['dir'] == 'buy'
+    assert second['risk'] == abs(second['entry'] - second['initial_sl'])
+
+
+def test_build_digest_data_combines_summary_and_details():
+    report_data, digests = build_digest_data(SAMPLE_REPORT, SAMPLE_SEGMENT)
+    assert report_data['strategy_name'] == 'V11_BTC_M5_R21'
+    assert len(digests) == 1
+    assert digests[0]['trade_stats']['count'] == 2
+    assert len(digests[0]['best_trades']) >= 1
+    assert len(digests[0]['worst_trades']) >= 1
+
+
+def test_render_digest_markdown_contains_sections():
+    report_data, digests = build_digest_data(SAMPLE_REPORT, SAMPLE_SEGMENT)
+    markdown = render_digest_markdown(report_data, digests, Path('sample.txt'), Path('20260521.log'))
+    assert '# 回测提炼报告 — V11_BTC_M5_R21' in markdown
+    assert '## 核心摘要' in markdown
+    assert '## 逐单归因 — BTCUSDm' in markdown
+    assert '### 月度表现' in markdown
+    assert '### 贡献簇' in markdown
+    assert '### 判别因子' in markdown
+    assert 'Stopout' in markdown
+
+
+def test_parse_agent_log_segment_details_extracts_stopout():
+    segment = split_agent_log_segments(SAMPLE_STOP_OUT_SEGMENT)[0]
+    details = parse_agent_log_segment_details(segment['lines'], 'BTCUSDm')
+    assert details['stopout'] is True
+    assert details['stopout_pct'] == 28
+
+
+def test_build_monthly_stats_uses_deposit_baseline():
+    details = {
+        'trades': [
+            {'time': '2026-03-01 00:00:00', 'pnl_proxy': 10.0, 'r': 1.0},
+            {'time': '2026-03-15 00:00:00', 'pnl_proxy': 10.0, 'r': 1.0},
+            {'time': '2026-04-01 00:00:00', 'pnl_proxy': -5.0, 'r': -0.5},
+            {'time': '2026-04-15 00:00:00', 'pnl_proxy': 45.0, 'r': 4.5},
+        ]
+    }
+    monthly = build_monthly_stats({'final_balance': 260.0}, details, deposit=200.0)
+    assert [row['month'] for row in monthly] == ['2026-03', '2026-04']
+    assert monthly[0]['start_balance'] == 200.0
+    assert monthly[0]['end_balance'] == 220.0
+    assert monthly[1]['start_balance'] == 220.0
+    assert monthly[1]['end_balance'] == 260.0
+    assert monthly[1]['profit'] == 40.0
+
+
+def test_write_trade_csv_exports_rows():
+    report_data, digests = build_digest_data(SAMPLE_REPORT, SAMPLE_SEGMENT)
+    with tempfile.TemporaryDirectory() as tmp:
+        csv_path = Path(tmp) / 'trades.csv'
+        write_trade_csv(csv_path, digests)
+        content = csv_path.read_text(encoding='utf-8')
+        assert 'ticket,time,date,hour,symbol,dir' in content
+        assert 'BTCUSDm' in content
+        assert '71224.77' in content

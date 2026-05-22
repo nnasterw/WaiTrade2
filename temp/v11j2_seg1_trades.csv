@@ -1,0 +1,399 @@
+ticket,time,date,hour,symbol,dir,lot,pos_mult,entry,initial_sl,tp,exit,reason,exit_signal,risk,r,duration_min,mods,max_lock_r,bounce_sec,bounce_ob,confirm_pos,touch,confirm,close_time,stage,ob_age,strength,score,ds,fresh,cont,h1,deep,htf,risk_atr,spread_risk,peak_r,raw_peak_r,dtp_peak_r,giveback_r,bars_held,last_sl,be,trail,partial,dtp_partial,rev,addon,pnl_proxy
+14,,,,,,,,,,,86941.61,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-23 16:25:00,,,,,,,,,True,False,,,2.6,2.6,0.0,,,be,True,0,False,False,False,False,
+16,,,,,,,,,,,86568.47,SL,sl,,,,,,,,,,,2025-11-23 17:17:25,,,,,,,,,True,False,,,1.07,1.07,0.0,,,be,True,0,False,False,False,False,
+17,,,,,,,,,,,86554.21,SL,sl,,,,,,,,,,,2025-11-23 17:46:59,,,,,,,,,True,False,,,1.36,1.36,0.0,,,be,True,0,False,False,False,False,
+23,,,,,,,,,,,87280.93,SL,sl,,,,,,,,,,,2025-11-23 23:17:19,,,,,,,,,True,False,,,2.95,2.95,0.0,,,be,True,0,False,False,False,False,
+25,,,,,,,,,,,87049.81,SL,sl,,,,,,,,,,,2025-11-23 23:18:27,,,,,,,,,True,False,,,0.16,0.16,0.0,,,,False,0,False,False,False,False,
+28,,,,,,,,,,,86473.48,SL,sl,,,,,,,,,,,2025-11-24 09:15:29,,,,,,,,,True,False,,,0.65,0.65,0.0,,,,False,0,False,False,False,False,
+30,,,,,,,,,,,86316.99,SL,sl,,,,,,,,,,,2025-11-24 11:37:00,,,,,,,,,True,False,,,0.41,0.41,0.0,,,,False,0,False,False,False,False,
+32,,,,,,,,,,,86314.33,SL,sl,,,,,,,,,,,2025-11-24 13:08:04,,,,,,,,,True,False,,,0.67,0.67,0.0,,,,False,0,False,False,False,False,
+35,,,,,,,,,,,86816.92,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-24 16:06:39,,,,,,,,,True,False,,,3.47,3.47,3.47,,,be,True,0,False,False,False,False,
+40,,,,,,,,,,,87467.01,SL,sl,,,,,,,,,,,2025-11-25 12:01:37,,,,,,,,,True,False,,,1.25,1.25,0.0,,,be,True,0,False,False,False,False,
+42,,,,,,,,,,,87012.54,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-25 13:48:14,,,,,,,,,True,False,,,3.12,3.12,3.12,,,be,True,0,False,False,False,False,
+43,,,,,,,,,,,87050.08,SL,sl,,,,,,,,,,,2025-11-25 13:44:03,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+46,,,,,,,,,,,87611.85,SL,sl,,,,,,,,,,,2025-11-25 17:32:40,,,,,,,,,True,False,,,0.5,0.5,0.0,,,,False,0,False,False,False,False,
+50,,,,,,,,,,,87713.88,SL,sl,,,,,,,,,,,2025-11-26 03:31:03,,,,,,,,,True,False,,,1.06,1.06,0.0,,,be,True,0,False,False,False,False,
+51,,,,,,,,,,,87424.77,SL,sl,,,,,,,,,,,2025-11-26 03:34:39,,,,,,,,,True,False,,,0.8,0.8,0.0,,,,False,0,False,False,False,False,
+66,,,,,,,,,,,87289.65,SL,sl,,,,,,,,,,,2025-11-26 15:28:40,,,,,,,,,True,False,,,1.54,1.54,0.0,,,be,True,0,False,False,False,False,
+67,,,,,,,,,,,87169.94,SL,sl,,,,,,,,,,,2025-11-26 15:08:34,,,,,,,,,True,False,,,0.05,0.05,0.0,,,,False,0,False,False,False,False,
+72,,,,,,,,,,,91130.86,SL,sl,,,,,,,,,,,2025-11-27 05:38:34,,,,,,,,,True,False,,,1.42,1.42,0.0,,,be,True,0,False,False,False,False,
+76,,,,,,,,,,,91290.34,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-27 06:50:00,,,,,,,,,True,False,,,1.79,1.79,0.0,,,be,True,0,False,False,False,False,
+80,,,,,,,,,,,91146.85,SL,sl,,,,,,,,,,,2025-11-27 12:40:32,,,,,,,,,True,False,,,0.42,0.42,0.0,,,,False,0,False,False,False,False,
+81,,,,,,,,,,,91337.15,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-27 12:32:01,,,,,,,,,True,False,,,1.0,1.0,0.0,,,be,True,0,False,False,False,False,
+84,,,,,,,,,,,91025.92,SL,sl,,,,,,,,,,,2025-11-27 12:53:24,,,,,,,,,True,False,,,0.24,0.24,0.0,,,,False,0,False,False,False,False,
+86,,,,,,,,,,,91392.18,SL,sl,,,,,,,,,,,2025-11-27 22:41:26,,,,,,,,,True,False,,,1.77,1.77,0.0,,,be,True,0,False,False,False,False,
+88,,,,,,,,,,,91203.14,SL,sl,,,,,,,,,,,2025-11-28 00:03:18,,,,,,,,,True,False,,,0.84,0.84,0.0,,,,False,0,False,False,False,False,
+92,,,,,,,,,,,91581.17,SL,sl,,,,,,,,,,,2025-11-28 05:31:03,,,,,,,,,True,False,,,0.31,0.31,0.0,,,,False,0,False,False,False,False,
+94,,,,,,,,,,,91226.81,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-28 11:16:41,,,,,,,,,True,False,,,4.98,4.98,4.98,,,be,True,0,False,False,False,False,
+96,,,,,,,,,,,91161.92,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-28 11:22:38,,,,,,,,,True,False,,,0.5,0.5,0.0,,,,False,0,False,False,False,False,
+98,,,,,,,,,,,91613.76,SL,sl,,,,,,,,,,,2025-11-28 13:06:16,,,,,,,,,True,False,,,1.07,1.07,0.0,,,be,True,0,False,False,False,False,
+100,,,,,,,,,,,91763.16,SL,sl,,,,,,,,,,,2025-11-28 13:36:25,,,,,,,,,True,False,,,0.29,0.29,0.0,,,,False,0,False,False,False,False,
+102,,,,,,,,,,,90914.9,SL,sl,,,,,,,,,,,2025-11-28 23:56:21,,,,,,,,,True,False,,,1.96,1.96,0.0,,,be,True,0,False,False,False,False,
+108,,,,,,,,,,,91293.76,SL,sl,,,,,,,,,,,2025-11-30 14:38:38,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+110,,,,,,,,,,,91754.88,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-30 17:00:33,,,,,,,,,True,False,,,3.14,3.14,3.14,,,be,True,0,False,False,False,False,
+112,,,,,,,,,,,91528.25,MARKET_CLOSE,market_close,,,,,,,,,,,2025-11-30 17:10:59,,,,,,,,,True,False,,,0.5,0.5,0.0,,,,False,0,False,False,False,False,
+114,,,,,,,,,,,86561.6,SL,sl,,,,,,,,,,,2025-12-01 07:46:29,,,,,,,,,True,False,,,0.2,0.2,0.0,,,,False,0,False,False,False,False,
+116,,,,,,,,,,,84807.62,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-01 19:35:28,,,,,,,,,True,False,,,3.28,3.28,3.28,,,be,True,0,False,False,False,False,
+117,,,,,,,,,,,85220.89,SL,sl,,,,,,,,,,,2025-12-01 20:01:16,,,,,,,,,True,False,,,2.08,2.08,0.0,,,be,True,0,False,False,False,False,
+120,,,,,,,,,,,85616.53,SL,sl,,,,,,,,,,,2025-12-01 21:00:38,,,,,,,,,True,False,,,0.21,0.21,0.0,,,,False,0,False,False,False,False,
+125,,,,,,,,,,,86799.23,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-02 03:47:35,,,,,,,,,True,False,,,3.25,3.25,3.25,,,be,True,0,False,False,False,False,
+128,,,,,,,,,,,87180.39,SL,sl,,,,,,,,,,,2025-12-02 10:48:18,,,,,,,,,True,False,,,0.94,0.94,0.0,,,,False,0,False,False,False,False,
+130,,,,,,,,,,,87123.26,SL,sl,,,,,,,,,,,2025-12-02 10:45:30,,,,,,,,,True,False,,,0.03,0.03,0.0,,,,False,0,False,False,False,False,
+132,,,,,,,,,,,87274.19,SL,sl,,,,,,,,,,,2025-12-02 10:48:31,,,,,,,,,True,False,,,0.39,0.39,0.0,,,,False,0,False,False,False,False,
+133,,,,,,,,,,,87065.41,SL,sl,,,,,,,,,,,2025-12-02 10:44:25,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+138,,,,,,,,,,,87632.55,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-02 13:53:37,,,,,,,,,True,False,,,3.44,3.44,3.44,,,be,True,0,False,False,False,False,
+140,,,,,,,,,,,91602.77,SL,sl,,,,,,,,,,,2025-12-02 20:14:28,,,,,,,,,True,False,,,0.14,0.14,0.0,,,,False,0,False,False,False,False,
+142,,,,,,,,,,,91577.57,SL,sl,,,,,,,,,,,2025-12-02 23:34:04,,,,,,,,,True,False,,,0.29,0.29,0.0,,,,False,0,False,False,False,False,
+144,,,,,,,,,,,91378.82,SL,sl,,,,,,,,,,,2025-12-03 00:09:19,,,,,,,,,True,False,,,1.25,1.25,0.0,,,be,True,0,False,False,False,False,
+146,,,,,,,,,,,92283.74,SL,sl,,,,,,,,,,,2025-12-03 01:49:37,,,,,,,,,True,False,,,0.54,0.54,0.0,,,,False,0,False,False,False,False,
+150,,,,,,,,,,,92798.32,SL,sl,,,,,,,,,,,2025-12-03 09:31:05,,,,,,,,,True,False,,,1.12,1.12,0.0,,,be,True,0,False,False,False,False,
+152,,,,,,,,,,,92270.26,SL,sl,,,,,,,,,,,2025-12-03 14:30:41,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+154,,,,,,,,,,,92733.39,SL,sl,,,,,,,,,,,2025-12-03 14:52:24,,,,,,,,,True,False,,,2.56,2.56,0.0,,,be,True,0,False,False,False,False,
+155,,,,,,,,,,,93505.44,SL,sl,,,,,,,,,,,2025-12-03 14:42:40,,,,,,,,,True,False,,,0.91,0.91,0.0,,,,False,0,False,False,False,False,
+156,,,,,,,,,,,93569.84,SL,sl,,,,,,,,,,,2025-12-03 14:42:42,,,,,,,,,True,False,,,0.71,0.71,0.0,,,,False,0,False,False,False,False,
+160,,,,,,,,,,,93659.4,SL,sl,,,,,,,,,,,2025-12-03 21:56:38,,,,,,,,,True,False,,,0.13,0.13,0.0,,,,False,0,False,False,False,False,
+162,,,,,,,,,,,93173.93,SL,sl,,,,,,,,,,,2025-12-04 00:12:18,,,,,,,,,True,False,,,0.44,0.44,0.0,,,,False,0,False,False,False,False,
+164,,,,,,,,,,,93708.72,SL,sl,,,,,,,,,,,2025-12-04 02:14:25,,,,,,,,,True,False,,,0.72,0.72,0.0,,,,False,0,False,False,False,False,
+165,,,,,,,,,,,93517.48,SL,sl,,,,,,,,,,,2025-12-04 02:10:30,,,,,,,,,True,False,,,0.73,0.73,0.0,,,,False,0,False,False,False,False,
+166,,,,,,,,,,,93639.46,SL,sl,,,,,,,,,,,2025-12-04 02:12:29,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+170,,,,,,,,,,,93321.04,SL,sl,,,,,,,,,,,2025-12-04 04:43:32,,,,,,,,,True,False,,,0.33,0.33,0.0,,,,False,0,False,False,False,False,
+172,,,,,,,,,,,92914.83,SL,sl,,,,,,,,,,,2025-12-04 05:50:04,,,,,,,,,True,False,,,0.6,0.6,0.0,,,,False,0,False,False,False,False,
+173,,,,,,,,,,,92902.58,SL,sl,,,,,,,,,,,2025-12-04 05:50:11,,,,,,,,,True,False,,,0.58,0.58,0.0,,,,False,0,False,False,False,False,
+176,,,,,,,,,,,93463.48,SL,sl,,,,,,,,,,,2025-12-04 08:02:15,,,,,,,,,True,False,,,0.07,0.07,0.0,,,,False,0,False,False,False,False,
+178,,,,,,,,,,,93044.33,SL,sl,,,,,,,,,,,2025-12-04 11:26:27,,,,,,,,,True,False,,,0.68,0.68,0.0,,,,False,0,False,False,False,False,
+187,,,,,,,,,,,92034.15,SL,sl,,,,,,,,,,,2025-12-04 18:42:29,,,,,,,,,True,False,,,1.91,1.91,0.0,,,be,True,0,False,False,False,False,
+192,,,,,,,,,,,91439.36,SL,sl,,,,,,,,,,,2025-12-05 11:06:29,,,,,,,,,True,False,,,1.01,1.01,0.0,,,be,True,0,False,False,False,False,
+194,,,,,,,,,,,91401.18,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-05 11:24:22,,,,,,,,,True,False,,,1.02,1.02,0.0,,,be,True,0,False,False,False,False,
+196,,,,,,,,,,,91135.72,SL,sl,,,,,,,,,,,2025-12-05 13:14:32,,,,,,,,,True,False,,,1.42,1.42,0.0,,,be,True,0,False,False,False,False,
+198,,,,,,,,,,,91216.87,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-05 15:07:35,,,,,,,,,True,False,,,1.01,1.01,0.0,,,be,True,0,False,False,False,False,
+200,,,,,,,,,,,89422.04,SL,sl,,,,,,,,,,,2025-12-06 00:37:34,,,,,,,,,True,False,,,1.47,1.47,0.0,,,be,True,0,False,False,False,False,
+201,,,,,,,,,,,89333.4,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-05 20:50:00,,,,,,,,,True,False,,,1.95,1.95,0.0,,,be,True,0,False,False,False,False,
+203,,,,,,,,,,,89128.47,SL,sl,,,,,,,,,,,2025-12-05 23:03:30,,,,,,,,,True,False,,,1.48,1.48,0.0,,,be,True,0,False,False,False,False,
+205,,,,,,,,,,,89269.57,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-05 23:46:23,,,,,,,,,True,False,,,0.9,0.9,0.0,,,,False,0,False,False,False,False,
+207,,,,,,,,,,,89358.84,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-06 01:50:00,,,,,,,,,True,False,,,2.72,2.72,0.0,,,be,True,0,False,False,False,False,
+210,,,,,,,,,,,89494.38,SL,sl,,,,,,,,,,,2025-12-06 10:47:31,,,,,,,,,True,False,,,1.46,1.46,0.0,,,be,True,0,False,False,False,False,
+212,,,,,,,,,,,89664.25,SL,sl,,,,,,,,,,,2025-12-06 18:44:27,,,,,,,,,True,False,,,1.23,1.23,0.0,,,be,True,0,False,False,False,False,
+214,,,,,,,,,,,89643.35,SL,sl,,,,,,,,,,,2025-12-06 19:07:19,,,,,,,,,True,False,,,1.31,1.31,0.0,,,be,True,0,False,False,False,False,
+220,,,,,,,,,,,89197.01,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-07 12:05:00,,,,,,,,,True,False,,,1.46,1.46,0.0,,,be,True,0,False,False,False,False,
+221,,,,,,,,,,,89318.78,SL,sl,,,,,,,,,,,2025-12-07 12:12:26,,,,,,,,,True,False,,,1.08,1.08,0.0,,,be,True,0,False,False,False,False,
+224,,,,,,,,,,,89488.04,SL,sl,,,,,,,,,,,2025-12-07 12:46:12,,,,,,,,,True,False,,,0.54,0.54,0.0,,,,False,0,False,False,False,False,
+226,,,,,,,,,,,88836.44,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-07 13:23:11,,,,,,,,,True,False,,,6.85,6.85,6.85,,,be,True,0,False,False,False,False,
+227,,,,,,,,,,,88824.06,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-07 13:23:05,,,,,,,,,True,False,,,5.56,5.56,5.56,,,be,True,0,False,False,False,False,
+230,,,,,,,,,,,91177.02,SL,sl,,,,,,,,,,,2025-12-08 02:31:40,,,,,,,,,True,False,,,0.1,0.1,0.0,,,,False,0,False,False,False,False,
+234,,,,,,,,,,,90630.29,SL,sl,,,,,,,,,,,2025-12-08 23:20:39,,,,,,,,,True,False,,,0.68,0.68,0.0,,,,False,0,False,False,False,False,
+235,,,,,,,,,,,90646.51,SL,sl,,,,,,,,,,,2025-12-08 23:20:38,,,,,,,,,True,False,,,0.92,0.92,0.0,,,,False,0,False,False,False,False,
+238,,,,,,,,,,,90491.97,SL,sl,,,,,,,,,,,2025-12-08 23:26:40,,,,,,,,,True,False,,,0.05,0.05,0.0,,,,False,0,False,False,False,False,
+240,,,,,,,,,,,90708.9,SL,sl,,,,,,,,,,,2025-12-09 00:24:35,,,,,,,,,True,False,,,1.2,1.2,0.0,,,be,True,0,False,False,False,False,
+242,,,,,,,,,,,90245.2,SL,sl,,,,,,,,,,,2025-12-09 01:04:14,,,,,,,,,True,False,,,0.73,0.73,0.0,,,,False,0,False,False,False,False,
+244,,,,,,,,,,,90152.98,SL,sl,,,,,,,,,,,2025-12-09 11:16:27,,,,,,,,,True,False,,,0.15,0.15,0.0,,,,False,0,False,False,False,False,
+250,,,,,,,,,,,90163.4,SL,sl,,,,,,,,,,,2025-12-09 14:44:32,,,,,,,,,True,False,,,1.8,1.8,0.0,,,be,True,0,False,False,False,False,
+252,,,,,,,,,,,90955.85,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-09 15:04:28,,,,,,,,,True,False,,,3.25,3.25,3.25,,,be,True,0,False,False,False,False,
+256,,,,,,,,,,,93119.06,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-09 20:28:31,,,,,,,,,True,False,,,4.09,4.09,4.09,,,be,True,0,False,False,False,False,
+258,,,,,,,,,,,92837.48,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-09 23:50:00,,,,,,,,,True,False,,,0.95,0.95,0.0,,,,False,0,False,False,False,False,
+260,,,,,,,,,,,92821.86,SL,sl,,,,,,,,,,,2025-12-10 07:59:40,,,,,,,,,True,False,,,0.97,0.97,0.0,,,,False,0,False,False,False,False,
+262,,,,,,,,,,,92068.31,SL,sl,,,,,,,,,,,2025-12-10 15:49:39,,,,,,,,,True,False,,,1.64,1.64,0.0,,,be,True,0,False,False,False,False,
+264,,,,,,,,,,,92505.38,SL,sl,,,,,,,,,,,2025-12-10 16:20:02,,,,,,,,,True,False,,,0.34,0.34,0.0,,,,False,0,False,False,False,False,
+266,,,,,,,,,,,92469.74,SL,sl,,,,,,,,,,,2025-12-10 17:17:39,,,,,,,,,True,False,,,0.25,0.25,0.0,,,,False,0,False,False,False,False,
+267,,,,,,,,,,,92385.46,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-10 18:15:00,,,,,,,,,True,False,,,1.13,1.13,0.0,,,be,True,0,False,False,False,False,
+270,,,,,,,,,,,91820.06,SL,sl,,,,,,,,,,,2025-12-11 00:21:27,,,,,,,,,True,False,,,0.24,0.24,0.0,,,,False,0,False,False,False,False,
+272,,,,,,,,,,,90216.19,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-11 09:04:25,,,,,,,,,True,False,,,0.52,0.52,0.0,,,,False,0,False,False,False,False,
+274,,,,,,,,,,,90478.45,SL,sl,,,,,,,,,,,2025-12-11 09:20:37,,,,,,,,,True,False,,,0.04,0.04,0.0,,,,False,0,False,False,False,False,
+276,,,,,,,,,,,90437.85,SL,sl,,,,,,,,,,,2025-12-11 11:07:21,,,,,,,,,True,False,,,0.53,0.53,0.0,,,,False,0,False,False,False,False,
+277,,,,,,,,,,,90287.7,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-11 11:35:00,,,,,,,,,True,False,,,0.43,0.43,0.0,,,,False,0,False,False,False,False,
+278,,,,,,,,,,,89988.92,SL,sl,,,,,,,,,,,2025-12-11 13:15:36,,,,,,,,,True,False,,,0.92,0.92,0.0,,,,False,0,False,False,False,False,
+281,,,,,,,,,,,90411.77,SL,sl,,,,,,,,,,,2025-12-11 12:32:35,,,,,,,,,True,False,,,0.71,0.71,0.0,,,,False,0,False,False,False,False,
+283,,,,,,,,,,,90034.1,SL,sl,,,,,,,,,,,2025-12-11 12:58:32,,,,,,,,,True,False,,,0.15,0.15,0.0,,,,False,0,False,False,False,False,
+284,,,,,,,,,,,90041.15,SL,sl,,,,,,,,,,,2025-12-11 12:58:25,,,,,,,,,True,False,,,0.05,0.05,0.0,,,,False,0,False,False,False,False,
+288,,,,,,,,,,,90239.88,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-11 14:37:05,,,,,,,,,True,False,,,1.01,1.01,0.0,,,be,True,0,False,False,False,False,
+289,,,,,,,,,,,89823.14,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-11 14:51:38,,,,,,,,,True,False,,,3.92,3.92,3.92,,,be,True,0,False,False,False,False,
+292,,,,,,,,,,,90331.68,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-11 15:21:37,,,,,,,,,True,False,,,0.51,0.51,0.0,,,,False,0,False,False,False,False,
+293,,,,,,,,,,,90229.38,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-11 15:23:16,,,,,,,,,True,False,,,0.5,0.5,0.0,,,,False,0,False,False,False,False,
+296,,,,,,,,,,,90008.45,SL,sl,,,,,,,,,,,2025-12-11 17:20:25,,,,,,,,,True,False,,,1.26,1.26,0.0,,,be,True,0,False,False,False,False,
+297,,,,,,,,,,,90847.51,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-11 18:48:40,,,,,,,,,True,False,,,3.81,3.81,3.81,,,be,True,0,False,False,False,False,
+299,,,,,,,,,,,90528.49,SL,sl,,,,,,,,,,,2025-12-11 18:36:05,,,,,,,,,True,False,,,0.12,0.12,0.0,,,,False,0,False,False,False,False,
+302,,,,,,,,,,,92640.59,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-12 03:05:00,,,,,,,,,True,False,,,1.98,1.98,0.0,,,be,True,0,False,False,False,False,
+304,,,,,,,,,,,92201.68,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-12 08:47:31,,,,,,,,,True,False,,,0.53,0.53,0.0,,,,False,0,False,False,False,False,
+306,,,,,,,,,,,92412.29,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-12 11:15:00,,,,,,,,,True,False,,,2.29,2.29,0.0,,,be,True,0,False,False,False,False,
+308,,,,,,,,,,,92249.33,SL,sl,,,,,,,,,,,2025-12-12 12:06:29,,,,,,,,,True,False,,,0.81,0.81,0.0,,,,False,0,False,False,False,False,
+311,,,,,,,,,,,92391.73,SL,sl,,,,,,,,,,,2025-12-12 13:24:34,,,,,,,,,True,False,,,1.3,1.3,0.0,,,be,True,0,False,False,False,False,
+318,,,,,,,,,,,90343.57,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-13 01:15:00,,,,,,,,,True,False,,,2.13,2.13,0.0,,,be,True,0,False,False,False,False,
+319,,,,,,,,,,,90362.67,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-13 00:45:00,,,,,,,,,True,False,,,2.69,2.69,0.0,,,be,True,0,False,False,False,False,
+320,,,,,,,,,,,90310.7,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-12 20:55:00,,,,,,,,,True,False,,,0.77,0.77,0.0,,,,False,0,False,False,False,False,
+321,,,,,,,,,,,90233.89,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-13 02:35:00,,,,,,,,,True,False,,,0.77,0.77,0.0,,,,False,0,False,False,False,False,
+322,,,,,,,,,,,90130.46,SL,sl,,,,,,,,,,,2025-12-12 21:24:27,,,,,,,,,True,False,,,1.18,1.18,0.0,,,be,True,0,False,False,False,False,
+325,,,,,,,,,,,90363.37,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-12 23:05:00,,,,,,,,,True,False,,,0.74,0.74,0.0,,,,False,0,False,False,False,False,
+330,,,,,,,,,,,90254.67,SL,sl,,,,,,,,,,,2025-12-14 02:36:38,,,,,,,,,True,False,,,1.4,1.4,0.0,,,be,True,0,False,False,False,False,
+338,,,,,,,,,,,88505.43,SL,sl,,,,,,,,,,,2025-12-15 00:56:36,,,,,,,,,True,False,,,1.39,1.39,0.0,,,be,True,0,False,False,False,False,
+339,,,,,,,,,,,88500.31,SL,sl,,,,,,,,,,,2025-12-15 00:56:34,,,,,,,,,True,False,,,1.29,1.29,0.0,,,be,True,0,False,False,False,False,
+340,,,,,,,,,,,88535.52,SL,sl,,,,,,,,,,,2025-12-15 01:00:24,,,,,,,,,True,False,,,1.37,1.37,0.0,,,be,True,0,False,False,False,False,
+344,,,,,,,,,,,88855.77,SL,sl,,,,,,,,,,,2025-12-15 01:33:27,,,,,,,,,True,False,,,0.37,0.37,0.0,,,,False,0,False,False,False,False,
+345,,,,,,,,,,,88877.7,SL,sl,,,,,,,,,,,2025-12-15 01:33:30,,,,,,,,,True,False,,,0.19,0.19,0.0,,,,False,0,False,False,False,False,
+346,,,,,,,,,,,88934.71,SL,sl,,,,,,,,,,,2025-12-15 01:33:41,,,,,,,,,True,False,,,0.29,0.29,0.0,,,,False,0,False,False,False,False,
+354,,,,,,,,,,,89536.6,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-15 06:09:25,,,,,,,,,True,False,,,0.73,0.73,0.0,,,,False,0,False,False,False,False,
+355,,,,,,,,,,,89696.11,SL,sl,,,,,,,,,,,2025-12-15 06:47:33,,,,,,,,,True,False,,,0.47,0.47,0.0,,,,False,0,False,False,False,False,
+357,,,,,,,,,,,89673.86,SL,sl,,,,,,,,,,,2025-12-15 06:35:01,,,,,,,,,True,False,,,0.08,0.08,0.0,,,,False,0,False,False,False,False,
+358,,,,,,,,,,,89724.76,SL,sl,,,,,,,,,,,2025-12-15 06:48:29,,,,,,,,,True,False,,,0.07,0.07,0.0,,,,False,0,False,False,False,False,
+362,,,,,,,,,,,89754.34,SL,sl,,,,,,,,,,,2025-12-15 07:36:33,,,,,,,,,True,False,,,0.73,0.73,0.0,,,,False,0,False,False,False,False,
+364,,,,,,,,,,,89936.68,SL,sl,,,,,,,,,,,2025-12-15 09:04:27,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+366,,,,,,,,,,,89607.64,SL,sl,,,,,,,,,,,2025-12-15 11:41:39,,,,,,,,,True,False,,,0.09,0.09,0.0,,,,False,0,False,False,False,False,
+368,,,,,,,,,,,85720.05,SL,sl,,,,,,,,,,,2025-12-16 01:01:05,,,,,,,,,True,False,,,2.0,2.0,0.0,,,be,True,0,False,False,False,False,
+369,,,,,,,,,,,86020.43,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-15 22:45:00,,,,,,,,,True,False,,,2.48,2.48,0.0,,,be,True,0,False,False,False,False,
+371,,,,,,,,,,,85939.31,SL,sl,,,,,,,,,,,2025-12-16 00:51:26,,,,,,,,,True,False,,,0.06,0.06,0.0,,,,False,0,False,False,False,False,
+374,,,,,,,,,,,85913.6,SL,sl,,,,,,,,,,,2025-12-16 01:19:25,,,,,,,,,True,False,,,0.06,0.06,0.0,,,,False,0,False,False,False,False,
+376,,,,,,,,,,,88079.35,SL,sl,,,,,,,,,,,2025-12-16 15:56:23,,,,,,,,,True,False,,,0.31,0.31,0.0,,,,False,0,False,False,False,False,
+378,,,,,,,,,,,87430.98,SL,sl,,,,,,,,,,,2025-12-16 19:10:28,,,,,,,,,True,False,,,2.14,2.14,0.0,,,be,True,0,False,False,False,False,
+380,,,,,,,,,,,87366.6,SL,sl,,,,,,,,,,,2025-12-16 19:40:03,,,,,,,,,True,False,,,1.17,1.17,0.0,,,be,True,0,False,False,False,False,
+382,,,,,,,,,,,87647.11,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-16 22:15:00,,,,,,,,,True,False,,,0.82,0.82,0.0,,,,False,0,False,False,False,False,
+383,,,,,,,,,,,87738.24,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-16 23:15:00,,,,,,,,,True,False,,,0.67,0.67,0.0,,,,False,0,False,False,False,False,
+384,,,,,,,,,,,87940.68,SL,sl,,,,,,,,,,,2025-12-16 22:44:15,,,,,,,,,True,False,,,0.47,0.47,0.0,,,,False,0,False,False,False,False,
+390,,,,,,,,,,,87858.0,SL,sl,,,,,,,,,,,2025-12-17 01:31:33,,,,,,,,,True,False,,,1.07,1.07,0.0,,,be,True,0,False,False,False,False,
+396,,,,,,,,,,,87106.37,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-17 04:25:24,,,,,,,,,True,False,,,3.5,3.5,3.5,,,be,True,0,False,False,False,False,
+400,,,,,,,,,,,87097.38,SL,sl,,,,,,,,,,,2025-12-17 13:28:38,,,,,,,,,True,False,,,0.57,0.57,0.0,,,,False,0,False,False,False,False,
+402,,,,,,,,,,,87262.79,SL,sl,,,,,,,,,,,2025-12-17 16:13:38,,,,,,,,,True,False,,,1.28,1.28,0.0,,,be,True,0,False,False,False,False,
+404,,,,,,,,,,,86636.26,SL,sl,,,,,,,,,,,2025-12-17 17:39:28,,,,,,,,,True,False,,,0.03,0.03,0.0,,,,False,0,False,False,False,False,
+406,,,,,,,,,,,85830.46,SL,sl,,,,,,,,,,,2025-12-17 18:43:39,,,,,,,,,True,False,,,0.05,0.05,0.0,,,,False,0,False,False,False,False,
+408,,,,,,,,,,,85976.86,SL,sl,,,,,,,,,,,2025-12-18 01:05:13,,,,,,,,,True,False,,,1.55,1.55,0.0,,,be,True,0,False,False,False,False,
+410,,,,,,,,,,,85959.23,SL,sl,,,,,,,,,,,2025-12-18 01:39:38,,,,,,,,,True,False,,,1.07,1.07,0.0,,,be,True,0,False,False,False,False,
+412,,,,,,,,,,,86442.07,SL,sl,,,,,,,,,,,2025-12-18 02:13:24,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+414,,,,,,,,,,,86588.63,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-18 07:05:00,,,,,,,,,True,False,,,1.72,1.72,0.0,,,be,True,0,False,False,False,False,
+416,,,,,,,,,,,87175.42,SL,sl,,,,,,,,,,,2025-12-18 12:49:34,,,,,,,,,True,False,,,1.45,1.45,0.0,,,be,True,0,False,False,False,False,
+417,,,,,,,,,,,87173.17,SL,sl,,,,,,,,,,,2025-12-18 12:13:17,,,,,,,,,True,False,,,1.0,1.0,0.0,,,be,True,0,False,False,False,False,
+422,,,,,,,,,,,88320.93,SL,sl,,,,,,,,,,,2025-12-19 10:53:39,,,,,,,,,True,False,,,0.58,0.58,0.0,,,,False,0,False,False,False,False,
+423,,,,,,,,,,,88270.19,SL,sl,,,,,,,,,,,2025-12-19 10:53:29,,,,,,,,,True,False,,,0.85,0.85,0.0,,,,False,0,False,False,False,False,
+426,,,,,,,,,,,87903.47,SL,sl,,,,,,,,,,,2025-12-19 12:32:15,,,,,,,,,True,False,,,1.58,1.58,0.0,,,be,True,0,False,False,False,False,
+428,,,,,,,,,,,87909.25,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-19 13:10:14,,,,,,,,,True,False,,,0.99,0.99,0.0,,,,False,0,False,False,False,False,
+432,,,,,,,,,,,87538.98,SL,sl,,,,,,,,,,,2025-12-19 14:38:39,,,,,,,,,True,False,,,0.45,0.45,0.0,,,,False,0,False,False,False,False,
+436,,,,,,,,,,,88718.56,SL,sl,,,,,,,,,,,2025-12-19 15:12:41,,,,,,,,,True,False,,,0.03,0.03,0.0,,,,False,0,False,False,False,False,
+440,,,,,,,,,,,87839.95,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-19 15:49:00,,,,,,,,,True,False,,,0.5,0.5,0.0,,,,False,0,False,False,False,False,
+442,,,,,,,,,,,87250.14,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-19 17:40:00,,,,,,,,,True,False,,,1.93,1.93,0.0,,,be,True,0,False,False,False,False,
+450,,,,,,,,,,,88060.35,SL,sl,,,,,,,,,,,2025-12-21 21:51:41,,,,,,,,,True,False,,,0.32,0.32,0.0,,,,False,0,False,False,False,False,
+452,,,,,,,,,,,88752.49,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-22 04:15:00,,,,,,,,,True,False,,,1.67,1.67,0.0,,,be,True,0,False,False,False,False,
+454,,,,,,,,,,,89115.14,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-22 08:07:35,,,,,,,,,True,False,,,3.35,3.35,3.35,,,be,True,0,False,False,False,False,
+458,,,,,,,,,,,90000.57,SL,sl,,,,,,,,,,,2025-12-22 11:36:34,,,,,,,,,True,False,,,0.59,0.59,0.0,,,,False,0,False,False,False,False,
+460,,,,,,,,,,,90222.55,SL,sl,,,,,,,,,,,2025-12-22 12:22:35,,,,,,,,,True,False,,,0.65,0.65,0.0,,,,False,0,False,False,False,False,
+462,,,,,,,,,,,90486.5,SL,sl,,,,,,,,,,,2025-12-22 12:33:03,,,,,,,,,True,False,,,0.32,0.32,0.0,,,,False,0,False,False,False,False,
+464,,,,,,,,,,,90303.31,SL,sl,,,,,,,,,,,2025-12-22 13:03:34,,,,,,,,,True,False,,,0.21,0.21,0.0,,,,False,0,False,False,False,False,
+468,,,,,,,,,,,89275.15,SL,sl,,,,,,,,,,,2025-12-22 15:23:31,,,,,,,,,True,False,,,0.21,0.21,0.0,,,,False,0,False,False,False,False,
+469,,,,,,,,,,,89562.29,SL,sl,,,,,,,,,,,2025-12-22 16:35:37,,,,,,,,,True,False,,,1.54,1.54,0.0,,,be,True,0,False,False,False,False,
+471,,,,,,,,,,,89267.85,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-22 17:15:00,,,,,,,,,True,False,,,1.85,1.85,0.0,,,be,True,0,False,False,False,False,
+472,,,,,,,,,,,89267.85,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-22 17:15:00,,,,,,,,,True,False,,,2.36,2.36,0.0,,,be,True,0,False,False,False,False,
+473,,,,,,,,,,,89267.85,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-22 17:15:00,,,,,,,,,True,False,,,1.49,1.49,0.0,,,be,True,0,False,False,False,False,
+478,,,,,,,,,,,88362.47,SL,sl,,,,,,,,,,,2025-12-22 22:17:32,,,,,,,,,True,False,,,1.14,1.14,0.0,,,be,True,0,False,False,False,False,
+479,,,,,,,,,,,88377.05,SL,sl,,,,,,,,,,,2025-12-22 22:18:22,,,,,,,,,True,False,,,1.45,1.45,0.0,,,be,True,0,False,False,False,False,
+482,,,,,,,,,,,88455.81,SL,sl,,,,,,,,,,,2025-12-23 01:35:03,,,,,,,,,True,False,,,2.22,2.22,0.0,,,be,True,0,False,False,False,False,
+484,,,,,,,,,,,88253.87,SL,sl,,,,,,,,,,,2025-12-23 02:04:37,,,,,,,,,True,False,,,0.76,0.76,0.0,,,,False,0,False,False,False,False,
+486,,,,,,,,,,,88226.23,SL,sl,,,,,,,,,,,2025-12-23 02:41:39,,,,,,,,,True,False,,,0.28,0.28,0.0,,,,False,0,False,False,False,False,
+488,,,,,,,,,,,87592.55,SL,sl,,,,,,,,,,,2025-12-23 09:18:31,,,,,,,,,True,False,,,1.54,1.54,0.0,,,be,True,0,False,False,False,False,
+496,,,,,,,,,,,87275.44,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-23 14:48:39,,,,,,,,,True,False,,,0.51,0.51,0.0,,,,False,0,False,False,False,False,
+498,,,,,,,,,,,87659.42,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-23 16:40:00,,,,,,,,,True,False,,,2.02,2.02,0.0,,,be,True,0,False,False,False,False,
+499,,,,,,,,,,,87937.52,SL,sl,,,,,,,,,,,2025-12-23 16:03:29,,,,,,,,,True,False,,,0.12,0.12,0.0,,,,False,0,False,False,False,False,
+502,,,,,,,,,,,87733.42,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-23 18:25:00,,,,,,,,,True,False,,,2.53,2.53,0.0,,,be,True,0,False,False,False,False,
+503,,,,,,,,,,,87846.03,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-23 19:40:00,,,,,,,,,True,False,,,2.77,2.77,0.0,,,be,True,0,False,False,False,False,
+505,,,,,,,,,,,87617.15,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-23 20:15:00,,,,,,,,,True,False,,,1.71,1.71,0.0,,,be,True,0,False,False,False,False,
+506,,,,,,,,,,,87617.15,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-23 20:15:00,,,,,,,,,True,False,,,1.71,1.71,0.0,,,be,True,0,False,False,False,False,
+510,,,,,,,,,,,87522.25,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-23 22:20:00,,,,,,,,,True,False,,,2.69,2.69,0.0,,,be,True,0,False,False,False,False,
+511,,,,,,,,,,,87294.37,SL,sl,,,,,,,,,,,2025-12-23 22:34:20,,,,,,,,,True,False,,,0.44,0.44,0.0,,,,False,0,False,False,False,False,
+514,,,,,,,,,,,87460.18,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-24 00:10:13,,,,,,,,,True,False,,,1.52,1.52,0.0,,,be,True,0,False,False,False,False,
+516,,,,,,,,,,,87263.36,SL,sl,,,,,,,,,,,2025-12-24 11:09:33,,,,,,,,,True,False,,,0.14,0.14,0.0,,,,False,0,False,False,False,False,
+518,,,,,,,,,,,87274.2,SL,sl,,,,,,,,,,,2025-12-24 12:15:30,,,,,,,,,True,False,,,0.58,0.58,0.0,,,,False,0,False,False,False,False,
+520,,,,,,,,,,,87728.2,SL,sl,,,,,,,,,,,2025-12-24 21:27:35,,,,,,,,,True,False,,,0.56,0.56,0.0,,,,False,0,False,False,False,False,
+524,,,,,,,,,,,87494.85,SL,sl,,,,,,,,,,,2025-12-26 02:07:33,,,,,,,,,True,False,,,0.23,0.23,0.0,,,,False,0,False,False,False,False,
+526,,,,,,,,,,,88866.82,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-26 05:10:00,,,,,,,,,True,False,,,0.98,0.98,0.0,,,,False,0,False,False,False,False,
+528,,,,,,,,,,,88601.24,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-26 11:25:00,,,,,,,,,True,False,,,0.97,0.97,0.0,,,,False,0,False,False,False,False,
+529,,,,,,,,,,,88749.98,SL,sl,,,,,,,,,,,2025-12-26 10:45:23,,,,,,,,,True,False,,,1.01,1.01,0.0,,,be,True,0,False,False,False,False,
+532,,,,,,,,,,,87168.71,SL,sl,,,,,,,,,,,2025-12-26 17:27:15,,,,,,,,,True,False,,,1.62,1.62,0.0,,,be,True,0,False,False,False,False,
+533,,,,,,,,,,,87225.28,SL,sl,,,,,,,,,,,2025-12-26 17:27:37,,,,,,,,,True,False,,,1.95,1.95,0.0,,,be,True,0,False,False,False,False,
+536,,,,,,,,,,,87494.28,SL,sl,,,,,,,,,,,2025-12-26 19:45:25,,,,,,,,,True,False,,,0.45,0.45,0.0,,,,False,0,False,False,False,False,
+537,,,,,,,,,,,87298.82,SL,sl,,,,,,,,,,,2025-12-26 19:05:24,,,,,,,,,True,False,,,1.28,1.28,0.0,,,be,True,0,False,False,False,False,
+538,,,,,,,,,,,87413.69,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-26 19:45:00,,,,,,,,,True,False,,,0.8,0.8,0.0,,,,False,0,False,False,False,False,
+542,,,,,,,,,,,87382.57,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-27 01:40:00,,,,,,,,,True,False,,,0.71,0.71,0.0,,,,False,0,False,False,False,False,
+543,,,,,,,,,,,87484.67,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-27 07:55:00,,,,,,,,,True,False,,,2.24,2.24,0.0,,,be,True,0,False,False,False,False,
+546,,,,,,,,,,,87730.89,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-28 03:10:00,,,,,,,,,True,False,,,0.51,0.51,0.0,,,,False,0,False,False,False,False,
+548,,,,,,,,,,,87178.16,SL,sl,,,,,,,,,,,2025-12-30 02:17:38,,,,,,,,,True,False,,,1.45,1.45,0.0,,,be,True,0,False,False,False,False,
+550,,,,,,,,,,,87374.28,SL,sl,,,,,,,,,,,2025-12-30 04:23:34,,,,,,,,,True,False,,,0.49,0.49,0.0,,,,False,0,False,False,False,False,
+551,,,,,,,,,,,87196.1,SL,sl,,,,,,,,,,,2025-12-30 06:04:23,,,,,,,,,True,False,,,1.04,1.04,0.0,,,be,True,0,False,False,False,False,
+554,,,,,,,,,,,88160.51,SL,sl,,,,,,,,,,,2025-12-30 18:49:54,,,,,,,,,True,False,,,0.36,0.36,0.0,,,,False,0,False,False,False,False,
+556,,,,,,,,,,,87815.97,SL,sl,,,,,,,,,,,2025-12-30 20:53:39,,,,,,,,,True,False,,,0.35,0.35,0.0,,,,False,0,False,False,False,False,
+558,,,,,,,,,,,88108.17,SL,sl,,,,,,,,,,,2025-12-31 01:09:22,,,,,,,,,True,False,,,0.03,0.03,0.0,,,,False,0,False,False,False,False,
+562,,,,,,,,,,,88641.26,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-31 10:20:27,,,,,,,,,True,False,,,4.19,4.19,4.19,,,be,True,0,False,False,False,False,
+564,,,,,,,,,,,87512.01,SL,sl,,,,,,,,,,,2025-12-31 19:38:32,,,,,,,,,True,False,,,1.69,1.69,0.0,,,be,True,0,False,False,False,False,
+565,,,,,,,,,,,87636.84,MARKET_CLOSE,market_close,,,,,,,,,,,2025-12-31 19:10:00,,,,,,,,,True,False,,,1.54,1.54,0.0,,,be,True,0,False,False,False,False,
+566,,,,,,,,,,,87575.78,SL,sl,,,,,,,,,,,2025-12-31 18:51:40,,,,,,,,,True,False,,,1.58,1.58,0.0,,,be,True,0,False,False,False,False,
+568,,,,,,,,,,,87395.24,SL,sl,,,,,,,,,,,2025-12-31 19:55:35,,,,,,,,,True,False,,,0.71,0.71,0.0,,,,False,0,False,False,False,False,
+572,,,,,,,,,,,87742.77,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-01 01:45:03,,,,,,,,,True,False,,,2.85,2.85,0.0,,,be,True,0,False,False,False,False,
+574,,,,,,,,,,,87840.93,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-01 15:35:00,,,,,,,,,True,False,,,1.74,1.74,0.0,,,be,True,0,False,False,False,False,
+575,,,,,,,,,,,87840.93,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-01 15:35:00,,,,,,,,,True,False,,,1.56,1.56,0.0,,,be,True,0,False,False,False,False,
+580,,,,,,,,,,,89584.84,SL,sl,,,,,,,,,,,2026-01-02 16:10:41,,,,,,,,,True,False,,,1.07,1.07,0.0,,,be,True,0,False,False,False,False,
+582,,,,,,,,,,,90069.47,SL,sl,,,,,,,,,,,2026-01-02 16:29:03,,,,,,,,,True,False,,,0.09,0.09,0.0,,,,False,0,False,False,False,False,
+583,,,,,,,,,,,90276.84,SL,sl,,,,,,,,,,,2026-01-02 16:31:06,,,,,,,,,True,False,,,0.36,0.36,0.0,,,,False,0,False,False,False,False,
+585,,,,,,,,,,,90532.58,SL,sl,,,,,,,,,,,2026-01-02 16:33:50,,,,,,,,,True,False,,,0.24,0.24,0.0,,,,False,0,False,False,False,False,
+588,,,,,,,,,,,89763.27,SL,sl,,,,,,,,,,,2026-01-02 18:50:04,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+589,,,,,,,,,,,89664.43,SL,sl,,,,,,,,,,,2026-01-02 18:51:57,,,,,,,,,True,False,,,0.17,0.17,0.0,,,,False,0,False,False,False,False,
+592,,,,,,,,,,,89644.92,SL,sl,,,,,,,,,,,2026-01-02 20:51:15,,,,,,,,,True,False,,,0.54,0.54,0.0,,,,False,0,False,False,False,False,
+593,,,,,,,,,,,89713.59,SL,sl,,,,,,,,,,,2026-01-02 20:48:57,,,,,,,,,True,False,,,0.34,0.34,0.0,,,,False,0,False,False,False,False,
+604,,,,,,,,,,,91489.73,SL,sl,,,,,,,,,,,2026-01-04 23:01:49,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+606,,,,,,,,,,,91311.28,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-04 23:37:06,,,,,,,,,True,False,,,0.5,0.5,0.0,,,,False,0,False,False,False,False,
+608,,,,,,,,,,,92608.3,SL,sl,,,,,,,,,,,2026-01-05 07:19:36,,,,,,,,,True,False,,,2.48,2.48,0.0,,,be,True,0,False,False,False,False,
+610,,,,,,,,,,,93836.07,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-05 16:06:33,,,,,,,,,True,False,,,0.5,0.5,0.0,,,,False,0,False,False,False,False,
+612,,,,,,,,,,,94355.96,SL,sl,,,,,,,,,,,2026-01-05 17:58:07,,,,,,,,,True,False,,,0.12,0.12,0.0,,,,False,0,False,False,False,False,
+614,,,,,,,,,,,93895.09,SL,sl,,,,,,,,,,,2026-01-05 21:29:05,,,,,,,,,True,False,,,0.22,0.22,0.0,,,,False,0,False,False,False,False,
+615,,,,,,,,,,,93859.69,SL,sl,,,,,,,,,,,2026-01-05 21:29:08,,,,,,,,,True,False,,,0.02,0.02,0.0,,,,False,0,False,False,False,False,
+618,,,,,,,,,,,94143.71,SL,sl,,,,,,,,,,,2026-01-05 22:53:16,,,,,,,,,True,False,,,1.65,1.65,0.0,,,be,True,0,False,False,False,False,
+619,,,,,,,,,,,93933.46,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-05 23:55:01,,,,,,,,,True,False,,,1.94,1.94,0.0,,,be,True,0,False,False,False,False,
+621,,,,,,,,,,,93879.04,SL,sl,,,,,,,,,,,2026-01-05 23:34:02,,,,,,,,,True,False,,,0.14,0.14,0.0,,,,False,0,False,False,False,False,
+626,,,,,,,,,,,93644.1,SL,sl,,,,,,,,,,,2026-01-06 10:11:33,,,,,,,,,True,False,,,0.38,0.38,0.0,,,,False,0,False,False,False,False,
+627,,,,,,,,,,,93644.1,SL,sl,,,,,,,,,,,2026-01-06 10:11:33,,,,,,,,,True,False,,,0.43,0.43,0.0,,,,False,0,False,False,False,False,
+632,,,,,,,,,,,92508.31,SL,sl,,,,,,,,,,,2026-01-06 20:20:20,,,,,,,,,True,False,,,0.25,0.25,0.0,,,,False,0,False,False,False,False,
+634,,,,,,,,,,,92652.2,SL,sl,,,,,,,,,,,2026-01-06 20:43:13,,,,,,,,,True,False,,,0.15,0.15,0.0,,,,False,0,False,False,False,False,
+636,,,,,,,,,,,92628.14,SL,sl,,,,,,,,,,,2026-01-06 21:12:03,,,,,,,,,True,False,,,0.79,0.79,0.0,,,,False,0,False,False,False,False,
+639,,,,,,,,,,,92864.06,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-07 01:01:20,,,,,,,,,True,False,,,5.24,5.24,5.24,,,be,True,0,False,False,False,False,
+644,,,,,,,,,,,92958.07,SL,sl,,,,,,,,,,,2026-01-07 02:55:58,,,,,,,,,True,False,,,0.1,0.1,0.0,,,,False,0,False,False,False,False,
+646,,,,,,,,,,,92663.87,SL,sl,,,,,,,,,,,2026-01-07 06:15:38,,,,,,,,,True,False,,,1.49,1.49,0.0,,,be,True,0,False,False,False,False,
+647,,,,,,,,,,,92633.75,SL,sl,,,,,,,,,,,2026-01-07 06:15:02,,,,,,,,,True,False,,,1.17,1.17,0.0,,,be,True,0,False,False,False,False,
+652,,,,,,,,,,,92738.69,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-07 07:32:51,,,,,,,,,True,False,,,0.52,0.52,0.0,,,,False,0,False,False,False,False,
+664,,,,,,,,,,,89715.4,SL,sl,,,,,,,,,,,2026-01-08 12:11:29,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+666,,,,,,,,,,,89836.12,SL,sl,,,,,,,,,,,2026-01-08 13:32:41,,,,,,,,,True,False,,,1.1,1.1,0.0,,,be,True,0,False,False,False,False,
+667,,,,,,,,,,,89720.0,SL,sl,,,,,,,,,,,2026-01-08 14:03:33,,,,,,,,,True,False,,,0.41,0.41,0.0,,,,False,0,False,False,False,False,
+668,,,,,,,,,,,89771.04,SL,sl,,,,,,,,,,,2026-01-08 13:37:39,,,,,,,,,True,False,,,0.47,0.47,0.0,,,,False,0,False,False,False,False,
+672,,,,,,,,,,,91095.49,SL,sl,,,,,,,,,,,2026-01-08 17:07:04,,,,,,,,,True,False,,,0.76,0.76,0.0,,,,False,0,False,False,False,False,
+673,,,,,,,,,,,90938.42,SL,sl,,,,,,,,,,,2026-01-08 17:00:05,,,,,,,,,True,False,,,0.04,0.04,0.0,,,,False,0,False,False,False,False,
+674,,,,,,,,,,,91165.58,SL,sl,,,,,,,,,,,2026-01-08 17:08:28,,,,,,,,,True,False,,,0.24,0.24,0.0,,,,False,0,False,False,False,False,
+678,,,,,,,,,,,91158.1,SL,sl,,,,,,,,,,,2026-01-08 21:35:13,,,,,,,,,True,False,,,2.11,2.11,0.0,,,be,True,0,False,False,False,False,
+680,,,,,,,,,,,91526.32,SL,sl,,,,,,,,,,,2026-01-09 01:30:04,,,,,,,,,True,False,,,0.93,0.93,0.0,,,,False,0,False,False,False,False,
+694,,,,,,,,,,,90570.86,SL,sl,,,,,,,,,,,2026-01-09 11:19:05,,,,,,,,,True,False,,,0.86,0.86,0.0,,,,False,0,False,False,False,False,
+695,,,,,,,,,,,90585.99,SL,sl,,,,,,,,,,,2026-01-09 11:19:23,,,,,,,,,True,False,,,0.96,0.96,0.0,,,,False,0,False,False,False,False,
+698,,,,,,,,,,,90206.0,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-09 12:25:00,,,,,,,,,True,False,,,2.55,2.55,0.0,,,be,True,0,False,False,False,False,
+699,,,,,,,,,,,90206.0,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-09 12:25:00,,,,,,,,,True,False,,,2.95,2.95,0.0,,,be,True,0,False,False,False,False,
+702,,,,,,,,,,,90534.19,SL,sl,,,,,,,,,,,2026-01-09 13:11:48,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+703,,,,,,,,,,,90596.28,SL,sl,,,,,,,,,,,2026-01-09 13:16:11,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+706,,,,,,,,,,,90224.56,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-09 21:07:24,,,,,,,,,True,False,,,0.51,0.51,0.0,,,,False,0,False,False,False,False,
+708,,,,,,,,,,,90762.51,SL,sl,,,,,,,,,,,2026-01-11 15:13:17,,,,,,,,,True,False,,,2.61,2.61,0.0,,,be,True,0,False,False,False,False,
+710,,,,,,,,,,,90625.08,SL,sl,,,,,,,,,,,2026-01-11 15:48:48,,,,,,,,,True,False,,,0.16,0.16,0.0,,,,False,0,False,False,False,False,
+712,,,,,,,,,,,90653.57,SL,sl,,,,,,,,,,,2026-01-11 18:36:48,,,,,,,,,True,False,,,0.26,0.26,0.0,,,,False,0,False,False,False,False,
+714,,,,,,,,,,,90624.67,SL,sl,,,,,,,,,,,2026-01-11 22:34:50,,,,,,,,,True,False,,,2.47,2.47,0.0,,,be,True,0,False,False,False,False,
+716,,,,,,,,,,,90775.32,SL,sl,,,,,,,,,,,2026-01-11 23:16:52,,,,,,,,,True,False,,,0.12,0.12,0.0,,,,False,0,False,False,False,False,
+718,,,,,,,,,,,90910.81,SL,sl,,,,,,,,,,,2026-01-12 00:00:08,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+720,,,,,,,,,,,91625.6,SL,sl,,,,,,,,,,,2026-01-12 04:03:48,,,,,,,,,True,False,,,0.06,0.06,0.0,,,,False,0,False,False,False,False,
+722,,,,,,,,,,,91444.63,SL,sl,,,,,,,,,,,2026-01-12 18:36:43,,,,,,,,,True,False,,,0.37,0.37,0.0,,,,False,0,False,False,False,False,
+724,,,,,,,,,,,91810.14,SL,sl,,,,,,,,,,,2026-01-12 20:10:28,,,,,,,,,True,False,,,1.01,1.01,0.0,,,be,True,0,False,False,False,False,
+726,,,,,,,,,,,92193.04,SL,sl,,,,,,,,,,,2026-01-13 13:30:02,,,,,,,,,True,False,,,0.81,0.81,0.0,,,,False,0,False,False,False,False,
+727,,,,,,,,,,,92186.35,SL,sl,,,,,,,,,,,2026-01-13 13:30:02,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+730,,,,,,,,,,,92370.46,SL,sl,,,,,,,,,,,2026-01-13 14:30:11,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+732,,,,,,,,,,,92400.64,SL,sl,,,,,,,,,,,2026-01-13 15:07:00,,,,,,,,,True,False,,,0.23,0.23,0.0,,,,False,0,False,False,False,False,
+734,,,,,,,,,,,95009.15,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-14 12:47:32,,,,,,,,,True,False,,,3.86,3.86,3.86,,,be,True,0,False,False,False,False,
+736,,,,,,,,,,,95551.49,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-14 14:30:34,,,,,,,,,True,False,,,4.94,4.94,4.94,,,be,True,0,False,False,False,False,
+738,,,,,,,,,,,97623.57,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-14 20:12:30,,,,,,,,,True,False,,,3.47,3.47,3.47,,,be,True,0,False,False,False,False,
+740,,,,,,,,,,,97179.01,SL,sl,,,,,,,,,,,2026-01-14 22:34:04,,,,,,,,,True,False,,,0.32,0.32,0.0,,,,False,0,False,False,False,False,
+742,,,,,,,,,,,96734.8,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-15 01:15:00,,,,,,,,,True,False,,,2.24,2.24,0.0,,,be,True,0,False,False,False,False,
+744,,,,,,,,,,,96296.4,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-15 06:51:12,,,,,,,,,True,False,,,1.74,1.74,0.0,,,be,True,0,False,False,False,False,
+745,,,,,,,,,,,96301.13,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-15 06:50:02,,,,,,,,,True,False,,,1.84,1.84,0.0,,,be,True,0,False,False,False,False,
+748,,,,,,,,,,,96652.76,SL,sl,,,,,,,,,,,2026-01-15 07:40:16,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+750,,,,,,,,,,,96419.72,SL,sl,,,,,,,,,,,2026-01-15 14:35:15,,,,,,,,,True,False,,,0.22,0.22,0.0,,,,False,0,False,False,False,False,
+752,,,,,,,,,,,96126.06,SL,sl,,,,,,,,,,,2026-01-15 18:12:49,,,,,,,,,True,False,,,0.55,0.55,0.0,,,,False,0,False,False,False,False,
+753,,,,,,,,,,,96897.02,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-15 17:45:00,,,,,,,,,True,False,,,1.44,1.44,0.0,,,be,True,0,False,False,False,False,
+756,,,,,,,,,,,95615.84,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-16 09:20:07,,,,,,,,,True,False,,,1.46,1.46,0.0,,,be,True,0,False,False,False,False,
+762,,,,,,,,,,,95095.15,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-16 18:20:02,,,,,,,,,True,False,,,0.84,0.84,0.0,,,,False,0,False,False,False,False,
+763,,,,,,,,,,,95014.2,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-16 18:04:46,,,,,,,,,True,False,,,4.28,4.28,4.28,,,be,True,0,False,False,False,False,
+766,,,,,,,,,,,94684.02,SL,sl,,,,,,,,,,,2026-01-16 20:09:19,,,,,,,,,True,False,,,0.62,0.62,0.0,,,,False,0,False,False,False,False,
+768,,,,,,,,,,,94935.54,SL,sl,,,,,,,,,,,2026-01-18 01:05:37,,,,,,,,,True,False,,,0.0,0.0,0.0,,,,False,0,False,False,False,False,
+770,,,,,,,,,,,95153.16,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-18 06:10:00,,,,,,,,,True,False,,,1.25,1.25,0.0,,,be,True,0,False,False,False,False,
+772,,,,,,,,,,,92754.25,SL,sl,,,,,,,,,,,2026-01-19 08:07:35,,,,,,,,,True,False,,,1.27,1.27,0.0,,,be,True,0,False,False,False,False,
+778,,,,,,,,,,,93103.26,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-19 20:05:00,,,,,,,,,True,False,,,1.1,1.1,0.0,,,be,True,0,False,False,False,False,
+783,,,,,,,,,,,92983.45,SL,sl,,,,,,,,,,,2026-01-19 19:32:25,,,,,,,,,True,False,,,1.12,1.12,0.0,,,be,True,0,False,False,False,False,
+786,,,,,,,,,,,92844.19,SL,sl,,,,,,,,,,,2026-01-19 22:07:24,,,,,,,,,True,False,,,0.46,0.46,0.0,,,,False,0,False,False,False,False,
+787,,,,,,,,,,,92854.13,SL,sl,,,,,,,,,,,2026-01-19 22:07:24,,,,,,,,,True,False,,,0.48,0.48,0.0,,,,False,0,False,False,False,False,
+790,,,,,,,,,,,92740.82,SL,sl,,,,,,,,,,,2026-01-20 01:49:23,,,,,,,,,True,False,,,1.0,1.0,0.0,,,be,True,0,False,False,False,False,
+792,,,,,,,,,,,91145.72,SL,sl,,,,,,,,,,,2026-01-20 12:31:53,,,,,,,,,True,False,,,0.57,0.57,0.0,,,,False,0,False,False,False,False,
+794,,,,,,,,,,,90452.78,MARKET_CLOSE,market_close,,,,,,,,,,,2026-01-20 14:50:38,,,,,,,,,True,False,,,4.58,4.58,4.58,,,be,True,0,False,False,False,False,
+2,2025-11-22 10:12:04,2025-11-22,10,BTCUSDm,sell,0.02,0.82,84065.58,84357.01,,84009.68,SL,be,291.429999999993,0.1918127852314795,57.183,1,0.20001372542294735,27,0.257,-0.727,84111.34,84083.58,2025-11-22 11:09:15,entry_engine,7,3.86,5,1.0,0,1,True,True,False,1.73,0.062,2.14,2.14,0.0,,,be,True,0,False,False,False,False,1.1180000000001746
+4,2025-11-22 11:26:46,2025-11-22,11,BTCUSDm,sell,0.1,2.59,84169.92,84403.04,,84123.86,SL,be,233.11999999999534,0.1975806451612843,154.9,1,0.19998284145502862,19,0.271,-1.693,84217.17,84187.92,2025-11-22 14:01:40,entry_engine,22,3.86,5,1.0,0,1,True,True,False,1.15,0.077,2.53,2.53,0.0,,,be,True,0,False,False,False,False,4.605999999999767
+5,2025-11-22 12:01:17,2025-11-22,12,BTCUSDm,sell,0.85,34.02,84069.75,84371.95,,84013.73,SL,be,302.1999999999971,0.18537392455329124,69.333,1,0.20000000000000964,63,0.284,-0.765,84118.41,84087.75,2025-11-22 13:10:37,entry_engine,29,3.86,5,1.0,0,1,True,True,False,1.7,0.06,1.62,1.62,0.0,,,be,True,0,False,False,False,False,47.617000000003465
+8,2025-11-22 20:37:39,2025-11-22,20,BTCUSDm,buy,0.06,0.9,84473.14,84308.23,84544.36,84307.71,SL,sl,164.9100000000035,-1.0031532350978687,11.717,0,,5,0.302,-0.982,84443.57,84455.14,2025-11-22 20:49:22,entry_engine,8,4.43,4,1.0,0,0,False,True,False,1.41,0.109,0.39,0.39,0.0,,,,False,0,False,False,False,False,-9.925799999999581
+10,2025-11-22 22:15:19,2025-11-22,22,BTCUSDm,buy,0.02,0.3,84525.26,84392.99,84596.48,84598.18,TP,tp,132.26999999998952,0.5512965903077344,0.533,0,,19,0.314,-1.913,84492.34,84507.26,2025-11-22 22:15:51,entry_engine,28,4.43,4,1.0,0,0,False,True,False,1.23,0.136,0.53,0.53,0.0,,,,False,0,False,False,False,False,1.458399999999965
+12,2025-11-23 11:46:00,2025-11-23,11,BTCUSDm,sell,0.01,0.24,86273.04,86462.18,86130.0,86463.43,SL,sl,189.13999999999942,-1.0066088611610446,19.65,0,,57,0.261,-1.26,86315.91,86291.04,2025-11-23 12:05:39,entry_engine,17,3.9,4,1.0,0,0,False,True,False,1.38,0.095,0.59,0.59,0.0,,,,False,0,False,False,False,False,-1.9038999999999942
+20,2025-11-23 19:58:44,2025-11-23,19,BTCUSDm,buy,0.02,0.61,87322.23,87037.88,,87378.32,SL,be,284.34999999999127,0.1972569017056894,56.95,1,0.20000000000004095,41,0.295,-0.925,87255.05,87304.23,2025-11-23 20:55:41,entry_engine,6,4.13,5,1.0,0,1,True,True,False,1.53,0.063,1.21,1.21,0.0,,,be,True,0,False,False,False,False,1.1218000000002213
+22,2025-11-23 21:03:18,2025-11-23,21,BTCUSDm,buy,0.07,2.52,87346.14,87019.67,,87411.2,SL,be,326.47000000000116,0.19928324195177946,129.133,1,0.19998774772565125,103,0.279,-0.781,87281.53,87328.14,2025-11-23 23:12:26,entry_engine,19,4.13,5,1.0,0,1,True,True,False,1.73,0.055,2.36,2.36,0.0,,,be,True,0,False,False,False,False,4.554199999999837
+34,2025-11-24 14:55:02,2025-11-24,14,BTCUSDm,buy,0.24,8.1,85740.92,85420.42,,86809.13,MARKET_CLOSE,dtp,320.5,3.3329485179407374,71.633,1,0.20000000000001816,2,0.286,-2.597,85695.48,85722.92,2025-11-24 16:06:40,entry_engine,6,5.0,5,1.0,0,0,False,True,False,1.05,0.056,4.46,4.46,4.46,1.13,14,be,True,0,False,False,False,False,256.37040000000155
+38,2025-11-25 11:09:59,2025-11-25,11,BTCUSDm,sell,0.08,0.54,87402.91,87555.34,87327.13,87326.93,TP,tp,152.42999999999302,0.4984583087319685,10.633,0,,152,0.324,-2.039,87437.28,87420.91,2025-11-25 11:20:37,entry_engine,29,4.54,4,1.0,0,1,False,True,False,1.13,0.118,0.47,0.47,0.0,,,,False,0,False,False,False,False,6.078400000000839
+48,2025-11-25 19:55:01,2025-11-25,19,BTCUSDm,sell,0.01,0.3,86814.38,87230.52,86586.52,87231.31,SL,sl,416.1399999999994,-1.00189839957705,36.267,0,,37,0.272,-0.531,86873.77,86832.38,2025-11-25 20:31:17,entry_engine,9,5.0,4,1.0,0,1,True,True,False,1.61,0.043,0.33,0.33,0.0,,,,False,0,False,False,False,False,-4.1692999999999305
+54,2025-11-26 04:52:01,2025-11-26,4,BTCUSDm,sell,0.04,0.47,87172.8,87412.08,87013.25,87421.78,SL,sl,239.27999999999884,-1.0405382815111883,15.033,0,,121,0.289,-0.92,87221.51,87190.8,2025-11-26 05:07:03,entry_engine,10,4.43,4,1.0,0,1,True,True,False,1.65,0.075,0.08,0.08,0.0,,,,False,0,False,False,False,False,-9.959199999999838
+56,2025-11-26 08:06:05,2025-11-26,8,BTCUSDm,buy,0.04,0.28,87775.85,87610.82,87841.06,87607.75,SL,sl,165.02999999999884,-1.0186026783009574,8.217,0,,56,0.269,-1.134,87746.17,87757.85,2025-11-26 08:14:18,entry_engine,3,4.36,4,1.0,0,1,True,True,False,1.58,0.109,0.18,0.18,0.0,,,,False,0,False,False,False,False,-6.724000000000233
+58,2025-11-26 08:31:16,2025-11-26,8,BTCUSDm,sell,0.01,0.11,87578.36,87735.8,87507.38,87504.07,TP,tp,157.44000000000233,0.47186229674791985,2.267,0,,65,0.279,-1.378,87609.57,87596.36,2025-11-26 08:33:32,entry_engine,25,3.57,4,1.0,0,0,False,True,False,1.44,0.114,0.45,0.45,0.0,,,,False,0,False,False,False,False,0.742899999999936
+60,2025-11-26 10:41:04,2025-11-26,10,BTCUSDm,sell,0.01,0.15,86816.49,87078.54,86588.63,87085.85,SL,sl,262.04999999998836,-1.0278954398016125,64.017,0,,36,0.257,-0.545,86873.54,86834.49,2025-11-26 11:45:05,entry_engine,3,5.0,4,1.0,0,1,True,True,False,2.13,0.069,0.19,0.19,0.0,,,,False,0,False,False,False,False,-2.6936000000000058
+61,2025-11-26 11:22:00,2025-11-26,11,BTCUSDm,sell,0.12,1.03,86862.76,87063.44,86634.9,87064.13,SL,sl,200.68000000000757,-1.0034383097468722,21.633,0,,120,0.267,-0.85,86921.27,86880.76,2025-11-26 11:43:38,entry_engine,11,5.0,4,1.0,0,1,True,True,False,1.83,0.09,0.06,0.06,0.0,,,,False,0,False,False,False,False,-24.164400000001187
+64,2025-11-26 12:08:03,2025-11-26,12,BTCUSDm,sell,0.3,3.8,86808.01,87085.68,86580.15,86579.41,TP,tp,277.66999999999825,0.8232794324197527,6.433,0,,22,0.255,-0.489,86864.76,86826.01,2025-11-26 12:14:29,entry_engine,20,5.0,4,1.0,0,1,True,True,False,2.08,0.065,0.8,0.8,0.0,,,,False,0,False,False,False,False,68.57999999999738
+70,2025-11-26 15:55:26,2025-11-26,15,BTCUSDm,buy,0.21,3.65,86908.04,86521.79,,87697.23,MARKET_CLOSE,decay,386.25,2.043210355987061,84.567,1,0.2,26,0.289,-1.417,86861.0,86890.04,2025-11-26 17:20:00,entry_engine,7,3.71,5,1.0,0,0,True,True,False,1.4,0.047,2.75,2.75,0.0,0.71,17,be,True,0,False,False,False,False,165.72990000000047
+73,2025-11-27 05:35:39,2025-11-27,5,BTCUSDm,buy,0.05,0.28,91220.44,91031.81,91296.01,91028.1,SL,sl,188.63000000000466,-1.0196681333827693,4.917,0,,17,0.25,-1.584,91189.84,91202.44,2025-11-27 05:40:34,entry_engine,4,4.89,4,1.0,0,1,True,True,False,1.37,0.095,0.36,0.36,0.0,,,,False,0,False,False,False,False,-9.616999999999827
+77,2025-11-27 06:15:17,2025-11-27,6,BTCUSDm,buy,0.04,0.3,91258.84,91013.02,91334.41,91338.08,TP,tp,245.81999999999243,0.3223496867627031,1.25,0,,14,0.275,-0.822,91226.98,91240.84,2025-11-27 06:16:32,entry_engine,12,4.89,4,1.0,0,1,True,True,False,1.66,0.073,0.31,0.31,0.0,,,,False,0,False,False,False,False,3.1696000000002096
+90,2025-11-28 00:34:40,2025-11-28,0,BTCUSDm,sell,0.29,1.35,91326.82,91480.51,,90983.26,MARKET_CLOSE,dtp,153.68999999998778,2.2354089400744326,41.767,1,0.20001301320845652,17,0.27,-1.62,91355.02,91344.82,2025-11-28 01:16:26,entry_engine,7,3.69,5,1.0,0,1,True,True,False,1.39,0.117,3.01,3.01,3.01,0.78,9,be,True,0,False,False,False,False,99.63240000000354
+104,2025-11-29 09:09:12,2025-11-29,9,BTCUSDm,buy,0.02,0.11,90569.67,90405.94,90646.23,90648.1,TP,tp,163.72999999999593,0.4790203383619955,8.367,0,,36,0.263,-0.524,90538.26,90551.67,2025-11-29 09:17:34,entry_engine,13,3.87,4,1.0,0,1,True,True,False,1.73,0.11,0.46,0.46,0.0,,,,False,0,False,False,False,False,1.5686000000001514
+106,2025-11-29 11:00:29,2025-11-29,11,BTCUSDm,buy,0.09,0.41,90577.44,90414.76,90654.0,90655.42,TP,tp,162.68000000000757,0.47934595524952234,50.833,0,,16,0.31,-0.372,90543.6,90559.44,2025-11-29 11:51:19,entry_engine,36,3.87,4,1.0,0,1,True,True,False,2.19,0.111,0.46,0.46,0.0,,,,False,0,False,False,False,False,7.018199999999633
+122,2025-12-02 01:57:14,2025-12-02,1,BTCUSDm,buy,0.13,1.15,86430.39,86116.18,,86492.46,SL,be,314.2100000000064,0.1975430444607292,67.783,1,0.19999363483019392,17,0.251,-0.444,86382.38,86412.39,2025-12-02 03:05:01,entry_engine,15,4.34,5,1.0,0,0,True,True,False,1.37,0.057,1.36,1.36,0.0,,,be,True,0,False,False,False,False,8.069100000000908
+124,2025-12-02 03:23:12,2025-12-02,3,BTCUSDm,buy,0.03,0.28,86372.75,86094.72,86552.15,86555.81,TP,tp,278.02999999999884,0.6584181563140612,18.883,0,,100,0.26,-0.926,86323.69,86354.75,2025-12-02 03:42:05,entry_engine,32,4.34,4,1.0,0,0,True,True,False,1.87,0.065,0.64,0.64,0.0,,,,False,0,False,False,False,False,5.49179999999993
+129,2025-12-02 09:40:25,2025-12-02,9,BTCUSDm,sell,0.34,1.55,86703.31,86887.08,,86889.72,SL,sl,183.77000000000407,-1.0143657833160982,25.25,0,,25,0.302,-2.292,86742.47,86721.31,2025-12-02 10:05:40,entry_engine,16,5.0,5,1.0,0,1,False,True,False,1.07,0.098,0.37,0.37,0.0,,,,False,0,False,False,False,False,-63.37940000000119
+148,2025-12-03 02:46:44,2025-12-03,2,BTCUSDm,buy,0.1,1.7,92375.4,91831.83,92890.68,92893.8,TP,tp,543.5699999999924,0.9536950162812811,15.55,0,,8,0.255,-0.636,92269.94,92357.4,2025-12-03 03:02:17,entry_engine,8,4.89,4,1.0,0,1,True,True,False,1.74,0.033,0.95,0.95,0.0,,,,False,0,False,False,False,False,51.84000000000088
+180,2025-12-04 14:41:27,2025-12-04,14,BTCUSDm,sell,0.17,1.76,92691.15,93072.64,,92615.23,SL,be,381.49000000000524,0.1990091483393987,31.167,1,0.20000524260134553,47,0.256,-0.477,92750.51,92709.15,2025-12-04 15:12:37,entry_engine,3,4.36,5,1.0,0,0,True,True,False,1.91,0.047,2.26,2.26,0.0,,,be,True,0,False,False,False,False,12.906399999999705
+182,2025-12-04 15:20:20,2025-12-04,15,BTCUSDm,sell,0.25,2.52,92790.55,93176.92,,92715.15,SL,be,386.36999999999534,0.1951497269456988,17.017,1,0.1999896472293527,54,0.26,-1.092,92850.63,92808.55,2025-12-04 15:37:21,entry_engine,11,4.36,5,1.0,0,0,True,True,False,1.41,0.047,1.1,1.1,0.0,,,be,True,0,False,False,False,False,18.850000000002183
+184,2025-12-04 16:07:58,2025-12-04,16,BTCUSDm,sell,0.12,1.53,92829.56,93280.25,,92378.22,MARKET_CLOSE,decay,450.6900000000023,1.0014422330204669,107.267,1,0.20000443764006068,41,0.256,-1.333,92888.9,92847.56,2025-12-04 17:55:14,entry_engine,20,4.36,5,1.0,0,0,False,True,False,1.28,0.04,2.3,2.3,0.0,1.3,22,be,True,0,False,False,False,False,54.160799999999576
+185,2025-12-04 16:38:43,2025-12-04,16,BTCUSDm,buy,0.05,0.77,92562.24,92016.84,92687.3,92688.43,TP,tp,545.4000000000087,0.23137147048035525,2.983,0,,2,0.258,-0.513,92522.73,92544.24,2025-12-04 16:41:42,entry_engine,13,5.0,4,1.0,0,0,True,True,False,1.63,0.033,0.22,0.22,0.0,,,,False,0,False,False,False,False,6.309499999999389
+190,2025-12-05 02:55:55,2025-12-05,2,BTCUSDm,buy,0.03,0.19,92557.55,92339.26,,92339.22,SL,sl,218.29000000000815,-1.0001832424755766,45.1,0,,32,0.253,-0.58,92517.93,92539.55,2025-12-05 03:41:01,entry_engine,5,4.71,5,1.0,0,1,True,True,False,1.98,0.082,0.58,0.58,0.0,,,,False,0,False,False,False,False,-6.5499000000000525
+216,2025-12-06 22:45:09,2025-12-06,22,BTCUSDm,buy,0.08,0.21,89350.27,89246.72,89420.58,89243.95,SL,sl,103.55000000000291,-1.0267503621439305,18.15,0,,9,0.258,-1.754,89320.17,89332.27,2025-12-06 23:03:18,entry_engine,8,4.76,4,1.0,0,0,True,True,False,1.24,0.174,0.29,0.29,0.0,,,,False,0,False,False,False,False,-8.505600000000559
+218,2025-12-07 07:05:10,2025-12-07,7,BTCUSDm,buy,0.37,1.01,89611.6,89498.49,,89493.88,SL,sl,113.11000000000058,-1.0407567854301172,5.433,0,,10,0.293,-1.098,89580.44,89593.6,2025-12-07 07:10:36,entry_engine,3,4.57,5,1.0,0,1,True,True,False,1.68,0.159,0.07,0.07,0.0,,,,False,0,False,False,False,False,-43.55640000000043
+232,2025-12-08 13:20:19,2025-12-08,13,BTCUSDm,buy,0.18,0.9,91679.49,91482.95,91781.06,91784.44,TP,tp,196.54000000000815,0.5339879922661684,1.25,0,,19,0.278,-1.524,91642.67,91661.49,2025-12-08 13:21:34,entry_engine,4,5.0,4,1.0,0,0,True,True,False,1.36,0.092,0.51,0.51,0.0,,,,False,0,False,False,False,False,18.890999999999476
+246,2025-12-09 13:42:04,2025-12-09,13,BTCUSDm,buy,0.24,0.93,90361.52,90202.07,,90201.49,SL,sl,159.4499999999971,-1.0036375039197352,2.8,0,,38,0.272,-1.085,90328.25,90343.52,2025-12-09 13:44:52,entry_engine,18,5.0,5,1.0,0,1,True,True,False,1.43,0.113,0.0,0.0,0.0,,,,False,0,False,False,False,False,-38.40719999999972
+248,2025-12-09 14:16:02,2025-12-09,14,BTCUSDm,buy,0.14,1.01,90391.69,90125.9,,90121.94,SL,sl,265.79000000000815,-1.0148989803980275,10.617,0,,30,0.286,-0.547,90357.65,90373.69,2025-12-09 14:26:39,entry_engine,25,5.0,5,1.0,0,1,True,True,False,1.74,0.068,0.19,0.19,0.0,,,,False,0,False,False,False,False,-37.765
+253,2025-12-09 14:55:02,2025-12-09,14,BTCUSDm,buy,0.97,8.1,90343.29,90039.16,,91075.77,MARKET_CLOSE,dtp,304.1299999999901,2.408443757603769,37.417,1,0.20001315227042293,2,0.275,-1.409,90309.83,90325.29,2025-12-09 15:32:27,entry_engine,33,5.0,5,1.0,0,1,True,True,False,1.47,0.059,3.21,3.21,3.21,0.8,7,be,True,0,False,False,False,False,710.5056000000102
+310,2025-12-12 12:54:41,2025-12-12,12,BTCUSDm,sell,2.07,4.41,92401.17,92557.36,92338.76,92334.86,TP,tp,156.19000000000233,0.42454702605798506,12.917,0,,5,0.252,-0.678,92429.67,92419.17,2025-12-12 13:07:36,entry_engine,11,4.39,4,1.0,0,0,True,True,False,1.71,0.115,0.38,0.38,0.0,,,,False,0,False,False,False,False,137.26169999999516
+314,2025-12-12 13:25:37,2025-12-12,13,BTCUSDm,sell,0.28,0.57,92427.62,92589.23,,92400.43,SL,be,161.61000000000058,0.16824453932307548,14.95,1,0.1999876245281376,33,0.341,-1.314,92459.82,92445.62,2025-12-12 13:40:34,entry_engine,18,4.39,5,1.0,0,0,True,True,False,1.5,0.111,1.02,1.02,0.0,,,be,True,0,False,False,False,False,7.613200000000653
+316,2025-12-12 14:32:57,2025-12-12,14,BTCUSDm,sell,0.55,1.09,92431.08,92591.03,,92592.5,SL,sl,159.9499999999971,-1.0091903719912547,4.733,0,,18,0.254,-1.397,92459.64,92449.08,2025-12-12 14:37:41,entry_engine,31,4.39,5,1.0,0,0,True,True,False,1.14,0.113,0.99,0.99,0.0,,,,False,0,False,False,False,False,-88.78099999999905
+332,2025-12-14 17:01:57,2025-12-14,17,BTCUSDm,sell,2.2,7.61,88990.32,89255.61,,88940.01,SL,be,265.2899999999936,0.1896415243696085,52.683,1,0.20000753891972373,32,0.251,-1.123,89024.84,89008.32,2025-12-14 17:54:38,entry_engine,5,4.75,5,1.0,0,1,True,True,False,1.44,0.068,1.41,1.41,0.0,,,be,True,0,False,False,False,False,110.6820000000269
+334,2025-12-14 18:20:03,2025-12-14,18,BTCUSDm,sell,0.3,0.7,89007.38,89195.25,,88971.15,SL,be,187.86999999999534,0.19284611699585552,30.567,1,0.19997870868157724,3,0.3,-1.382,89045.1,89025.38,2025-12-14 18:50:37,entry_engine,21,4.75,5,1.0,0,1,False,True,False,1.43,0.096,1.47,1.47,0.0,,,be,True,0,False,False,False,False,10.869000000003142
+336,2025-12-14 18:55:27,2025-12-14,18,BTCUSDm,sell,0.34,0.7,89007.64,89177.46,,88532.1,MARKET_CLOSE,dtp,169.82000000000698,2.8002590978681785,76.183,1,0.199976445648363,27,0.276,-1.386,89043.79,89025.64,2025-12-14 20:11:38,entry_engine,28,4.75,5,1.0,0,1,False,True,False,1.42,0.106,3.74,3.74,3.74,0.94,15,be,True,0,False,False,False,False,161.68359999999782
+350,2025-12-15 03:21:39,2025-12-15,3,BTCUSDm,buy,0.17,0.47,89518.54,89271.03,89691.19,89266.62,SL,sl,247.50999999999476,-1.017817461920745,10.9,0,,99,0.26,-1.305,89470.61,89500.54,2025-12-15 03:32:33,entry_engine,14,4.78,4,1.0,0,1,False,True,False,1.37,0.073,0.11,0.11,0.0,,,,False,0,False,False,False,False,-42.82639999999971
+352,2025-12-15 04:20:04,2025-12-15,4,BTCUSDm,buy,0.39,0.7,89530.73,89371.19,,89371.08,SL,sl,159.5399999999936,-1.0006894822615056,3.983,0,,4,0.295,-1.199,89478.8,89512.73,2025-12-15 04:24:03,entry_engine,26,4.78,5,1.0,0,1,False,True,False,1.42,0.113,0.0,0.0,0.0,,,,False,0,False,False,False,False,-62.263499999997734
+388,2025-12-17 01:06:04,2025-12-17,1,BTCUSDm,sell,0.06,0.18,87626.81,87849.95,87504.82,87852.0,SL,sl,223.13999999999942,-1.0091870574527333,12.333,0,,69,0.286,-0.575,87668.1,87644.81,2025-12-17 01:18:24,entry_engine,12,4.11,4,1.0,0,1,True,True,False,1.84,0.081,0.23,0.23,0.0,,,,False,0,False,False,False,False,-13.511400000000139
+391,2025-12-17 01:22:18,2025-12-17,1,BTCUSDm,buy,0.25,0.41,87694.03,87558.52,87781.95,87782.51,TP,tp,135.50999999999476,0.6529407423806313,3.7,0,,48,0.301,-1.941,87658.38,87676.03,2025-12-17 01:26:00,entry_engine,19,3.81,4,1.0,0,0,False,True,False,1.04,0.133,0.63,0.63,0.0,,,,False,0,False,False,False,False,22.11999999999898
+394,2025-12-17 01:41:03,2025-12-17,1,BTCUSDm,sell,0.1,0.3,87628.71,87868.64,87506.72,87505.25,TP,tp,239.92999999999302,0.5145667486350602,12.45,0,,27,0.295,-0.599,87670.73,87646.71,2025-12-17 01:53:30,entry_engine,19,4.11,4,1.0,0,1,True,True,False,1.84,0.075,0.48,0.48,0.0,,,,False,0,False,False,False,False,12.346000000000641
+397,2025-12-17 03:06:13,2025-12-17,3,BTCUSDm,buy,0.04,0.11,87575.67,87381.31,87698.91,87379.4,SL,sl,194.36000000000058,-1.0098271249228417,11.667,0,,73,0.282,-1.099,87534.54,87557.67,2025-12-17 03:17:53,entry_engine,23,5.0,4,1.0,0,0,True,True,False,1.55,0.093,0.09,0.09,0.0,,,,False,0,False,False,False,False,-7.850800000000163
+420,2025-12-18 12:52:41,2025-12-18,12,BTCUSDm,buy,7.55,18.11,87095.9,86966.55,,87510.6,MARKET_CLOSE,dtp,129.34999999999127,3.206030150754075,9.933,1,0.20000000000009,18,0.267,-1.488,87067.06,87077.9,2025-12-18 13:02:37,entry_engine,5,5.0,5,1.0,0,0,False,True,False,1.21,0.139,4.29,4.29,4.29,1.09,2,be,True,0,False,False,False,False,3130.985000000088
+430,2025-12-19 14:17:18,2025-12-19,14,BTCUSDm,sell,3.05,2.59,88288.48,88493.3,,88080.65,MARKET_CLOSE,decay,204.82000000000698,1.014695830485278,1.267,1,0.19998047065711577,23,0.278,-0.921,88329.65,88306.48,2025-12-19 14:18:34,entry_engine,18,4.57,5,1.0,0,1,True,True,False,1.31,0.088,1.01,1.01,0.0,0.0,0,be,True,0,False,False,False,False,633.8815000000053
+434,2025-12-19 14:50:17,2025-12-19,14,BTCUSDm,sell,4.96,6.21,88147.22,88486.28,88025.11,88023.67,TP,tp,339.0599999999977,0.36438978351915224,0.233,0,,17,0.273,-2.051,88187.42,88165.22,2025-12-19 14:50:31,entry_engine,25,4.57,4,1.0,0,1,True,True,False,1.25,0.053,0.36,0.36,0.0,,,,False,0,False,False,False,False,612.8080000000144
+438,2025-12-19 15:30:17,2025-12-19,15,BTCUSDm,sell,1.11,2.43,88117.99,88768.37,87995.88,87995.55,TP,tp,650.3799999999901,0.18825917156124755,0.217,0,,17,0.265,-1.692,88157.59,88135.99,2025-12-19 15:30:30,entry_engine,33,4.57,4,1.0,0,1,False,True,False,1.41,0.028,0.18,0.18,0.0,,,,False,0,False,False,False,False,135.9084000000026
+444,2025-12-20 13:53:22,2025-12-20,13,BTCUSDm,sell,1.2,0.61,88216.17,88372.95,,88185.16,SL,be,156.77999999999884,0.1977930858527554,53.067,1,0.20002551345835448,10,0.31,-0.394,88264.62,88234.17,2025-12-20 14:46:26,entry_engine,10,5.0,5,1.0,0,0,True,True,False,1.39,0.115,1.53,1.53,0.0,,,be,True,0,False,False,False,False,37.211999999993715
+446,2025-12-21 11:01:17,2025-12-21,11,BTCUSDm,buy,1.77,0.93,88605.71,88441.3,,88633.82,SL,be,164.4100000000035,0.17097500152058867,100.15,1,0.19998783528975977,64,0.319,-1.286,88572.39,88587.71,2025-12-21 12:41:26,entry_engine,19,4.99,5,1.0,0,1,False,True,False,1.48,0.109,1.72,1.72,0.0,,,be,True,0,False,False,False,False,49.75470000000103
+447,2025-12-21 11:42:04,2025-12-21,11,BTCUSDm,buy,3.69,1.55,88598.14,88466.14,,88622.06,SL,be,132.0,0.18121212121210797,59.383,1,0.1999999999999559,124,0.315,-1.443,88565.0,88580.14,2025-12-21 12:41:27,entry_engine,27,4.99,5,1.0,0,1,False,True,False,1.43,0.136,2.19,2.19,0.0,,,be,True,0,False,False,False,False,88.26479999999356
+456,2025-12-22 11:21:14,2025-12-22,11,BTCUSDm,sell,0.43,0.24,89657.61,89837.06,89509.43,89837.29,SL,sl,179.4499999999971,-1.0012816940651765,6.2,0,,74,0.268,-0.85,89702.05,89675.61,2025-12-22 11:27:26,entry_engine,32,5.0,4,1.0,0,0,True,True,False,1.79,0.1,0.0,0.0,0.0,,,,False,0,False,False,False,False,-77.262399999997
+466,2025-12-22 14:48:07,2025-12-22,14,BTCUSDm,sell,0.51,0.47,90199.57,90492.19,,90142.89,SL,be,292.61999999999534,0.1936983118037334,19.217,1,0.19998633039438524,2,0.253,-0.5,90232.19,90217.57,2025-12-22 15:07:20,entry_engine,16,4.6,4,1.0,0,1,True,True,False,1.13,0.062,1.09,1.09,0.0,,,be,True,0,False,False,False,False,28.90680000000386
+490,2025-12-23 12:15:45,2025-12-23,12,BTCUSDm,buy,8.0,12.07,87749.93,87539.56,87924.94,87539.48,SL,sl,210.36999999999534,-1.0003802823596604,15.483,0,,9,0.283,-0.605,87698.87,87731.93,2025-12-23 12:31:14,entry_engine,3,4.61,4,1.0,0,1,True,True,False,2.04,0.086,0.02,0.02,0.0,,,,False,0,False,False,False,False,-1683.5999999999767
+492,2025-12-23 13:01:24,2025-12-23,13,BTCUSDm,buy,0.8,0.72,87729.13,87517.94,87904.14,87517.27,SL,sl,211.19000000000233,-1.0031724986978467,35.067,0,,84,0.255,-0.784,87681.43,87711.13,2025-12-23 13:36:28,entry_engine,12,4.61,4,1.0,0,1,True,True,False,1.73,0.085,0.57,0.57,0.0,,,,False,0,False,False,False,False,-169.48800000000048
+494,2025-12-23 14:05:56,2025-12-23,14,BTCUSDm,buy,1.01,0.94,87633.2,87423.2,,87422.71,SL,sl,210.0,-1.002333333333289,27.133,0,,56,0.251,-1.241,87577.28,87615.2,2025-12-23 14:33:04,entry_engine,25,4.61,5,1.0,0,1,True,True,False,1.36,0.086,0.75,0.75,0.0,,,,False,0,False,False,False,False,-212.5948999999906
+522,2025-12-25 13:18:41,2025-12-25,13,BTCUSDm,buy,2.16,1.05,87409.47,87304.18,87476.01,87481.5,TP,tp,105.29000000000815,0.6841105518092246,23.783,0,,15,0.349,-1.115,87375.99,87391.47,2025-12-25 13:42:28,entry_engine,23,4.37,4,1.0,0,1,True,True,False,2.02,0.171,0.62,0.62,0.0,,,,False,0,False,False,False,False,155.5847999999975
+560,2025-12-31 01:56:36,2025-12-31,1,BTCUSDm,buy,0.2,0.21,88528.79,88296.89,88630.12,88630.28,TP,tp,231.89999999999418,0.4376455368693738,25.583,0,,4,0.372,-0.399,88485.65,88510.79,2025-12-31 02:22:11,entry_engine,6,4.33,4,1.0,0,1,True,True,False,1.77,0.078,0.42,0.42,0.0,,,,False,0,False,False,False,False,20.29800000000105
+578,2026-01-02 08:48:59,2026-01-02,8,BTCUSDm,buy,0.26,0.21,88992.15,88816.42,89070.78,89071.04,TP,tp,175.72999999999593,0.44892733170205,10.35,0,,4,0.279,-0.471,88959.53,88974.15,2026-01-02 08:59:20,entry_engine,4,3.95,4,1.0,0,1,True,True,False,1.95,0.102,0.41,0.41,0.0,,,,False,0,False,False,False,False,20.51139999999985
+596,2026-01-04 08:36:28,2026-01-04,8,BTCUSDm,sell,0.2,0.18,91282.55,91478.54,91222.52,91480.57,SL,sl,195.9899999999907,-1.0103576713098295,85.133,0,,26,0.284,-0.523,91311.93,91300.55,2026-01-04 10:01:36,entry_engine,21,3.64,4,1.0,0,1,True,True,False,1.81,0.092,0.3,0.3,0.0,,,,False,0,False,False,False,False,-39.604000000000816
+597,2026-01-04 09:15:01,2026-01-04,9,BTCUSDm,sell,0.76,0.61,91285.14,91463.6,,91471.25,SL,sl,178.4600000000064,-1.042866748851249,46.367,0,,7,0.318,-0.588,91315.88,91303.14,2026-01-04 10:01:23,entry_engine,29,3.64,5,1.0,0,1,True,True,False,1.91,0.101,0.14,0.14,0.0,,,,False,0,False,False,False,False,-141.44360000000043
+598,2026-01-04 09:52:25,2026-01-04,9,BTCUSDm,sell,0.65,0.61,91420.31,91630.56,,91383.01,SL,be,210.25,0.17740784780025165,259.383,1,0.20000000000001383,40,0.284,-0.506,91457.47,91438.31,2026-01-04 14:11:48,entry_engine,23,4.96,5,1.0,0,0,True,True,False,2.65,0.086,2.01,2.01,0.0,,,be,True,0,False,False,False,False,24.24500000000189
+601,2026-01-04 10:25:33,2026-01-04,10,BTCUSDm,sell,0.09,0.07,91411.74,91581.06,,91581.35,SL,sl,169.31999999999243,-1.0017127332861337,21.5,0,,33,0.292,-0.379,91449.48,91429.74,2026-01-04 10:47:03,entry_engine,30,4.96,5,1.0,0,0,True,True,False,2.28,0.106,0.15,0.15,0.0,,,,False,0,False,False,False,False,-15.264900000000052
+624,2026-01-06 01:50:18,2026-01-06,1,BTCUSDm,sell,0.61,0.49,93817.58,93989.08,,93788.31,SL,be,171.5,0.17067055393588382,83.783,1,0.20000000000001697,16,0.259,-1.469,93858.86,93835.58,2026-01-06 03:14:05,entry_engine,17,3.78,5,1.0,0,1,False,True,False,1.3,0.105,1.7,1.7,0.0,,,be,True,0,False,False,False,False,17.854700000002484
+630,2026-01-06 15:37:07,2026-01-06,15,BTCUSDm,buy,1.23,2.43,93692.14,93267.97,93935.77,93265.59,SL,sl,424.16999999999825,-1.005610957870676,43.233,0,,22,0.283,-1.328,93628.13,93674.14,2026-01-06 16:20:21,entry_engine,5,4.04,4,1.0,0,0,True,True,False,1.24,0.042,0.13,0.13,0.0,,,,False,0,False,False,False,False,-524.6565000000036
+638,2026-01-06 23:10:23,2026-01-06,23,BTCUSDm,sell,4.13,7.65,93486.98,93839.7,93326.33,93318.15,TP,tp,352.72000000000116,0.4786516216829247,78.25,0,,12,0.276,-0.437,93534.55,93504.98,2026-01-07 00:28:38,entry_engine,18,4.37,4,1.0,0,0,True,True,False,1.89,0.051,0.45,0.45,0.0,,,,False,0,False,False,False,False,697.2679000000072
+640,2026-01-07 00:10:45,2026-01-07,0,BTCUSDm,sell,0.16,0.17,93538.4,93737.33,93377.75,93376.0,TP,tp,198.93000000000757,0.8163675664806113,13.483,0,,44,0.252,-0.917,93583.36,93556.4,2026-01-07 00:24:14,entry_engine,30,4.37,4,1.0,0,0,True,True,False,1.7,0.09,0.78,0.78,0.0,,,,False,0,False,False,False,False,25.98399999999907
+650,2026-01-07 07:03:13,2026-01-07,7,BTCUSDm,sell,0.37,0.27,92625.01,92789.42,,92789.43,SL,sl,164.4100000000035,-1.000060823550847,17.7,0,,22,0.273,-0.58,92659.45,92643.01,2026-01-07 07:20:55,entry_engine,3,4.15,5,1.0,0,0,True,True,False,1.9,0.109,0.02,0.02,0.0,,,,False,0,False,False,False,False,-60.83539999999935
+654,2026-01-07 13:20:28,2026-01-07,13,BTCUSDm,sell,1.67,1.01,91980.27,92115.99,,92118.77,SL,sl,135.72000000000116,-1.020483348069546,5.167,0,,13,0.284,-1.2,92016.46,91998.27,2026-01-07 13:25:38,entry_engine,4,4.9,5,1.0,0,1,False,True,False,1.45,0.133,0.0,0.0,0.0,,,,False,0,False,False,False,False,-231.295
+656,2026-01-07 13:55:15,2026-01-07,13,BTCUSDm,sell,0.39,0.28,91991.48,92143.85,91895.56,91893.07,TP,tp,152.3700000000099,0.6458620463344658,6.117,0,,14,0.256,-1.375,92025.88,92009.48,2026-01-07 14:01:22,entry_engine,11,4.9,4,1.0,0,1,False,True,False,1.43,0.118,0.58,0.58,0.0,,,,False,0,False,False,False,False,38.379899999995686
+658,2026-01-07 14:55:56,2026-01-07,14,BTCUSDm,sell,0.97,0.9,92057.15,92255.16,,91544.12,MARKET_CLOSE,dtp,198.0100000000093,2.5909297510225477,8.933,1,0.19998989949997176,5,0.275,-0.759,92099.9,92075.15,2026-01-07 15:04:52,entry_engine,35,4.12,4,1.0,0,0,True,True,False,0.91,0.091,3.47,3.47,3.47,0.88,1,be,True,0,False,False,False,False,497.63909999999885
+660,2026-01-08 01:36:08,2026-01-08,1,BTCUSDm,buy,0.3,0.31,91305.25,91060.03,,91056.72,SL,sl,245.22000000000116,-1.0134980833537137,48.083,0,,38,0.272,-0.401,91259.45,91287.25,2026-01-08 02:24:13,entry_engine,4,5.0,5,1.0,0,1,True,True,False,2.05,0.073,0.3,0.3,0.0,,,,False,0,False,False,False,False,-74.55899999999964
+661,2026-01-08 02:12:23,2026-01-08,2,BTCUSDm,buy,0.56,0.52,91287.06,91064.57,,91062.46,SL,sl,222.4899999999907,-1.009483572295387,11.833,0,,17,0.276,-0.579,91240.86,91269.06,2026-01-08 02:24:13,entry_engine,11,5.0,5,1.0,0,1,True,True,False,1.92,0.081,0.33,0.33,0.0,,,,False,0,False,False,False,False,-125.77599999999512
+681,2026-01-08 22:45:47,2026-01-08,22,BTCUSDm,buy,0.45,0.28,91096.71,90953.28,91197.87,91215.23,TP,tp,143.43000000000757,0.8263264310115267,14.55,0,,45,0.347,-1.639,91055.29,91078.71,2026-01-08 23:00:20,entry_engine,8,4.5,4,1.0,0,1,True,True,False,1.26,0.125,0.7,0.7,0.0,,,,False,0,False,False,False,False,53.333999999995285
+683,2026-01-08 23:33:31,2026-01-08,23,BTCUSDm,buy,8.0,10.87,91158.12,90972.15,,90968.34,SL,sl,185.97000000000116,-1.0204871753508504,20.133,0,,7,0.272,-0.728,91121.78,91140.12,2026-01-08 23:53:39,entry_engine,17,4.5,5,1.0,0,1,True,True,False,1.82,0.097,0.0,0.0,0.0,,,,False,0,False,False,False,False,-1518.2399999999907
+685,2026-01-09 00:40:44,2026-01-09,0,BTCUSDm,buy,1.53,1.35,91146.93,91010.9,,91010.53,SL,sl,136.02999999999884,-1.0027199882378546,44.85,0,,44,0.307,-0.894,91108.24,91128.93,2026-01-09 01:25:35,entry_engine,31,4.5,5,1.0,0,1,True,True,False,1.8,0.132,0.85,0.85,0.0,,,,False,0,False,False,False,False,-208.6919999999911
+688,2026-01-09 02:41:02,2026-01-09,2,BTCUSDm,buy,0.06,0.13,91088.13,90811.61,91259.43,90967.31,MARKET_CLOSE,time,276.5200000000041,-0.4369304209460625,98.967,0,,123,0.255,-1.043,91041.06,91070.13,2026-01-09 04:20:00,entry_engine,16,5.0,4,1.0,0,0,True,True,False,2.03,0.065,0.32,0.32,0.0,0.76,20,,False,0,False,False,False,False,-7.249200000000418
+689,2026-01-09 03:16:30,2026-01-09,3,BTCUSDm,buy,0.15,0.17,91077.98,90920.99,91249.28,90918.07,SL,sl,156.9899999999907,-1.0185999108223354,10.617,0,,88,0.253,-1.132,91031.14,91059.98,2026-01-09 03:27:07,entry_engine,23,5.0,4,1.0,0,0,True,True,False,1.49,0.115,0.54,0.54,0.0,,,,False,0,False,False,False,False,-23.98649999999834
+691,2026-01-09 03:52:04,2026-01-09,3,BTCUSDm,buy,0.26,0.41,91134.02,90916.03,91305.32,90915.74,SL,sl,217.99000000000524,-1.0013303362539272,41.467,0,,34,0.263,-0.641,91085.98,91116.02,2026-01-09 04:33:32,entry_engine,30,5.0,4,1.0,0,0,True,True,False,1.98,0.083,0.08,0.08,0.0,,,,False,0,False,False,False,False,-56.7527999999997
+758,2026-01-16 13:40:11,2026-01-16,13,BTCUSDm,buy,0.76,0.68,95281.05,95157.99,,95405.26,MARKET_CLOSE,decay,123.05999999999767,1.0093450349422575,3.883,1,0.19998374776532624,24,0.28,-1.164,95240.73,95263.05,2026-01-16 13:44:04,entry_engine,24,4.25,4,1.0,0,0,False,True,False,1.43,0.146,1.01,1.01,0.0,0.0,0,be,True,0,False,False,False,False,94.39959999999381
+760,2026-01-16 14:37:32,2026-01-16,14,BTCUSDm,buy,0.6,0.72,95278.7,95105.78,95398.12,95367.6,MARKET_CLOSE,decay,172.91999999999825,0.5141105713625355,0.6,0,,3,0.25,-1.193,95240.79,95260.7,2026-01-16 14:38:08,entry_engine,35,4.25,4,1.0,0,0,False,True,False,1.07,0.104,0.51,0.51,0.0,0.0,0,,False,0,False,False,False,False,53.34000000000524
+774,2026-01-19 12:52:56,2026-01-19,12,BTCUSDm,buy,3.61,4.41,93013.49,92833.02,93095.8,92832.96,SL,sl,180.47000000000116,-1.0003324652296652,28.517,0,,27,0.355,-0.612,92976.01,92995.49,2026-01-19 13:21:27,entry_engine,5,3.91,4,1.0,0,0,True,True,False,1.78,0.1,0.1,0.1,0.0,,,,False,0,False,False,False,False,-651.7132999999958
+776,2026-01-19 17:32:07,2026-01-19,17,BTCUSDm,buy,2.93,5.43,93148.53,92935.14,93253.91,92922.59,SL,sl,213.38999999999942,-1.0588125029289233,56.733,0,,21,0.283,-0.402,93110.66,93130.53,2026-01-19 18:28:51,entry_engine,9,4.88,4,1.0,0,1,True,True,False,1.9,0.084,0.28,0.28,0.0,,,,False,0,False,False,False,False,-662.0042000000069
+777,2026-01-19 18:05:21,2026-01-19,18,BTCUSDm,buy,0.33,0.47,93109.66,92952.7,93215.04,92950.35,SL,sl,156.9600000000064,-1.014971967380168,21.2,0,,20,0.278,-0.956,93072.11,93091.66,2026-01-19 18:26:33,entry_engine,16,4.88,4,1.0,0,1,True,True,False,1.7,0.115,0.23,0.23,0.0,,,,False,0,False,False,False,False,-52.57229999999923
+781,2026-01-19 18:45:03,2026-01-19,18,BTCUSDm,buy,0.49,0.78,93087.71,92964.11,93193.09,92961.87,SL,sl,123.60000000000582,-1.0181229773463198,5.067,0,,2,0.281,-1.268,93049.94,93069.71,2026-01-19 18:50:07,entry_engine,24,4.88,4,1.0,0,1,True,True,False,1.47,0.146,0.0,0.0,0.0,,,,False,0,False,False,False,False,-61.66160000000542
+796,2026-01-20 17:32:56,2026-01-20,17,BTCUSDm,buy,0.64,3.21,90077.91,89704.64,90454.59,89684.44,SL,sl,373.2700000000041,-1.054116323304838,2.933,0,,47,0.254,-0.596,89996.22,90059.91,2026-01-20 17:35:52,entry_engine,27,3.19,4,1.0,0,0,True,True,False,2.1,0.048,0.0,0.0,0.0,,,,False,0,False,False,False,False,-251.82080000000076

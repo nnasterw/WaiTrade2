@@ -1,0 +1,17 @@
+# Ralph Progress Log
+Started: 2026-05-21
+---
+
+## [BOOTSTRAP] BTC Ralph Loop 初始化
+### 完成的工作
+- 初始化 prd.json，定义 BTC 两年 Real Ticks 策略优化目标与 7 个 user stories。
+- 将 CLAUDE.md 改写为 Ralph Loop 单 story 执行入口。
+- 新增 ralph.sh 并完成脚本语法校验。
+- 当前已有基线结果：R30-SH 365d=$22504.73 / 720d=$-0.86；R31-HCUT 365d=$42647.12 / 720d=$-504.22；R31-HCTAIL 365d=$11222.61 / 720d=$-23.21。
+### 发现的注意事项
+- 环境中未找到 skill-metric-reporter，未能执行该 skill 的上报要求。
+- 720 天长窗的关键矛盾是：365 天高收益版本常在 2024 段 stopout 或月度失衡，不能只看 365 天结果。
+- 当前最佳长窗相对基线是 R31-HCTAIL，但离 final_balance > 50000 与每月盈利目标仍差很远。
+### 对后续 story 的影响
+- US-001 与 US-002 需要优先沉淀月度评估器和坏簇归因器，否则后续 diagnose 会重复人工分析。
+- 后续候选筛选必须同时看 daily_trades、final_balance、negative_months 和 stopout。

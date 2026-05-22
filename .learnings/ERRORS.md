@@ -79,8 +79,8 @@ yaml.composer.ComposerError: found undefined alias 'v11_r4_hour_weight'
 ### Metadata
 - Reproducible: yes
 - Related Files: config/strategies.yaml
-- See Also: 2026-05-20 Round9/Round10 再次发生同类问题，`v11_r9_profit_push` 继承 `*v11_r9_quality_core`、Round10 继承 `*v11_r9_quality_soft` 前未声明对应 anchor；2026-05-21 Round12 再次继承 `*v11_r10_qsoft_freq` / `*v11_r10_qsoft_6k` 前未声明 anchor；Round15 再次继承 `*v11_r11_qsoft_l45_add1120` 前未声明 anchor；Round16 再次继承 `*v11_r15_q1120_h1push` 前未声明 anchor；Round18 再次继承 `*v11_r18_shallow_h1320_r3` 前未声明 anchor，已补齐。
-- Recurrence-Count: 7
+- See Also: 2026-05-20 Round9/Round10 再次发生同类问题，`v11_r9_profit_push` 继承 `*v11_r9_quality_core`、Round10 继承 `*v11_r9_quality_soft` 前未声明 anchor；2026-05-21 Round12 再次继承 `*v11_r10_qsoft_freq` / `*v11_r10_qsoft_6k` 前未声明 anchor；Round15 再次继承 `*v11_r11_qsoft_l45_add1120` 前未声明 anchor；Round16 再次继承 `*v11_r15_q1120_h1push` 前未声明 anchor；Round18 再次继承 `*v11_r18_shallow_h1320_r3` 前未声明 anchor；Round23 再次继承 `*v11j1` 前未声明 anchor；Round25 再次继承 `*v11_r23_j1_profit_r33_lg28` 和 `*v11_r25_j1_swp_l05` 前未声明 anchor；Round43 再次继承 `*v11_r42_j2_p038_m16_g10k` 前未声明 anchor；Round44 再次继承 `*v11_r43_j2_p038_m16_g20k` 前未声明 anchor，已补齐。
+- Recurrence-Count: 12
 
 ---
 
@@ -109,5 +109,62 @@ EA 目录迁移时必须同步 `backtest_defaults.expert`、macOS/Windows 回测
 ### Metadata
 - Reproducible: yes
 - Related Files: config/strategies.yaml, scripts/mt5_cli_backtest.py, scripts/mt5_backtest_win.py
+
+---
+
+## [ERR-20260521-001] yaml_anchor_missing_round27
+
+**Logged**: 2026-05-21T16:15:00+08:00
+**Priority**: medium
+**Status**: fixed
+**Area**: strategy-config
+
+### Summary
+Round27 新增 `v11j2` 派生策略后，继续用 `<<: *v11_r27_j2_hourq` 和 `<<: *v11_r27_j2_midpush` 继承，但源节点未声明 anchor，导致 YAML 解析失败。
+
+### Error
+```
+yaml.composer.ComposerError: found undefined alias 'v11_r27_j2_hourq'
+```
+
+### Context
+- 操作: `python3 scripts/mt5_cli_backtest.py --strategies v11_r27_j2_hourq,v11_r27_j2_guard_np2,v11_r27_j2_midpush,v11_r27_j2_midpush_np2 --symbol BTCUSDm --from 2025.11.22 --to 2026.05.21 --timeout 360`
+- 原因: `v11_r27_j2_guard_np2` / `v11_r27_j2_midpush_np2` 依赖的父节点没有写成 `strategy: &strategy`。
+
+### Suggested Fix
+新增会被其他策略复用的候选节点时，定义当下就补上同名 anchor，并在批量回测前先跑一次 YAML smoke test（如 `python3 -c "import yaml; yaml.safe_load(open('config/strategies.yaml'))"`）。
+
+### Metadata
+- Reproducible: yes
+- Related Files: config/strategies.yaml
+- See Also: ERR-20260520-001
+
+---
+
+## [ERR-20260522-001] backtest_digest_report_arg
+
+**Logged**: 2026-05-22T15:25:00+08:00
+**Priority**: low
+**Status**: fixed
+**Area**: backtest
+
+### Summary
+调用 `scripts/backtest_digest.py` 时误把报告路径作为位置参数传入，但脚本接口要求显式使用 `--report`。
+
+### Error
+```
+backtest_digest.py: error: the following arguments are required: --report
+```
+
+### Context
+- 操作: 为 Round41 BTC 720天回测报告生成 digest。
+- 影响: digest 生成失败一次，随后用 `python3 scripts/backtest_digest.py --report <report> --export-csv` 修正。
+
+### Suggested Fix
+分析 MT5 报告时统一使用 `python3 scripts/backtest_digest.py --report results/backtest/<file>.txt --export-csv`，不要依赖位置参数。
+
+### Metadata
+- Reproducible: yes
+- Related Files: scripts/backtest_digest.py
 
 ---

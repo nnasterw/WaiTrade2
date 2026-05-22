@@ -1,0 +1,65 @@
+策略: v11_r23_j1_profit_r33_lg28
+品种: SOLUSDm, US30m, US500m, USTECm, USDJPYm, AUDUSDm
+周期: 2025.11.22 ~ 2026.05.21 (180天)
+MT5 回测管理器
+
+策略: v11_r23_j1_profit_r33_lg28 | 品种数: 6 | 周期: 2025.11.22 ~ 2026.05.21
+============================================================
+  .set 文件已写入: v11_r23_j1_profit_r33_lg28.set
+
+[1/6] 回测 SOLUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (50s)
+  结果: 0笔交易, 胜率0.0%, 余额$200.00
+
+[2/6] 回测 US30m
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (86s)
+  结果: 115笔交易, 胜率53.0%, 余额$40.81
+
+[3/6] 回测 US500m
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (64s)
+  结果: 100笔交易, 胜率50.0%, 余额$113.12
+
+[4/6] 回测 USTECm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (91s)
+  结果: 141笔交易, 胜率58.2%, 余额$260.46
+
+[5/6] 回测 USDJPYm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (34s)
+  结果: 130笔交易, 胜率56.9%, 余额$175.95
+
+[6/6] 回测 AUDUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (42s)
+  结果: 77笔交易, 胜率48.1%, 余额$127.34
+
+=====================================================================
+MT5 Strategy Tester 回测报告 — V11_R23_J1_PROFIT_R33_LG28
+日期: 2025.11.22 ~ 2026.05.21 (180天) | 资金: $200 | 杠杆: 1:2000
+=====================================================================
+
+品种         交易  日均  胜率   盈亏比  净R     余额
+---------------------------------------------------------------------
+SOLUSDm      0     0.0   0.0    %inf     N/A     $200.00
+US30m        115   0.6   53.0   %0.70    N/A     $40.81
+US500m       100   0.6   50.0   %0.43    N/A     $113.12
+USTECm       141   0.8   58.2   %1.07    N/A     $260.46
+USDJPYm      130   0.7   56.9   %0.97    N/A     $175.95
+AUDUSDm      77    0.4   48.1   %0.62    N/A     $127.34
+---------------------------------------------------------------------
+合计          563   3.1   54.0   %        N/A     $917.68
+=====================================================================
+
+报告已保存: /Users/wen/Projects/ClaudeCode/WaiTrade2/results/backtest/v11_r23_j1_profit_r33_lg28_20260521.txt
+
+全部回测完成。

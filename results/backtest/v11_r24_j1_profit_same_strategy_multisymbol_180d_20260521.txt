@@ -1,0 +1,72 @@
+策略: v11_r23_j1_profit_r33_lg28
+品种: BTCUSDm, ETHUSDm, XAUUSDm, USOILm, XAGUSDm, EURUSDm, GBPUSDm
+周期: 2025.11.22 ~ 2026.05.21 (180天)
+MT5 回测管理器
+
+策略: v11_r23_j1_profit_r33_lg28 | 品种数: 7 | 周期: 2025.11.22 ~ 2026.05.21
+============================================================
+  .set 文件已写入: v11_r23_j1_profit_r33_lg28.set
+
+[1/7] 回测 BTCUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (57s)
+  结果: 195笔交易, 胜率51.8%, 余额$12991.06
+
+[2/7] 回测 ETHUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (34s)
+  结果: 48笔交易, 胜率39.6%, 余额$-0.41
+
+[3/7] 回测 XAUUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (105s)
+  结果: 62笔交易, 胜率46.8%, 余额$440.09
+
+[4/7] 回测 USOILm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (38s)
+  结果: 83笔交易, 胜率54.2%, 余额$149.75
+
+[5/7] 回测 XAGUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (58s)
+  结果: 13笔交易, 胜率38.5%, 余额$10.15
+
+[6/7] 回测 EURUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (34s)
+  结果: 85笔交易, 胜率61.2%, 余额$172.29
+
+[7/7] 回测 GBPUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (34s)
+  结果: 98笔交易, 胜率40.8%, 余额$140.61
+
+=====================================================================
+MT5 Strategy Tester 回测报告 — V11_R23_J1_PROFIT_R33_LG28
+日期: 2025.11.22 ~ 2026.05.21 (180天) | 资金: $200 | 杠杆: 1:2000
+=====================================================================
+
+品种         交易  日均  胜率   盈亏比  净R     余额
+---------------------------------------------------------------------
+BTCUSDm      195   1.1   51.8   %2.03    N/A     $12991.06
+ETHUSDm      48    0.3   39.6   %0.15    N/A     $-0.41
+XAUUSDm      62    0.3   46.8   %1.58    N/A     $440.09
+USOILm       83    0.5   54.2   %0.75    N/A     $149.75
+XAGUSDm      13    0.1   38.5   %0.14    N/A     $10.15
+EURUSDm      85    0.5   61.2   %1.04    N/A     $172.29
+GBPUSDm      98    0.5   40.8   %0.52    N/A     $140.61
+---------------------------------------------------------------------
+合计          584   3.2   49.8   %        N/A     $13903.54
+=====================================================================
+
+报告已保存: /Users/wen/Projects/ClaudeCode/WaiTrade2/results/backtest/v11_r23_j1_profit_r33_lg28_20260521.txt
+
+全部回测完成。

@@ -1,0 +1,120 @@
+策略: v11_xau_m3_fage, xau_g2_p0_guard, xau_hv_c2_guard
+品种: XAGUSDm, EURUSDm, GBPUSDm
+周期: 2025.11.22 ~ 2026.05.21 (180天)
+MT5 回测管理器
+
+策略: v11_xau_m3_fage | 品种数: 3 | 周期: 2025.11.22 ~ 2026.05.21
+============================================================
+  .set 文件已写入: v11_xau_m3_fage.set
+
+[1/3] 回测 XAGUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (56s)
+  结果: 24笔交易, 胜率58.3%, 余额$31.20
+
+[2/3] 回测 EURUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (30s)
+  结果: 85笔交易, 胜率61.2%, 余额$142.07
+
+[3/3] 回测 GBPUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (40s)
+  结果: 72笔交易, 胜率59.7%, 余额$94.61
+
+=====================================================================
+MT5 Strategy Tester 回测报告 — V11_XAU_M3_FAGE
+日期: 2025.11.22 ~ 2026.05.21 (180天) | 资金: $200 | 杠杆: 1:2000
+=====================================================================
+
+品种         交易  日均  胜率   盈亏比  净R     余额
+---------------------------------------------------------------------
+XAGUSDm      24    0.1   58.3   %0.20    N/A     $31.20
+EURUSDm      85    0.5   61.2   %0.98    N/A     $142.07
+GBPUSDm      72    0.4   59.7   %0.32    N/A     $94.61
+---------------------------------------------------------------------
+合计          181   1.0   60.2   %        N/A     $267.88
+=====================================================================
+
+报告已保存: /Users/wen/Projects/ClaudeCode/WaiTrade2/results/backtest/v11_xau_m3_fage_20260521.txt
+
+策略: xau_g2_p0_guard | 品种数: 3 | 周期: 2025.11.22 ~ 2026.05.21
+============================================================
+  .set 文件已写入: xau_g2_p0_guard.set
+
+[1/3] 回测 XAGUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (56s)
+  结果: 94笔交易, 胜率40.4%, 余额$33.75
+
+[2/3] 回测 EURUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (30s)
+  结果: 66笔交易, 胜率47.0%, 余额$190.69
+
+[3/3] 回测 GBPUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (36s)
+  结果: 75笔交易, 胜率37.3%, 余额$72.17
+
+=====================================================================
+MT5 Strategy Tester 回测报告 — XAU_G2_P0_GUARD
+日期: 2025.11.22 ~ 2026.05.21 (180天) | 资金: $200 | 杠杆: 1:2000
+=====================================================================
+
+品种         交易  日均  胜率   盈亏比  净R     余额
+---------------------------------------------------------------------
+XAGUSDm      94    0.5   40.4   %0.69    N/A     $33.75
+EURUSDm      66    0.4   47.0   %0.48    N/A     $190.69
+GBPUSDm      75    0.4   37.3   %0.47    N/A     $72.17
+---------------------------------------------------------------------
+合计          235   1.3   41.3   %        N/A     $296.61
+=====================================================================
+
+报告已保存: /Users/wen/Projects/ClaudeCode/WaiTrade2/results/backtest/xau_g2_p0_guard_20260521.txt
+
+策略: xau_hv_c2_guard | 品种数: 3 | 周期: 2025.11.22 ~ 2026.05.21
+============================================================
+  .set 文件已写入: xau_hv_c2_guard.set
+
+[1/3] 回测 XAGUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (54s)
+  结果: 100笔交易, 胜率45.0%, 余额$25.25
+
+[2/3] 回测 EURUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (42s)
+  结果: 100笔交易, 胜率44.0%, 余额$209.90
+
+[3/3] 回测 GBPUSDm
+  INI 文件已写入: /Users/wen/Library/Application Support/net.metaquotes.wine.metatrader5/drive_c/bt/backtest.ini
+  已更新terminal.ini日期: 2025.11.22~2026.05.21
+  启动回测[后台] (超时 360s)... 完成 (40s)
+  结果: 106笔交易, 胜率41.5%, 余额$65.31
+
+=====================================================================
+MT5 Strategy Tester 回测报告 — XAU_HV_C2_GUARD
+日期: 2025.11.22 ~ 2026.05.21 (180天) | 资金: $200 | 杠杆: 1:2000
+=====================================================================
+
+品种         交易  日均  胜率   盈亏比  净R     余额
+---------------------------------------------------------------------
+XAGUSDm      100   0.6   45.0   %0.79    N/A     $25.25
+EURUSDm      100   0.6   44.0   %0.51    N/A     $209.90
+GBPUSDm      106   0.6   41.5   %0.96    N/A     $65.31
+---------------------------------------------------------------------
+合计          306   1.7   43.5   %        N/A     $300.46
+=====================================================================
+
+报告已保存: /Users/wen/Projects/ClaudeCode/WaiTrade2/results/backtest/xau_hv_c2_guard_20260521.txt
+
+全部回测完成。

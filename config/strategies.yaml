@@ -117,6 +117,16 @@ defaults: &defaults
   enable_pos_mult: true
   max_pos_mult: 0.0
   max_lot_size: 0.0
+  sweep_pos_mult: 1.0
+  range_breakout_pos_mult: 1.0
+  sweep_max_lot_size: 0.0
+  range_breakout_max_lot_size: 0.0
+  low_balance_threshold: 0.0
+  low_balance_pos_mult: 1.0
+  low_balance_max_lot_size: 0.0
+  monthly_guard_min_balance: 0.0
+  monthly_loss_stop_pct: 0.0
+  monthly_negative_pos_mult: 1.0
   max_concurrent: 5
   free_run_min_r: 0.0
   cooldown_bars: 0
@@ -139,6 +149,24 @@ defaults: &defaults
   large_risk_mult: 1.0
   shallow_confirm_pos_min: -999.0
   shallow_confirm_pos_mult: 1.0
+  bad_cluster1_hours: ""
+  bad_cluster1_risk_min: 0.0
+  bad_cluster1_risk_max: 0.0
+  bad_cluster1_confirm_min: -999.0
+  bad_cluster1_confirm_max: 999.0
+  bad_cluster1_mult: 1.0
+  bad_cluster2_hours: ""
+  bad_cluster2_risk_min: 0.0
+  bad_cluster2_risk_max: 0.0
+  bad_cluster2_confirm_min: -999.0
+  bad_cluster2_confirm_max: 999.0
+  bad_cluster2_mult: 1.0
+  bad_cluster3_hours: ""
+  bad_cluster3_risk_min: 0.0
+  bad_cluster3_risk_max: 0.0
+  bad_cluster3_confirm_min: -999.0
+  bad_cluster3_confirm_max: 999.0
+  bad_cluster3_mult: 1.0
   enable_htf_net_push_filter: false
   htf_net_push_tf: 15
   htf_net_push_bars: 4
@@ -15237,7 +15265,7 @@ v10_range_m15_dtp3:
       lock_mult: 0.0
 
 # RangeBreakout: 震荡区间突破+量度目标×2 + risk5%
-v10_range_rb_m5:
+v10_range_rb_m5: &v10_range_rb_m5
   <<: *defaults
   version: V10-RANGE-RBM5
   description: "RangeBreakout: M5区间突破+TP=区间×2+risk5%"
@@ -15272,7 +15300,7 @@ v10_range_rb_m5:
       lock_mult: 0.0
 
 # M5 + OB + RangeBreakout混合: 两种信号同时启用
-v10_range_m5_hybrid:
+v10_range_m5_hybrid: &v10_range_m5_hybrid
   <<: *defaults
   version: V10-RANGE-M5HYB
   description: "M5混合: OB bounce+RangeBreakout+risk5%"
@@ -16112,7 +16140,7 @@ v11_swp_m5_ltp15:
   dtp_trigger_r: 0.0
   magic_number: 202617
 
-v11_swp_m5_combo:
+v11_swp_m5_combo: &v11_swp_m5_combo
   <<: *v11_swp_m5_loose
   version: V11-SWP-M5COMBO
   description: "v11 BTC sweep: 放宽扫损+常规OB混合"
@@ -19967,7 +19995,7 @@ v11_btc_m5_r21:
   max_lot_size: 3.20
   magic_number: 202899
 
-v11j1:
+v11j1: &v11j1
   <<: *v11_r17_q45a_shallow_hard
   version: V11J1
   description: "v11j1正式版: BTC M5浅确认降权 + H1净推进 + 低全局风险 + 大结构集中放大"
@@ -19976,6 +20004,90 @@ v11j1:
   max_pos_mult: 150.0
   max_lot_size: 3.20
   magic_number: 202901
+
+# ═══ V11 Round22A: BTC 高频新主框架（sweep / breakout / hybrid）═══
+
+v11_r22a_swp_m5_mid: &v11_r22a_swp_m5_mid
+  <<: *v11_swp_m5_dtp
+  version: V11-R22A-SWPMID
+  description: "BTC新主框架: M5 sweep中等放宽，目标先把频率抬到2附近并保住正收益"
+  sweep_lookback_bars: 8
+  sweep_max_range_atr: 3.0
+  sweep_min_range_spread_mult: 3.0
+  sweep_min_penetration_atr: 0.02
+  sweep_min_wick_pct: 35.0
+  min_risk_spread_ratio: 3.5
+  sl_buffer_atr: 0.25
+  max_concurrent: 5
+  risk_percent: 2.0
+  magic_number: 202831
+
+v11_r22a_swp_m5_tp12:
+  <<: *v11_r22a_swp_m5_mid
+  version: V11-R22A-SWPT12
+  description: "BTC新主框架: M5 sweep中放宽 + 1.2倍区间TP，测试高频下更快兑现是否改善余额"
+  sweep_tp_mult: 1.2
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 0.0
+  magic_number: 202832
+
+v11_r22a_swp_combo_fast: &v11_r22a_swp_combo_fast
+  <<: *v11_swp_m5_combo
+  version: V11-R22A-SWPCF
+  description: "BTC新主框架: sweep+OB混合快版，验证混合信号能否把日均抬过2"
+  min_risk_spread_ratio: 3.5
+  sl_buffer_atr: 0.30
+  risk_percent: 2.0
+  max_concurrent: 5
+  dtp_trigger_r: 2.5
+  dtp_retrace: 0.25
+  magic_number: 202833
+
+v11_r22a_rb_m5_fast: &v11_r22a_rb_m5_fast
+  <<: *v10_range_rb_m5
+  version: V11-R22A-RBM5F
+  description: "BTC新主框架: 纯M5区间突破快版，直接验证 breakout 是否能提供2+日均"
+  bar_period_min: 5
+  enable_entry_engine: false
+  enable_range_breakout: true
+  range_breakout_only: true
+  range_breakout_bars: 6
+  range_breakout_max_atr: 3.0
+  range_breakout_min_spread_mult: 2.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 1.5
+  timeout_min: 120
+  sl_buffer_atr: 0.20
+  max_concurrent: 5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  dtp_trigger_r: 0.0
+  fixed_tp_r: 0.0
+  risk_percent: 2.0
+  magic_number: 202834
+
+v11_r22a_rb_ob_hybrid:
+  <<: *v10_range_m5_hybrid
+  version: V11-R22A-RBOBH
+  description: "BTC新主框架: breakout+OB 混合中速版，验证双信号源能否兼顾频率与余额"
+  bar_period_min: 5
+  bounce_pct: 0.25
+  enable_range_breakout: true
+  range_breakout_only: false
+  range_breakout_bars: 6
+  range_breakout_max_atr: 3.0
+  range_breakout_min_spread_mult: 2.0
+  range_breakout_atr: 0.05
+  range_breakout_tp_mult: 1.5
+  timeout_min: 120
+  sl_buffer_atr: 0.25
+  max_concurrent: 5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.20
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.25
+  risk_percent: 2.0
+  magic_number: 202835
 
 # ═══ V11 正式版: XAU 震荡期专用 ═══
 
@@ -20012,3 +20124,945 @@ v11g1:
   mfe_fail_min_r: 0.0
   mfe_fail_exit_r: 0.0
   magic_number: 203001
+
+# ═══ V11 Round23: v11j1 不限周期 / 单品种补频与收益放大实验 ═══
+
+v11_r23_j1_m3:
+  <<: *v11j1
+  version: V11-R23-J1M3
+  description: "BTC v11j1周期迁移: M3原参数，验证更小周期能否自然补频且不被spread吞噬"
+  bar_period_min: 3
+  magic_number: 203101
+
+v11_r23_j1_m2:
+  <<: *v11j1
+  version: V11-R23-J1M2
+  description: "BTC v11j1周期迁移: M2原参数，压力测试单品种日均>5可能性"
+  bar_period_min: 2
+  magic_number: 203102
+
+v11_r23_j1_m1_strict:
+  <<: *v11j1
+  version: V11-R23-J1M1S
+  description: "BTC v11j1周期迁移: M1但提高risk/spread门槛，避免薄OB被点差吞噬"
+  bar_period_min: 1
+  min_risk_spread_ratio: 8.0
+  min_ob_strength: 0.60
+  sl_buffer_atr: 1.80
+  risk_percent: 1.8
+  large_risk_mult: 1.80
+  max_pos_mult: 80.0
+  max_lot_size: 1.60
+  magic_number: 203103
+
+v11_r23_j1_m3_freq:
+  <<: *v11j1
+  version: V11-R23-J1M3F
+  description: "BTC v11j1 M3补频: 温和放宽bounce/复入，降低单笔风险，测试频率与PF交集"
+  bar_period_min: 3
+  bounce_pct: 0.22
+  max_entry_offset_r: 0.45
+  min_risk_spread_ratio: 4.5
+  cooldown_bars: 1
+  max_entries_per_ob: 4
+  ob_reentry_cooldown_min: 30
+  risk_percent: 1.8
+  large_risk_mult: 1.80
+  max_pos_mult: 90.0
+  max_lot_size: 1.80
+  magic_number: 203104
+
+v11_r23_j1_profit_r33_lg28: &v11_r23_j1_profit_r33_lg28
+  <<: *v11j1
+  version: V11-R23-J1P33L28
+  description: "BTC v11j1收益放大: 保持信号不变，提高全局风险和大结构倍数，验证>10000收益上限"
+  risk_percent: 3.3
+  large_risk_mult: 2.80
+  max_pos_mult: 180.0
+  max_lot_size: 4.50
+  magic_number: 203105
+
+# ═══ V11 Round25: BTC单品种补频 — 主OB收益腿 + 低仓sweep补频腿 ═══
+
+v11_r25_j1_swp_l05: &v11_r25_j1_swp_l05
+  <<: *v11_r23_j1_profit_r33_lg28
+  version: V11-R25-SWPL05
+  description: "BTC单策略补频: R23收益腿 + 宽松sweep补频，sweep仅0.05x仓位"
+  enable_liquidity_sweep: true
+  liquidity_sweep_only: false
+  sweep_lookback_bars: 6
+  sweep_max_range_atr: 4.0
+  sweep_min_range_spread_mult: 2.0
+  sweep_min_penetration_atr: 0.0
+  sweep_min_wick_pct: 25.0
+  sweep_tp_mult: 0.0
+  sweep_pos_mult: 0.05
+  max_concurrent: 8
+  max_entries_per_ob: 4
+  ob_reentry_cooldown_min: 30
+  cooldown_bars: 1
+  magic_number: 203151
+
+v11_r25_j1_swp_l10:
+  <<: *v11_r25_j1_swp_l05
+  version: V11-R25-SWPL10
+  description: "BTC单策略补频: 宽松sweep 0.10x仓位，测试补频收益弹性"
+  sweep_pos_mult: 0.10
+  magic_number: 203152
+
+v11_r25_j1_swp_l20:
+  <<: *v11_r25_j1_swp_l05
+  version: V11-R25-SWPL20
+  description: "BTC单策略补频: 宽松sweep 0.20x仓位，压力测试日均>5"
+  sweep_pos_mult: 0.20
+  magic_number: 203153
+
+v11_r25_j1_swp_mid_l10: &v11_r25_j1_swp_mid_l10
+  <<: *v11_r23_j1_profit_r33_lg28
+  version: V11-R25-SWPM10
+  description: "BTC单策略补频: 中等sweep质量 + 0.10x仓位，减少噪音流"
+  enable_liquidity_sweep: true
+  liquidity_sweep_only: false
+  sweep_lookback_bars: 8
+  sweep_max_range_atr: 3.0
+  sweep_min_range_spread_mult: 3.0
+  sweep_min_penetration_atr: 0.02
+  sweep_min_wick_pct: 35.0
+  sweep_tp_mult: 0.0
+  sweep_pos_mult: 0.10
+  max_concurrent: 8
+  max_entries_per_ob: 4
+  ob_reentry_cooldown_min: 30
+  cooldown_bars: 1
+  magic_number: 203154
+
+v11_r25_j1_swp_mid_lot001: &v11_r25_j1_swp_mid_lot001
+  <<: *v11_r25_j1_swp_mid_l10
+  version: V11-R25-SWPM001
+  description: "BTC单策略补频: 中等sweep 0.10x且单笔最多0.01手，保护主OB收益腿"
+  sweep_max_lot_size: 0.01
+  magic_number: 203155
+
+v11_r25_j1_swp_mid_lot002:
+  <<: *v11_r25_j1_swp_mid_l10
+  version: V11-R25-SWPM002
+  description: "BTC单策略补频: 中等sweep 0.10x且单笔最多0.02手，测试补频收益上限"
+  sweep_max_lot_size: 0.02
+  magic_number: 203156
+
+v11_r25_j1_swp_mid_lot005:
+  <<: *v11_r25_j1_swp_mid_l10
+  version: V11-R25-SWPM005
+  description: "BTC单策略补频: 中等sweep 0.10x且单笔最多0.05手，压力测试主腿污染"
+  sweep_max_lot_size: 0.05
+  magic_number: 203157
+
+# ═══ V11 Round26: BTC单品种日均>5后的主OB收益放大 ═══
+
+v11_r26_j1_swp001_r42_lg32:
+  <<: *v11_r25_j1_swp_mid_lot001
+  version: V11-R26-S001R42
+  description: "BTC单策略: sweep 0.01手补频 + 主OB risk4.2/大结构3.2，冲击>10000"
+  risk_percent: 4.2
+  large_risk_mult: 3.20
+  max_pos_mult: 220.0
+  max_lot_size: 6.00
+  magic_number: 203161
+
+v11_r26_j1_swp001_r50_lg36: &v11_r26_j1_swp001_r50_lg36
+  <<: *v11_r25_j1_swp_mid_lot001
+  version: V11-R26-S001R50
+  description: "BTC单策略: sweep 0.01手补频 + 主OB risk5.0/大结构3.6，高弹性压力测试"
+  risk_percent: 5.0
+  large_risk_mult: 3.60
+  max_pos_mult: 260.0
+  max_lot_size: 8.00
+  magic_number: 203162
+
+v11_btc_m5_r26:
+  <<: *v11_r26_j1_swp001_r50_lg36
+  version: V11-BTC-M5-R26
+  description: "BTC单策略当前候选: 单腿达成日均>5且180天余额>10000"
+  magic_number: 203164
+
+v11j2: &v11j2
+  <<: *v11_r26_j1_swp001_r50_lg36
+  version: V11J2
+  description: "v11j2正式候选: BTC单策略补频+主OB收益放大，180天余额破万"
+  magic_number: 203165
+
+v11_r26_j1_swp001_r60_lg40:
+  <<: *v11_r25_j1_swp_mid_lot001
+  version: V11-R26-S001R60
+  description: "BTC单策略: sweep 0.01手补频 + 主OB risk6.0/大结构4.0，极限收益测试"
+  risk_percent: 6.0
+  large_risk_mult: 4.00
+  max_pos_mult: 320.0
+  max_lot_size: 10.00
+  magic_number: 203163
+
+# ═══ V11 Round27: v11j2鲁棒化 + 中段盈利强化 ═══
+
+v11_r27_j2_hourq: &v11_r27_j2_hourq
+  <<: *v11j2
+  version: V11-R27-HOURQ
+  description: "v11j2鲁棒版: 去17高仓，转向13/14/20并强化质量降权"
+  low_risk_hour_mult: 0.35
+  high_risk_hours: "12,13,14,20,23"
+  high_risk_hour_mult: 8.5
+  late_bounce_mult: 0.50
+  outside_bounce_sweet_mult: 0.60
+  bad_risk_min: 120.0
+  bad_risk_max: 200.0
+  bad_risk_mult: 0.45
+  shallow_confirm_pos_mult: 0.35
+  htf_net_push_counter_mult: 0.35
+  magic_number: 203171
+
+v11_r27_j2_guard_np2:
+  <<: *v11_r27_j2_hourq
+  version: V11-R27-GUARDNP2
+  description: "v11j2守护版: 小时重分配+no-progress早退，优先压缩弱段亏损"
+  no_mfe_exit_bars: 2
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.25
+  mfe_fail_min_r: 0.50
+  mfe_fail_exit_r: -0.10
+  magic_number: 203172
+
+v11_r27_j2_midpush: &v11_r27_j2_midpush
+  <<: *v11_r27_j2_hourq
+  version: V11-R27-MIDPUSH
+  description: "v11j2中段强化: 高质量小时加仓并放大大结构，冲击2w"
+  low_risk_hour_mult: 0.30
+  high_risk_hour_mult: 10.0
+  risk_percent: 5.5
+  large_risk_mult: 4.20
+  max_pos_mult: 320.0
+  max_lot_size: 10.00
+  magic_number: 203173
+
+v11_r27_j2_midpush_np2:
+  <<: *v11_r27_j2_midpush
+  version: V11-R27-MIDNP2
+  description: "v11j2中段强化守护版: 利润放大叠加no-progress早退"
+  no_mfe_exit_bars: 2
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.25
+  mfe_fail_min_r: 0.50
+  mfe_fail_exit_r: -0.10
+  magic_number: 203174
+
+# ═══ V11 Round28: 在 midpush 上做软质量守护，补中段鲁棒性 ═══
+
+v11_r28_j2_midsoft: &v11_r28_j2_midsoft
+  <<: *v11_r27_j2_midpush
+  version: V11-R28-MIDSOFT
+  description: "v11j2稳健冲刺: 保留高频与中段放大，但改用更软的质量降权"
+  low_risk_hour_mult: 0.35
+  high_risk_hours: "12,13,14,17,20,23"
+  high_risk_hour_mult: 9.0
+  risk_percent: 5.2
+  large_risk_mult: 4.00
+  max_pos_mult: 300.0
+  max_lot_size: 9.00
+  late_bounce_mult: 0.60
+  outside_bounce_sweet_mult: 0.70
+  bad_risk_min: 150.0
+  bad_risk_max: 200.0
+  bad_risk_mult: 0.60
+  shallow_confirm_pos_mult: 0.40
+  htf_net_push_counter_mult: 0.40
+  magic_number: 203175
+
+v11_r28_j2_midsoft_np3:
+  <<: *v11_r28_j2_midsoft
+  version: V11-R28-MIDSNP3
+  description: "v11j2稳健守护: midsoft 叠加 3bar no-progress，压缩弱段亏损"
+  no_mfe_exit_bars: 3
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.25
+  mfe_fail_min_r: 0.60
+  mfe_fail_exit_r: -0.10
+  magic_number: 203176
+
+v11_r28_j2_midplus:
+  <<: *v11_r28_j2_midsoft
+  version: V11-R28-MIDPLUS
+  description: "v11j2稳健冲刺+: midsoft 底座上恢复更强主腿放大，继续冲击2w"
+  risk_percent: 5.4
+  large_risk_mult: 4.20
+  max_pos_mult: 320.0
+  max_lot_size: 10.00
+  magic_number: 203177
+
+# ═══ V11 Round29: 回到 v11j2 高覆盖骨架，只做轻度质量化 ═══
+
+v11_r29_j2_selective: &v11_r29_j2_selective
+  <<: *v11j2
+  version: V11-R29-SEL
+  description: "v11j2轻质量版: 保留高覆盖补频，只对中段坏簇做软降权"
+  late_bounce_mult: 0.60
+  outside_bounce_sweet_mult: 0.70
+  bad_risk_min: 150.0
+  bad_risk_max: 200.0
+  bad_risk_mult: 0.60
+  large_risk_min: 300.0
+  shallow_confirm_pos_min: -0.60
+  shallow_confirm_pos_mult: 0.60
+  htf_net_push_counter_mult: 0.60
+  high_risk_hours: "12,17,23"
+  high_risk_hour_mult: 8.0
+  magic_number: 203178
+
+v11_r29_j2_selective_r54:
+  <<: *v11_r29_j2_selective
+  version: V11-R29-SELR54
+  description: "v11j2轻质量利润版: selective 底座上温和提高主腿收益放大"
+  risk_percent: 5.4
+  large_risk_mult: 3.90
+  max_pos_mult: 300.0
+  max_lot_size: 9.00
+  magic_number: 203179
+
+v11_r29_j2_selective_np3: &v11_r29_j2_selective_np3
+  <<: *v11_r29_j2_selective
+  version: V11-R29-SELNP3
+  description: "v11j2轻质量守护版: selective 叠加温和 no-progress 保护"
+  no_mfe_exit_bars: 3
+  no_mfe_min_peak_r: 0.10
+  no_mfe_exit_r: -0.25
+  mfe_fail_min_r: 0.50
+  mfe_fail_exit_r: -0.10
+  magic_number: 203180
+
+# ═══ V11 Round30: 吸取连续亏损后停摆的经验，收紧致命坏簇 ═══
+
+v11_r30_j2_selnp3_lg:
+  <<: *v11_r29_j2_selective_np3
+  version: V11-R30-SELG
+  description: "v11j2稳健进阶: 在盈利底座上先收紧大风险结构放大"
+  large_risk_min: 350.0
+  large_risk_mult: 2.40
+  magic_number: 203181
+
+v11_r30_j2_selnp3_sh: &v11_r30_j2_selnp3_sh
+  <<: *v11_r29_j2_selective_np3
+  version: V11-R30-SELSH
+  description: "v11j2稳健进阶: 在盈利底座上继续压浅确认仓位"
+  shallow_confirm_pos_mult: 0.45
+  magic_number: 203182
+
+v11_r30_j2_selnp3_combo:
+  <<: *v11_r29_j2_selective_np3
+  version: V11-R30-SELCMB
+  description: "v11j2稳健进阶组合: 收紧大风险与浅确认，并下调高风险小时放大"
+  large_risk_min: 350.0
+  large_risk_mult: 2.20
+  shallow_confirm_pos_mult: 0.45
+  high_risk_hour_mult: 6.0
+  magic_number: 203183
+
+# ═══ V11 Round31: 定向切坏簇，优先保留高频盈利腿 ═══
+
+v11_r31_j2_hourcut: &v11_r31_j2_hourcut
+  <<: *v11_r30_j2_selnp3_sh
+  version: V11-R31-HCUT
+  description: "v11j2长窗修复: 去17高仓并集中13/20，优先切掉已验证坏簇小时"
+  high_risk_hours: "12,13,20,23"
+  high_risk_hour_mult: 6.0
+  low_risk_hours: "17"
+  low_risk_hour_mult: 0.35
+  no_sell_hours: "17"
+  magic_number: 203184
+
+v11_r31_j2_hourcut_tail:
+  <<: *v11_r31_j2_hourcut
+  version: V11-R31-HCTAIL
+  description: "v11j2长窗修复+: 小时定向切坏簇并轻压风险尾部，验证720d stopout缓解"
+  bad_risk_min: 150.0
+  bad_risk_max: 260.0
+  bad_risk_mult: 0.50
+  large_risk_min: 350.0
+  large_risk_mult: 2.60
+  magic_number: 203185
+
+# ═══ V11 Round32: 先冲总目标，优先放大高频高利润主腿 ═══
+
+v11_r32_j2_hcut_r54: &v11_r32_j2_hcut_r54
+  <<: *v11_r31_j2_hourcut
+  version: V11-R32-HR54
+  description: "v11j2总目标优先: 在 HCUT 盈利骨架上恢复利润杠杆，先冲日均>5与高余额"
+  risk_percent: 5.4
+  large_risk_mult: 3.90
+  max_pos_mult: 300.0
+  max_lot_size: 9.00
+  magic_number: 203186
+
+v11_r32_j2_hcut_h7:
+  <<: *v11_r31_j2_hourcut
+  version: V11-R32-HH7
+  description: "v11j2总目标优先: 保持 HCUT 过滤，只提高核心盈利小时放大"
+  high_risk_hour_mult: 7.0
+  magic_number: 203187
+
+v11_r32_j2_hcut_r54_h7: &v11_r32_j2_hcut_r54_h7
+  <<: *v11_r32_j2_hcut_r54
+  version: V11-R32-HR54H7
+  description: "v11j2总目标冲刺: 利润杠杆叠加核心小时加仓，验证是否能先打穿 5/50000 门槛"
+  high_risk_hour_mult: 7.0
+  magic_number: 203188
+
+v11_r32_j2_hcut_r56_h7:
+  <<: *v11_r32_j2_hcut_r54_h7
+  version: V11-R32-HR56H7
+  description: "v11j2总目标冲刺+: 在 HR54H7 基础上轻推 risk_percent，争取先越过 50000"
+  risk_percent: 5.6
+  magic_number: 203189
+
+v11_r32_j2_hcut_r54_h75:
+  <<: *v11_r32_j2_hcut_r54
+  version: V11-R32-HR54H75
+  description: "v11j2总目标冲刺+: 保持风险不变，仅轻推核心小时放大观察余额弹性"
+  high_risk_hour_mult: 7.5
+  magic_number: 203190
+
+v11_r32_j2_hcut_r56_h75:
+  <<: *v11_r32_j2_hcut_r54_h7
+  version: V11-R32-HR56H75
+  description: "v11j2总目标冲刺++: 同步轻推 risk 与核心小时放大，优先测试越过 50000 的最小组合"
+  risk_percent: 5.6
+  high_risk_hour_mult: 7.5
+  magic_number: 203191
+
+v11_r32_j2_hcut_r54_h8: &v11_r32_j2_hcut_r54_h8
+  <<: *v11_r32_j2_hcut_r54
+  version: V11-R32-HR54H8
+  description: "v11j2总目标冲刺++: 延续最佳骨架，继续上推核心小时放大测试 50000 门槛"
+  high_risk_hour_mult: 8.0
+  magic_number: 203192
+
+v11_r32_j2_hcut_r54_lg4_h8:
+  <<: *v11_r32_j2_hcut_r54_h8
+  version: V11-R32-HR54LG4H8
+  description: "v11j2总目标冲刺++: 在 H8 基础上微抬大结构放大，观察是否能补足最后一段利润"
+  large_risk_mult: 4.0
+  magic_number: 203193
+
+v11_r32_j2_hcut_r54_lg405_h8: &v11_r32_j2_hcut_r54_lg405_h8
+  <<: *v11_r32_j2_hcut_r54_h8
+  version: V11-R32-HR54LG405H8
+  description: "v11j2总目标冲刺+++: 在 LG4H8 基础上再轻推大结构放大，尝试越过 50000"
+  large_risk_mult: 4.05
+  magic_number: 203194
+
+v11_r32_j2_hcut_r54_lg41_h8:
+  <<: *v11_r32_j2_hcut_r54_h8
+  version: V11-R32-HR54LG41H8
+  description: "v11j2总目标冲刺+++: 延续 H8 骨架并把大结构放大提到 4.1，验证收益上限"
+  large_risk_mult: 4.10
+  magic_number: 203195
+
+# ═══ V11 Round33: 回到高覆盖骨架，激活真实有效的长窗质量过滤 ═══
+
+v11_r33_j2_selnp3_guard: &v11_r33_j2_selnp3_guard
+  <<: *v11_r29_j2_selective_np3
+  version: V11-R33-SG1
+  description: "v11j2两年修复: 在 selective_np3 上激活晚确认/甜点过滤，并压缩 200-320 risk 与 7/8/9/10/15/18 小时坏簇"
+  late_bounce_sec: 30
+  bounce_sweet_min_pct: 0.26
+  bounce_sweet_max_pct: 0.34
+  shallow_confirm_pos_mult: 0.45
+  bad_risk_min: 200.0
+  bad_risk_max: 320.0
+  bad_risk_mult: 0.45
+  large_risk_min: 350.0
+  large_risk_mult: 2.40
+  low_risk_hours: "7,8,9,10,15,18"
+  low_risk_hour_mult: 0.35
+  htf_net_push_counter_mult: 0.35
+  magic_number: 203196
+
+v11_r33_j2_selnp3_guard_cap: &v11_r33_j2_selnp3_guard_cap
+  <<: *v11_r33_j2_selnp3_guard
+  version: V11-R33-SG2
+  description: "v11j2两年修复+: 在 SG1 基础上继续收紧大结构与高仓上限，优先验证 survival 是否改善"
+  high_risk_hour_mult: 6.0
+  large_risk_mult: 2.20
+  max_pos_mult: 180.0
+  max_lot_size: 5.00
+  magic_number: 203197
+
+v11_r33_j2_selnp3_guard_nosell:
+  <<: *v11_r33_j2_selnp3_guard
+  version: V11-R33-SG3
+  description: "v11j2两年修复++: 在 SG1 上直接禁做空 7/8/9/10，验证早盘 sell 坏簇是否是 stopout 主因"
+  no_sell_hours: "7,8,9,10"
+  low_risk_hours: "15,18"
+  magic_number: 203198
+
+# ═══ V11 Round34: 720天目标 — 修正小时仓位矛盾并恢复补频 ═══
+
+v11_r34_j2_cap_hfix: &v11_r34_j2_cap_hfix
+  <<: *v11_r33_j2_selnp3_guard_cap
+  version: V11-R34-HFIX
+  description: "720天修复: 以R33 cap为底座，移除17高仓，释放10/15/18正常仓位，保留7/8/9/17低仓"
+  high_risk_hours: "12,14,20,23"
+  high_risk_hour_mult: 6.0
+  low_risk_hours: "7,8,9,17"
+  low_risk_hour_mult: 0.35
+  magic_number: 203201
+
+v11_r34_j2_cap_freq: &v11_r34_j2_cap_freq
+  <<: *v11_r34_j2_cap_hfix
+  version: V11-R34-FREQ
+  description: "720天补频: HFIX底座上中等放宽sweep，提高日均交易数，观察亏损月是否恶化"
+  sweep_lookback_bars: 6
+  sweep_max_range_atr: 4.0
+  sweep_min_range_spread_mult: 2.5
+  sweep_min_penetration_atr: 0.01
+  sweep_min_wick_pct: 30.0
+  max_concurrent: 10
+  max_entries_per_ob: 5
+  magic_number: 203202
+
+v11_r34_j2_cap_freq_safe:
+  <<: *v11_r34_j2_cap_freq
+  version: V11-R34-FREQS
+  description: "720天补频稳健版: 放宽sweep但降低主腿风险与大结构放大，先争取全周期存活和日均>5"
+  risk_percent: 3.8
+  high_risk_hour_mult: 5.0
+  large_risk_mult: 2.00
+  max_pos_mult: 150.0
+  max_lot_size: 4.00
+  magic_number: 203203
+
+# ═══ V11 Round35: r32强势主腿 + 启动期余额保护 ═══
+
+v11_r35_j2_lg405_start500: &v11_r35_j2_lg405_start500
+  <<: *v11_r32_j2_hcut_r54_lg405_h8
+  version: V11-R35-S500
+  description: "720天启动保护: r32强势主腿，余额<500时降低仓位/限手，穿越2024启动期后恢复火力"
+  low_balance_threshold: 500.0
+  low_balance_pos_mult: 0.35
+  low_balance_max_lot_size: 0.30
+  magic_number: 203211
+
+v11_r35_j2_lg405_start1000: &v11_r35_j2_lg405_start1000
+  <<: *v11_r35_j2_lg405_start500
+  version: V11-R35-S1000
+  description: "720天启动保护: 更长启动保护，余额<1000时降低仓位/限手"
+  low_balance_threshold: 1000.0
+  low_balance_pos_mult: 0.35
+  low_balance_max_lot_size: 0.35
+  magic_number: 203212
+
+v11_r35_j2_lg405_start2000: &v11_r35_j2_lg405_start2000
+  <<: *v11_r35_j2_lg405_start500
+  version: V11-R35-S2000
+  description: "720天启动保护: 守到余额2000再完全恢复r32火力，测试每月盈利稳定性"
+  low_balance_threshold: 2000.0
+  low_balance_pos_mult: 0.30
+  low_balance_max_lot_size: 0.35
+  magic_number: 203213
+
+# ═══ V11 Round36: r32强势主腿 + 组合坏簇降权 ═══
+
+v11_r36_j2_lg405_csoft: &v11_r36_j2_lg405_csoft
+  <<: *v11_r32_j2_hcut_r54_lg405_h8
+  version: V11-R36-CSOFT
+  description: "720天组合坏簇软降权: 保留r32强势主腿，低仓7/8/9/17，软压0/1/13/14/15的150-300风险档"
+  bad_cluster1_hours: "7,8,9,17"
+  bad_cluster1_risk_min: 0.0
+  bad_cluster1_risk_max: 0.0
+  bad_cluster1_confirm_min: -999.0
+  bad_cluster1_confirm_max: 999.0
+  bad_cluster1_mult: 0.25
+  bad_cluster2_hours: "0,1,13,14,15"
+  bad_cluster2_risk_min: 150.0
+  bad_cluster2_risk_max: 300.0
+  bad_cluster2_confirm_min: -999.0
+  bad_cluster2_confirm_max: 999.0
+  bad_cluster2_mult: 0.45
+  bad_cluster3_hours: "14,15"
+  bad_cluster3_risk_min: 400.0
+  bad_cluster3_risk_max: 99999.0
+  bad_cluster3_confirm_min: -1.5
+  bad_cluster3_confirm_max: -0.6
+  bad_cluster3_mult: 0.35
+  magic_number: 203221
+
+v11_r36_j2_lg405_cmed:
+  <<: *v11_r36_j2_lg405_csoft
+  version: V11-R36-CMED
+  description: "720天组合坏簇中降权: 在CSOFT上进一步压重复SL簇，测试旧行情存活率"
+  bad_cluster1_mult: 0.15
+  bad_cluster2_mult: 0.30
+  bad_cluster3_mult: 0.20
+  magic_number: 203222
+
+v11_r36_j2_lg405_chard:
+  <<: *v11_r36_j2_lg405_csoft
+  version: V11-R36-CHARD
+  description: "720天组合坏簇硬过滤: 过滤7/8/9/17和最差150-300簇，验证亏损月能否转正"
+  bad_cluster1_mult: 0.0
+  bad_cluster2_mult: 0.0
+  bad_cluster3_mult: 0.10
+  magic_number: 203223
+
+# ═══ V11 Round37: r32强势主腿 + 月内回撤风控阀 ═══
+
+v11_r37_j2_lg405_m08: &v11_r37_j2_lg405_m08
+  <<: *v11_r32_j2_hcut_r54_lg405_h8
+  version: V11-R37-M08
+  description: "720天月内风控: r32强势主腿，月内低于月初后半仓，月亏8%停止新开仓"
+  monthly_loss_stop_pct: 8.0
+  monthly_negative_pos_mult: 0.50
+  magic_number: 203231
+
+v11_r37_j2_lg405_m12:
+  <<: *v11_r37_j2_lg405_m08
+  version: V11-R37-M12
+  description: "720天月内风控: 月亏12%停止新开仓，给高频恢复留更多空间"
+  monthly_loss_stop_pct: 12.0
+  monthly_negative_pos_mult: 0.60
+  magic_number: 203232
+
+v11_r37_j2_lg405_m16:
+  <<: *v11_r37_j2_lg405_m08
+  version: V11-R37-M16
+  description: "720天月内风控: 月亏16%停止新开仓，尽量保留r32后半段爆发力"
+  monthly_loss_stop_pct: 16.0
+  monthly_negative_pos_mult: 0.75
+  magic_number: 203233
+
+# ═══ V11 Round38: 启动期保护 + 高余额月内止损 ═══
+
+v11_r38_j2_start2000_m16: &v11_r38_j2_start2000_m16
+  <<: *v11_r35_j2_lg405_start2000
+  version: V11-R38-S2M16
+  description: "720天组合风控: S2000穿越旧行情，余额起来后用16%月亏阀限制2026-01大坑"
+  monthly_loss_stop_pct: 16.0
+  monthly_negative_pos_mult: 0.75
+  magic_number: 203241
+
+v11_r38_j2_start2000_m25:
+  <<: *v11_r38_j2_start2000_m16
+  version: V11-R38-S2M25
+  description: "720天组合风控: 放宽到25%月亏阀，保留更多恢复能力"
+  monthly_loss_stop_pct: 25.0
+  monthly_negative_pos_mult: 0.85
+  magic_number: 203242
+
+v11_r38_j2_start1000_m20:
+  <<: *v11_r35_j2_lg405_start1000
+  version: V11-R38-S1M20
+  description: "720天组合风控: S1000启动保护 + 20%月亏阀，测试早期复利与高余额保护平衡"
+  monthly_loss_stop_pct: 20.0
+  monthly_negative_pos_mult: 0.80
+  magic_number: 203243
+
+# ═══ V11 Round39: 低余额恢复，高余额启用月控 ═══
+
+v11_r39_j2_start1000_m16_g2k: &v11_r39_j2_start1000_m16_g2k
+  <<: *v11_r35_j2_lg405_start1000
+  version: V11-R39-S1M16G2
+  description: "720天分段月控: S1000启动保护，余额>=2000后才启用16%月亏阀"
+  monthly_guard_min_balance: 2000.0
+  monthly_loss_stop_pct: 16.0
+  monthly_negative_pos_mult: 0.75
+  magic_number: 203251
+
+v11_r39_j2_start1000_m20_g2k:
+  <<: *v11_r39_j2_start1000_m16_g2k
+  version: V11-R39-S1M20G2
+  description: "720天分段月控: 余额>=2000后启用20%月亏阀，保留更多恢复能力"
+  monthly_loss_stop_pct: 20.0
+  monthly_negative_pos_mult: 0.80
+  magic_number: 203252
+
+v11_r39_j2_start1000_m16_g5k: &v11_r39_j2_start1000_m16_g5k
+  <<: *v11_r39_j2_start1000_m16_g2k
+  version: V11-R39-S1M16G5
+  description: "720天分段月控: 余额>=5000后才启用16%月亏阀，优先保留中期复利"
+  monthly_guard_min_balance: 5000.0
+  magic_number: 203253
+
+# ═══ V11 Round40: 加快启动期进入复利段 ═══
+
+v11_r40_j2_start1000_fast_g5k: &v11_r40_j2_start1000_fast_g5k
+  <<: *v11_r39_j2_start1000_m16_g5k
+  version: V11-R40-S1FASTG5
+  description: "720天启动提速: G5K月控底座，启动期仓位从0.35提高到0.50，争取更快进入复利区"
+  low_balance_pos_mult: 0.50
+  low_balance_max_lot_size: 0.50
+  magic_number: 203261
+
+v11_r40_j2_start500_fast_g5k:
+  <<: *v11_r40_j2_start1000_fast_g5k
+  version: V11-R40-S05FASTG5
+  description: "720天启动提速: 仅余额<500保护，允许更早恢复r32火力"
+  low_balance_threshold: 500.0
+  low_balance_pos_mult: 0.50
+  low_balance_max_lot_size: 0.50
+  magic_number: 203262
+
+v11_r40_j2_start1000_fast_m12_g5k:
+  <<: *v11_r40_j2_start1000_fast_g5k
+  version: V11-R40-S1FM12G5
+  description: "720天启动提速+更紧高余额月控: 启动期0.50仓，余额>=5000后月亏12%停止"
+  monthly_loss_stop_pct: 12.0
+  monthly_negative_pos_mult: 0.70
+  magic_number: 203263
+
+# ═══ V11 Round41: 启动期仓位窄窗口扫描 ═══
+
+v11_r41_j2_start1000_p038_g5k: &v11_r41_j2_start1000_p038_g5k
+  <<: *v11_r39_j2_start1000_m16_g5k
+  version: V11-R41-S1P038G5
+  description: "720天启动期窄窗口: 在0.35存活底座上小幅提到0.38，验证是否提升复利速度且不早期崩溃"
+  low_balance_pos_mult: 0.38
+  low_balance_max_lot_size: 0.38
+  magic_number: 203271
+
+v11_r41_j2_start1000_p040_g5k:
+  <<: *v11_r41_j2_start1000_p038_g5k
+  version: V11-R41-S1P040G5
+  description: "720天启动期窄窗口: 启动期0.40仓位，寻找0.35存活与0.50崩溃之间的临界收益点"
+  low_balance_pos_mult: 0.40
+  low_balance_max_lot_size: 0.40
+  magic_number: 203272
+
+v11_r41_j2_start1000_p045_g5k:
+  <<: *v11_r41_j2_start1000_p038_g5k
+  version: V11-R41-S1P045G5
+  description: "720天启动期窄窗口: 启动期0.45仓位，验证提速上限是否已接近早期止损簇失控"
+  low_balance_pos_mult: 0.45
+  low_balance_max_lot_size: 0.45
+  magic_number: 203273
+
+# ═══ V11 Round42: p038底座提高频率与复利上限 ═══
+
+v11_r42_j2_p039_g5k: &v11_r42_j2_p039_g5k
+  <<: *v11_r41_j2_start1000_p038_g5k
+  version: V11-R42-P039G5
+  description: "720天p038邻域微调: 启动期0.39，确认0.38到0.40之间是否存在更高余额峰值"
+  low_balance_pos_mult: 0.39
+  low_balance_max_lot_size: 0.39
+  magic_number: 203281
+
+v11_r42_j2_p038_m20_g5k:
+  <<: *v11_r41_j2_start1000_p038_g5k
+  version: V11-R42-P038M20G5
+  description: "720天p038放松月控: 余额>=5000后月亏20%停止，提升恢复交易数和复利空间"
+  monthly_loss_stop_pct: 20.0
+  monthly_negative_pos_mult: 0.80
+  magic_number: 203282
+
+v11_r42_j2_p038_m16_g10k: &v11_r42_j2_p038_m16_g10k
+  <<: *v11_r41_j2_start1000_p038_g5k
+  version: V11-R42-P038M16G10
+  description: "720天p038延后月控: 余额>=10000后才启用16%月亏阀，优先解决日均不足和中期复利断档"
+  monthly_guard_min_balance: 10000.0
+  magic_number: 203283
+
+# ═══ V11 Round43: 延后月控窗口细化 ═══
+
+v11_r43_j2_p039_m16_g10k: &v11_r43_j2_p039_m16_g10k
+  <<: *v11_r42_j2_p038_m16_g10k
+  version: V11-R43-P039M16G10
+  description: "720天g10k底座微调: 启动期0.39 + 余额>=10000月控，验证Round42两个优势能否叠加"
+  low_balance_pos_mult: 0.39
+  low_balance_max_lot_size: 0.39
+  magic_number: 203291
+
+v11_r43_j2_p038_m12_g10k: &v11_r43_j2_p038_m12_g10k
+  <<: *v11_r42_j2_p038_m16_g10k
+  version: V11-R43-P038M12G10
+  description: "720天g10k收紧月亏阀: 余额>=10000后月亏12%停止，压2026-01/03高余额回撤"
+  monthly_loss_stop_pct: 12.0
+  monthly_negative_pos_mult: 0.70
+  magic_number: 203292
+
+v11_r43_j2_p038_m16_g20k: &v11_r43_j2_p038_m16_g20k
+  <<: *v11_r42_j2_p038_m16_g10k
+  version: V11-R43-P038M16G20
+  description: "720天进一步延后月控: 余额>=20000后才启用16%月亏阀，测试是否释放更多中期复利和交易频率"
+  monthly_guard_min_balance: 20000.0
+  magic_number: 203293
+
+# ═══ V11 Round44: p039与m12/g20交叉组合 ═══
+
+v11_r44_j2_p039_m12_g10k: &v11_r44_j2_p039_m12_g10k
+  <<: *v11_r43_j2_p039_m16_g10k
+  version: V11-R44-P039M12G10
+  description: "720天交叉组合: p039启动期 + g10k月控 + 12%月亏阀，追求更高余额质量"
+  monthly_loss_stop_pct: 12.0
+  monthly_negative_pos_mult: 0.70
+  magic_number: 203301
+
+v11_r44_j2_p038_m12_g20k:
+  <<: *v11_r43_j2_p038_m16_g20k
+  version: V11-R44-P038M12G20
+  description: "720天交叉组合: g20k释放交易频率，同时用12%月亏阀压高余额回撤"
+  monthly_loss_stop_pct: 12.0
+  monthly_negative_pos_mult: 0.70
+  magic_number: 203302
+
+v11_r44_j2_p039_m12_g20k: &v11_r44_j2_p039_m12_g20k
+  <<: *v11_r44_j2_p039_m12_g10k
+  version: V11-R44-P039M12G20
+  description: "720天交叉组合: p039 + g20k + 12%月亏阀，验证频率与余额能否同时突破"
+  monthly_guard_min_balance: 20000.0
+  magic_number: 203303
+
+# ═══ V11 Round45: best底座轻补频 ═══
+
+v11_r45_j2_best_e5: &v11_r45_j2_best_e5
+  <<: *v11_r44_j2_p039_m12_g20k
+  version: V11-R45-BESTE5
+  description: "720天best轻补频: 每个OB最多5次入场，并发提高到10，争取日均突破5"
+  max_entries_per_ob: 5
+  max_concurrent: 10
+  magic_number: 203311
+
+v11_r45_j2_best_sweep:
+  <<: *v11_r45_j2_best_e5
+  version: V11-R45-BESTSWP
+  description: "720天best sweep补频: 继承E5并中等放宽sweep参数，测试是否补足缺口且不破坏亏损月"
+  sweep_lookback_bars: 6
+  sweep_max_range_atr: 4.0
+  sweep_min_range_spread_mult: 2.5
+  sweep_min_penetration_atr: 0.01
+  sweep_min_wick_pct: 30.0
+  magic_number: 203312
+
+v11_r45_j2_best_mrr45:
+  <<: *v11_r44_j2_p039_m12_g20k
+  version: V11-R45-BESTMRR45
+  description: "720天best轻降spread/risk过滤: min risk/spread从5.0降到4.5，测试少量补频是否可控"
+  min_risk_spread_ratio: 4.5
+  magic_number: 203313
+
+# ═══ V11 Round46: best底座亏损月坏簇减仓 ═══
+
+v11_r46_j2_best_bad_soft: &v11_r46_j2_best_bad_soft
+  <<: *v11_r44_j2_p039_m12_g20k
+  version: V11-R46-BADSOFT
+  description: "720天坏簇软减仓: 针对2026-01/03/05的risk与confirm_pos亏损簇减仓，保留信号频率"
+  bad_cluster1_risk_min: 200.0
+  bad_cluster1_risk_max: 300.0
+  bad_cluster1_confirm_min: -0.60
+  bad_cluster1_confirm_max: 999.0
+  bad_cluster1_mult: 0.50
+  bad_cluster2_risk_min: 200.0
+  bad_cluster2_risk_max: 300.0
+  bad_cluster2_confirm_min: -1.00
+  bad_cluster2_confirm_max: -0.60
+  bad_cluster2_mult: 0.65
+  bad_cluster3_risk_min: 100.0
+  bad_cluster3_risk_max: 150.0
+  bad_cluster3_confirm_min: -0.60
+  bad_cluster3_confirm_max: 999.0
+  bad_cluster3_mult: 0.55
+  magic_number: 203321
+
+v11_r46_j2_best_bad_med:
+  <<: *v11_r46_j2_best_bad_soft
+  version: V11-R46-BADMED
+  description: "720天坏簇中等减仓: 在BADSOFT基础上进一步压高余额亏损月坏簇"
+  bad_cluster1_mult: 0.35
+  bad_cluster2_mult: 0.50
+  bad_cluster3_mult: 0.40
+  magic_number: 203322
+
+v11_r46_j2_best_g30_bad_soft: &v11_r46_j2_best_g30_bad_soft
+  <<: *v11_r46_j2_best_bad_soft
+  version: V11-R46-G30BADSOFT
+  description: "720天延后月控+坏簇软减仓: 余额>=30000后才启用12%月亏阀，并用坏簇减仓吸收高余额回撤"
+  monthly_guard_min_balance: 30000.0
+  magic_number: 203323
+
+# ═══ V11 Round47: g30底座坏簇生效验证与更晚月控 ═══
+
+v11_r47_j2_g30_bad_soft_all: &v11_r47_j2_g30_bad_soft_all
+  <<: *v11_r46_j2_best_g30_bad_soft
+  version: V11-R47-G30BADSA
+  description: "720天g30坏簇生效验证: 显式全时段0-23启用BADSOFT，压2026坏簇但保留频率"
+  bad_cluster1_hours: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+  bad_cluster2_hours: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+  bad_cluster3_hours: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23"
+  magic_number: 203331
+
+v11_r47_j2_g30_bad_med_all:
+  <<: *v11_r47_j2_g30_bad_soft_all
+  version: V11-R47-G30BADMA
+  description: "720天g30坏簇中等减仓生效验证: 全时段启用BADMED，测试亏损月保护强度"
+  bad_cluster1_mult: 0.35
+  bad_cluster2_mult: 0.50
+  bad_cluster3_mult: 0.40
+  magic_number: 203332
+
+v11_r47_j2_g40_m12:
+  <<: *v11_r44_j2_p039_m12_g20k
+  version: V11-R47-G40M12
+  description: "720天更晚月控: 余额>=40000后才启用12%月亏阀，测试g30之后是否仍有复利空间"
+  monthly_guard_min_balance: 40000.0
+  magic_number: 203333
+
+# ═══ V11 Round48: g30月控甜点细扫 ═══
+
+v11_r48_j2_g25_m12: &v11_r48_j2_g25_m12
+  <<: *v11_r44_j2_p039_m12_g20k
+  version: V11-R48-G25M12
+  description: "720天月控阈值细扫: 余额>=25000启用12%月亏阀，定位g20/g30之间收益峰"
+  monthly_guard_min_balance: 25000.0
+  magic_number: 203341
+
+v11_r48_j2_g35_m12:
+  <<: *v11_r44_j2_p039_m12_g20k
+  version: V11-R48-G35M12
+  description: "720天月控阈值细扫: 余额>=35000启用12%月亏阀，定位g30/g40之间收益峰"
+  monthly_guard_min_balance: 35000.0
+  magic_number: 203342
+
+v11_r48_j2_g30_m10: &v11_r48_j2_g30_m10
+  <<: *v11_r44_j2_p039_m12_g20k
+  version: V11-R48-G30M10
+  description: "720天g30收紧月亏阀: 余额>=30000后月亏10%停止，测试是否继续压2026高余额回撤"
+  monthly_guard_min_balance: 30000.0
+  monthly_loss_stop_pct: 10.0
+  monthly_negative_pos_mult: 0.65
+  magic_number: 203343
+
+# ═══ V11 Round49: g30m10收益弹性与微补频 ═══
+
+v11_r49_j2_g30m10_r58: &v11_r49_j2_g30m10_r58
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R49-G30M10R58
+  description: "720天收益弹性: 在当前最高余额g30m10上把risk从5.4小幅提高到5.8，验证能否逼近80000"
+  risk_percent: 5.8
+  magic_number: 203351
+
+v11_r49_j2_g30m10_r62:
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R49-G30M10R62
+  description: "720天收益弹性: risk提高到6.2，测试收益上限与早期/高余额回撤风险"
+  risk_percent: 6.2
+  magic_number: 203352
+
+v11_r49_j2_g30m10_rb_micro:
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R49-G30M10RBM
+  description: "720天微手数补频: 主腿不变，启用RangeBreakout但最大0.01手，测试能否补交易数且不伤主收益"
+  enable_range_breakout: true
+  range_breakout_only: false
+  range_breakout_bars: 12
+  range_breakout_max_atr: 1.5
+  range_breakout_min_spread_mult: 5.0
+  range_breakout_atr: 0.10
+  range_breakout_tp_mult: 2.0
+  range_breakout_body_dir: true
+  range_breakout_pos_mult: 0.10
+  range_breakout_max_lot_size: 0.01
+  magic_number: 203353

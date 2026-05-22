@@ -227,6 +227,24 @@ double ApplyLotCap(double lot)
    return lot;
 }
 
+double ApplySignalTypeLotCap(const OBZone &zone, double lot)
+{
+   if(zone.is_liquidity_sweep && InpSweepMaxLotSize > 0 && lot > InpSweepMaxLotSize)
+      return InpSweepMaxLotSize;
+   if(zone.is_range_breakout && InpRangeBreakoutMaxLotSize > 0 && lot > InpRangeBreakoutMaxLotSize)
+      return InpRangeBreakoutMaxLotSize;
+   return lot;
+}
+
+double ApplyBalanceLotCap(double lot)
+{
+   if(InpLowBalanceThreshold <= 0 || InpLowBalanceMaxLotSize <= 0)
+      return lot;
+   if(AccountInfoDouble(ACCOUNT_BALANCE) < InpLowBalanceThreshold && lot > InpLowBalanceMaxLotSize)
+      return InpLowBalanceMaxLotSize;
+   return lot;
+}
+
 double GetDirectionMinStrength(int direction)
 {
    if(direction == OB_BUY && InpBuyMinStrength > 0)
@@ -255,6 +273,68 @@ double ApplyHourPositionMultiplier(double pos_mult)
    if(InpHighRiskHourMult != 1.0 && IsHourBlocked(InpHighRiskHours, dt.hour))
       pos_mult *= InpHighRiskHourMult;
 
+   return pos_mult;
+}
+
+double ApplySignalTypePositionMultiplier(const OBZone &zone, double pos_mult)
+{
+   if(zone.is_liquidity_sweep)
+      pos_mult *= InpSweepPosMult;
+   if(zone.is_range_breakout)
+      pos_mult *= InpRangeBreakoutPosMult;
+   return pos_mult;
+}
+
+double ApplyBalancePositionMultiplier(double pos_mult)
+{
+   if(InpLowBalanceThreshold <= 0 || InpLowBalancePosMult == 1.0)
+      return pos_mult;
+   if(AccountInfoDouble(ACCOUNT_BALANCE) < InpLowBalanceThreshold)
+      pos_mult *= InpLowBalancePosMult;
+   return pos_mult;
+}
+
+int g_monthly_risk_key = 0;
+double g_monthly_start_balance = 0.0;
+
+void SyncMonthlyRiskState()
+{
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   int key = dt.year * 100 + dt.mon;
+   if(key != g_monthly_risk_key)
+   {
+      g_monthly_risk_key = key;
+      g_monthly_start_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   }
+}
+
+bool PassMonthlyEntryGuard()
+{
+   if(InpMonthlyLossStopPct <= 0)
+      return true;
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   if(InpMonthlyGuardMinBalance > 0 && balance < InpMonthlyGuardMinBalance)
+      return true;
+   SyncMonthlyRiskState();
+   if(g_monthly_start_balance <= 0)
+      return true;
+   double stop_balance = g_monthly_start_balance * (1.0 - InpMonthlyLossStopPct / 100.0);
+   return (balance > stop_balance);
+}
+
+double ApplyMonthlyPositionMultiplier(double pos_mult)
+{
+   if(InpMonthlyNegativePosMult == 1.0)
+      return pos_mult;
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   if(InpMonthlyGuardMinBalance > 0 && balance < InpMonthlyGuardMinBalance)
+      return pos_mult;
+   SyncMonthlyRiskState();
+   if(g_monthly_start_balance <= 0)
+      return pos_mult;
+   if(balance < g_monthly_start_balance)
+      pos_mult *= InpMonthlyNegativePosMult;
    return pos_mult;
 }
 
@@ -289,6 +369,59 @@ double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double ris
    }
 
    return pos_mult;
+}
+
+double ApplyOneBadClusterPositionMultiplier(
+   string hours,
+   double risk_min,
+   double risk_max,
+   double confirm_min,
+   double confirm_max,
+   double mult,
+   const TradeSignal &signal,
+   double risk_price,
+   double pos_mult
+)
+{
+   if(hours == "" || mult == 1.0)
+      return pos_mult;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   if(!IsHourBlocked(hours, dt.hour))
+      return pos_mult;
+
+   if(risk_max > risk_min && (risk_price < risk_min || risk_price >= risk_max))
+      return pos_mult;
+
+   if(signal.confirm_ob_pos < confirm_min || signal.confirm_ob_pos >= confirm_max)
+      return pos_mult;
+
+   if(mult <= 0)
+      return -1.0;
+   return pos_mult * mult;
+}
+
+double ApplyBadClusterPositionMultiplier(const TradeSignal &signal, double risk_price, double pos_mult)
+{
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpBadCluster1Hours, InpBadCluster1RiskMin, InpBadCluster1RiskMax,
+      InpBadCluster1ConfirmMin, InpBadCluster1ConfirmMax, InpBadCluster1Mult,
+      signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpBadCluster2Hours, InpBadCluster2RiskMin, InpBadCluster2RiskMax,
+      InpBadCluster2ConfirmMin, InpBadCluster2ConfirmMax, InpBadCluster2Mult,
+      signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   return ApplyOneBadClusterPositionMultiplier(
+      InpBadCluster3Hours, InpBadCluster3RiskMin, InpBadCluster3RiskMax,
+      InpBadCluster3ConfirmMin, InpBadCluster3ConfirmMax, InpBadCluster3Mult,
+      signal, risk_price, pos_mult);
 }
 
 double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
@@ -387,6 +520,9 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(!PassDirectionEntryHours(signal.direction, TimeCurrent()))
       return false;
 
+   if(!PassMonthlyEntryGuard())
+      return false;
+
    if(!PassEntryMomentumFilter(signal.direction))
       return false;
 
@@ -448,10 +584,16 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    }
    if(signal.deep_entry && InpDeepEntryBoost > 1.0)
       pos_mult *= InpDeepEntryBoost;
+   pos_mult = ApplySignalTypePositionMultiplier(zone, pos_mult);
    pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
    pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyBadClusterPositionMultiplier(signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+      return false;
    pos_mult = ApplyHTFNetPushPositionMultiplier(signal.direction, pos_mult);
+   pos_mult = ApplyBalancePositionMultiplier(pos_mult);
+   pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, signal.deep_entry))
       return false;
@@ -461,6 +603,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
 
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
+   final_lot = ApplySignalTypeLotCap(zone, final_lot);
+   final_lot = ApplyBalanceLotCap(final_lot);
    if(!PassMinRisk(final_lot, risk_price, symbol))
       return false;
 
@@ -476,6 +620,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
          return false;
       final_lot = final_lot * (free_margin / margin_required) * 0.95;
       final_lot = ApplyLotCap(final_lot);
+      final_lot = ApplySignalTypeLotCap(zone, final_lot);
+      final_lot = ApplyBalanceLotCap(final_lot);
    }
 
    double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
@@ -590,6 +736,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!PassDirectionEntryHours(zone.direction, TimeCurrent()))
       return false;
 
+   if(!PassMonthlyEntryGuard())
+      return false;
+
    if(!PassEntryMomentumFilter(zone.direction))
       return false;
 
@@ -670,12 +819,18 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    bool deep_entry = (InpEntryDepthPct > 0);
    if(InpEntryDepthPct > 0 && InpDeepEntryBoost > 1.0)
       pos_mult *= InpDeepEntryBoost;
+   pos_mult = ApplySignalTypePositionMultiplier(zone, pos_mult);
    signal.bounce_seconds = 0;
    signal.bounce_ob_pct = 0.0;
    pos_mult = ApplyDirectionPosMult(zone.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
    pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyBadClusterPositionMultiplier(signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+      return false;
    pos_mult = ApplyHTFNetPushPositionMultiplier(zone.direction, pos_mult);
+   pos_mult = ApplyBalancePositionMultiplier(pos_mult);
+   pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, deep_entry))
       return false;
@@ -684,6 +839,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       return false;
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
+   final_lot = ApplySignalTypeLotCap(zone, final_lot);
+   final_lot = ApplyBalanceLotCap(final_lot);
 
    if(!PassMinRisk(final_lot, risk_price, symbol))
       return false;
@@ -700,6 +857,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
          return false;
       final_lot = final_lot * (free_margin / margin_required) * 0.95;
       final_lot = ApplyLotCap(final_lot);
+      final_lot = ApplySignalTypeLotCap(zone, final_lot);
+      final_lot = ApplyBalanceLotCap(final_lot);
       double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
       double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
       final_lot = MathFloor(final_lot / lot_step) * lot_step;

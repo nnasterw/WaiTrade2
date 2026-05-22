@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 from mt5_common import (
     load_config, resolve_symbols, resolve_strategies,
     parse_agent_log_content, calc_stats, format_report, RESULTS_DIR,
-    write_set_file, backtest_main,
+    write_set_file, backtest_main, find_matching_log_segment,
 )
 
 # ── Wine / MT5 路径常量 ──────────────────────────────────────────────
@@ -223,27 +223,90 @@ def wait_for_mt5_shutdown(timeout_sec, start_time):
         time.sleep(2)
 
 
-def parse_agent_log():
-    today_str = datetime.now().strftime('%Y%m%d')
-    log_paths = [
+def get_tester_log_paths(now=None):
+    current_time = now or datetime.now()
+    today_str = current_time.strftime('%Y%m%d')
+    return [
         Path(MT5_MAIN) / 'Tester' / 'Agent-127.0.0.1-3000' / 'logs' / f'{today_str}.log',
         Path(MT5_MAIN) / 'Tester' / 'logs' / f'{today_str}.log',
     ]
+
+
+def snapshot_log_offsets(log_paths=None):
+    offsets = {}
+    for path in log_paths or get_tester_log_paths():
+        if path.exists():
+            offsets[path] = path.stat().st_size
+    return offsets
+
+
+def _read_utf16_log(path, offset=0):
+    try:
+        raw = path.read_bytes()
+    except Exception as e:
+        print(f'  [错误] 读取日志失败: {e}')
+        return None
+
+    if offset and 0 <= offset < len(raw):
+        if offset % 2 != 0:
+            offset -= 1
+        raw = raw[offset:]
+
+    try:
+        return raw.decode('utf-16-le')
+    except UnicodeDecodeError:
+        return raw.decode('utf-16-le', errors='ignore')
+
+
+def _parse_matching_result(content, symbol=None, date_from=None, date_to=None):
+    if not content or not (symbol and date_from and date_to):
+        return None
+
+    segment = find_matching_log_segment(content, symbol, date_from, date_to)
+    if segment is None:
+        return None
+    return parse_agent_log_content('\n'.join(segment['lines']))
+
+
+def parse_agent_log(symbol=None, date_from=None, date_to=None, log_offsets=None):
+    log_paths = get_tester_log_paths()
     existing = [p for p in log_paths if p.exists()]
 
     if not existing:
         print(f'  [警告] Tester 日志不存在: {log_paths[0]} / {log_paths[1]}')
         return None
 
-    log_path = max(existing, key=lambda p: p.stat().st_mtime)
-    try:
-        with open(log_path, 'r', encoding='utf-16-le') as f:
-            content = f.read()
-    except Exception as e:
-        print(f'  [错误] 读取日志失败: {e}')
-        return None
+    ordered_paths = sorted(existing, key=lambda p: p.stat().st_mtime, reverse=True)
 
-    return parse_agent_log_content(content)
+    for use_offsets in (True, False):
+        for log_path in ordered_paths:
+            offset = 0
+            if use_offsets and log_offsets:
+                offset = log_offsets.get(log_path, 0)
+            content = _read_utf16_log(log_path, offset=offset)
+            result = _parse_matching_result(content, symbol=symbol, date_from=date_from, date_to=date_to)
+            if result is not None:
+                return result
+
+    for use_offsets in (True, False):
+        for log_path in ordered_paths:
+            offset = 0
+            if use_offsets and log_offsets:
+                offset = log_offsets.get(log_path, 0)
+            content = _read_utf16_log(log_path, offset=offset)
+            result = parse_agent_log_content(content) if content else None
+            if result is not None:
+                return result
+
+    return None
+
+
+def build_report_path(strategy_name, date_from, date_to, now=None):
+    current_time = now or datetime.now()
+    today_str = current_time.strftime('%Y%m%d')
+    date_from_token = date_from.replace('.', '')
+    date_to_token = date_to.replace('.', '')
+    return RESULTS_DIR / f'{strategy_name}_{date_from_token}_{date_to_token}_{today_str}.txt'
 
 
 def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeout):
@@ -269,10 +332,16 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
         print(f'\n[{i}/{len(symbols)}] 回测 {symbol}')
         generate_ini(strategy_name, symbol, date_from, date_to, config)
         patch_terminal_ini_dates(date_from, date_to)
+        log_offsets = snapshot_log_offsets()
         success = run_mt5(timeout_sec=timeout)
 
         if success:
-            result = parse_agent_log()
+            result = parse_agent_log(
+                symbol=symbol,
+                date_from=date_from,
+                date_to=date_to,
+                log_offsets=log_offsets,
+            )
             stats = calc_stats(result, deposit, days)
             symbol_results[symbol] = stats
             if stats:
@@ -286,8 +355,7 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
     print(report)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    today_str = datetime.now().strftime('%Y%m%d')
-    report_path = RESULTS_DIR / f'{strategy_name}_{today_str}.txt'
+    report_path = build_report_path(strategy_name, date_from, date_to)
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write(report)
     print(f'\n报告已保存: {report_path}')
