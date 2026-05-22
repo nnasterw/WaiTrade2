@@ -21202,3 +21202,58 @@ v11_r54_j2_g50_m05:
   monthly_guard_min_balance: 50000.0
   monthly_loss_stop_pct: 5.0
   magic_number: 203404
+
+# ═══ V11 Round55: 月亏阀最小开仓数恢复测试 ═══
+
+v11_r55_j2_g50_m05_t12: &v11_r55_j2_g50_m05_t12
+  <<: *v11_r54_j2_g30_m07
+  version: V11-R55-G50M05T12
+  description: "720天月亏阀恢复测试: 余额>=50000且月亏5%，至少允许月内12笔后才停止新开仓"
+  monthly_guard_min_balance: 50000.0
+  monthly_loss_stop_pct: 5.0
+  monthly_loss_stop_min_trades: 12
+  magic_number: 203411
+
+v11_r55_j2_g50_m05_t18:
+  <<: *v11_r55_j2_g50_m05_t12
+  version: V11-R55-G50M05T18
+  description: "720天月亏阀恢复测试: 余额>=50000且月亏5%，至少允许月内18笔后才停止新开仓"
+  monthly_loss_stop_min_trades: 18
+  magic_number: 203412
+
+v11_r55_j2_g50_m05_t24:
+  <<: *v11_r55_j2_g50_m05_t12
+  version: V11-R55-G50M05T24
+  description: "720天月亏阀恢复测试: 余额>=50000且月亏5%，至少允许月内24笔后才停止新开仓"
+  monthly_loss_stop_min_trades: 24
+  magic_number: 203413
+
+# ═══ V11 Round56: 失败退出后小仓反手补频 ═══
+
+v11_r56_j2_g30_no_mfe_rev025: &v11_r56_j2_g30_no_mfe_rev025
+  <<: *v11_r48_j2_g30_m10
+  version: V11-R56-NMREV025
+  description: "720天失败反手补频: no_mfe退出后0.25倍小仓反手，固定1R止盈，验证假突破反向收益"
+  enable_failure_reverse: true
+  reverse_on_no_mfe: true
+  failure_reverse_lot_mult: 0.25
+  failure_reverse_risk_mult: 1.0
+  failure_reverse_tp_r: 1.0
+  failure_reverse_allow_chain: false
+  magic_number: 203421
+
+v11_r56_j2_g30_no_mfe_rev050:
+  <<: *v11_r56_j2_g30_no_mfe_rev025
+  version: V11-R56-NMREV050
+  description: "720天失败反手补频: no_mfe退出后0.50倍小仓反手，固定1R止盈"
+  failure_reverse_lot_mult: 0.50
+  magic_number: 203422
+
+v11_r56_j2_g30_mfe_rev025:
+  <<: *v11_r56_j2_g30_no_mfe_rev025
+  version: V11-R56-MFEREV025
+  description: "720天失败反手补频: mfe_fail退出后0.25倍小仓反手，固定1R止盈"
+  reverse_on_no_mfe: false
+  reverse_on_mfe_fail: true
+  failure_reverse_lot_mult: 0.25
+  magic_number: 203423
