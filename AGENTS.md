@@ -31,6 +31,7 @@ python scripts/yaml_to_set.py --all                    # 所有策略写入 mql5
 # === MT5 Strategy Tester 回测 ===
 # macOS Wine
 python scripts/mt5_cli_backtest.py --strategy v96b --symbol XAUUSDm --days 30
+python scripts/mt5_cli_backtest.py --background --brief --strategy v96b --symbol XAUUSDm --days 30  # 低token输出
 python scripts/mt5_cli_backtest.py --strategy v96b --symbols all --days 60
 python scripts/mt5_cli_backtest.py --strategies v95c,v96b --symbol XAUUSDm --days 30
 # Windows 原生
@@ -195,7 +196,7 @@ data/cache, data/preprocessed, *.npz, *.parquet → .gitignore
 - **Agent日志编码**: UTF-16LE，读取时需 `encoding='utf-16-le'`
 - **MT5实例隔离**: Main（编译+回测）和 Tester（/portable实盘）是独立进程
 - **策略文档对齐**: 修改 YAML 策略参数前先核对 `strategy_versions/` 对应文档
-- **回测日志分析工作流**: 常规策略评估只看 `digest.md`(1-3k token); 验特定因子/单子时局部查 `trades.csv`; 禁止让模型直接读原始 Agent 日志(最烧 token 路径)。先用 `python3 scripts/backtest_digest.py` 提炼
+- **回测日志分析工作流**: 常规策略评估只看 `--brief`/`digest.md`; 验特定因子/单子时先用 `scripts/trade_cluster_summary.py` 聚合 `trades.csv`; 禁止让模型直接读原始 Agent 日志(最烧 token 路径)。先用 `python3 scripts/backtest_digest.py --brief` 或 `scripts/backtest_ledger.py` 提炼
 
 ## 策略配置 (可插拔)
 

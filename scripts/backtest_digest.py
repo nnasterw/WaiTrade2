@@ -573,6 +573,30 @@ def render_digest_markdown(report_data: dict, symbol_digests: list[dict], report
     return '\n'.join(lines).strip() + '\n'
 
 
+def render_brief_markdown(report_data: dict, symbol_digests: list[dict], report_path: Path, log_path: Path | None) -> str:
+    lines = [
+        f"# 回测 Brief — {report_data['strategy_name']}",
+        '',
+        f"- 摘要来源: `{report_path}`",
+        f"- 日志来源: `{log_path}`" if log_path else '- 日志来源: 未匹配逐单日志',
+        '',
+        '| 品种 | 交易 | 日均 | 胜率 | PF | 余额 |',
+        '|---|---:|---:|---:|---:|---:|',
+    ]
+    for row in report_data['symbols']:
+        pf = 'N/A' if row['profit_factor'] is None else ('inf' if row['profit_factor'] == float('inf') else f"{row['profit_factor']:.2f}")
+        lines.append(
+            f"| {row['symbol']} | {row['trades']} | {row['daily_trades']:.1f} | {row['win_rate']:.1f}% | {pf} | ${row['final_balance']:.2f} |"
+        )
+
+    matched = [d['summary']['symbol'] for d in symbol_digests if d.get('details')]
+    if matched:
+        lines.append(f"- 逐单归因: {', '.join(matched)}")
+    else:
+        lines.append('- 逐单归因: 未匹配')
+    return '\n'.join(lines).strip() + '\n'
+
+
 def write_trade_csv(path: Path, symbol_digests: list[dict]):
     rows = []
     for digest in symbol_digests:
@@ -651,6 +675,7 @@ def generate_backtest_digest(
     output_path: Path | None = None,
     export_csv: bool = False,
     csv_output_path: Path | None = None,
+    brief: bool = False,
 ) -> dict:
     report_path = Path(report_path)
     report_content = read_text_auto(report_path)
@@ -659,7 +684,7 @@ def generate_backtest_digest(
     log_content = None
     if resolved_log_path:
         log_content = read_text_auto(resolved_log_path)
-    else:
+    elif not brief or export_csv:
         for candidate in candidate_log_paths(report_path):
             try:
                 content = read_text_auto(candidate)
@@ -678,7 +703,10 @@ def generate_backtest_digest(
 
     report_data, symbol_digests = build_digest_data(report_content, log_content)
     output_path = Path(output_path) if output_path else report_path.with_suffix('.md')
-    markdown = render_digest_markdown(report_data, symbol_digests, report_path, resolved_log_path)
+    if brief:
+        markdown = render_brief_markdown(report_data, symbol_digests, report_path, resolved_log_path)
+    else:
+        markdown = render_digest_markdown(report_data, symbol_digests, report_path, resolved_log_path)
     output_path.write_text(markdown, encoding='utf-8')
 
     result = {
@@ -704,6 +732,7 @@ def main():
     parser.add_argument('--output', help='Markdown 输出路径，默认与 report 同名 .md')
     parser.add_argument('--export-csv', action='store_true', help='额外导出逐单归因 CSV')
     parser.add_argument('--csv-output', help='CSV 输出路径，默认与 md 同名 .trades.csv')
+    parser.add_argument('--brief', action='store_true', help='生成低 token 短摘要，仅保留核心指标')
     args = parser.parse_args()
 
     result = generate_backtest_digest(
@@ -712,6 +741,7 @@ def main():
         output_path=Path(args.output) if args.output else None,
         export_csv=args.export_csv,
         csv_output_path=Path(args.csv_output) if args.csv_output else None,
+        brief=args.brief,
     )
 
     print(f'Markdown 已生成: {result["output_path"]}')

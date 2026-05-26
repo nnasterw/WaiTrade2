@@ -26,6 +26,28 @@ INI_DIR = os.path.join(WINEPREFIX, 'drive_c/bt')
 REPORT_DIR = os.path.join(WINEPREFIX, 'drive_c/bt/reports')
 
 _background = False
+_brief = False
+
+
+def _fmt_pf(value):
+    if value == float('inf'):
+        return 'inf'
+    return f'{value:.2f}'
+
+
+def format_brief_report_lines(strategy_name, symbol_results, report_path):
+    lines = []
+    for symbol, stats in symbol_results.items():
+        if not stats:
+            lines.append(f'BRIEF strategy={strategy_name} symbol={symbol} status=parse_failed report={report_path}')
+            continue
+        lines.append(
+            f'BRIEF strategy={strategy_name} symbol={symbol} '
+            f'trades={stats["trades"]} daily={stats["daily_trades"]:.1f} '
+            f'wr={stats["win_rate"]:.1f}% pf={_fmt_pf(stats["profit_factor"])} '
+            f'balance=${stats["final_balance"]:.2f} report={report_path}'
+        )
+    return lines
 
 
 def generate_set_file(strategy_name, config):
@@ -352,13 +374,16 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
             symbol_results[symbol] = None
 
     report = format_report(strategy_name, date_from, date_to, days, deposit, leverage, symbol_results)
-    print(report)
-
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     report_path = build_report_path(strategy_name, date_from, date_to)
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write(report)
-    print(f'\n报告已保存: {report_path}')
+    if _brief:
+        for line in format_brief_report_lines(strategy_name, symbol_results, report_path):
+            print(line)
+    else:
+        print(report)
+        print(f'\n报告已保存: {report_path}')
 
     return symbol_results
 
@@ -373,13 +398,19 @@ def _run(strategy_names, symbols, date_from, date_to, days, config, timeout):
 
 
 def main():
-    global _background
+    global _background, _brief
     if '--background' in sys.argv:
         sys.argv.remove('--background')
         _background = True
     elif '--bg' in sys.argv:
         sys.argv.remove('--bg')
         _background = True
+    if '--brief' in sys.argv:
+        sys.argv.remove('--brief')
+        _brief = True
+    elif '--summary-only' in sys.argv:
+        sys.argv.remove('--summary-only')
+        _brief = True
     backtest_main('MT5 Strategy Tester 回测管理器（Wine/macOS）', _run)
 
 
