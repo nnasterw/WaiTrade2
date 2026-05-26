@@ -25403,6 +25403,18 @@ v11b: &v11b
   description: "Official v11b: R248 single BTC strategy with context_filter4 October high-balance protection"
   magic_number: 204408
 
+v11btc:
+  <<: *v11b
+  version: V11BTC
+  description: "Official BTC rename: v11b recorded as v11btc"
+  magic_number: 204408
+
+v11btc-mix:
+  <<: *v11j2
+  version: V11BTC-MIX
+  description: "Official BTC mix rename: legacy v11a naming recorded as v11btc-mix"
+  magic_number: 203165
+
 # v11b cross-symbol probes: keep the v11b EA/signal family, but remove BTC-only
 # balance/hour/multiplier guards before applying symbol-specific scale.
 v11b_xau_r1_m3_scaled: &v11b_xau_r1_m3_scaled
@@ -26028,9 +26040,15 @@ v11b_xau_r33_m1_tp20_sepguard: &v11b_xau_r33_m1_tp20_sepguard
   monthly_profit_target_stop2_months: "1,2,3,4,7,9,10,11,12"
   magic_number: 204537
 
-v11b_xau_r34_m1_tp30_sepguard:
+v11b_xau_r34_m1_tp30_sepguard: &v11b_xau_r34_m1_tp30_sepguard
   <<: *v11b_xau_r33_m1_tp20_sepguard
   version: V11B-XAU-R34
   description: "XAU probe: R33 with fixed TP raised to 3.0R as PF>2 boundary test"
   fixed_tp_r: 3.00
+  magic_number: 204538
+
+v11xau:
+  <<: *v11b_xau_r34_m1_tp30_sepguard
+  version: V11XAU
+  description: "Official XAU rename: v11b_xau_r34_m1_tp30_sepguard recorded as v11xau"
   magic_number: 204538
