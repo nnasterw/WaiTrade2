@@ -23,7 +23,7 @@ DEFAULT_WINE_TESTER = Path.home() / (
 )
 DEFAULT_WINDOWS_TESTER = Path.home() / 'AppData/Roaming/MetaQuotes/Terminal'
 CSV_COLUMNS = [
-    'ticket', 'time', 'date', 'hour', 'symbol', 'dir', 'lot', 'pos_mult',
+    'ticket', 'time', 'date', 'hour', 'symbol', 'dir', 'comment', 'signal_type', 'lot', 'pos_mult',
     'entry', 'initial_sl', 'tp', 'exit', 'reason', 'exit_signal', 'risk', 'r',
     'duration_min', 'mods', 'max_lock_r', 'bounce_sec', 'bounce_ob', 'confirm_pos',
     'touch', 'confirm', 'close_time', 'stage', 'ob_age', 'strength', 'score', 'ds',
@@ -33,13 +33,36 @@ CSV_COLUMNS = [
 ]
 
 
-def read_text_auto(path: Path) -> str:
+def _looks_misdecoded(text: str) -> bool:
+    return bool(text) and text.count('\x00') / max(len(text), 1) > 0.05
+
+
+def _decode_auto(data: bytes) -> str:
     for encoding in ('utf-8', 'utf-8-sig', 'utf-16-le', 'utf-16'):
         try:
-            return path.read_text(encoding=encoding)
+            text = data.decode(encoding)
         except UnicodeError:
             continue
-    return path.read_text(encoding='utf-8', errors='replace')
+        if not _looks_misdecoded(text):
+            return text
+    return data.decode('utf-8', errors='replace')
+
+
+def read_text_auto(path: Path) -> str:
+    return _decode_auto(path.read_bytes())
+
+
+def read_text_auto_tail(path: Path, tail_mb: int = 32) -> str:
+    try:
+        return read_text_auto(path)
+    except MemoryError:
+        tail_bytes = max(tail_mb, 1) * 1024 * 1024
+        with path.open('rb') as f:
+            f.seek(0, 2)
+            size = f.tell()
+            f.seek(max(0, size - tail_bytes))
+            data = f.read()
+        return _decode_auto(data)
 
 
 def _fmt_num(value, digits=2, na='N/A'):

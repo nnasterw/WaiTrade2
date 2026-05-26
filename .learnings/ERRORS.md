@@ -168,3 +168,33 @@ backtest_digest.py: error: the following arguments are required: --report
 - Related Files: scripts/backtest_digest.py
 
 ---
+
+## [ERR-20260526-001] yaml_anchor_missing_v11b_xau_r26
+
+**Logged**: 2026-05-26T08:02:28Z
+**Priority**: medium
+**Status**: fixed
+**Area**: strategy-config
+
+### Summary
+R28 继承 `*v11b_xau_r26_m1_reentry_target_ext2`，但 R26 未声明同名 anchor，导致 YAML 解析和 preset 生成失败。
+
+### Error
+```
+yaml.composer.ComposerError: found undefined alias 'v11b_xau_r26_m1_reentry_target_ext2'
+```
+
+### Context
+- 操作: 校验 `v11b_xau_r27_m1_pf2_hourcut` / `v11b_xau_r28_m1_pf2_hourcut_strict`。
+- 修复: 将父节点改为 `v11b_xau_r26_m1_reentry_target_ext2: &v11b_xau_r26_m1_reentry_target_ext2`。
+
+### Suggested Fix
+新增可能被继承的策略版本时，先写成 `strategy_name: &strategy_name`，再追加子策略；批量回测前必须做 YAML smoke test。
+
+### Metadata
+- Reproducible: yes
+- Related Files: config/strategies.yaml
+- See Also: ERR-20260521-001
+- Recurrence-Count: 3
+
+---

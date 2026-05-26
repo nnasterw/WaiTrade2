@@ -25402,3 +25402,635 @@ v11b: &v11b
   version: V11B
   description: "Official v11b: R248 single BTC strategy with context_filter4 October high-balance protection"
   magic_number: 204408
+
+# v11b cross-symbol probes: keep the v11b EA/signal family, but remove BTC-only
+# balance/hour/multiplier guards before applying symbol-specific scale.
+v11b_xau_r1_m3_scaled: &v11b_xau_r1_m3_scaled
+  <<: *v11b
+  version: V11B-XAU-R1
+  description: "XAU probe: v11b signal family rebased to gold M3 scale with fixed 1R TP and BTC high-risk guards neutralized"
+  bar_period_min: 3
+  risk_percent: 2.0
+  max_concurrent: 5
+  max_lot_size: 0.08
+  max_pos_mult: 8.0
+  sl_buffer_atr: 0.30
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.4
+  dtp_trigger_r: 0.0
+  dtp_retrace: 0.20
+  fixed_tp_r: 1.0
+  time_exit_bars: 20
+  timeout_min: 120
+  enable_liquidity_sweep: false
+  enable_loose_sweep: false
+  sweep_pos_mult: 1.0
+  sweep_max_lot_size: 0.0
+  high_risk_hours: ""
+  high_risk_hour_mult: 1.0
+  low_risk_hours: ""
+  low_risk_hour_mult: 1.0
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  bad_risk_min: 0.0
+  bad_risk_max: 0.0
+  bad_risk_mult: 1.0
+  large_risk_min: 0.0
+  large_risk_mult: 1.0
+  shallow_confirm_pos_min: -999.0
+  shallow_confirm_pos_mult: 1.0
+  monthly_guard_min_balance: 0.0
+  monthly_loss_stop_pct: 0.0
+  monthly_negative_pos_mult: 1.0
+  monthly_profit_target_stop_min_balance: 0.0
+  monthly_profit_target_stop_months: ""
+  monthly_profit_target_stop_pct: 0.0
+  low_balance_threshold: 0.0
+  low_balance_pos_mult: 1.0
+  low_balance_max_lot_size: 0.0
+  low_balance_ob_bad_months: ""
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  low_balance_ob_bad_max_month_start_balance: 0.0
+  high_balance_no_entry_months: ""
+  high_balance_no_entry_min_month_start_balance: 0.0
+  context_filter1_months: ""
+  context_filter1_no_hours: ""
+  context_filter1_no_buy_hours: ""
+  context_filter1_no_sell_hours: ""
+  context_filter1_min_month_start_balance: 0.0
+  context_filter1_max_month_start_balance: 0.0
+  context_filter1_mult: 1.0
+  context_filter2_months: ""
+  context_filter2_no_hours: ""
+  context_filter2_no_buy_hours: ""
+  context_filter2_no_sell_hours: ""
+  context_filter2_min_month_start_balance: 0.0
+  context_filter2_max_month_start_balance: 0.0
+  context_filter2_mult: 1.0
+  context_filter3_months: ""
+  context_filter3_no_hours: ""
+  context_filter3_no_buy_hours: ""
+  context_filter3_no_sell_hours: ""
+  context_filter3_min_month_start_balance: 0.0
+  context_filter3_max_month_start_balance: 0.0
+  context_filter3_mult: 1.0
+  context_filter4_months: ""
+  context_filter4_no_hours: ""
+  context_filter4_no_buy_hours: ""
+  context_filter4_no_sell_hours: ""
+  context_filter4_min_month_start_balance: 0.0
+  context_filter4_max_month_start_balance: 0.0
+  context_filter4_mult: 1.0
+  context_filter5_months: ""
+  context_filter5_no_hours: ""
+  context_filter5_no_buy_hours: ""
+  context_filter5_no_sell_hours: ""
+  context_filter5_min_month_start_balance: 0.0
+  context_filter5_max_month_start_balance: 0.0
+  context_filter5_mult: 1.0
+  bad_cluster1_hours: ""
+  bad_cluster1_mult: 1.0
+  bad_cluster2_hours: ""
+  bad_cluster2_mult: 1.0
+  bad_cluster3_hours: ""
+  bad_cluster3_mult: 1.0
+  bad_cluster4_hours: ""
+  bad_cluster4_mult: 1.0
+  bad_cluster5_hours: ""
+  bad_cluster5_mult: 1.0
+  bad_cluster6_hours: ""
+  bad_cluster6_mult: 1.0
+  startup_bad_cluster_max_month_start_balance: 0.0
+  startup_bad_cluster1_hours: ""
+  startup_bad_cluster1_mult: 1.0
+  startup_bad_cluster2_hours: ""
+  startup_bad_cluster2_mult: 1.0
+  startup_bad_cluster3_hours: ""
+  startup_bad_cluster3_mult: 1.0
+  startup_bad_cluster4_hours: ""
+  startup_bad_cluster4_mult: 1.0
+  magic_number: 204501
+
+v11b_xau_r2_m3_tailcut:
+  <<: *v11b_xau_r1_m3_scaled
+  version: V11B-XAU-R2
+  description: "XAU probe: R1 plus confirm-position bad-cluster cuts from v11b XAU 720d digest"
+  bad_cluster1_hours: "12,13,20,23"
+  bad_cluster1_risk_min: 0.0
+  bad_cluster1_risk_max: 100.0
+  bad_cluster1_confirm_min: -1.5
+  bad_cluster1_confirm_max: -1.0
+  bad_cluster1_mult: 0.0
+  bad_cluster1_signal: "all"
+  bad_cluster2_hours: "12,20,23"
+  bad_cluster2_risk_min: 0.0
+  bad_cluster2_risk_max: 100.0
+  bad_cluster2_confirm_min: -1.0
+  bad_cluster2_confirm_max: -0.6
+  bad_cluster2_mult: 0.0
+  bad_cluster2_signal: "all"
+  bad_cluster3_hours: "7,11"
+  bad_cluster3_risk_min: 0.0
+  bad_cluster3_risk_max: 0.0
+  bad_cluster3_confirm_min: -999.0
+  bad_cluster3_confirm_max: 999.0
+  bad_cluster3_mult: 0.0
+  bad_cluster3_signal: "all"
+  magic_number: 204502
+
+v11b_eth_r1_m15_scaled: &v11b_eth_r1_m15_scaled
+  <<: *v11b
+  version: V11B-ETH-R1
+  description: "ETH probe: v11b signal family rebased to crypto M15 scale with BTC path-dependent guards neutralized"
+  bar_period_min: 15
+  risk_percent: 2.0
+  max_concurrent: 2
+  sl_buffer_atr: 1.50
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  fixed_tp_r: 0.0
+  time_exit_bars: 999
+  timeout_min: 720
+  bounce_pct: 0.35
+  max_entry_offset_r: 0.8
+  min_risk_spread_ratio: 3.0
+  enable_liquidity_sweep: false
+  enable_loose_sweep: false
+  high_risk_hours: ""
+  high_risk_hour_mult: 1.0
+  low_risk_hours: ""
+  low_risk_hour_mult: 1.0
+  no_entry_hours: ""
+  no_buy_hours: ""
+  no_sell_hours: ""
+  bad_risk_min: 0.0
+  bad_risk_max: 0.0
+  bad_risk_mult: 1.0
+  large_risk_min: 0.0
+  large_risk_mult: 1.0
+  shallow_confirm_pos_min: -999.0
+  shallow_confirm_pos_mult: 1.0
+  monthly_guard_min_balance: 0.0
+  monthly_loss_stop_pct: 0.0
+  monthly_negative_pos_mult: 1.0
+  monthly_profit_target_stop_min_balance: 0.0
+  monthly_profit_target_stop_months: ""
+  monthly_profit_target_stop_pct: 0.0
+  low_balance_threshold: 0.0
+  low_balance_pos_mult: 1.0
+  low_balance_max_lot_size: 0.0
+  low_balance_ob_bad_months: ""
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  low_balance_ob_bad_max_month_start_balance: 0.0
+  high_balance_no_entry_months: ""
+  high_balance_no_entry_min_month_start_balance: 0.0
+  context_filter1_months: ""
+  context_filter1_no_hours: ""
+  context_filter1_no_buy_hours: ""
+  context_filter1_no_sell_hours: ""
+  context_filter1_min_month_start_balance: 0.0
+  context_filter1_max_month_start_balance: 0.0
+  context_filter1_mult: 1.0
+  context_filter2_months: ""
+  context_filter2_no_hours: ""
+  context_filter2_no_buy_hours: ""
+  context_filter2_no_sell_hours: ""
+  context_filter2_min_month_start_balance: 0.0
+  context_filter2_max_month_start_balance: 0.0
+  context_filter2_mult: 1.0
+  context_filter3_months: ""
+  context_filter3_no_hours: ""
+  context_filter3_no_buy_hours: ""
+  context_filter3_no_sell_hours: ""
+  context_filter3_min_month_start_balance: 0.0
+  context_filter3_max_month_start_balance: 0.0
+  context_filter3_mult: 1.0
+  context_filter4_months: ""
+  context_filter4_no_hours: ""
+  context_filter4_no_buy_hours: ""
+  context_filter4_no_sell_hours: ""
+  context_filter4_min_month_start_balance: 0.0
+  context_filter4_max_month_start_balance: 0.0
+  context_filter4_mult: 1.0
+  context_filter5_months: ""
+  context_filter5_no_hours: ""
+  context_filter5_no_buy_hours: ""
+  context_filter5_no_sell_hours: ""
+  context_filter5_min_month_start_balance: 0.0
+  context_filter5_max_month_start_balance: 0.0
+  context_filter5_mult: 1.0
+  bad_cluster1_hours: ""
+  bad_cluster1_mult: 1.0
+  bad_cluster2_hours: ""
+  bad_cluster2_mult: 1.0
+  bad_cluster3_hours: ""
+  bad_cluster3_mult: 1.0
+  bad_cluster4_hours: ""
+  bad_cluster4_mult: 1.0
+  bad_cluster5_hours: ""
+  bad_cluster5_mult: 1.0
+  bad_cluster6_hours: ""
+  bad_cluster6_mult: 1.0
+  startup_bad_cluster_max_month_start_balance: 0.0
+  startup_bad_cluster1_hours: ""
+  startup_bad_cluster1_mult: 1.0
+  startup_bad_cluster2_hours: ""
+  startup_bad_cluster2_mult: 1.0
+  startup_bad_cluster3_hours: ""
+  startup_bad_cluster3_mult: 1.0
+  startup_bad_cluster4_hours: ""
+  startup_bad_cluster4_mult: 1.0
+  magic_number: 204511
+
+v11b_eth_r2_m5_loose:
+  <<: *v11b_eth_r1_m15_scaled
+  version: V11B-ETH-R2
+  description: "ETH probe: M5 frequency repair with looser bounce/offset and sell-bias from ETH 720d digest"
+  bar_period_min: 5
+  max_concurrent: 4
+  bounce_pct: 0.20
+  max_entry_offset_r: 1.0
+  min_risk_spread_ratio: 2.5
+  no_buy_hours: "0,1,2,3,4,5,6,7,9,10,11,12,14,15,16,18,19,21,22"
+  no_sell_hours: ""
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  time_exit_bars: 120
+  magic_number: 204512
+
+v11b_xau_r3_m1_freq: &v11b_xau_r3_m1_freq
+  <<: *v11b_xau_r1_m3_scaled
+  version: V11B-XAU-R3
+  description: "XAU probe: R1 moved to M1 to test whether frequency can rise without destroying spread-adjusted expectancy"
+  bar_period_min: 1
+  max_concurrent: 8
+  max_entries_per_ob: 6
+  cooldown_bars: 0
+  bounce_pct: 0.25
+  min_risk_spread_ratio: 3.0
+  magic_number: 204503
+
+v11b_xau_r4_m3_dtp:
+  <<: *v11b_xau_r1_m3_scaled
+  version: V11B-XAU-R4
+  description: "XAU probe: R1 keeps M3 frequency but replaces fixed 1R TP with BE plus DTP to test higher reward/risk"
+  fixed_tp_r: 0.0
+  breakeven_r: 0.7
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 2.5
+  dtp_retrace: 0.25
+  time_exit_bars: 80
+  magic_number: 204504
+
+v11b_eth_r3_m30_jscale:
+  <<: *v11b_eth_r1_m15_scaled
+  version: V11B-ETH-R3
+  description: "ETH probe: crypto M30 scale equivalent to v99j1, testing whether ETH needs wider structural timeframe"
+  bar_period_min: 30
+  max_concurrent: 1
+  bounce_pct: 0.40
+  max_entry_offset_r: 0.5
+  min_risk_spread_ratio: 3.0
+  breakeven_r: 2.0
+  breakeven_lock_r: 1.0
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.20
+  time_exit_bars: 999
+  timeout_min: 720
+  magic_number: 204513
+
+v11b_eth_r4_m5_sweep_only:
+  <<: *v11b_eth_r1_m15_scaled
+  version: V11B-ETH-R4
+  description: "ETH probe: isolated M5 liquidity sweep stream with loose sweep geometry to test non-OB frequency source"
+  bar_period_min: 5
+  liquidity_sweep_only: true
+  enable_liquidity_sweep: true
+  enable_loose_sweep: false
+  sweep_lookback_bars: 8
+  sweep_max_range_atr: 4.0
+  sweep_min_range_spread_mult: 2.0
+  sweep_min_penetration_atr: 0.01
+  sweep_min_wick_pct: 30.0
+  sweep_tp_mult: 0.0
+  sweep_pos_mult: 1.0
+  sweep_max_lot_size: 0.0
+  max_concurrent: 4
+  bounce_pct: 0.25
+  max_entry_offset_r: 1.0
+  min_risk_spread_ratio: 2.5
+  breakeven_r: 1.0
+  breakeven_lock_r: 0.2
+  dtp_trigger_r: 3.0
+  dtp_retrace: 0.25
+  time_exit_bars: 120
+  magic_number: 204514
+
+v11b_xau_r5_m1_loosefreq: &v11b_xau_r5_m1_loosefreq
+  <<: *v11b_xau_r3_m1_freq
+  version: V11B-XAU-R5
+  description: "XAU probe: R3 with looser bounce, lower re-entry cooldown, and wider offset to push daily trades above 5"
+  bounce_pct: 0.18
+  max_entry_offset_r: 1.2
+  min_risk_spread_ratio: 2.5
+  max_entries_per_ob: 10
+  ob_reentry_cooldown_min: 10
+  max_concurrent: 10
+  magic_number: 204505
+
+v11b_xau_r6_m1_hourshape:
+  <<: *v11b_xau_r3_m1_freq
+  version: V11B-XAU-R6
+  description: "XAU probe: R3 with hour risk shaping from digest, downweighting SL-heavy hours and boosting clean TP hours"
+  low_risk_hours: "7,10,12,14,15"
+  low_risk_hour_mult: 0.35
+  high_risk_hours: "1,2,13,20"
+  high_risk_hour_mult: 1.6
+  magic_number: 204506
+
+v11b_xau_r7_m1_monthguard:
+  <<: *v11b_xau_r5_m1_loosefreq
+  version: V11B-XAU-R7
+  description: "XAU probe: R5 plus deployable monthly loss guard to stop high-frequency regime bleed"
+  monthly_guard_min_balance: 500.0
+  monthly_loss_stop_pct: 6.0
+  monthly_negative_pos_mult: 0.50
+  magic_number: 204507
+
+v11b_xau_r8_m1_badhr:
+  <<: *v11b_xau_r5_m1_loosefreq
+  version: V11B-XAU-R8
+  description: "XAU probe: R5 with SL-heavy hours downweighted, preserving frequency while reducing thin-edge churn"
+  low_risk_hours: "4,5,7,10,11,12"
+  low_risk_hour_mult: 0.35
+  high_risk_hours: ""
+  high_risk_hour_mult: 1.0
+  magic_number: 204508
+
+v11b_xau_r9_m1_guard4:
+  <<: *v11b_xau_r5_m1_loosefreq
+  version: V11B-XAU-R9
+  description: "XAU probe: R5 with tighter 4pct monthly guard and 0.35x monthly-negative sizing"
+  monthly_guard_min_balance: 500.0
+  monthly_loss_stop_pct: 4.0
+  monthly_negative_pos_mult: 0.35
+  magic_number: 204509
+
+v11b_xau_r10_m1_guard3: &v11b_xau_r10_m1_guard3
+  <<: *v11b_xau_r5_m1_loosefreq
+  version: V11B-XAU-R10
+  description: "XAU probe: R5 with strict 3pct monthly guard and 0.25x monthly-negative sizing"
+  monthly_guard_min_balance: 500.0
+  monthly_loss_stop_pct: 3.0
+  monthly_negative_pos_mult: 0.25
+  magic_number: 204510
+
+v11b_xau_r11_m1_guard3_cap20:
+  <<: *v11b_xau_r10_m1_guard3
+  version: V11B-XAU-R11
+  description: "XAU probe: R10 with max lot raised from 0.08 to 0.20 to test capped-compounding limit"
+  max_lot_size: 0.20
+  max_pos_mult: 20.0
+  magic_number: 204515
+
+v11b_xau_r12_m1_guard3_cap50:
+  <<: *v11b_xau_r10_m1_guard3
+  version: V11B-XAU-R12
+  description: "XAU probe: R10 with max lot raised from 0.08 to 0.50 for aggressive capped-compounding test"
+  max_lot_size: 0.50
+  max_pos_mult: 50.0
+  magic_number: 204516
+
+v11b_xau_r13_m1_guard3_cap100:
+  <<: *v11b_xau_r10_m1_guard3
+  version: V11B-XAU-R13
+  description: "XAU probe: R10 with max lot raised to 1.00 for high-growth capped-compounding test"
+  max_lot_size: 1.00
+  max_pos_mult: 100.0
+  magic_number: 204517
+
+v11b_xau_r14_m1_guard3_cap200: &v11b_xau_r14_m1_guard3_cap200
+  <<: *v11b_xau_r10_m1_guard3
+  version: V11B-XAU-R14
+  description: "XAU probe: R10 with max lot raised to 2.00 for upper-bound growth stress test"
+  max_lot_size: 2.00
+  max_pos_mult: 200.0
+  magic_number: 204518
+
+v11b_xau_r15_m1_guard2_early:
+  <<: *v11b_xau_r14_m1_guard3_cap200
+  version: V11B-XAU-R15
+  description: "XAU probe: R14 with all-balance 2pct monthly guard plus continuous early weak-month stop after 10 trades"
+  monthly_guard_min_balance: 0.0
+  monthly_loss_stop_pct: 2.0
+  monthly_negative_pos_mult: 0.20
+  monthly_early_loss_stop_trades: 10
+  monthly_early_loss_stop_pct: 0.8
+  monthly_early_loss_stop_min_balance: 0.0
+  monthly_early_loss_stop_continuous: true
+  magic_number: 204519
+
+v11b_xau_r16_m1_warmup:
+  <<: *v11b_xau_r14_m1_guard3_cap200
+  version: V11B-XAU-R16
+  description: "XAU probe: R14 with low-size monthly warmup until 0.5pct profit, plus tighter 2pct weak-month guard"
+  monthly_guard_min_balance: 0.0
+  monthly_loss_stop_pct: 2.0
+  monthly_negative_pos_mult: 0.20
+  monthly_warmup_profit_pct: 0.5
+  monthly_warmup_pos_mult: 0.35
+  monthly_early_loss_stop_trades: 10
+  monthly_early_loss_stop_pct: 0.8
+  monthly_early_loss_stop_min_balance: 0.0
+  monthly_early_loss_stop_continuous: true
+  magic_number: 204520
+
+v11b_xau_r17_m1_profitlock:
+  <<: *v11b_xau_r14_m1_guard3_cap200
+  version: V11B-XAU-R17
+  description: "XAU probe: R14 plus monthly profit lock after 0.5pct profit, keeping 30pct of monthly peak profit"
+  monthly_profit_lock_min_balance: 0.0
+  monthly_profit_lock_start_pct: 0.5
+  monthly_profit_lock_keep_pct: 30.0
+  magic_number: 204521
+
+v11b_xau_r18_m1_profitlock_tight:
+  <<: *v11b_xau_r14_m1_guard3_cap200
+  version: V11B-XAU-R18
+  description: "XAU probe: R14 plus earlier monthly profit lock after 0.2pct profit, keeping 50pct of monthly peak profit"
+  monthly_profit_lock_min_balance: 0.0
+  monthly_profit_lock_start_pct: 0.2
+  monthly_profit_lock_keep_pct: 50.0
+  magic_number: 204522
+
+v11b_xau_r19_m1_ctx_target:
+  <<: *v11b_xau_r14_m1_guard3_cap200
+  version: V11B-XAU-R19
+  description: "XAU probe: R14 plus context monthly profit target stops for historically weak low-balance and high-balance months"
+  monthly_profit_target_stop_pct: 0.20
+  monthly_profit_target_stop_min_balance: 50000.0
+  monthly_profit_target_stop_months: "1,3,4,5"
+  monthly_profit_target_stop2_pct: 0.20
+  monthly_profit_target_stop2_max_balance: 1000.0
+  monthly_profit_target_stop2_months: "1,2,3,7,11"
+  magic_number: 204523
+
+v11b_xau_r20_m1_ctx_target_tight: &v11b_xau_r20_m1_ctx_target_tight
+  <<: *v11b_xau_r14_m1_guard3_cap200
+  version: V11B-XAU-R20
+  description: "XAU probe: R14 plus tighter 0.1pct context monthly profit target stops for weak regimes"
+  monthly_profit_target_stop_pct: 0.10
+  monthly_profit_target_stop_min_balance: 50000.0
+  monthly_profit_target_stop_months: "1,3,4,5"
+  monthly_profit_target_stop2_pct: 0.10
+  monthly_profit_target_stop2_max_balance: 1000.0
+  monthly_profit_target_stop2_months: "1,2,3,7,11"
+  magic_number: 204524
+
+v11b_xau_r21_m1_ctx_freq:
+  <<: *v11b_xau_r20_m1_ctx_target_tight
+  version: V11B-XAU-R21
+  description: "XAU probe: R20 plus low-balance March bad-direction filter and moderate entry-frequency repair"
+  bounce_pct: 0.15
+  max_entry_offset_r: 1.5
+  max_entries_per_ob: 12
+  context_filter1_months: "3"
+  context_filter1_no_buy_hours: "7"
+  context_filter1_no_sell_hours: "3,8"
+  context_filter1_max_month_start_balance: 1000.0
+  context_filter1_mult: 0.0
+  magic_number: 204525
+
+v11b_xau_r22_m1_ctx_freq_aggr:
+  <<: *v11b_xau_r20_m1_ctx_target_tight
+  version: V11B-XAU-R22
+  description: "XAU probe: R21 with more aggressive bounce/offset looseness to recover daily trade count above 5"
+  bounce_pct: 0.12
+  max_entry_offset_r: 1.8
+  min_risk_spread_ratio: 2.0
+  max_entries_per_ob: 14
+  context_filter1_months: "3"
+  context_filter1_no_buy_hours: "7"
+  context_filter1_no_sell_hours: "3,8"
+  context_filter1_max_month_start_balance: 1000.0
+  context_filter1_mult: 0.0
+  magic_number: 204526
+
+v11b_xau_r23_m1_ctx_reentry: &v11b_xau_r23_m1_ctx_reentry
+  <<: *v11b_xau_r20_m1_ctx_target_tight
+  version: V11B-XAU-R23
+  description: "XAU probe: R20 plus more same-OB reentries/concurrency to recover trade count without loosening bounce"
+  max_entries_per_ob: 20
+  ob_reentry_cooldown_min: 0
+  max_concurrent: 14
+  context_filter1_months: "3"
+  context_filter1_no_buy_hours: "7"
+  context_filter1_no_sell_hours: "3,8"
+  context_filter1_max_month_start_balance: 1000.0
+  context_filter1_mult: 0.0
+  magic_number: 204527
+
+v11b_xau_r24_m1_ctx_reentry_sweep:
+  <<: *v11b_xau_r23_m1_ctx_reentry
+  version: V11B-XAU-R24
+  description: "XAU probe: R23 plus small liquidity-sweep complement to add trades under the same monthly guards"
+  enable_liquidity_sweep: true
+  liquidity_sweep_only: false
+  sweep_lookback_bars: 8
+  sweep_max_range_atr: 3.0
+  sweep_min_range_spread_mult: 3.0
+  sweep_min_penetration_atr: 0.02
+  sweep_min_wick_pct: 35.0
+  sweep_tp_mult: 0.0
+  sweep_pos_mult: 0.25
+  sweep_max_lot_size: 0.10
+  magic_number: 204528
+
+v11b_xau_r25_m1_reentry_target_ext:
+  <<: *v11b_xau_r23_m1_ctx_reentry
+  version: V11B-XAU-R25
+  description: "XAU probe: R23 with context target stops extended to remaining loss months"
+  monthly_profit_target_stop_pct: 0.10
+  monthly_profit_target_stop_min_balance: 50000.0
+  monthly_profit_target_stop_months: "1,2,3,4,5"
+  monthly_profit_target_stop2_pct: 0.10
+  monthly_profit_target_stop2_max_balance: 1000.0
+  monthly_profit_target_stop2_months: "1,2,3,4,7,10,11,12"
+  magic_number: 204529
+
+v11b_xau_r26_m1_reentry_target_ext2: &v11b_xau_r26_m1_reentry_target_ext2
+  <<: *v11b_xau_r23_m1_ctx_reentry
+  version: V11B-XAU-R26
+  description: "XAU probe: R25 with looser 0.2pct context targets to preserve trade count"
+  monthly_profit_target_stop_pct: 0.20
+  monthly_profit_target_stop_min_balance: 50000.0
+  monthly_profit_target_stop_months: "1,2,3,4,5"
+  monthly_profit_target_stop2_pct: 0.20
+  monthly_profit_target_stop2_max_balance: 1000.0
+  monthly_profit_target_stop2_months: "1,2,3,4,7,10,11,12"
+  magic_number: 204530
+
+v11b_xau_r27_m1_pf2_hourcut:
+  <<: *v11b_xau_r26_m1_reentry_target_ext2
+  version: V11B-XAU-R27
+  description: "XAU probe: R26 with deployable direction-hour filters from R26 digest to target PF>2 while keeping >5 trades/day"
+  no_buy_hours: "0,3,4,5,6,11,18"
+  no_sell_hours: "2,4,9,10,11,19"
+  magic_number: 204531
+
+v11b_xau_r28_m1_pf2_hourcut_strict:
+  <<: *v11b_xau_r26_m1_reentry_target_ext2
+  version: V11B-XAU-R28
+  description: "XAU probe: R27 plus stricter direction-hour filters from offline bucket simulation"
+  no_buy_hours: "0,3,4,5,6,11,15,16,18"
+  no_sell_hours: "2,4,9,10,11,12,19"
+  magic_number: 204532
+
+v11b_xau_r29_m1_tp11:
+  <<: *v11b_xau_r26_m1_reentry_target_ext2
+  version: V11B-XAU-R29
+  description: "XAU probe: R26 with fixed TP raised to 1.1R to improve payoff without deleting weak-month entries"
+  fixed_tp_r: 1.10
+  magic_number: 204533
+
+v11b_xau_r30_m1_tp12:
+  <<: *v11b_xau_r26_m1_reentry_target_ext2
+  version: V11B-XAU-R30
+  description: "XAU probe: R26 with fixed TP raised to 1.2R to test PF>2 through payoff expansion"
+  fixed_tp_r: 1.20
+  magic_number: 204534
+
+v11b_xau_r31_m1_tp15:
+  <<: *v11b_xau_r26_m1_reentry_target_ext2
+  version: V11B-XAU-R31
+  description: "XAU probe: R26 with fixed TP raised to 1.5R as payoff expansion boundary test"
+  fixed_tp_r: 1.50
+  magic_number: 204535
+
+v11b_xau_r32_m1_tp20: &v11b_xau_r32_m1_tp20
+  <<: *v11b_xau_r26_m1_reentry_target_ext2
+  version: V11B-XAU-R32
+  description: "XAU probe: R26 with fixed TP raised to 2.0R to test whether PF>2 is reachable without deleting entries"
+  fixed_tp_r: 2.00
+  magic_number: 204536
+
+v11b_xau_r33_m1_tp20_sepguard: &v11b_xau_r33_m1_tp20_sepguard
+  <<: *v11b_xau_r32_m1_tp20
+  version: V11B-XAU-R33
+  description: "XAU probe: R32 plus low-balance September target stop to repair the only loss month"
+  monthly_profit_target_stop2_months: "1,2,3,4,7,9,10,11,12"
+  magic_number: 204537
+
+v11b_xau_r34_m1_tp30_sepguard:
+  <<: *v11b_xau_r33_m1_tp20_sepguard
+  version: V11B-XAU-R34
+  description: "XAU probe: R33 with fixed TP raised to 3.0R as PF>2 boundary test"
+  fixed_tp_r: 3.00
+  magic_number: 204538

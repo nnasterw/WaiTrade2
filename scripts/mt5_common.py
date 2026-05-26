@@ -30,7 +30,7 @@ TESTING_HEADER_PATTERN = re.compile(
 LOG_TIME_PATTERN = re.compile(r'(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2})')
 KEY_VALUE_PATTERN = re.compile(r'(\w+)=([^\s]+)')
 OPEN_SUCCESS_PATTERN = re.compile(
-    r'开仓成功: .*?\s([BS])\sx([\d.]+)\s+ticket=(\d+)\s+price=([\d.]+)\s+lot=([\d.]+)'
+    r'开仓成功:\s+(.*?)\s+ticket=(\d+)\s+price=([\d.]+)\s+lot=([\d.]+)'
     r'\s+bounce_sec=(-?\d+)\s+bounce_ob=([\d.]+)\s+confirm_pos=(-?[\d.]+)'
     r'\s+touch=([\d.]+)\s+confirm=([\d.]+)'
 )
@@ -320,6 +320,7 @@ def backtest_main(description, run_fn, args=None):
     parser.add_argument('--from', dest='date_from', help='回测起始日期 YYYY.MM.DD')
     parser.add_argument('--to', dest='date_to', help='回测结束日期 YYYY.MM.DD')
     parser.add_argument('--timeout', type=int, default=300, help='每个品种的超时秒数（默认300）')
+    parser.add_argument('--deposit', type=float, help='覆盖初始资金')
 
     parsed = parser.parse_args(args)
 
@@ -327,6 +328,10 @@ def backtest_main(description, run_fn, args=None):
 
     strategy_arg = parsed.strategy or parsed.strategies
     strategy_names = resolve_strategies(config, strategy_arg)
+
+    if parsed.deposit is not None:
+        for name in strategy_names:
+            config[name]['deposit'] = parsed.deposit
 
     symbol_arg = parsed.symbol or parsed.symbols
     symbols = resolve_symbols(config, symbol_arg)
@@ -384,6 +389,33 @@ def _to_int(value):
 
 def _parse_key_values(text):
     return {key: value for key, value in KEY_VALUE_PATTERN.findall(text)}
+
+
+def _signal_type_from_comment(comment):
+    """从 EA 开仓 comment 中识别信号来源。"""
+    if not comment:
+        return 'ob'
+    tokens = set(comment.split())
+    if 'LSWP' in tokens:
+        return 'loose_sweep'
+    if 'SWP' in tokens:
+        return 'sweep'
+    if 'RB' in tokens:
+        return 'range'
+    if 'HTFPB' in tokens:
+        return 'htf_pullback'
+    return 'ob'
+
+
+def _direction_from_comment(comment):
+    if not comment:
+        return None
+    tokens = comment.split()
+    for idx, token in enumerate(tokens):
+        if token in ('B', 'S') and idx + 1 < len(tokens):
+            if tokens[idx + 1].startswith('x') or any(t.startswith('x') for t in tokens[idx + 1:]):
+                return token
+    return None
 
 
 def _parse_summary_row(line):
@@ -501,15 +533,15 @@ def find_matching_log_segment(content, symbol, date_from, date_to, final_balance
         stats = parse_agent_log_content('\n'.join(segment['lines']))
         balance = stats['final_balance'] if stats else None
         diff = abs(balance - final_balance) if balance is not None and final_balance is not None else float('inf')
-        candidates.append((diff, balance, segment))
+        candidates.append((diff, len(candidates), balance, segment))
 
     if not candidates:
         return None
 
     if final_balance is not None:
-        candidates.sort(key=lambda item: (item[0], item[1] is None))
-        return candidates[0][2]
-    return candidates[-1][2]
+        candidates.sort(key=lambda item: (item[0], -item[1], item[2] is None))
+        return candidates[0][3]
+    return candidates[-1][3]
 
 
 def _parse_entry_diag(line, event_time):
@@ -571,15 +603,16 @@ def _parse_open_success(line, event_time):
         return None
     return {
         'time': event_time,
-        'direction_char': match.group(1),
-        'ticket': int(match.group(3)),
-        'price': float(match.group(4)),
-        'lot': float(match.group(5)),
-        'bounce_sec': int(match.group(6)),
-        'bounce_ob': float(match.group(7)),
-        'confirm_pos': float(match.group(8)),
-        'touch': float(match.group(9)),
-        'confirm': float(match.group(10)),
+        'comment': match.group(1),
+        'direction_char': _direction_from_comment(match.group(1)),
+        'ticket': int(match.group(2)),
+        'price': float(match.group(3)),
+        'lot': float(match.group(4)),
+        'bounce_sec': int(match.group(5)),
+        'bounce_ob': float(match.group(6)),
+        'confirm_pos': float(match.group(7)),
+        'touch': float(match.group(8)),
+        'confirm': float(match.group(9)),
     }
 
 
@@ -695,6 +728,8 @@ def _build_trade(ticket, symbol, open_event, diag, order):
         'hour': diag['hour'] if diag else _to_int(open_event['time'][11:13]),
         'symbol': symbol,
         'dir': direction,
+        'comment': open_event.get('comment'),
+        'signal_type': _signal_type_from_comment(open_event.get('comment')),
         'lot': open_event['lot'],
         'pos_mult': diag['pos_mult'] if diag else None,
         'entry': entry,
