@@ -14,23 +14,30 @@
 #include <WaiTrade2/PositionManager.mqh>
 
 OBZone      g_zones[MAX_OB_ZONES];
+OBZone      g_htf_zones[MAX_OB_ZONES];
 PosTrack    g_tracks[MAX_POSITIONS];
 EAState     g_state;
 TradeSignal g_signals[10];
 int         g_track_count = 0;
+int         g_htf_zone_count = 0;
 
 // v9.8a EntryEngine
 EntryMonitor g_monitors[MAX_MONITORS];
+EntryMonitor g_htf_monitors[MAX_MONITORS];
 int          g_monitor_count = 0;
+int          g_htf_monitor_count = 0;
 datetime     g_last_entry_attempt = 0;
 
 int OnInit()
 {
     ZeroMemory(g_state);
     ZeroMemory(g_zones);
+    ZeroMemory(g_htf_zones);
     ZeroMemory(g_tracks);
     g_track_count = 0;
+    g_htf_zone_count = 0;
     g_monitor_count = 0;
+    g_htf_monitor_count = 0;
     g_last_entry_attempt = 0;
 
     if(InpRiskPercent <= 0 || InpRiskPercent > 50)
@@ -39,6 +46,8 @@ int OnInit()
         return INIT_PARAMETERS_INCORRECT;
     }
 
+    SymbolSelect(_Symbol, true);
+    SyncMonthlyRiskState();
     Print("WaiTrade2 ", InpVersion, " 已加载 | ", _Symbol, " | Magic=", InpMagicNumber);
     return INIT_SUCCEEDED;
 }
@@ -56,7 +65,14 @@ void OnTick()
     // 1. 加载K线数据
     MqlRates rates[];
     int copied = CopyRates(symbol, tf, 0, InpBars, rates);
-    if(copied < 100) return;
+    if(copied < 100) {
+        static datetime s_last_copy_fail = 0;
+        if(TimeCurrent() - s_last_copy_fail >= 300) {  // 每5分钟打印一次
+            s_last_copy_fail = TimeCurrent();
+            Print("CopyRates失败: symbol=", symbol, " tf=", tf, " copied=", copied);
+        }
+        return;
+    }
 
     g_state.atr_value = CalcATR(rates, copied, InpATRPeriod);
 
@@ -67,9 +83,13 @@ void OnTick()
         g_state.bar_count++;
 
         DetectOrderBlocks(rates, copied, g_zones, g_state.ob_count, g_state);
-
         if(InpConsolidateOB)
             ConsolidateOBs(g_zones, g_state.ob_count);
+        if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+        {
+            CompactZones(g_htf_zones, g_htf_zone_count);
+            DetectHTFPullbacks(g_htf_zones, g_htf_zone_count, g_state, GetSpread(symbol));
+        }
 
         MqlRates rates_h1[];
         int h1_count = CopyRates(symbol, PERIOD_H1, 0, 100, rates_h1);
@@ -78,6 +98,8 @@ void OnTick()
 
         int h1_dir = Detect1HOBDirection(symbol);
         Update1HAlignment(g_zones, g_state.ob_count, h1_dir);
+        if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+            Update1HAlignment(g_htf_zones, g_htf_zone_count, h1_dir);
 
         // v9.8: M15 市场状态检测
         if(InpEnableStateFilter || InpEnableScoring)
@@ -97,7 +119,8 @@ void OnTick()
     double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
     double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
     UpdateOBStatus(g_zones, g_state.ob_count, bid, ask, g_state);
-
+    if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+        UpdateOBStatus(g_htf_zones, g_htf_zone_count, bid, ask, g_state);
     // 4. 扫描入场信号
     g_state.pos_count = CountActivePositions();
 
@@ -110,20 +133,32 @@ void OnTick()
             double spread = GetSpread(symbol);
             for(int z = 0; z < g_state.ob_count; z++)
             {
-                if(g_zones[z].expired || g_zones[z].used) continue;
-                if(!PassOBReentryCooldown(g_zones[z])) continue;
+                if(g_zones[z].expired || g_zones[z].used)
+                {
+                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " skip=expired/used");
+                    continue;
+                }
+                if(!PassOBReentryCooldown(g_zones[z]))
+                {
+                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " skip=cooldown");
+                    continue;
+                }
 
-                // 态过滤：趋势态禁止逆势
                 if(InpEnableStateFilter && g_state.market_state != 0
                    && g_state.market_state != g_zones[z].direction)
+                {
+                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " state=", g_state.market_state, " skip=state_filter");
                     continue;
+                }
 
-                // 基本过滤：spread ratio
                 double risk_dist = (g_zones[z].direction == OB_BUY)
                     ? ((g_zones[z].high + g_zones[z].low) / 2.0) - (g_zones[z].low - g_state.atr_value * InpSLBufferATR)
                     : (g_zones[z].high + g_state.atr_value * InpSLBufferATR) - ((g_zones[z].high + g_zones[z].low) / 2.0);
                 if(spread > 0 && risk_dist / spread < InpMinRiskSpreadRatio)
+                {
+                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " risk_dist=", risk_dist, " spread=", spread, " ratio=", risk_dist/spread, " skip=spread_ratio");
                     continue;
+                }
 
                 // 构造临时 signal 用于注册
                 TradeSignal tmp;
@@ -136,19 +171,55 @@ void OnTick()
                 tmp.ob_index = z;
                 tmp.pos_mult = 1.0;
 
-                // 评分系统
                 if(InpEnableScoring)
                 {
                     double prox = (g_state.atr_m15 > 0) ? g_state.atr_m15 : g_state.atr_value * 5;
                     int score = CalcSignalScore(g_zones[z], g_state, g_state.market_state, prox, tmp.risk_price, 0);
-                    if(score < InpMinScore) continue;
+                    if(score < InpMinScore)
+                    {
+                        if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " score=", score, " min=", InpMinScore, " skip=score");
+                        continue;
+                    }
                     double mult = ScoreToMultiplier(score);
-                    if(mult < 0) continue;
+                    if(mult < 0)
+                    {
+                        if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " mult=", mult, " skip=mult");
+                        continue;
+                    }
                     tmp.pos_mult = mult;
                 }
 
                 AddEntryMonitor(tmp, g_zones[z], g_monitors, g_monitor_count);
+                if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " strength=", g_zones[z].strength, " status=REGISTERED");
             }
+
+            if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+            {
+                for(int z = 0; z < g_htf_zone_count; z++)
+                {
+                    if(g_htf_zones[z].expired || g_htf_zones[z].used)
+                        continue;
+                    if(!PassOBReentryCooldown(g_htf_zones[z]))
+                        continue;
+                    if(InpEnableStateFilter && g_state.market_state != 0 &&
+                       g_state.market_state != g_htf_zones[z].direction)
+                        continue;
+
+                    TradeSignal tmp;
+                    ZeroMemory(tmp);
+                    tmp.direction = g_htf_zones[z].direction;
+                    tmp.sl = (g_htf_zones[z].direction == OB_BUY)
+                        ? g_htf_zones[z].low - g_state.atr_value * InpSLBufferATR
+                        : g_htf_zones[z].high + g_state.atr_value * InpSLBufferATR;
+                    tmp.risk_price = MathAbs(((g_htf_zones[z].high + g_htf_zones[z].low) / 2.0) - tmp.sl);
+                    tmp.ob_index = z;
+                    tmp.pos_mult = 1.0;
+
+                    AddEntryMonitor(tmp, g_htf_zones[z], g_htf_monitors, g_htf_monitor_count);
+                    if(InpEnableEntryDebug) Print("HTFPB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_htf_zones[z].direction, " status=REGISTERED");
+                }
+            }
+
         }
 
         // 每 tick 更新 monitors，获取确认的入场
@@ -170,6 +241,28 @@ void OnTick()
                 g_state.pos_count++;
             }
         }
+
+        if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+        {
+            TradeSignal htf_confirmed[10];
+            int htf_conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), g_htf_monitors, g_htf_monitor_count, htf_confirmed, 10);
+
+            for(int i = 0; i < htf_conf_count; i++)
+            {
+                if(g_state.pos_count >= InpMaxConcurrent) break;
+                if(htf_confirmed[i].ob_index < 0 || htf_confirmed[i].ob_index >= g_htf_zone_count)
+                    continue;
+                if(!FinalizeEntryEngineSignal(symbol, g_htf_zones[htf_confirmed[i].ob_index], g_state, htf_confirmed[i]))
+                    continue;
+
+                if(ExecuteSignalFromZone(htf_confirmed[i], g_htf_zones, g_htf_zone_count, false))
+                {
+                    g_state.last_entry_bar = g_state.bar_count;
+                    g_state.pos_count++;
+                }
+            }
+        }
+
     }
     else
     {
@@ -289,7 +382,70 @@ bool ExecuteLayeredOrders(const TradeSignal &sig, double base_price)
     return true;
 }
 
+bool ExecuteMicroEntryOrders(const TradeSignal &sig)
+{
+    if(InpMicroEntryCount <= 0 || InpMicroEntryLotMult <= 0)
+        return false;
+
+    int count = MathMin(InpMicroEntryCount, 5);
+    double lot_min = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
+    if(InpMicroEntryMaxLotSize > 0 && InpMicroEntryMaxLotSize < lot_min)
+        return false;
+
+    double micro_lot = sig.lot * InpMicroEntryLotMult;
+    if(InpMicroEntryMaxLotSize > 0 && micro_lot > InpMicroEntryMaxLotSize)
+        micro_lot = InpMicroEntryMaxLotSize;
+    micro_lot = NormalizeDouble(micro_lot, 2);
+    if(micro_lot < lot_min)
+        micro_lot = lot_min;
+
+    bool placed = false;
+    for(int i = 1; i <= count; i++)
+    {
+        MqlTradeRequest req = {};
+        MqlTradeResult  res = {};
+        req.action    = TRADE_ACTION_DEAL;
+        req.symbol    = _Symbol;
+        req.volume    = micro_lot;
+        req.type      = sig.direction > 0 ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+        req.price     = sig.direction > 0 ? SymbolInfoDouble(_Symbol, SYMBOL_ASK)
+                                          : SymbolInfoDouble(_Symbol, SYMBOL_BID);
+        req.sl        = sig.sl;
+        req.tp        = sig.tp;
+        req.magic     = InpMagicNumber;
+        req.comment   = sig.comment + "_M" + IntegerToString(i);
+        req.deviation = 20;
+        req.type_filling = ORDER_FILLING_IOC;
+        req.type_time    = ORDER_TIME_GTC;
+
+        if(!OrderSend(req, res) || res.retcode != TRADE_RETCODE_DONE)
+            continue;
+
+        placed = true;
+        Print("微仓副单成功 ", req.comment, " ticket=", res.order,
+              " price=", res.price, " lot=", micro_lot);
+        RecordMonthlyEntry();
+        RegisterPosition(res.order, sig.direction, res.price, sig.sl, sig.risk_price,
+                         sig.deep_entry,
+                         sig.htf_target, sig.htf_partial_r, sig.htf_partial_pct,
+                         sig.failure_reverse,
+                         g_tracks, g_track_count);
+        if(g_track_count > 0)
+        {
+            g_tracks[g_track_count - 1].open_bar = g_state.bar_count;
+            g_tracks[g_track_count - 1].entry_market_state = g_state.market_state;
+        }
+    }
+
+    return placed;
+}
+
 bool ExecuteSignal(const TradeSignal &sig)
+{
+    return ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, true);
+}
+
+bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_count, bool allow_layered)
 {
     if(ShouldSkipEntryAttempt())
         return false;
@@ -320,8 +476,8 @@ bool ExecuteSignal(const TradeSignal &sig)
             s_invalid_stops_count++;
             if(s_invalid_stops_count <= 10 || s_invalid_stops_count % 1000 == 0)
                 Print("止损无效(已跳过", s_invalid_stops_count, "次): ", sig.comment);
-            if(sig.ob_index >= 0 && sig.ob_index < g_state.ob_count)
-                g_zones[sig.ob_index].used = true;
+            if(sig.ob_index >= 0 && sig.ob_index < zone_count)
+                zones[sig.ob_index].used = true;
             return false;
         }
 
@@ -370,11 +526,12 @@ bool ExecuteSignal(const TradeSignal &sig)
             g_tracks[g_track_count - 1].entry_market_state = g_state.market_state;
         }
 
-        if(InpLayeredEntryCount >= 2)
+        if(allow_layered && InpLayeredEntryCount >= 2)
             ExecuteLayeredOrders(sig, result.price);
+        ExecuteMicroEntryOrders(sig);
 
-        if(sig.ob_index >= 0 && sig.ob_index < g_state.ob_count)
-            MarkZoneUsed(g_zones, sig.ob_index);
+        if(sig.ob_index >= 0 && sig.ob_index < zone_count)
+            MarkZoneUsed(zones, sig.ob_index);
 
         return true;
     }

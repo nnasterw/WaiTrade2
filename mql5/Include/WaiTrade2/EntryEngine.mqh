@@ -40,13 +40,13 @@ struct EntryMonitor
     int              touch_count;
     bool             deep_entry;
     bool             active;
+    bool             is_loose_sweep;
+    bool             is_htf_pullback;
 };
 
 double ClampEntryDepthPct()
 {
-    if(InpEntryDepthPct <= 0) return 0.0;
-    if(InpEntryDepthPct >= 1.0) return 1.0;
-    return InpEntryDepthPct;
+    return GetEffectiveEntryDepthPct();
 }
 
 double CalcDepthTouchLevel(const EntryMonitor &monitor)
@@ -66,7 +66,7 @@ double CalcDepthTouchLevel(const EntryMonitor &monitor)
 
 bool IsDeepTouched(const EntryMonitor &monitor, double price)
 {
-    if(InpEntryDepthPct <= 0)
+    if(ClampEntryDepthPct() <= 0)
         return false;
 
     double level = CalcDepthTouchLevel(monitor);
@@ -203,13 +203,32 @@ void BuildEntrySignalFromMonitor(const EntryMonitor &monitor, double price,
 void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
                      EntryMonitor &monitors[], int &mon_count)
 {
-    if(mon_count >= MAX_MONITORS) return;
-
     // 去重：同一 ob_index 不重复添加
     for(int i = 0; i < mon_count; i++)
     {
         if(monitors[i].active && monitors[i].ob_index == sig.ob_index)
             return;
+    }
+    if(mon_count >= MAX_MONITORS)
+    {
+        if(zone.is_loose_sweep || zone.is_htf_pullback)
+            return;
+
+        int remove_idx = -1;
+        for(int i = 0; i < mon_count; i++)
+        {
+            if(monitors[i].active && (monitors[i].is_loose_sweep || monitors[i].is_htf_pullback))
+            {
+                remove_idx = i;
+                break;
+            }
+        }
+        if(remove_idx < 0)
+            return;
+
+        for(int i = remove_idx; i < mon_count - 1; i++)
+            monitors[i] = monitors[i + 1];
+        mon_count--;
     }
 
     EntryMonitor m;
@@ -227,7 +246,9 @@ void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
     m.expire_time  = TimeCurrent() + InpTimeoutMin * 60;
     m.touch_count  = 0;
     m.deep_entry   = false;
-    m.active       = true;
+    m.active       = true;
+    m.is_loose_sweep = zone.is_loose_sweep;
+    m.is_htf_pullback = zone.is_htf_pullback;
 
     monitors[mon_count] = m;
     mon_count++;
@@ -245,6 +266,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
 
         if(now > monitors[i].expire_time)
         {
+            if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " phase=", monitors[i].phase, " status=EXPIRED timeout");
             monitors[i].phase = PHASE_EXPIRED;
             monitors[i].active = false;
             continue;
@@ -276,6 +298,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 monitors[i].touch_price = price;
                 monitors[i].touch_time = now;
                 monitors[i].touch_count++;
+                if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " phase=", monitors[i].phase, " status=TOUCHED count=", monitors[i].touch_count, " price=", price);
 
                 // 二推不破: 需要第二次触及才进入bounce确认
                 if(InpRequireDoubleTch && monitors[i].touch_count < 2)
@@ -306,16 +329,25 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
 
             if(confirmed)
             {
+                if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=BOUNCE_CONFIRMED price=", price, " touch=", monitors[i].touch_price, " threshold=", threshold);
+
                 if(!PassEntryStructureConfirm(monitors[i].direction, price))
+                {
+                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=BLOCKED struct_confirm price=", price);
                     continue;
+                }
 
                 if(!PassBounceCloseConfirm(monitors[i]))
+                {
+                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=BLOCKED bounce_close_confirm");
                     continue;
+                }
 
                 // offset guard: 确认价偏离entry过远则放弃
                 double offset_r = MathAbs(price - entry) / risk;
                 if(offset_r > InpMaxEntryOffsetR)
                 {
+                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=BLOCKED offset_r=", offset_r, " max=", InpMaxEntryOffsetR);
                     monitors[i].phase = PHASE_EXPIRED;
                     monitors[i].active = false;
                     continue;
@@ -329,11 +361,13 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 {
                     monitors[i].pullback_entry_price = CalcConfirmPullbackEntryPrice(monitors[i]);
                     monitors[i].phase = PHASE_WAITING_PULLBACK;
+                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=PULLBACK_WAIT entry=", monitors[i].pullback_entry_price);
                     continue;
                 }
 
                 monitors[i].phase = PHASE_ENTERED;
                 monitors[i].active = false;
+                if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=ENTERED price=", price, " bounce_r=", offset_r);
 
                 if(out_count < max_out)
                 {

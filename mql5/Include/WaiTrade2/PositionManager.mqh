@@ -13,11 +13,38 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
                       bool failure_reverse,
                       PosTrack &tracks[], int &track_count);
 bool IsPositionStrong(const PosTrack &track, const EAState &state);
+bool PassMonthlyEntryGuard();
+bool CheckMonthlyLossStop(bool lock_stop);
+bool CheckMonthlyProfitLockStop(bool lock_stop);
+void MarkCloseAttemptFailed(PosTrack &track);
+
+bool CloseAllForMonthlyReason(PosTrack &tracks[], int &track_count, const string reason)
+{
+    bool closed_any = false;
+    for(int i = track_count - 1; i >= 0; i--)
+    {
+        if(tracks[i].ticket == 0) continue;
+        if(!PositionSelectByTicket(tracks[i].ticket))
+            continue;
+
+        if(ClosePosition(tracks[i].ticket, reason))
+            closed_any = true;
+        else
+            MarkCloseAttemptFailed(tracks[i]);
+    }
+    return closed_any;
+}
+
+bool CloseAllForMonthlyStop(PosTrack &tracks[], int &track_count)
+{
+    return CloseAllForMonthlyReason(tracks, track_count, "monthly_stop");
+}
 
 bool OpenStrongAddOn(PosTrack &track, const EAState &state,
                      PosTrack &tracks[], int &track_count)
 {
     if(!InpEnableStrongAddOn) return false;
+    if(!PassMonthlyEntryGuard()) return false;
     if(InpStrongAddOnMaxCount <= 0) return false;
     if(track.failure_reverse || track.strong_addon) return false;
     if(track.addon_count >= InpStrongAddOnMaxCount) return false;
@@ -113,11 +140,13 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
                         PosTrack &tracks[], int &track_count)
 {
     if(!InpEnableFailureReverse) return false;
+    if(!PassMonthlyEntryGuard()) return false;
     if(track.failure_reverse && !InpFailureReverseAllowChain) return false;
     if(reason == "early_loss" && !InpReverseOnEarlyLoss) return false;
     if(reason == "mfe_fail" && !InpReverseOnMFEFail) return false;
     if(reason == "no_mfe" && !InpReverseOnNoMFE) return false;
     if(track_count >= MAX_POSITIONS) return false;
+    if(CountPositions() >= InpMaxConcurrent) return false;
 
     string symbol = _Symbol;
     int rev_dir = -track.direction;
@@ -131,6 +160,8 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
     if(lot_step <= 0) return false;
     lot = MathFloor(lot / lot_step) * lot_step;
     if(lot < lot_min) return false;
+    if(InpMaxLotSize > 0 && lot > InpMaxLotSize)
+        lot = InpMaxLotSize;
     if(lot > lot_max) lot = lot_max;
 
     double order_price = (rev_dir > 0) ? SymbolInfoDouble(symbol, SYMBOL_ASK)
@@ -248,6 +279,17 @@ void MarkCloseAttemptFailed(PosTrack &track)
 
 void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
 {
+    if(CheckMonthlyLossStop(true))
+    {
+        CloseAllForMonthlyStop(tracks, track_count);
+        return;
+    }
+    if(CheckMonthlyProfitLockStop(true))
+    {
+        CloseAllForMonthlyReason(tracks, track_count, "monthly_profit_lock");
+        return;
+    }
+
     for(int i = track_count - 1; i >= 0; i--)
     {
         if(tracks[i].ticket == 0) continue;

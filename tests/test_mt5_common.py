@@ -11,15 +11,30 @@ from mt5_common import (
     resolve_symbols, resolve_strategies,
     parse_backtest_report_content, split_agent_log_segments,
     find_matching_log_segment, parse_agent_log_segment_details,
+    _signal_type_from_comment,
 )
 from yaml_to_set import (
     strategy_to_set, format_value, NON_STRATEGY_KEYS, FLAT_MAP, TRAIL_MAP,
+    load_strategies,
 )
-from backtest_digest import build_digest_data, build_monthly_stats, render_digest_markdown, write_trade_csv
+from backtest_digest import (
+    build_digest_data, build_monthly_stats, render_digest_markdown, write_trade_csv,
+    read_text_auto_tail,
+)
+import backtest_digest
 import mt5_cli_backtest as cli
+import mt5_backtest_win as win_cli
 
 
 # ── resolve_symbols ───────────────────────────────────────────────────
+
+def test_repo_strategies_yaml_loads():
+    strategies = load_strategies(
+        Path(__file__).resolve().parent.parent / 'config' / 'strategies.yaml'
+    )
+
+    assert 'v11_r221_j2_r61_context_march_probe' in strategies
+
 
 def test_resolve_symbols_csv():
     config = {'symbols': {'forex': ['EURUSD', 'GBPUSD'], 'metals': ['XAUUSD']}}
@@ -591,6 +606,21 @@ def test_liquidity_sweep_params_in_set():
     assert FLAT_MAP['sweep_min_penetration_atr'] == 'InpSweepMinPenetrationATR'
     assert FLAT_MAP['sweep_min_wick_pct'] == 'InpSweepMinWickPct'
     assert FLAT_MAP['sweep_tp_mult'] == 'InpSweepTPMult'
+    assert FLAT_MAP['enable_loose_sweep'] == 'InpEnableLooseSweep'
+    assert FLAT_MAP['loose_sweep_lookback_bars'] == 'InpLooseSweepLookbackBars'
+    assert FLAT_MAP['loose_sweep_max_range_atr'] == 'InpLooseSweepMaxRangeATR'
+    assert FLAT_MAP['loose_sweep_min_range_spread_mult'] == 'InpLooseSweepMinRangeSpreadMult'
+    assert FLAT_MAP['loose_sweep_min_penetration_atr'] == 'InpLooseSweepMinPenetrationATR'
+    assert FLAT_MAP['loose_sweep_min_wick_pct'] == 'InpLooseSweepMinWickPct'
+    assert FLAT_MAP['loose_sweep_max_active_zones'] == 'InpLooseSweepMaxActiveZones'
+    assert FLAT_MAP['enable_htf_pullback'] == 'InpEnableHTFPullback'
+    assert FLAT_MAP['htf_pullback_only'] == 'InpHTFPullbackOnly'
+    assert FLAT_MAP['htf_pullback_tf'] == 'InpHTFPullbackTF'
+    assert FLAT_MAP['htf_pullback_bars'] == 'InpHTFPullbackBars'
+    assert FLAT_MAP['htf_pullback_min_atr'] == 'InpHTFPullbackMinATR'
+    assert FLAT_MAP['htf_pullback_zone_atr'] == 'InpHTFPullbackZoneATR'
+    assert FLAT_MAP['htf_pullback_offset_atr'] == 'InpHTFPullbackOffsetATR'
+    assert FLAT_MAP['htf_pullback_tp_mult'] == 'InpHTFPullbackTPMult'
 
     content = strategy_to_set('test', {
         'version': 'test',
@@ -602,6 +632,28 @@ def test_liquidity_sweep_params_in_set():
         'sweep_min_penetration_atr': 0.05,
         'sweep_min_wick_pct': 45.0,
         'sweep_tp_mult': 1.5,
+        'enable_loose_sweep': True,
+        'loose_sweep_lookback_bars': 6,
+        'loose_sweep_max_range_atr': 4.0,
+        'loose_sweep_min_range_spread_mult': 2.5,
+        'loose_sweep_min_penetration_atr': 0.01,
+        'loose_sweep_min_wick_pct': 30.0,
+        'loose_sweep_max_active_zones': 12,
+        'enable_htf_pullback': True,
+        'htf_pullback_only': True,
+        'htf_pullback_tf': 30,
+        'htf_pullback_bars': 4,
+        'htf_pullback_min_atr': 0.9,
+        'htf_pullback_zone_atr': 0.4,
+        'htf_pullback_offset_atr': 0.15,
+        'htf_pullback_tp_mult': 1.3,
+        'htf_pullback_allow_hours': '12,20,23',
+        'htf_pullback_no_hours': '13',
+        'htf_pullback_risk_min': 200.0,
+        'htf_pullback_risk_max': 300.0,
+        'htf_pullback_confirm_min': -1.5,
+        'htf_pullback_confirm_max': 999.0,
+        'htf_pullback_context_mult': 2.0,
     })
     assert 'InpEnableLiquiditySweep=true' in content
     assert 'InpLiquiditySweepOnly=true' in content
@@ -611,11 +663,34 @@ def test_liquidity_sweep_params_in_set():
     assert 'InpSweepMinPenetrationATR=0.05' in content
     assert 'InpSweepMinWickPct=45.0' in content
     assert 'InpSweepTPMult=1.5' in content
+    assert 'InpEnableLooseSweep=true' in content
+    assert 'InpLooseSweepLookbackBars=6' in content
+    assert 'InpLooseSweepMaxRangeATR=4.0' in content
+    assert 'InpLooseSweepMinRangeSpreadMult=2.5' in content
+    assert 'InpLooseSweepMinPenetrationATR=0.01' in content
+    assert 'InpLooseSweepMinWickPct=30.0' in content
+    assert 'InpLooseSweepMaxActiveZones=12' in content
+    assert 'InpEnableHTFPullback=true' in content
+    assert 'InpHTFPullbackOnly=true' in content
+    assert 'InpHTFPullbackTF=30' in content
+    assert 'InpHTFPullbackBars=4' in content
+    assert 'InpHTFPullbackMinATR=0.9' in content
+    assert 'InpHTFPullbackZoneATR=0.4' in content
+    assert 'InpHTFPullbackOffsetATR=0.15' in content
+    assert 'InpHTFPullbackTPMult=1.3' in content
+    assert 'InpHTFPullbackAllowHours=12,20,23' in content
+    assert 'InpHTFPullbackNoHours=13' in content
+    assert 'InpHTFPullbackRiskMin=200.0' in content
+    assert 'InpHTFPullbackRiskMax=300.0' in content
+    assert 'InpHTFPullbackConfirmMin=-1.5' in content
+    assert 'InpHTFPullbackConfirmMax=999.0' in content
+    assert 'InpHTFPullbackContextMult=2.0' in content
 
 
 def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['impulse_atr_mult'] == 'InpImpulseATRMult'
     assert FLAT_MAP['impulse_lookback'] == 'InpImpulseLookback'
+    assert FLAT_MAP['entry_depth_relax_min_balance'] == 'InpEntryDepthRelaxMinBalance'
     assert FLAT_MAP['atr_period'] == 'InpATRPeriod'
     assert FLAT_MAP['fixed_lot_size'] == 'InpFixedLotSize'
     assert FLAT_MAP['enable_pos_mult'] == 'InpEnablePosMult'
@@ -623,19 +698,80 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['max_lot_size'] == 'InpMaxLotSize'
     assert FLAT_MAP['sweep_pos_mult'] == 'InpSweepPosMult'
     assert FLAT_MAP['range_breakout_pos_mult'] == 'InpRangeBreakoutPosMult'
+    assert FLAT_MAP['htf_pullback_pos_mult'] == 'InpHTFPullbackPosMult'
     assert FLAT_MAP['sweep_max_lot_size'] == 'InpSweepMaxLotSize'
+    assert FLAT_MAP['loose_sweep_pos_mult'] == 'InpLooseSweepPosMult'
+    assert FLAT_MAP['loose_sweep_max_lot_size'] == 'InpLooseSweepMaxLotSize'
+    assert FLAT_MAP['loose_sweep_max_active_zones'] == 'InpLooseSweepMaxActiveZones'
     assert FLAT_MAP['range_breakout_max_lot_size'] == 'InpRangeBreakoutMaxLotSize'
+    assert FLAT_MAP['htf_pullback_max_lot_size'] == 'InpHTFPullbackMaxLotSize'
+    assert FLAT_MAP['htf_pullback_allow_hours'] == 'InpHTFPullbackAllowHours'
+    assert FLAT_MAP['htf_pullback_no_hours'] == 'InpHTFPullbackNoHours'
+    assert FLAT_MAP['htf_pullback_risk_min'] == 'InpHTFPullbackRiskMin'
+    assert FLAT_MAP['htf_pullback_risk_max'] == 'InpHTFPullbackRiskMax'
+    assert FLAT_MAP['htf_pullback_confirm_min'] == 'InpHTFPullbackConfirmMin'
+    assert FLAT_MAP['htf_pullback_confirm_max'] == 'InpHTFPullbackConfirmMax'
+    assert FLAT_MAP['htf_pullback_context_mult'] == 'InpHTFPullbackContextMult'
+    assert FLAT_MAP['sweep_allow_hours'] == 'InpSweepAllowHours'
+    assert FLAT_MAP['sweep_no_hours'] == 'InpSweepNoHours'
+    assert FLAT_MAP['sweep_context_months'] == 'InpSweepContextMonths'
+    assert FLAT_MAP['sweep_context_max_day'] == 'InpSweepContextMaxDay'
+    assert FLAT_MAP['sweep_context_min_month_start_balance'] == 'InpSweepContextMinMonthStartBalance'
+    assert FLAT_MAP['sweep_context_no_hours'] == 'InpSweepContextNoHours'
+    assert FLAT_MAP['sweep_bad_risk_min'] == 'InpSweepBadRiskMin'
+    assert FLAT_MAP['sweep_bad_risk_max'] == 'InpSweepBadRiskMax'
+    assert FLAT_MAP['sweep_bad_risk_mult'] == 'InpSweepBadRiskMult'
+    assert FLAT_MAP['sweep_min_balance'] == 'InpSweepMinBalance'
+    assert FLAT_MAP['sweep_low_balance_threshold'] == 'InpSweepLowBalanceThreshold'
+    assert FLAT_MAP['sweep_low_balance_mult'] == 'InpSweepLowBalanceMult'
+    assert FLAT_MAP['sweep_monthly_negative_mult'] == 'InpSweepMonthlyNegativeMult'
+    assert FLAT_MAP['sweep_monthly_profit_start_pct'] == 'InpSweepMonthlyProfitStartPct'
+    assert FLAT_MAP['sweep_early_bounce_sec_min'] == 'InpSweepEarlyBounceSecMin'
+    assert FLAT_MAP['sweep_early_bounce_sec_max'] == 'InpSweepEarlyBounceSecMax'
+    assert FLAT_MAP['sweep_early_bounce_mult'] == 'InpSweepEarlyBounceMult'
+    assert FLAT_MAP['sweep_early_bounce_hours'] == 'InpSweepEarlyBounceHours'
+    assert FLAT_MAP['sweep_bad_age_min_bars'] == 'InpSweepBadAgeMinBars'
+    assert FLAT_MAP['sweep_bad_age_max_bars'] == 'InpSweepBadAgeMaxBars'
+    assert FLAT_MAP['sweep_bad_age_mult'] == 'InpSweepBadAgeMult'
+    assert FLAT_MAP['ob_pos_mult'] == 'InpOBPosMult'
+    assert FLAT_MAP['ob_pos_mult_min_balance'] == 'InpOBPosMultMinBalance'
+    assert FLAT_MAP['ob_bad_hours'] == 'InpOBBadHours'
+    assert FLAT_MAP['ob_bad_hour_mult'] == 'InpOBBadHourMult'
+    assert FLAT_MAP['low_balance_ob_bad_hours'] == 'InpLowBalanceOBBadHours'
+    assert FLAT_MAP['low_balance_ob_bad_months'] == 'InpLowBalanceOBBadMonths'
+    assert FLAT_MAP['low_balance_ob_bad_max_month_start_balance'] == 'InpLowBalanceOBBadMaxMonthStartBalance'
+    assert FLAT_MAP['low_balance_ob_bad_hour_mult'] == 'InpLowBalanceOBBadHourMult'
     assert FLAT_MAP['low_balance_threshold'] == 'InpLowBalanceThreshold'
     assert FLAT_MAP['low_balance_pos_mult'] == 'InpLowBalancePosMult'
     assert FLAT_MAP['low_balance_max_lot_size'] == 'InpLowBalanceMaxLotSize'
     assert FLAT_MAP['monthly_guard_min_balance'] == 'InpMonthlyGuardMinBalance'
     assert FLAT_MAP['monthly_loss_stop_pct'] == 'InpMonthlyLossStopPct'
     assert FLAT_MAP['monthly_loss_stop_min_trades'] == 'InpMonthlyLossStopMinTrades'
+    assert FLAT_MAP['monthly_early_loss_stop_trades'] == 'InpMonthlyEarlyLossStopTrades'
+    assert FLAT_MAP['monthly_early_loss_stop_pct'] == 'InpMonthlyEarlyLossStopPct'
+    assert FLAT_MAP['monthly_early_loss_stop_min_balance'] == 'InpMonthlyEarlyLossStopMinBalance'
+    assert FLAT_MAP['monthly_early_loss_stop_continuous'] == 'InpMonthlyEarlyLossStopContinuous'
     assert FLAT_MAP['monthly_negative_pos_mult'] == 'InpMonthlyNegativePosMult'
+    assert FLAT_MAP['monthly_warmup_profit_pct'] == 'InpMonthlyWarmupProfitPct'
+    assert FLAT_MAP['monthly_warmup_pos_mult'] == 'InpMonthlyWarmupPosMult'
     assert FLAT_MAP['monthly_profit_lock_min_balance'] == 'InpMonthlyProfitLockMinBalance'
     assert FLAT_MAP['monthly_profit_lock_start_pct'] == 'InpMonthlyProfitLockStartPct'
     assert FLAT_MAP['monthly_profit_lock_keep_pct'] == 'InpMonthlyProfitLockKeepPct'
+    assert FLAT_MAP['monthly_profit_target_stop_pct'] == 'InpMonthlyProfitTargetStopPct'
+    assert FLAT_MAP['monthly_profit_target_stop_min_balance'] == 'InpMonthlyProfitTargetStopMinBalance'
+    assert FLAT_MAP['monthly_profit_target_stop_max_balance'] == 'InpMonthlyProfitTargetStopMaxBalance'
+    assert FLAT_MAP['monthly_profit_target_stop_months'] == 'InpMonthlyProfitTargetStopMonths'
+    assert FLAT_MAP['monthly_profit_target_stop2_pct'] == 'InpMonthlyProfitTargetStop2Pct'
+    assert FLAT_MAP['monthly_profit_target_stop2_min_balance'] == 'InpMonthlyProfitTargetStop2MinBalance'
+    assert FLAT_MAP['monthly_profit_target_stop2_max_balance'] == 'InpMonthlyProfitTargetStop2MaxBalance'
+    assert FLAT_MAP['monthly_profit_target_stop2_months'] == 'InpMonthlyProfitTargetStop2Months'
+    assert FLAT_MAP['shared_monthly_guard'] == 'InpSharedMonthlyGuard'
+    assert FLAT_MAP['shared_monthly_guard_key'] == 'InpSharedMonthlyGuardKey'
+    assert FLAT_MAP['shared_monthly_guard_debug'] == 'InpSharedMonthlyGuardDebug'
     assert FLAT_MAP['free_run_min_r'] == 'InpFreeRunMinR'
+    assert FLAT_MAP['entry_months'] == 'InpEntryMonths'
+    assert FLAT_MAP['high_balance_no_entry_months'] == 'InpHighBalanceNoEntryMonths'
+    assert FLAT_MAP['high_balance_no_entry_min_month_start_balance'] == 'InpHighBalanceNoEntryMinMonthStartBalance'
     assert FLAT_MAP['no_entry_hours'] == 'InpNoEntryHours'
     assert FLAT_MAP['no_buy_hours'] == 'InpNoBuyHours'
     assert FLAT_MAP['no_sell_hours'] == 'InpNoSellHours'
@@ -643,6 +779,20 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['low_risk_hour_mult'] == 'InpLowRiskHourMult'
     assert FLAT_MAP['high_risk_hours'] == 'InpHighRiskHours'
     assert FLAT_MAP['high_risk_hour_mult'] == 'InpHighRiskHourMult'
+    assert FLAT_MAP['context_filter1_months'] == 'InpContextFilter1Months'
+    assert FLAT_MAP['context_filter1_no_hours'] == 'InpContextFilter1NoHours'
+    assert FLAT_MAP['context_filter1_no_buy_hours'] == 'InpContextFilter1NoBuyHours'
+    assert FLAT_MAP['context_filter1_no_sell_hours'] == 'InpContextFilter1NoSellHours'
+    assert FLAT_MAP['context_filter1_min_month_start_balance'] == 'InpContextFilter1MinMonthStartBalance'
+    assert FLAT_MAP['context_filter1_max_month_start_balance'] == 'InpContextFilter1MaxMonthStartBalance'
+    assert FLAT_MAP['context_filter1_mult'] == 'InpContextFilter1Mult'
+    assert FLAT_MAP['context_filter4_months'] == 'InpContextFilter4Months'
+    assert FLAT_MAP['context_filter4_no_buy_hours'] == 'InpContextFilter4NoBuyHours'
+    assert FLAT_MAP['context_filter4_no_sell_hours'] == 'InpContextFilter4NoSellHours'
+    assert FLAT_MAP['context_filter4_min_month_start_balance'] == 'InpContextFilter4MinMonthStartBalance'
+    assert FLAT_MAP['context_filter4_mult'] == 'InpContextFilter4Mult'
+    assert FLAT_MAP['context_filter5_months'] == 'InpContextFilter5Months'
+    assert FLAT_MAP['context_filter5_no_hours'] == 'InpContextFilter5NoHours'
     assert FLAT_MAP['late_bounce_sec'] == 'InpLateBounceSec'
     assert FLAT_MAP['late_bounce_mult'] == 'InpLateBounceMult'
     assert FLAT_MAP['bounce_sweet_min_pct'] == 'InpBounceSweetMinPct'
@@ -655,12 +805,49 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['large_risk_mult'] == 'InpLargeRiskMult'
     assert FLAT_MAP['shallow_confirm_pos_min'] == 'InpShallowConfirmPosMin'
     assert FLAT_MAP['shallow_confirm_pos_mult'] == 'InpShallowConfirmPosMult'
+    assert FLAT_MAP['bad_cluster_min_balance'] == 'InpBadClusterMinBalance'
+    assert FLAT_MAP['bad_cluster_only_monthly_negative'] == 'InpBadClusterOnlyMonthlyNegative'
     assert FLAT_MAP['bad_cluster1_hours'] == 'InpBadCluster1Hours'
     assert FLAT_MAP['bad_cluster1_risk_min'] == 'InpBadCluster1RiskMin'
     assert FLAT_MAP['bad_cluster1_risk_max'] == 'InpBadCluster1RiskMax'
     assert FLAT_MAP['bad_cluster1_confirm_min'] == 'InpBadCluster1ConfirmMin'
     assert FLAT_MAP['bad_cluster1_confirm_max'] == 'InpBadCluster1ConfirmMax'
     assert FLAT_MAP['bad_cluster1_mult'] == 'InpBadCluster1Mult'
+    assert FLAT_MAP['bad_cluster1_signal'] == 'InpBadCluster1Signal'
+    assert FLAT_MAP['bad_cluster2_signal'] == 'InpBadCluster2Signal'
+    assert FLAT_MAP['bad_cluster3_signal'] == 'InpBadCluster3Signal'
+    assert FLAT_MAP['bad_cluster4_signal'] == 'InpBadCluster4Signal'
+    assert FLAT_MAP['bad_cluster5_hours'] == 'InpBadCluster5Hours'
+    assert FLAT_MAP['bad_cluster5_risk_min'] == 'InpBadCluster5RiskMin'
+    assert FLAT_MAP['bad_cluster5_risk_max'] == 'InpBadCluster5RiskMax'
+    assert FLAT_MAP['bad_cluster5_confirm_min'] == 'InpBadCluster5ConfirmMin'
+    assert FLAT_MAP['bad_cluster5_confirm_max'] == 'InpBadCluster5ConfirmMax'
+    assert FLAT_MAP['bad_cluster5_mult'] == 'InpBadCluster5Mult'
+    assert FLAT_MAP['bad_cluster5_signal'] == 'InpBadCluster5Signal'
+    assert FLAT_MAP['bad_cluster6_hours'] == 'InpBadCluster6Hours'
+    assert FLAT_MAP['bad_cluster6_risk_min'] == 'InpBadCluster6RiskMin'
+    assert FLAT_MAP['bad_cluster6_risk_max'] == 'InpBadCluster6RiskMax'
+    assert FLAT_MAP['bad_cluster6_confirm_min'] == 'InpBadCluster6ConfirmMin'
+    assert FLAT_MAP['bad_cluster6_confirm_max'] == 'InpBadCluster6ConfirmMax'
+    assert FLAT_MAP['bad_cluster6_mult'] == 'InpBadCluster6Mult'
+    assert FLAT_MAP['bad_cluster6_signal'] == 'InpBadCluster6Signal'
+    assert FLAT_MAP['bad_cluster_filtered_monthly_stop'] == 'InpBadClusterFilteredMonthlyStop'
+    assert FLAT_MAP['bad_cluster_filtered_stop_min_balance'] == 'InpBadClusterFilteredStopMinBalance'
+    assert FLAT_MAP['startup_bad_cluster_max_month_start_balance'] == 'InpStartupBadClusterMaxMonthStartBalance'
+    assert FLAT_MAP['startup_bad_cluster1_hours'] == 'InpStartupBadCluster1Hours'
+    assert FLAT_MAP['startup_bad_cluster1_risk_min'] == 'InpStartupBadCluster1RiskMin'
+    assert FLAT_MAP['startup_bad_cluster1_risk_max'] == 'InpStartupBadCluster1RiskMax'
+    assert FLAT_MAP['startup_bad_cluster1_confirm_min'] == 'InpStartupBadCluster1ConfirmMin'
+    assert FLAT_MAP['startup_bad_cluster1_confirm_max'] == 'InpStartupBadCluster1ConfirmMax'
+    assert FLAT_MAP['startup_bad_cluster1_mult'] == 'InpStartupBadCluster1Mult'
+    assert FLAT_MAP['startup_bad_cluster1_signal'] == 'InpStartupBadCluster1Signal'
+    assert FLAT_MAP['startup_bad_cluster4_hours'] == 'InpStartupBadCluster4Hours'
+    assert FLAT_MAP['startup_bad_cluster4_risk_min'] == 'InpStartupBadCluster4RiskMin'
+    assert FLAT_MAP['startup_bad_cluster4_risk_max'] == 'InpStartupBadCluster4RiskMax'
+    assert FLAT_MAP['startup_bad_cluster4_confirm_min'] == 'InpStartupBadCluster4ConfirmMin'
+    assert FLAT_MAP['startup_bad_cluster4_confirm_max'] == 'InpStartupBadCluster4ConfirmMax'
+    assert FLAT_MAP['startup_bad_cluster4_mult'] == 'InpStartupBadCluster4Mult'
+    assert FLAT_MAP['startup_bad_cluster4_signal'] == 'InpStartupBadCluster4Signal'
     assert FLAT_MAP['enable_htf_net_push_filter'] == 'InpEnableHTFNetPushFilter'
     assert FLAT_MAP['htf_net_push_tf'] == 'InpHTFNetPushTF'
     assert FLAT_MAP['htf_net_push_bars'] == 'InpHTFNetPushBars'
@@ -694,12 +881,59 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['close_retry_cooldown_sec'] == 'InpCloseRetryCooldownSec'
     assert FLAT_MAP['max_entries_per_ob'] == 'InpMaxEntriesPerOB'
     assert FLAT_MAP['ob_reentry_cooldown_min'] == 'InpOBReentryCooldownMin'
+    assert FLAT_MAP['reentry_pos_mult'] == 'InpReentryPosMult'
+    assert FLAT_MAP['continuation_pos_mult'] == 'InpContinuationPosMult'
     assert FLAT_MAP['filter_cont_age_min_bars'] == 'InpFilterContAgeMinBars'
     assert FLAT_MAP['filter_cont_age_max_bars'] == 'InpFilterContAgeMaxBars'
     assert FLAT_MAP['filter_cont_non_deep_only'] == 'InpFilterContNonDeepOnly'
     assert FLAT_MAP['filter_buy_no_h1_min_pos_mult'] == 'InpFilterBuyNoH1MinPosMult'
     assert FLAT_MAP['filter_buy_no_h1_max_pos_mult'] == 'InpFilterBuyNoH1MaxPosMult'
     assert FLAT_MAP['filter_buy_no_h1_pos_mult'] == 'InpFilterBuyNoH1PosMult'
+
+
+def test_context_filter_params_in_set():
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'context_filter1_months': '11',
+        'context_filter1_no_hours': '7,13',
+        'context_filter1_no_buy_hours': '20,21',
+        'context_filter1_no_sell_hours': '0,8',
+        'context_filter1_min_month_start_balance': 100000.0,
+        'context_filter1_max_month_start_balance': 25000.0,
+        'context_filter1_mult': 0.0,
+        'context_filter2_months': '3',
+        'context_filter2_no_sell_hours': '0,1,8',
+        'context_filter2_mult': 0.5,
+        'context_filter4_months': '10',
+        'context_filter4_no_buy_hours': '18,22',
+        'context_filter4_no_sell_hours': '0,1,8',
+        'context_filter4_min_month_start_balance': 50000.0,
+        'context_filter4_mult': 0.0,
+        'context_filter5_months': '12',
+        'context_filter5_no_hours': '4,5',
+        'context_filter5_max_month_start_balance': 2500.0,
+        'context_filter5_mult': 0.25,
+    })
+
+    assert 'InpContextFilter1Months=11' in content
+    assert 'InpContextFilter1NoHours=7,13' in content
+    assert 'InpContextFilter1NoBuyHours=20,21' in content
+    assert 'InpContextFilter1NoSellHours=0,8' in content
+    assert 'InpContextFilter1MinMonthStartBalance=100000.0' in content
+    assert 'InpContextFilter1MaxMonthStartBalance=25000.0' in content
+    assert 'InpContextFilter1Mult=0.0' in content
+    assert 'InpContextFilter2Months=3' in content
+    assert 'InpContextFilter2NoSellHours=0,1,8' in content
+    assert 'InpContextFilter2Mult=0.5' in content
+    assert 'InpContextFilter4Months=10' in content
+    assert 'InpContextFilter4NoBuyHours=18,22' in content
+    assert 'InpContextFilter4NoSellHours=0,1,8' in content
+    assert 'InpContextFilter4MinMonthStartBalance=50000.0' in content
+    assert 'InpContextFilter4Mult=0.0' in content
+    assert 'InpContextFilter5Months=12' in content
+    assert 'InpContextFilter5NoHours=4,5' in content
+    assert 'InpContextFilter5MaxMonthStartBalance=2500.0' in content
+    assert 'InpContextFilter5Mult=0.25' in content
     assert FLAT_MAP['ob_scan_depth'] == 'InpOBScanDepth'
     assert FLAT_MAP['magic_number'] == 'InpMagicNumber'
     assert FLAT_MAP['enable_entry_debug'] == 'InpEnableEntryDebug'
@@ -713,6 +947,9 @@ def test_execution_and_scan_params_in_set():
         'max_pos_mult': 8.0,
         'max_lot_size': 0.08,
         'free_run_min_r': 5.0,
+        'entry_months': '3',
+        'high_balance_no_entry_months': '5',
+        'high_balance_no_entry_min_month_start_balance': 5000.0,
         'no_entry_hours': '0,9,12',
         'no_buy_hours': '8,10',
         'no_sell_hours': '16,22',
@@ -722,6 +959,30 @@ def test_execution_and_scan_params_in_set():
         'high_risk_hour_mult': 2.0,
         'late_bounce_sec': 30,
         'late_bounce_mult': 0.4,
+        'sweep_early_bounce_sec_min': 1,
+        'sweep_early_bounce_sec_max': 5,
+        'sweep_early_bounce_mult': 0.35,
+        'sweep_early_bounce_hours': '0,9,20',
+        'sweep_context_months': '3',
+        'sweep_context_max_day': 2,
+        'sweep_context_min_month_start_balance': 100000.0,
+        'sweep_context_no_hours': '0,1,6,23',
+        'sweep_bad_age_min_bars': 20,
+        'sweep_bad_age_max_bars': 40,
+        'sweep_bad_age_mult': 0.35,
+        'low_balance_ob_bad_hours': '7,13,14',
+        'low_balance_ob_bad_months': '11',
+        'low_balance_ob_bad_max_month_start_balance': 2500.0,
+        'low_balance_ob_bad_hour_mult': 0.0,
+        'monthly_profit_target_stop_pct': 3.0,
+        'monthly_profit_target_stop_max_balance': 2500.0,
+        'monthly_profit_target_stop_months': '10,12',
+        'monthly_profit_target_stop2_pct': 3.0,
+        'monthly_profit_target_stop2_max_balance': 5000.0,
+        'monthly_profit_target_stop2_months': '9',
+        'shared_monthly_guard': True,
+        'shared_monthly_guard_key': 'demo_guard',
+        'shared_monthly_guard_debug': True,
         'bounce_sweet_min_pct': 0.26,
         'bounce_sweet_max_pct': 0.34,
         'outside_bounce_sweet_mult': 0.5,
@@ -742,6 +1003,8 @@ def test_execution_and_scan_params_in_set():
         'close_retry_cooldown_sec': 60,
         'max_entries_per_ob': 2,
         'ob_reentry_cooldown_min': 30,
+        'reentry_pos_mult': 0.20,
+        'continuation_pos_mult': 1.20,
         'filter_cont_age_min_bars': 40,
         'filter_cont_age_max_bars': 79,
         'filter_cont_non_deep_only': True,
@@ -761,6 +1024,9 @@ def test_execution_and_scan_params_in_set():
     assert 'InpMaxPosMult=8.0' in content
     assert 'InpMaxLotSize=0.08' in content
     assert 'InpFreeRunMinR=5.0' in content
+    assert 'InpEntryMonths=3' in content
+    assert 'InpHighBalanceNoEntryMonths=5' in content
+    assert 'InpHighBalanceNoEntryMinMonthStartBalance=5000.0' in content
     assert 'InpNoEntryHours=0,9,12' in content
     assert 'InpNoBuyHours=8,10' in content
     assert 'InpNoSellHours=16,22' in content
@@ -770,6 +1036,30 @@ def test_execution_and_scan_params_in_set():
     assert 'InpHighRiskHourMult=2.0' in content
     assert 'InpLateBounceSec=30' in content
     assert 'InpLateBounceMult=0.4' in content
+    assert 'InpSweepEarlyBounceSecMin=1' in content
+    assert 'InpSweepEarlyBounceSecMax=5' in content
+    assert 'InpSweepEarlyBounceMult=0.35' in content
+    assert 'InpSweepEarlyBounceHours=0,9,20' in content
+    assert 'InpSweepContextMonths=3' in content
+    assert 'InpSweepContextMaxDay=2' in content
+    assert 'InpSweepContextMinMonthStartBalance=100000.0' in content
+    assert 'InpSweepContextNoHours=0,1,6,23' in content
+    assert 'InpSweepBadAgeMinBars=20' in content
+    assert 'InpSweepBadAgeMaxBars=40' in content
+    assert 'InpSweepBadAgeMult=0.35' in content
+    assert 'InpLowBalanceOBBadHours=7,13,14' in content
+    assert 'InpLowBalanceOBBadMonths=11' in content
+    assert 'InpLowBalanceOBBadMaxMonthStartBalance=2500.0' in content
+    assert 'InpLowBalanceOBBadHourMult=0.0' in content
+    assert 'InpMonthlyProfitTargetStopPct=3.0' in content
+    assert 'InpMonthlyProfitTargetStopMaxBalance=2500.0' in content
+    assert 'InpMonthlyProfitTargetStopMonths=10,12' in content
+    assert 'InpMonthlyProfitTargetStop2Pct=3.0' in content
+    assert 'InpMonthlyProfitTargetStop2MaxBalance=5000.0' in content
+    assert 'InpMonthlyProfitTargetStop2Months=9' in content
+    assert 'InpSharedMonthlyGuard=true' in content
+    assert 'InpSharedMonthlyGuardKey=demo_guard' in content
+    assert 'InpSharedMonthlyGuardDebug=true' in content
     assert 'InpBounceSweetMinPct=0.26' in content
     assert 'InpBounceSweetMaxPct=0.34' in content
     assert 'InpOutsideBounceSweetMult=0.5' in content
@@ -790,6 +1080,8 @@ def test_execution_and_scan_params_in_set():
     assert 'InpCloseRetryCooldownSec=60' in content
     assert 'InpMaxEntriesPerOB=2' in content
     assert 'InpOBReentryCooldownMin=30' in content
+    assert 'InpReentryPosMult=0.2' in content
+    assert 'InpContinuationPosMult=1.2' in content
     assert 'InpFilterContAgeMinBars=40' in content
     assert 'InpFilterContAgeMaxBars=79' in content
     assert 'InpFilterContNonDeepOnly=true' in content
@@ -806,6 +1098,9 @@ def test_v11_layered_params_in_set():
     assert FLAT_MAP['layered_spacing_pct'] == 'InpLayeredSpacingPct'
     assert FLAT_MAP['layered_lot_mult'] == 'InpLayeredLotMult'
     assert FLAT_MAP['layered_avg_tp_r'] == 'InpLayeredAvgTP_R'
+    assert FLAT_MAP['micro_entry_count'] == 'InpMicroEntryCount'
+    assert FLAT_MAP['micro_entry_lot_mult'] == 'InpMicroEntryLotMult'
+    assert FLAT_MAP['micro_entry_max_lot_size'] == 'InpMicroEntryMaxLotSize'
 
     content = strategy_to_set('test', {
         'version': 'test',
@@ -813,11 +1108,17 @@ def test_v11_layered_params_in_set():
         'layered_spacing_pct': 0.33,
         'layered_lot_mult': 1.5,
         'layered_avg_tp_r': 0.0,
+        'micro_entry_count': 1,
+        'micro_entry_lot_mult': 0.03,
+        'micro_entry_max_lot_size': 0.01,
     })
     assert 'InpLayeredEntryCount=2' in content
     assert 'InpLayeredSpacingPct=0.33' in content
     assert 'InpLayeredLotMult=1.5' in content
     assert 'InpLayeredAvgTP_R=0.0' in content
+    assert 'InpMicroEntryCount=1' in content
+    assert 'InpMicroEntryLotMult=0.03' in content
+    assert 'InpMicroEntryMaxLotSize=0.01' in content
 
 
 def test_v98a_strategy_set():
@@ -965,6 +1266,82 @@ def test_read_agent_log_missing_file(capsys):
 
 # ── backtest_main ────────────────────────────────────────────────────
 
+def test_windows_runner_parse_agent_log_uses_offsets():
+    import importlib
+    from datetime import datetime
+
+    win_runner = importlib.import_module('mt5_backtest_win')
+    today = datetime.now().strftime('%Y%m%d')
+    old_segment = """BTCUSDm,M5: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 from 2025.01.01 00:00 to 2025.01.31 00:00 started
+deal #1 buy 0.01 BTCUSDm at 100000.0 sl: 99900.0
+deal #2 sell 0.01 BTCUSDm at 100100.0
+final balance 111.00
+100 ticks, 10 bars generated
+"""
+    new_segment = """BTCUSDm,M5: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 from 2025.02.01 00:00 to 2025.02.28 00:00 started
+deal #3 buy 0.01 BTCUSDm at 101000.0 sl: 100900.0
+deal #4 sell 0.01 BTCUSDm at 101300.0
+deal #5 buy 0.01 BTCUSDm at 101500.0 sl: 101400.0
+deal #6 sell 0.01 BTCUSDm at 101450.0
+final balance 222.00
+200 ticks, 20 bars generated
+"""
+    with tempfile.TemporaryDirectory() as tmp:
+        log_dir = Path(tmp)
+        log_path = log_dir / f'{today}.log'
+        log_path.write_text(old_segment, encoding='utf-16-le')
+        offsets = {log_path: log_path.stat().st_size}
+        with log_path.open('ab') as f:
+            f.write(new_segment.encode('utf-16-le'))
+
+        original_dirs = win_runner.TESTER_LOG_DIRS
+        try:
+            win_runner.TESTER_LOG_DIRS = [log_dir]
+            result = win_runner.parse_agent_log(
+                symbol='BTCUSDm',
+                date_from='2025.02.01',
+                date_to='2025.02.28',
+                log_offsets=offsets,
+            )
+        finally:
+            win_runner.TESTER_LOG_DIRS = original_dirs
+
+        assert result is not None
+        assert result['trades'] == 2
+        assert result['final_balance'] == 222.0
+
+
+def test_read_text_auto_tail_reads_utf16_tail():
+    prefix = 'old line\n' * 2000
+    suffix = 'BTCUSDm,M5: testing tail marker\nfinal balance 222.00\n'
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / 'large.log'
+        path.write_text(prefix + suffix, encoding='utf-16-le')
+
+        content = read_text_auto_tail(path, tail_mb=1)
+
+        assert 'testing tail marker' in content
+        assert 'final balance 222.00' in content
+
+
+def test_read_text_auto_tail_falls_back_after_memory_error(monkeypatch):
+    prefix = 'old line\n' * 2000
+    suffix = 'BTCUSDm,M5: fallback tail marker\nfinal balance 333.00\n'
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / 'large.log'
+        path.write_text(prefix + suffix, encoding='utf-16-le')
+
+        def raise_memory_error(_path):
+            raise MemoryError()
+
+        monkeypatch.setattr(backtest_digest, 'read_text_auto', raise_memory_error)
+
+        content = read_text_auto_tail(path)
+
+        assert 'fallback tail marker' in content
+        assert 'final balance 333.00' in content
+
+
 def test_backtest_main_parses_days(monkeypatch):
     called_with = {}
     fake_config = {
@@ -1019,6 +1396,34 @@ def test_backtest_main_parses_from_to(monkeypatch):
     assert called_with['days'] == 90
 
 
+def test_backtest_main_deposit_override(monkeypatch):
+    called_with = {}
+    fake_config = {
+        'defaults': {},
+        'symbols': {'crypto': ['BTCUSDm']},
+        'backtest_defaults': {'deposit': 200},
+        'mt5_account': {},
+        'v99j1': {'version': 'V99j1', 'deposit': 200},
+    }
+
+    def fake_run(strategy_names, symbols, date_from, date_to, days, config, timeout):
+        called_with['deposit'] = config['v99j1']['deposit']
+
+    monkeypatch.setattr('mt5_common.load_config', lambda: fake_config)
+    backtest_main(
+        'test',
+        fake_run,
+        args=[
+            '--strategy', 'v99j1',
+            '--symbol', 'BTCUSDm',
+            '--from', '2024.11.01',
+            '--to', '2024.11.30',
+            '--deposit', '507.58',
+        ],
+    )
+    assert called_with['deposit'] == 507.58
+
+
 def test_cli_parse_agent_log_prefers_matching_new_segment(monkeypatch, tmp_path):
     today = datetime(2026, 5, 21)
     log_path = tmp_path / '20260521.log'
@@ -1062,6 +1467,16 @@ def test_cli_build_report_path_includes_window_tokens():
     assert report_path.name == 'v11j2_20250521_20260521_20260521.txt'
 
 
+def test_win_cli_build_report_path_includes_window_tokens():
+    report_path = win_cli.build_report_path(
+        'v11j2',
+        '2024.11.01',
+        '2024.11.30',
+        now=datetime(2026, 5, 24),
+    )
+    assert report_path.name == 'v11j2_20241101_20241130_20260524.txt'
+
+
 # ── backtest digest ──────────────────────────────────────────────────
 
 SAMPLE_REPORT = """
@@ -1089,7 +1504,7 @@ CS\t0\t00:14:09.541\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:53:06   POSITION_GO
 CS\t0\t00:14:09.551\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 13:33:09   ENTRY_DIAG stage=entry_engine ticket=0 dir=1 hour=13 ob_age=4 touch=119 strength=3.81 ds=1.00 fresh=0 cont=1 h1=1 deep=1 htf=0 bounce_sec=0 bounce_ob=0.281 confirm_pos=-0.456 touch=70778.84 confirm=70751.04 risk_atr=1.74 spread_risk=0.051 pos_mult=13.50 score=4 entry=70737.04 sl=71013.26
 CS\t0\t00:14:09.551\tTrade\t2026.03.24 13:33:09   market buy 0.27 BTCUSDm sl: 71013.26 tp: 70588.60 (70737.04 / 70751.04)
 CS\t0\t00:14:09.551\tTrades\t2026.03.24 13:33:09   deal #4 buy 0.27 BTCUSDm at 70737.04 done (based on order #4)
-CS\t0\t00:14:09.551\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 13:33:09   开仓成功: WT V11-R10-Q6K B x13.5 ticket=4 price=70737.04 lot=0.27 bounce_sec=0 bounce_ob=0.281 confirm_pos=-0.456 touch=70778.84 confirm=70751.04
+CS\t0\t00:14:09.551\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 13:33:09   开仓成功: WT V11-R10-Q6K B SWP x13.5 ticket=4 price=70737.04 lot=0.27 bounce_sec=0 bounce_ob=0.281 confirm_pos=-0.456 touch=70778.84 confirm=70751.04
 CS\t0\t00:14:09.553\tTrade\t2026.03.24 13:38:42   stop loss triggered #4 buy 0.27 BTCUSDm 70737.04 sl: 71013.26 tp: 70588.60 [#5 sell 0.27 BTCUSDm at 70588.60]
 CS\t0\t00:14:09.553\tTrades\t2026.03.24 13:38:42   deal #5 sell 0.27 BTCUSDm at 70588.04 done (based on order #5)
 CS\t0\t00:14:09.553\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 13:38:42   POSITION_GONE_DIAG ticket=4 dir=1 entry=70737.04 sl_initial=71013.26 peak_r=0.52 raw_peak_r=0.52 dtp_peak_r=0.00 open_bar=739 last_sl= be=false trail=0 partial=false dtp_partial=false deep=true htf=false rev=false addon=false
@@ -1126,6 +1541,17 @@ def test_find_matching_log_segment_matches_balance():
     assert segment['meta']['symbol'] == 'BTCUSDm'
 
 
+def test_find_matching_log_segment_prefers_latest_equal_balance():
+    old_segment = SAMPLE_SEGMENT
+    new_segment = SAMPLE_SEGMENT.replace('V11-R10-Q6K', 'V11-R94-C2S2ML10')
+    content = old_segment + '\n' + new_segment
+
+    segment = find_matching_log_segment(content, 'BTCUSDm', '2026.03.22', '2026.05.21', 240.0)
+
+    assert segment is not None
+    assert any('V11-R94-C2S2ML10' in line for line in segment['lines'])
+
+
 def test_parse_agent_log_segment_details_extracts_trades():
     segment = split_agent_log_segments(SAMPLE_SEGMENT)[0]
     details = parse_agent_log_segment_details(segment['lines'], 'BTCUSDm')
@@ -1136,11 +1562,21 @@ def test_parse_agent_log_segment_details_extracts_trades():
     assert first['ticket'] == 2
     assert first['reason'] == 'TP'
     assert first['dir'] == 'sell'
+    assert first['signal_type'] == 'ob'
     assert round(first['r'], 3) > 0
     assert second['ticket'] == 4
     assert second['reason'] == 'SL'
     assert second['dir'] == 'buy'
+    assert second['signal_type'] == 'sweep'
     assert second['risk'] == abs(second['entry'] - second['initial_sl'])
+
+
+def test_signal_type_from_comment_parses_distinct_tags():
+    assert _signal_type_from_comment('WT V11 B x1.0') == 'ob'
+    assert _signal_type_from_comment('WT V11 B SWP x1.0') == 'sweep'
+    assert _signal_type_from_comment('WT V11 B LSWP SWP x1.0') == 'loose_sweep'
+    assert _signal_type_from_comment('WT V11 B RB x1.0') == 'range'
+    assert _signal_type_from_comment('WT V11 B HTFPB x1.0') == 'htf_pullback'
 
 
 def test_build_digest_data_combines_summary_and_details():
@@ -1195,6 +1631,7 @@ def test_write_trade_csv_exports_rows():
         csv_path = Path(tmp) / 'trades.csv'
         write_trade_csv(csv_path, digests)
         content = csv_path.read_text(encoding='utf-8')
-        assert 'ticket,time,date,hour,symbol,dir' in content
+        assert 'ticket,time,date,hour,symbol,dir,comment,signal_type' in content
         assert 'BTCUSDm' in content
+        assert 'sweep' in content
         assert '71224.77' in content

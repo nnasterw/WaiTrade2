@@ -285,6 +285,7 @@ void ConsolidateOBs(OBZone &zones[], int &zone_count)
          if(zones[i].direction != zones[j].direction) continue;
          if(zones[i].is_range_breakout || zones[j].is_range_breakout) continue;
          if(zones[i].is_liquidity_sweep || zones[j].is_liquidity_sweep) continue;
+         if(zones[i].is_htf_pullback || zones[j].is_htf_pullback) continue;
 
          bool overlap = (zones[i].low <= zones[j].high && zones[i].high >= zones[j].low);
          if(!overlap) continue;
@@ -479,15 +480,70 @@ void DetectRangeBreakouts(const MqlRates &rates[], int count, OBZone &zones[], i
    zone_count++;
 }
 
-void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count,
-                           const EAState &state, double atr, double spread)
+bool IsLooseSweepZoneForCapacity(const OBZone &zone)
+{
+   return zone.is_liquidity_sweep && zone.is_loose_sweep;
+}
+
+bool IsSupplementalZoneForCapacity(const OBZone &zone)
+{
+   return IsLooseSweepZoneForCapacity(zone) || zone.is_htf_pullback;
+}
+
+int CountLooseSweepZones(const OBZone &zones[], int zone_count)
+{
+   int count = 0;
+   for(int i = 0; i < zone_count; i++)
+   {
+      if(!zones[i].expired && IsLooseSweepZoneForCapacity(zones[i]))
+         count++;
+   }
+   return count;
+}
+
+void RemoveZoneAt(OBZone &zones[], int &zone_count, int index)
+{
+   for(int i = index; i < zone_count - 1; i++)
+      zones[i] = zones[i + 1];
+   zone_count--;
+}
+
+void PruneLooseSweepsForPrimaryCapacity(OBZone &zones[], int &zone_count)
+{
+   while(zone_count >= MAX_OB_ZONES)
+   {
+      int remove_idx = -1;
+      for(int i = 0; i < zone_count; i++)
+      {
+         if(IsSupplementalZoneForCapacity(zones[i]))
+         {
+            remove_idx = i;
+            break;
+         }
+      }
+      if(remove_idx < 0)
+         return;
+      RemoveZoneAt(zones, zone_count, remove_idx);
+   }
+}
+
+void DetectLiquiditySweepWithParams(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count,
+                           const EAState &state, double atr, double spread,
+                           int input_lookback, double max_range_atr,
+                           double min_range_spread_mult, double min_penetration_atr,
+                           double min_wick_pct, bool loose_sweep)
 {
    if(!InpEnableLiquiditySweep)
       return;
+   if(!loose_sweep)
+      PruneLooseSweepsForPrimaryCapacity(zones, zone_count);
    if(zone_count >= MAX_OB_ZONES)
       return;
+   if(loose_sweep && InpLooseSweepMaxActiveZones > 0 &&
+      CountLooseSweepZones(zones, zone_count) >= InpLooseSweepMaxActiveZones)
+      return;
 
-   int lookback = InpSweepLookbackBars;
+   int lookback = input_lookback;
    if(lookback < 3)
       lookback = 3;
 
@@ -513,13 +569,13 @@ void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], 
    double range_height = range_high - range_low;
    if(range_height <= 0)
       return;
-   if(InpSweepMaxRangeATR > 0 && range_height > atr * InpSweepMaxRangeATR)
+   if(max_range_atr > 0 && range_height > atr * max_range_atr)
       return;
-   if(InpSweepMinRangeSpreadMult > 0 && spread > 0 &&
-      range_height < spread * InpSweepMinRangeSpreadMult)
+   if(min_range_spread_mult > 0 && spread > 0 &&
+      range_height < spread * min_range_spread_mult)
       return;
 
-   double extra = atr * MathMax(0.0, InpSweepMinPenetrationATR);
+   double extra = atr * MathMax(0.0, min_penetration_atr);
    double body_high = MathMax(rates[sweep_idx].open, rates[sweep_idx].close);
    double body_low = MathMin(rates[sweep_idx].open, rates[sweep_idx].close);
    double candle_range = rates[sweep_idx].high - rates[sweep_idx].low;
@@ -538,7 +594,7 @@ void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], 
    {
       double lower_wick = body_low - rates[sweep_idx].low;
       wick_pct = lower_wick / candle_range * 100.0;
-      if(wick_pct < InpSweepMinWickPct)
+      if(wick_pct < min_wick_pct)
          return;
       direction = OB_BUY;
       zone_high = range_low;
@@ -548,7 +604,7 @@ void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], 
    {
       double upper_wick = rates[sweep_idx].high - body_high;
       wick_pct = upper_wick / candle_range * 100.0;
-      if(wick_pct < InpSweepMinWickPct)
+      if(wick_pct < min_wick_pct)
          return;
       direction = OB_SELL;
       zone_high = rates[sweep_idx].high;
@@ -597,10 +653,124 @@ void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], 
    zone.expired = false;
    zone.is_range_breakout = false;
    zone.is_liquidity_sweep = true;
+   zone.is_loose_sweep = loose_sweep;
    zone.range_height = range_height;
 
    zones[zone_count] = zone;
    zone_count++;
+}
+
+void DetectHTFPullbacks(OBZone &zones[], int &zone_count, const EAState &state, double spread)
+{
+   if(!InpEnableHTFPullback)
+      return;
+   if(zone_count >= MAX_OB_ZONES)
+      return;
+
+   int bars = MathMax(InpHTFPullbackBars, 1);
+   ENUM_TIMEFRAMES tf = MinutesToTF(InpHTFPullbackTF);
+   MqlRates htf[];
+   int copied = CopyRates(Symbol(), tf, 1, bars + InpATRPeriod + 1, htf);
+   if(copied < bars + InpATRPeriod + 1)
+      return;
+
+   double htf_atr = CalcATR(htf, copied, InpATRPeriod);
+   if(htf_atr <= 0)
+      return;
+
+   int first = copied - bars;
+   int last = copied - 1;
+   double net = htf[last].close - htf[first].open;
+   double net_atr = net / htf_atr;
+   int direction = 0;
+   if(net_atr >= InpHTFPullbackMinATR)
+      direction = OB_BUY;
+   else if(net_atr <= -InpHTFPullbackMinATR)
+      direction = OB_SELL;
+   else
+      return;
+
+   MqlDateTime dt;
+   TimeToStruct(htf[last].time, dt);
+   if(IsInNoOBWindow(dt.hour))
+      return;
+
+   double zone_height = htf_atr * InpHTFPullbackZoneATR;
+   double offset = htf_atr * InpHTFPullbackOffsetATR;
+   if(zone_height <= 0)
+      return;
+   if(spread > 0 && zone_height < spread * InpMinOBSpreadMult)
+      return;
+
+   double zone_high = 0.0;
+   double zone_low = 0.0;
+   if(direction == OB_BUY)
+   {
+      zone_high = htf[last].close - offset;
+      zone_low = zone_high - zone_height;
+   }
+   else
+   {
+      zone_low = htf[last].close + offset;
+      zone_high = zone_low + zone_height;
+   }
+   if(zone_high <= zone_low)
+      return;
+
+   for(int z = 0; z < zone_count; z++)
+   {
+      if(zones[z].expired) continue;
+      if(!zones[z].is_htf_pullback) continue;
+      if(zones[z].direction != direction) continue;
+      if(MathAbs(zones[z].high - zone_high) < htf_atr * 0.2 &&
+         MathAbs(zones[z].low - zone_low) < htf_atr * 0.2)
+         return;
+   }
+
+   OBZone zone = {};
+   zone.high = zone_high;
+   zone.low = zone_low;
+   zone.mid = (zone.high + zone.low) / 2.0;
+   zone.ob_top = zone.high;
+   zone.ob_bottom = zone.low;
+   zone.direction = direction;
+   zone.created = htf[last].time;
+   zone.created_bar = state.bar_count;
+   zone.touch_count = 0;
+   zone.first_touch = 0;
+   zone.last_touch = 0;
+   zone.strength = MathMin(5.0, 1.0 + MathAbs(net_atr));
+   zone.is_fresh = true;
+   zone.is_continuation = true;
+   zone.is_1h_aligned = false;
+   zone.ds_weight = 1.0;
+   zone.entry_count = 0;
+   zone.last_entry_time = 0;
+   zone.used = false;
+   zone.expired = false;
+   zone.is_range_breakout = false;
+   zone.is_liquidity_sweep = false;
+   zone.is_loose_sweep = false;
+   zone.is_htf_pullback = true;
+   zone.range_height = zone_height;
+
+   zones[zone_count] = zone;
+   zone_count++;
+}
+
+void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count,
+                           const EAState &state, double atr, double spread)
+{
+   DetectLiquiditySweepWithParams(rates, count, zones, zone_count, state, atr, spread,
+      InpSweepLookbackBars, InpSweepMaxRangeATR, InpSweepMinRangeSpreadMult,
+      InpSweepMinPenetrationATR, InpSweepMinWickPct, false);
+
+   if(!InpEnableLooseSweep)
+      return;
+
+   DetectLiquiditySweepWithParams(rates, count, zones, zone_count, state, atr, spread,
+      InpLooseSweepLookbackBars, InpLooseSweepMaxRangeATR, InpLooseSweepMinRangeSpreadMult,
+      InpLooseSweepMinPenetrationATR, InpLooseSweepMinWickPct, true);
 }
 
 void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count, const EAState &state)
@@ -618,6 +788,11 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
    double min_ob_range = spread * InpMinOBSpreadMult;
 
    DetectRangeBreakouts(rates, count, zones, zone_count, state, atr, spread);
+   if(InpHTFPullbackOnly)
+   {
+      DetectHTFPullbacks(zones, zone_count, state, spread);
+      return;
+   }
    DetectLiquiditySweeps(rates, count, zones, zone_count, state, atr, spread);
    if(InpLiquiditySweepOnly)
       return;
@@ -657,6 +832,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             for(int z = 0; z < zone_count; z++)
             {
                if(zones[z].expired) continue;
+               if(zones[z].is_htf_pullback) continue;
                if(zones[z].direction == OB_BUY &&
                   MathAbs(zones[z].high - rates[i].open) < atr * 0.1 &&
                   MathAbs(zones[z].low - rates[i].close) < atr * 0.1)
@@ -733,6 +909,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
             for(int z = 0; z < zone_count; z++)
             {
                if(zones[z].expired) continue;
+               if(zones[z].is_htf_pullback) continue;
                if(zones[z].direction == OB_SELL &&
                   MathAbs(zones[z].high - rates[i].close) < atr * 0.1 &&
                   MathAbs(zones[z].low - rates[i].open) < atr * 0.1)
@@ -786,6 +963,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       }
    }
 
+   // Non-HTFPullbackOnly mode uses an independent HTFPB lane in the EA,
+   // so supplemental zones cannot alter the primary OB/sweep path.
 }
 
 #endif

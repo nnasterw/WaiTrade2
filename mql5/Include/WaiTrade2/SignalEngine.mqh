@@ -10,10 +10,17 @@
 
 double CalcOBHeightTP(const OBZone &zone, double entry)
 {
-   if(InpOBHeightTPMult <= 0 || zone.is_range_breakout) return 0.0;
+   if(InpOBHeightTPMult <= 0 || zone.is_range_breakout || zone.is_htf_pullback) return 0.0;
    double ob_h = zone.high - zone.low;
    if(ob_h <= 0) return 0.0;
    return entry + zone.direction * ob_h * InpOBHeightTPMult;
+}
+
+double CalcHTFPullbackTP(const OBZone &zone, double entry)
+{
+   if(!zone.is_htf_pullback || InpHTFPullbackTPMult <= 0 || zone.range_height <= 0)
+      return 0.0;
+   return entry + zone.direction * zone.range_height * InpHTFPullbackTPMult;
 }
 
 double CalcLiquiditySweepTP(const OBZone &zone, double entry)
@@ -32,6 +39,13 @@ bool IsZoneTouched(const OBZone &zone, double bid, double ask)
       if(zone.direction == OB_BUY)
          return (bid >= zone.high);
       return (ask <= zone.low);
+   }
+
+   if(zone.is_htf_pullback)
+   {
+      if(zone.direction == OB_BUY)
+         return (bid <= zone.high);
+      return (ask >= zone.low);
    }
 
    if(zone.direction == OB_BUY)
@@ -85,7 +99,7 @@ bool PassMinRisk(double final_lot, double risk_price, string symbol)
    return (risk_usd >= InpMinAbsRiskUSD);
 }
 
-bool IsHourBlocked(string csv, int hour)
+bool IsCsvIntListed(string csv, int value)
 {
    if(StringLen(csv) == 0)
       return false;
@@ -100,12 +114,22 @@ bool IsHourBlocked(string csv, int hour)
       StringTrimRight(token);
       if(StringLen(token) == 0)
          continue;
-      int blocked_hour = (int)StringToInteger(token);
-      if(blocked_hour == hour)
+      int listed = (int)StringToInteger(token);
+      if(listed == value)
          return true;
    }
 
    return false;
+}
+
+bool IsHourBlocked(string csv, int hour)
+{
+   return IsCsvIntListed(csv, hour);
+}
+
+bool IsMonthAllowed(string csv, int month)
+{
+   return (StringLen(csv) == 0 || IsCsvIntListed(csv, month));
 }
 
 bool PassNoEntryHours(datetime now)
@@ -113,6 +137,8 @@ bool PassNoEntryHours(datetime now)
    MqlDateTime dt;
    TimeToStruct(now, dt);
 
+   if(!IsMonthAllowed(InpEntryMonths, dt.mon))
+      return false;
    return !IsHourBlocked(InpNoEntryHours, dt.hour);
 }
 
@@ -121,6 +147,8 @@ bool PassDirectionEntryHours(int direction, datetime now)
    MqlDateTime dt;
    TimeToStruct(now, dt);
 
+   if(!IsMonthAllowed(InpEntryMonths, dt.mon))
+      return false;
    if(IsHourBlocked(InpNoEntryHours, dt.hour))
       return false;
    if(direction == OB_BUY && IsHourBlocked(InpNoBuyHours, dt.hour))
@@ -227,8 +255,21 @@ double ApplyLotCap(double lot)
    return lot;
 }
 
+bool IsLooseSweepZone(const OBZone &zone)
+{
+   return zone.is_liquidity_sweep && zone.is_loose_sweep;
+}
+
 double ApplySignalTypeLotCap(const OBZone &zone, double lot)
 {
+   if(IsLooseSweepZone(zone))
+   {
+      if(InpLooseSweepMaxLotSize > 0 && lot > InpLooseSweepMaxLotSize)
+         return InpLooseSweepMaxLotSize;
+      return lot;
+   }
+   if(zone.is_htf_pullback && InpHTFPullbackMaxLotSize > 0 && lot > InpHTFPullbackMaxLotSize)
+      return InpHTFPullbackMaxLotSize;
    if(zone.is_liquidity_sweep && InpSweepMaxLotSize > 0 && lot > InpSweepMaxLotSize)
       return InpSweepMaxLotSize;
    if(zone.is_range_breakout && InpRangeBreakoutMaxLotSize > 0 && lot > InpRangeBreakoutMaxLotSize)
@@ -276,12 +317,103 @@ double ApplyHourPositionMultiplier(double pos_mult)
    return pos_mult;
 }
 
+double ApplyOneContextFilterPositionMultiplier(
+   string months,
+   string no_hours,
+   string no_buy_hours,
+   string no_sell_hours,
+   double min_month_start_balance,
+   double max_month_start_balance,
+   double mult,
+   int direction,
+   double pos_mult
+)
+{
+   if(mult == 1.0)
+      return pos_mult;
+   if(no_hours == "" && no_buy_hours == "" && no_sell_hours == "")
+      return pos_mult;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   if(!IsMonthAllowed(months, dt.mon))
+      return pos_mult;
+
+   if(min_month_start_balance > 0 || max_month_start_balance > 0)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance <= 0)
+         return pos_mult;
+      if(min_month_start_balance > 0 && g_monthly_start_balance < min_month_start_balance)
+         return pos_mult;
+      if(max_month_start_balance > 0 && g_monthly_start_balance > max_month_start_balance)
+         return pos_mult;
+   }
+
+   bool matched = IsHourBlocked(no_hours, dt.hour);
+   if(direction == OB_BUY && IsHourBlocked(no_buy_hours, dt.hour))
+      matched = true;
+   if(direction == OB_SELL && IsHourBlocked(no_sell_hours, dt.hour))
+      matched = true;
+   if(!matched)
+      return pos_mult;
+
+   if(mult <= 0)
+      return -1.0;
+   return pos_mult * mult;
+}
+
+double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
+{
+   pos_mult = ApplyOneContextFilterPositionMultiplier(
+      InpContextFilter1Months, InpContextFilter1NoHours,
+      InpContextFilter1NoBuyHours, InpContextFilter1NoSellHours,
+      InpContextFilter1MinMonthStartBalance, InpContextFilter1MaxMonthStartBalance,
+      InpContextFilter1Mult, direction, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   pos_mult = ApplyOneContextFilterPositionMultiplier(
+      InpContextFilter2Months, InpContextFilter2NoHours,
+      InpContextFilter2NoBuyHours, InpContextFilter2NoSellHours,
+      InpContextFilter2MinMonthStartBalance, InpContextFilter2MaxMonthStartBalance,
+      InpContextFilter2Mult, direction, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   pos_mult = ApplyOneContextFilterPositionMultiplier(
+      InpContextFilter3Months, InpContextFilter3NoHours,
+      InpContextFilter3NoBuyHours, InpContextFilter3NoSellHours,
+      InpContextFilter3MinMonthStartBalance, InpContextFilter3MaxMonthStartBalance,
+      InpContextFilter3Mult, direction, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   pos_mult = ApplyOneContextFilterPositionMultiplier(
+      InpContextFilter4Months, InpContextFilter4NoHours,
+      InpContextFilter4NoBuyHours, InpContextFilter4NoSellHours,
+      InpContextFilter4MinMonthStartBalance, InpContextFilter4MaxMonthStartBalance,
+      InpContextFilter4Mult, direction, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   return ApplyOneContextFilterPositionMultiplier(
+      InpContextFilter5Months, InpContextFilter5NoHours,
+      InpContextFilter5NoBuyHours, InpContextFilter5NoSellHours,
+      InpContextFilter5MinMonthStartBalance, InpContextFilter5MaxMonthStartBalance,
+      InpContextFilter5Mult, direction, pos_mult);
+}
+
 double ApplySignalTypePositionMultiplier(const OBZone &zone, double pos_mult)
 {
-   if(zone.is_liquidity_sweep)
+   if(IsLooseSweepZone(zone))
+      pos_mult *= InpLooseSweepPosMult;
+   else if(zone.is_liquidity_sweep)
       pos_mult *= InpSweepPosMult;
    if(zone.is_range_breakout)
       pos_mult *= InpRangeBreakoutPosMult;
+   if(zone.is_htf_pullback)
+      pos_mult *= InpHTFPullbackPosMult;
    return pos_mult;
 }
 
@@ -298,85 +430,402 @@ int g_monthly_risk_key = 0;
 double g_monthly_start_balance = 0.0;
 double g_monthly_peak_balance = 0.0;
 int g_monthly_entry_count = 0;
+bool g_monthly_entry_stopped = false;
+bool g_monthly_loss_stopped = false;
+bool g_monthly_profit_locked = false;
+
+bool UseSharedMonthlyGuard()
+{
+   return (InpSharedMonthlyGuard && StringLen(InpSharedMonthlyGuardKey) > 0);
+}
+
+void PrintSharedMonthlyDiag(string event_name)
+{
+   if(!InpSharedMonthlyGuardDebug || !UseSharedMonthlyGuard())
+      return;
+
+   Print("SHARED_GUARD event=", event_name,
+         " key=", InpSharedMonthlyGuardKey,
+         " version=", InpVersion,
+         " symbol=", _Symbol,
+         " month=", g_monthly_risk_key,
+         " start=", DoubleToString(g_monthly_start_balance, 2),
+         " peak=", DoubleToString(g_monthly_peak_balance, 2),
+         " count=", g_monthly_entry_count,
+         " entry_stopped=", g_monthly_entry_stopped ? 1 : 0,
+         " loss_stopped=", g_monthly_loss_stopped ? 1 : 0,
+         " profit_locked=", g_monthly_profit_locked ? 1 : 0);
+}
+
+string SharedMonthlyPrefix(int key)
+{
+   return "WT2_MONTH_" + InpSharedMonthlyGuardKey + "_" + IntegerToString(key);
+}
+
+void SaveSharedMonthlyState()
+{
+   if(!UseSharedMonthlyGuard() || g_monthly_risk_key <= 0)
+      return;
+
+   string prefix = SharedMonthlyPrefix(g_monthly_risk_key);
+   GlobalVariableSet(prefix + "_start", g_monthly_start_balance);
+   GlobalVariableSet(prefix + "_peak", g_monthly_peak_balance);
+   GlobalVariableSet(prefix + "_count", g_monthly_entry_count);
+   GlobalVariableSet(prefix + "_entry_stopped", g_monthly_entry_stopped ? 1.0 : 0.0);
+   GlobalVariableSet(prefix + "_loss_stopped", g_monthly_loss_stopped ? 1.0 : 0.0);
+   GlobalVariableSet(prefix + "_profit_locked", g_monthly_profit_locked ? 1.0 : 0.0);
+}
+
+void LoadSharedMonthlyState(int key)
+{
+   string prefix = SharedMonthlyPrefix(key);
+   string start_key = prefix + "_start";
+
+   if(!GlobalVariableCheck(start_key))
+   {
+      g_monthly_risk_key = key;
+      g_monthly_start_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      g_monthly_peak_balance = g_monthly_start_balance;
+      g_monthly_entry_count = 0;
+      g_monthly_entry_stopped = false;
+      g_monthly_loss_stopped = false;
+      g_monthly_profit_locked = false;
+      SaveSharedMonthlyState();
+      PrintSharedMonthlyDiag("init");
+      return;
+   }
+
+   bool first_local_load = (key != g_monthly_risk_key);
+   g_monthly_risk_key = key;
+   g_monthly_start_balance = GlobalVariableGet(start_key);
+   g_monthly_peak_balance = GlobalVariableGet(prefix + "_peak");
+   g_monthly_entry_count = (int)GlobalVariableGet(prefix + "_count");
+   g_monthly_entry_stopped = (GlobalVariableGet(prefix + "_entry_stopped") > 0.5);
+   g_monthly_loss_stopped = (GlobalVariableGet(prefix + "_loss_stopped") > 0.5);
+   g_monthly_profit_locked = (GlobalVariableGet(prefix + "_profit_locked") > 0.5);
+   if(first_local_load)
+      PrintSharedMonthlyDiag("load");
+}
 
 void SyncMonthlyRiskState()
 {
    MqlDateTime dt;
    TimeToStruct(TimeCurrent(), dt);
    int key = dt.year * 100 + dt.mon;
+   if(UseSharedMonthlyGuard())
+   {
+      LoadSharedMonthlyState(key);
+      return;
+   }
    if(key != g_monthly_risk_key)
    {
       g_monthly_risk_key = key;
       g_monthly_start_balance = AccountInfoDouble(ACCOUNT_BALANCE);
       g_monthly_peak_balance = g_monthly_start_balance;
       g_monthly_entry_count = 0;
+      g_monthly_entry_stopped = false;
+      g_monthly_loss_stopped = false;
+      g_monthly_profit_locked = false;
    }
 }
 
 void UpdateMonthlyPeakBalance(double balance)
 {
    if(balance > g_monthly_peak_balance)
+   {
       g_monthly_peak_balance = balance;
+      SaveSharedMonthlyState();
+   }
 }
 
 void RecordMonthlyEntry()
 {
    SyncMonthlyRiskState();
    g_monthly_entry_count++;
+   SaveSharedMonthlyState();
+   PrintSharedMonthlyDiag("entry");
+}
+
+bool CheckMonthlyLossStop(bool lock_stop)
+{
+   if(InpMonthlyLossStopPct <= 0)
+      return false;
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double risk_balance = MathMin(balance, equity);
+
+   SyncMonthlyRiskState();
+   UpdateMonthlyPeakBalance(balance);
+
+   bool loss_guard_enabled = (InpMonthlyGuardMinBalance <= 0 ||
+      g_monthly_peak_balance >= InpMonthlyGuardMinBalance);
+   if(!loss_guard_enabled || g_monthly_start_balance <= 0)
+      return false;
+
+   if(g_monthly_loss_stopped)
+      return true;
+
+   bool early_stop_check = (InpMonthlyEarlyLossStopTrades > 0 &&
+      (g_monthly_entry_count == InpMonthlyEarlyLossStopTrades ||
+       (InpMonthlyEarlyLossStopContinuous && g_monthly_entry_count >= InpMonthlyEarlyLossStopTrades)));
+   if(early_stop_check)
+   {
+      bool early_guard_enabled = (InpMonthlyEarlyLossStopMinBalance <= 0 ||
+         g_monthly_peak_balance >= InpMonthlyEarlyLossStopMinBalance);
+      if(early_guard_enabled)
+      {
+         double early_stop_balance = g_monthly_start_balance * (1.0 - InpMonthlyEarlyLossStopPct / 100.0);
+         if(risk_balance <= early_stop_balance)
+         {
+            if(lock_stop)
+            {
+               g_monthly_loss_stopped = true;
+               g_monthly_entry_stopped = true;
+               SaveSharedMonthlyState();
+               PrintSharedMonthlyDiag("early_loss_stop");
+            }
+            return true;
+         }
+      }
+   }
+
+   double stop_balance = g_monthly_start_balance * (1.0 - InpMonthlyLossStopPct / 100.0);
+   bool enough_trades = (InpMonthlyLossStopMinTrades <= 0 ||
+      g_monthly_entry_count >= InpMonthlyLossStopMinTrades);
+   if(enough_trades && risk_balance <= stop_balance)
+   {
+      if(lock_stop)
+      {
+         g_monthly_loss_stopped = true;
+         g_monthly_entry_stopped = true;
+         SaveSharedMonthlyState();
+         PrintSharedMonthlyDiag("loss_stop");
+      }
+      return true;
+   }
+
+   return false;
+}
+
+bool IsMonthlyProfitLockEnabled()
+{
+   return (InpMonthlyProfitLockStartPct > 0 &&
+      InpMonthlyProfitLockKeepPct > 0 &&
+      (InpMonthlyProfitLockMinBalance <= 0 ||
+         g_monthly_peak_balance >= InpMonthlyProfitLockMinBalance));
+}
+
+bool IsMonthlyProfitTargetStopSlotEnabled(
+   double pct,
+   double min_balance,
+   double max_balance,
+   string months
+)
+{
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   return (pct > 0 &&
+      IsMonthAllowed(months, dt.mon) &&
+      (min_balance <= 0 || g_monthly_start_balance >= min_balance) &&
+      (max_balance <= 0 || g_monthly_start_balance <= max_balance));
+}
+
+bool IsMonthlyProfitTargetStopEnabled()
+{
+   return (
+      IsMonthlyProfitTargetStopSlotEnabled(
+         InpMonthlyProfitTargetStopPct,
+         InpMonthlyProfitTargetStopMinBalance,
+         InpMonthlyProfitTargetStopMaxBalance,
+         InpMonthlyProfitTargetStopMonths
+      ) ||
+      IsMonthlyProfitTargetStopSlotEnabled(
+         InpMonthlyProfitTargetStop2Pct,
+         InpMonthlyProfitTargetStop2MinBalance,
+         InpMonthlyProfitTargetStop2MaxBalance,
+         InpMonthlyProfitTargetStop2Months
+      )
+   );
+}
+
+double MonthlyProfitTargetStopPct()
+{
+   if(IsMonthlyProfitTargetStopSlotEnabled(
+      InpMonthlyProfitTargetStopPct,
+      InpMonthlyProfitTargetStopMinBalance,
+      InpMonthlyProfitTargetStopMaxBalance,
+      InpMonthlyProfitTargetStopMonths
+   ))
+      return InpMonthlyProfitTargetStopPct;
+
+   if(IsMonthlyProfitTargetStopSlotEnabled(
+      InpMonthlyProfitTargetStop2Pct,
+      InpMonthlyProfitTargetStop2MinBalance,
+      InpMonthlyProfitTargetStop2MaxBalance,
+      InpMonthlyProfitTargetStop2Months
+   ))
+      return InpMonthlyProfitTargetStop2Pct;
+
+   return 0.0;
+}
+
+bool CheckMonthlyProfitTargetStop(bool lock_stop)
+{
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double risk_balance = MathMin(balance, equity);
+
+   SyncMonthlyRiskState();
+   UpdateMonthlyPeakBalance(balance);
+
+   double target_pct = MonthlyProfitTargetStopPct();
+   if(target_pct <= 0 || g_monthly_start_balance <= 0)
+      return false;
+
+   double target_profit = g_monthly_start_balance * target_pct / 100.0;
+   if(risk_balance - g_monthly_start_balance >= target_profit)
+   {
+      if(lock_stop)
+      {
+         g_monthly_profit_locked = true;
+         g_monthly_entry_stopped = true;
+         SaveSharedMonthlyState();
+         PrintSharedMonthlyDiag("profit_target_stop");
+      }
+      return true;
+   }
+
+   return false;
+}
+
+bool CheckMonthlyProfitLockStop(bool lock_stop)
+{
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double risk_balance = MathMin(balance, equity);
+
+   SyncMonthlyRiskState();
+   UpdateMonthlyPeakBalance(balance);
+
+   if(!IsMonthlyProfitLockEnabled())
+      return false;
+   if(g_monthly_start_balance <= 0)
+      return false;
+   if(g_monthly_profit_locked)
+      return true;
+
+   double peak_profit = g_monthly_peak_balance - g_monthly_start_balance;
+   double start_profit = g_monthly_start_balance * InpMonthlyProfitLockStartPct / 100.0;
+   if(peak_profit < start_profit)
+      return false;
+
+   double current_profit = risk_balance - g_monthly_start_balance;
+   double keep_profit = peak_profit * InpMonthlyProfitLockKeepPct / 100.0;
+   if(current_profit < keep_profit)
+   {
+      if(lock_stop)
+      {
+         g_monthly_profit_locked = true;
+         g_monthly_entry_stopped = true;
+         SaveSharedMonthlyState();
+         PrintSharedMonthlyDiag("profit_lock_stop");
+      }
+      return true;
+   }
+
+   return false;
 }
 
 bool PassMonthlyEntryGuard()
 {
    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-   bool loss_guard_enabled = (InpMonthlyLossStopPct > 0 &&
-      (InpMonthlyGuardMinBalance <= 0 || balance >= InpMonthlyGuardMinBalance));
-   bool profit_lock_enabled = (InpMonthlyProfitLockStartPct > 0 &&
-      InpMonthlyProfitLockKeepPct > 0 &&
-      (InpMonthlyProfitLockMinBalance <= 0 || balance >= InpMonthlyProfitLockMinBalance));
-
-   if(!loss_guard_enabled && !profit_lock_enabled)
-      return true;
-
    SyncMonthlyRiskState();
    UpdateMonthlyPeakBalance(balance);
-   if(g_monthly_start_balance <= 0)
-      return true;
 
-   if(loss_guard_enabled)
+   if(InpHighBalanceNoEntryMinMonthStartBalance > 0 &&
+      g_monthly_start_balance >= InpHighBalanceNoEntryMinMonthStartBalance)
    {
-      double stop_balance = g_monthly_start_balance * (1.0 - InpMonthlyLossStopPct / 100.0);
-      bool enough_trades = (InpMonthlyLossStopMinTrades <= 0 ||
-         g_monthly_entry_count >= InpMonthlyLossStopMinTrades);
-      if(enough_trades && balance <= stop_balance)
+      MqlDateTime dt;
+      TimeToStruct(TimeCurrent(), dt);
+      if(IsMonthAllowed(InpHighBalanceNoEntryMonths, dt.mon) &&
+         StringLen(InpHighBalanceNoEntryMonths) > 0)
          return false;
    }
 
-   if(profit_lock_enabled)
+   bool profit_lock_enabled = IsMonthlyProfitLockEnabled();
+   bool profit_target_enabled = IsMonthlyProfitTargetStopEnabled();
+
+   if(InpMonthlyLossStopPct <= 0 && !profit_lock_enabled && !profit_target_enabled)
+      return true;
+
+   if(g_monthly_start_balance <= 0)
+      return true;
+
+   if(g_monthly_entry_stopped)
    {
-      double peak_profit = g_monthly_peak_balance - g_monthly_start_balance;
-      double current_profit = balance - g_monthly_start_balance;
-      double start_profit = g_monthly_start_balance * InpMonthlyProfitLockStartPct / 100.0;
-      if(peak_profit >= start_profit)
+      static datetime s_last_shared_block_diag = 0;
+      if(TimeCurrent() - s_last_shared_block_diag >= 3600)
       {
-         double keep_profit = peak_profit * InpMonthlyProfitLockKeepPct / 100.0;
-         if(current_profit < keep_profit)
-            return false;
+         s_last_shared_block_diag = TimeCurrent();
+         PrintSharedMonthlyDiag("entry_blocked");
       }
+      return false;
    }
+
+   if(CheckMonthlyLossStop(true))
+      return false;
+
+   if(CheckMonthlyProfitTargetStop(true))
+      return false;
+
+   if(CheckMonthlyProfitLockStop(true))
+      return false;
 
    return true;
 }
 
+void LockMonthlyEntriesAfterFilteredBadCluster()
+{
+   if(!InpBadClusterFilteredMonthlyStop)
+      return;
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   SyncMonthlyRiskState();
+   UpdateMonthlyPeakBalance(balance);
+
+   if(InpBadClusterFilteredStopMinBalance > 0 &&
+      g_monthly_peak_balance < InpBadClusterFilteredStopMinBalance)
+      return;
+
+   g_monthly_loss_stopped = true;
+   g_monthly_entry_stopped = true;
+   SaveSharedMonthlyState();
+   PrintSharedMonthlyDiag("bad_cluster_stop");
+}
+
 double ApplyMonthlyPositionMultiplier(double pos_mult)
 {
-   if(InpMonthlyNegativePosMult == 1.0)
+   if(InpMonthlyNegativePosMult == 1.0 &&
+      (InpMonthlyWarmupProfitPct <= 0 || InpMonthlyWarmupPosMult == 1.0))
       return pos_mult;
    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-   if(InpMonthlyGuardMinBalance > 0 && balance < InpMonthlyGuardMinBalance)
-      return pos_mult;
    SyncMonthlyRiskState();
+   UpdateMonthlyPeakBalance(balance);
+   if(InpMonthlyGuardMinBalance > 0 && g_monthly_peak_balance < InpMonthlyGuardMinBalance)
+      return pos_mult;
    if(g_monthly_start_balance <= 0)
       return pos_mult;
+   if(InpMonthlyWarmupProfitPct > 0 && InpMonthlyWarmupPosMult != 1.0)
+   {
+      double required_profit = g_monthly_start_balance * InpMonthlyWarmupProfitPct / 100.0;
+      if(balance - g_monthly_start_balance < required_profit)
+      {
+         if(InpMonthlyWarmupPosMult <= 0)
+            return -1.0;
+         pos_mult *= InpMonthlyWarmupPosMult;
+      }
+   }
    if(balance < g_monthly_start_balance)
       pos_mult *= InpMonthlyNegativePosMult;
    return pos_mult;
@@ -422,6 +871,8 @@ double ApplyOneBadClusterPositionMultiplier(
    double confirm_min,
    double confirm_max,
    double mult,
+   string signal_filter,
+   const OBZone &zone,
    const TradeSignal &signal,
    double risk_price,
    double pos_mult
@@ -441,31 +892,319 @@ double ApplyOneBadClusterPositionMultiplier(
    if(signal.confirm_ob_pos < confirm_min || signal.confirm_ob_pos >= confirm_max)
       return pos_mult;
 
+   string filter = signal_filter;
+   StringToLower(filter);
+   if(filter != "" && filter != "all")
+   {
+      if(filter == "sweep" && !zone.is_liquidity_sweep)
+         return pos_mult;
+      if(filter == "range" && !zone.is_range_breakout)
+         return pos_mult;
+      if(filter == "htf_pullback" && !zone.is_htf_pullback)
+         return pos_mult;
+      if(filter == "htfpb" && !zone.is_htf_pullback)
+         return pos_mult;
+      if(filter == "ob" && (zone.is_liquidity_sweep || zone.is_range_breakout || zone.is_htf_pullback))
+         return pos_mult;
+   }
+
    if(mult <= 0)
       return -1.0;
    return pos_mult * mult;
 }
 
-double ApplyBadClusterPositionMultiplier(const TradeSignal &signal, double risk_price, double pos_mult)
+double ApplyBadClusterPositionMultiplier(const OBZone &zone, const TradeSignal &signal, double risk_price, double pos_mult)
 {
+   if(InpBadClusterMinBalance > 0 || InpBadClusterOnlyMonthlyNegative)
+   {
+      double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      if(InpBadClusterMinBalance > 0 && balance < InpBadClusterMinBalance)
+         return pos_mult;
+
+      if(InpBadClusterOnlyMonthlyNegative)
+      {
+         SyncMonthlyRiskState();
+         if(g_monthly_start_balance <= 0 || balance >= g_monthly_start_balance)
+            return pos_mult;
+      }
+   }
+
    pos_mult = ApplyOneBadClusterPositionMultiplier(
       InpBadCluster1Hours, InpBadCluster1RiskMin, InpBadCluster1RiskMax,
       InpBadCluster1ConfirmMin, InpBadCluster1ConfirmMax, InpBadCluster1Mult,
+      InpBadCluster1Signal, zone,
       signal, risk_price, pos_mult);
    if(pos_mult < 0)
+   {
+      LockMonthlyEntriesAfterFilteredBadCluster();
       return pos_mult;
+   }
 
    pos_mult = ApplyOneBadClusterPositionMultiplier(
       InpBadCluster2Hours, InpBadCluster2RiskMin, InpBadCluster2RiskMax,
       InpBadCluster2ConfirmMin, InpBadCluster2ConfirmMax, InpBadCluster2Mult,
+      InpBadCluster2Signal, zone,
+      signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+   {
+      LockMonthlyEntriesAfterFilteredBadCluster();
+      return pos_mult;
+   }
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpBadCluster3Hours, InpBadCluster3RiskMin, InpBadCluster3RiskMax,
+      InpBadCluster3ConfirmMin, InpBadCluster3ConfirmMax, InpBadCluster3Mult,
+      InpBadCluster3Signal, zone,
+      signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+   {
+      LockMonthlyEntriesAfterFilteredBadCluster();
+      return pos_mult;
+   }
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpBadCluster4Hours, InpBadCluster4RiskMin, InpBadCluster4RiskMax,
+      InpBadCluster4ConfirmMin, InpBadCluster4ConfirmMax, InpBadCluster4Mult,
+      InpBadCluster4Signal, zone,
+      signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+   {
+      LockMonthlyEntriesAfterFilteredBadCluster();
+      return pos_mult;
+   }
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpBadCluster5Hours, InpBadCluster5RiskMin, InpBadCluster5RiskMax,
+      InpBadCluster5ConfirmMin, InpBadCluster5ConfirmMax, InpBadCluster5Mult,
+      InpBadCluster5Signal, zone,
+      signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+   {
+      LockMonthlyEntriesAfterFilteredBadCluster();
+      return pos_mult;
+   }
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpBadCluster6Hours, InpBadCluster6RiskMin, InpBadCluster6RiskMax,
+      InpBadCluster6ConfirmMin, InpBadCluster6ConfirmMax, InpBadCluster6Mult,
+      InpBadCluster6Signal, zone,
+      signal, risk_price, pos_mult);
+    if(pos_mult < 0)
+       LockMonthlyEntriesAfterFilteredBadCluster();
+    return pos_mult;
+}
+
+double ApplyStartupBadClusterPositionMultiplier(const OBZone &zone, const TradeSignal &signal, double risk_price, double pos_mult)
+{
+   if(InpStartupBadClusterMaxMonthStartBalance <= 0)
+      return pos_mult;
+
+   SyncMonthlyRiskState();
+   if(g_monthly_start_balance <= 0 ||
+      g_monthly_start_balance > InpStartupBadClusterMaxMonthStartBalance)
+      return pos_mult;
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpStartupBadCluster1Hours, InpStartupBadCluster1RiskMin, InpStartupBadCluster1RiskMax,
+      InpStartupBadCluster1ConfirmMin, InpStartupBadCluster1ConfirmMax, InpStartupBadCluster1Mult,
+      InpStartupBadCluster1Signal, zone,
       signal, risk_price, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
 
-   return ApplyOneBadClusterPositionMultiplier(
-      InpBadCluster3Hours, InpBadCluster3RiskMin, InpBadCluster3RiskMax,
-      InpBadCluster3ConfirmMin, InpBadCluster3ConfirmMax, InpBadCluster3Mult,
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpStartupBadCluster2Hours, InpStartupBadCluster2RiskMin, InpStartupBadCluster2RiskMax,
+      InpStartupBadCluster2ConfirmMin, InpStartupBadCluster2ConfirmMax, InpStartupBadCluster2Mult,
+      InpStartupBadCluster2Signal, zone,
       signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpStartupBadCluster3Hours, InpStartupBadCluster3RiskMin, InpStartupBadCluster3RiskMax,
+      InpStartupBadCluster3ConfirmMin, InpStartupBadCluster3ConfirmMax, InpStartupBadCluster3Mult,
+      InpStartupBadCluster3Signal, zone,
+      signal, risk_price, pos_mult);
+   if(pos_mult < 0)
+      return pos_mult;
+
+   pos_mult = ApplyOneBadClusterPositionMultiplier(
+      InpStartupBadCluster4Hours, InpStartupBadCluster4RiskMin, InpStartupBadCluster4RiskMax,
+      InpStartupBadCluster4ConfirmMin, InpStartupBadCluster4ConfirmMax, InpStartupBadCluster4Mult,
+      InpStartupBadCluster4Signal, zone,
+      signal, risk_price, pos_mult);
+   return pos_mult;
+}
+
+double ApplySweepContextPositionMultiplier(const OBZone &zone, const EAState &state,
+                                           const TradeSignal &signal, double risk_price, double pos_mult)
+{
+   if(!zone.is_liquidity_sweep)
+      return pos_mult;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+
+   if(InpSweepAllowHours != "" && !IsHourBlocked(InpSweepAllowHours, dt.hour))
+      return -1.0;
+   if(IsHourBlocked(InpSweepNoHours, dt.hour))
+      return -1.0;
+
+   bool sweep_context_active = IsMonthAllowed(InpSweepContextMonths, dt.mon);
+   if(sweep_context_active && InpSweepContextMaxDay > 0 && dt.day > InpSweepContextMaxDay)
+      sweep_context_active = false;
+   if(sweep_context_active && InpSweepContextMinMonthStartBalance > 0)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance < InpSweepContextMinMonthStartBalance)
+         sweep_context_active = false;
+   }
+
+   if(sweep_context_active && IsHourBlocked(InpSweepContextNoHours, dt.hour))
+      return -1.0;
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   if(InpSweepMinBalance > 0 && balance < InpSweepMinBalance)
+      return -1.0;
+   if(InpSweepLowBalanceThreshold > 0 && balance < InpSweepLowBalanceThreshold &&
+      InpSweepLowBalanceMult != 1.0)
+   {
+      if(InpSweepLowBalanceMult <= 0)
+         return -1.0;
+      pos_mult *= InpSweepLowBalanceMult;
+   }
+   if(InpSweepMonthlyNegativeMult != 1.0)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance > 0 && balance < g_monthly_start_balance)
+      {
+         if(InpSweepMonthlyNegativeMult <= 0)
+            return -1.0;
+         pos_mult *= InpSweepMonthlyNegativeMult;
+      }
+   }
+   if(InpSweepMonthlyProfitStartPct > 0)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance > 0)
+      {
+         double required_profit = g_monthly_start_balance * InpSweepMonthlyProfitStartPct / 100.0;
+         if(balance - g_monthly_start_balance < required_profit)
+            return -1.0;
+      }
+   }
+
+   if(InpSweepEarlyBounceSecMax > InpSweepEarlyBounceSecMin &&
+      InpSweepEarlyBounceMult != 1.0 &&
+      signal.bounce_seconds >= InpSweepEarlyBounceSecMin &&
+      signal.bounce_seconds <= InpSweepEarlyBounceSecMax)
+   {
+      if(InpSweepEarlyBounceHours != "" && !IsHourBlocked(InpSweepEarlyBounceHours, dt.hour))
+         return pos_mult;
+      if(InpSweepEarlyBounceMult <= 0)
+         return -1.0;
+      pos_mult *= InpSweepEarlyBounceMult;
+   }
+
+   if(InpSweepBadRiskMax > InpSweepBadRiskMin &&
+      risk_price >= InpSweepBadRiskMin && risk_price < InpSweepBadRiskMax &&
+      InpSweepBadRiskMult != 1.0)
+   {
+      if(InpSweepBadRiskMult <= 0)
+         return -1.0;
+      pos_mult *= InpSweepBadRiskMult;
+   }
+
+   if(InpSweepBadAgeMaxBars > InpSweepBadAgeMinBars &&
+      InpSweepBadAgeMult != 1.0)
+   {
+      int age = state.bar_count - zone.created_bar;
+      if(age >= InpSweepBadAgeMinBars && age < InpSweepBadAgeMaxBars)
+      {
+         if(InpSweepBadAgeMult <= 0)
+            return -1.0;
+         pos_mult *= InpSweepBadAgeMult;
+      }
+   }
+
+   return pos_mult;
+}
+
+double ApplyHTFPullbackContextPositionMultiplier(const OBZone &zone, const TradeSignal &signal,
+                                                 double risk_price, double pos_mult)
+{
+   if(!zone.is_htf_pullback)
+      return pos_mult;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+
+   if(InpHTFPullbackAllowHours != "" && !IsHourBlocked(InpHTFPullbackAllowHours, dt.hour))
+      return -1.0;
+   if(IsHourBlocked(InpHTFPullbackNoHours, dt.hour))
+      return -1.0;
+
+   if(InpHTFPullbackRiskMax > InpHTFPullbackRiskMin &&
+      (risk_price < InpHTFPullbackRiskMin || risk_price >= InpHTFPullbackRiskMax))
+      return -1.0;
+
+   if(signal.confirm_ob_pos < InpHTFPullbackConfirmMin ||
+      signal.confirm_ob_pos >= InpHTFPullbackConfirmMax)
+      return -1.0;
+
+   if(InpHTFPullbackContextMult != 1.0)
+   {
+      if(InpHTFPullbackContextMult <= 0)
+         return -1.0;
+      pos_mult *= InpHTFPullbackContextMult;
+   }
+
+   return pos_mult;
+}
+
+double ApplyOBContextPositionMultiplier(const OBZone &zone, double pos_mult)
+{
+   if(zone.is_liquidity_sweep || zone.is_range_breakout || zone.is_htf_pullback)
+      return pos_mult;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+
+   if(InpOBPosMult != 1.0)
+   {
+      if(InpOBPosMultMinBalance > 0 && AccountInfoDouble(ACCOUNT_BALANCE) < InpOBPosMultMinBalance)
+         return pos_mult;
+      if(InpOBPosMult <= 0)
+         return -1.0;
+      pos_mult *= InpOBPosMult;
+   }
+
+   if(InpOBBadHours != "" && InpOBBadHourMult != 1.0 &&
+      IsHourBlocked(InpOBBadHours, dt.hour))
+   {
+      if(InpOBBadHourMult <= 0)
+         return -1.0;
+      pos_mult *= InpOBBadHourMult;
+   }
+
+   if(InpLowBalanceOBBadHours == "" || InpLowBalanceOBBadHourMult == 1.0 ||
+      InpLowBalanceOBBadMaxMonthStartBalance <= 0)
+      return pos_mult;
+
+   SyncMonthlyRiskState();
+   if(g_monthly_start_balance <= 0 ||
+      g_monthly_start_balance > InpLowBalanceOBBadMaxMonthStartBalance)
+      return pos_mult;
+
+   if(!IsMonthAllowed(InpLowBalanceOBBadMonths, dt.mon))
+      return pos_mult;
+
+   if(!IsHourBlocked(InpLowBalanceOBBadHours, dt.hour))
+      return pos_mult;
+
+   if(InpLowBalanceOBBadHourMult <= 0)
+      return -1.0;
+   return pos_mult * InpLowBalanceOBBadHourMult;
 }
 
 double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
@@ -506,6 +1245,24 @@ bool PassOBReentryCooldown(const OBZone &zone)
    if(InpOBReentryCooldownMin <= 0 || zone.last_entry_time == 0)
       return true;
    return (TimeCurrent() - zone.last_entry_time >= InpOBReentryCooldownMin * 60);
+}
+
+double ApplyReentryPositionMultiplier(const OBZone &zone, double pos_mult)
+{
+   if(zone.entry_count <= 0 || InpReentryPosMult == 1.0)
+      return pos_mult;
+   if(InpReentryPosMult <= 0)
+      return -1.0;
+   return pos_mult * InpReentryPosMult;
+}
+
+double ApplyContinuationPositionMultiplier(const OBZone &zone, double pos_mult)
+{
+   if(!zone.is_continuation || InpContinuationPosMult == 1.0)
+      return pos_mult;
+   if(InpContinuationPosMult <= 0)
+      return -1.0;
+   return pos_mult * InpContinuationPosMult;
 }
 
 bool PassContinuationAgeFilter(const OBZone &zone, const EAState &state, bool deep_entry)
@@ -556,19 +1313,31 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
                                TradeSignal &signal)
 {
    if(zone.expired || zone.used)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=expired/used");
       return false;
+   }
 
    if(!PassOBReentryCooldown(zone))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=cooldown");
       return false;
+   }
 
    if(!PassDirectionEntryHours(signal.direction, TimeCurrent()))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=entry_hours");
       return false;
+   }
 
    if(!PassMonthlyEntryGuard())
       return false;
 
    if(!PassEntryMomentumFilter(signal.direction))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=momentum");
       return false;
+   }
 
    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
@@ -577,34 +1346,54 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    double entry = (signal.direction == OB_BUY) ? ask : bid;
    double risk_price = MathAbs(entry - signal.sl);
    if(risk_price <= 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=risk_price_zero");
       return false;
+   }
 
    double confirm_entry = signal.entry;
    if(confirm_entry <= 0)
       confirm_entry = (signal.direction == OB_BUY) ? zone.high : zone.low;
    if(InpMaxEntryOffsetR > 0 && MathAbs(entry - confirm_entry) / risk_price > InpMaxEntryOffsetR)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=offset_r offset=", MathAbs(entry - confirm_entry) / risk_price, " max=", InpMaxEntryOffsetR);
       return false;
+   }
 
    if(!PassSpreadRatio(risk_price, spread))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=spread_ratio risk=", risk_price, " spread=", spread);
       return false;
+   }
 
    // EntryEngine确认后用真实可成交价重新过8-Gap，避免监控阶段和执行阶段口径漂移。
    double min_strength = GetDirectionMinStrength(signal.direction);
    if(min_strength > 0 && zone.strength < min_strength)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=min_strength strength=", zone.strength, " min=", min_strength);
       return false;
+   }
 
    if(InpMaxRiskATR > 0 && state.atr_value > 0 && risk_price > state.atr_value * InpMaxRiskATR)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=max_risk_atr risk=", risk_price, " max=", state.atr_value * InpMaxRiskATR);
       return false;
+   }
 
    if(InpMaxCounterRiskATR > 0 && state.atr_value > 0 &&
       zone.is_1h_aligned == false && risk_price > state.atr_value * InpMaxCounterRiskATR)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=counter_risk_atr risk=", risk_price, " max=", state.atr_value * InpMaxCounterRiskATR);
       return false;
+   }
 
    double pos_mult = signal.pos_mult;
    if(InpEnableScoring)
    {
       double proximity_distance = MathAbs(bid - entry);
       double tp_est = CalcLiquiditySweepTP(zone, entry);
+      if(tp_est == 0.0)
+         tp_est = CalcHTFPullbackTP(zone, entry);
       if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
@@ -617,10 +1406,16 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       int score = CalcSignalScore(zone, state, state.market_state,
                                   proximity_distance, risk_price, target_distance);
       if(InpMinScore > 0 && score < InpMinScore)
+      {
+         if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=score score=", score, " min=", InpMinScore);
          return false;
+      }
       pos_mult = ScoreToMultiplier(score);
       if(pos_mult < 0)
+      {
+         if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=pos_mult_neg score=", score);
          return false;
+      }
    }
    else
    {
@@ -631,8 +1426,15 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    pos_mult = ApplySignalTypePositionMultiplier(zone, pos_mult);
    pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
+   pos_mult = ApplyContextFilterPositionMultiplier(signal.direction, pos_mult);
    pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
-   pos_mult = ApplyBadClusterPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
+   pos_mult = ApplyStartupBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
+   pos_mult = ApplySweepContextPositionMultiplier(zone, state, signal, risk_price, pos_mult);
+   pos_mult = ApplyHTFPullbackContextPositionMultiplier(zone, signal, risk_price, pos_mult);
+   pos_mult = ApplyOBContextPositionMultiplier(zone, pos_mult);
+   pos_mult = ApplyReentryPositionMultiplier(zone, pos_mult);
+   pos_mult = ApplyContinuationPositionMultiplier(zone, pos_mult);
    if(pos_mult < 0)
       return false;
    pos_mult = ApplyHTFNetPushPositionMultiplier(signal.direction, pos_mult);
@@ -640,28 +1442,43 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, signal.deep_entry))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=continuation_age");
       return false;
+   }
    pos_mult = ApplyBuyNoH1PositionFilter(zone, signal.direction, pos_mult);
    if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=buy_no_h1 pos_mult=", pos_mult);
       return false;
+   }
 
    double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
    final_lot = ApplySignalTypeLotCap(zone, final_lot);
    final_lot = ApplyBalanceLotCap(final_lot);
    if(!PassMinRisk(final_lot, risk_price, symbol))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=min_risk lot=", final_lot, " risk=", risk_price);
       return false;
+   }
 
    double margin_required = 0;
    ENUM_ORDER_TYPE order_type = (signal.direction == OB_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
    if(!OrderCalcMargin(order_type, symbol, final_lot, entry, margin_required))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=margin_calc");
       return false;
+   }
 
    double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
    if(margin_required > free_margin)
    {
       if(free_margin <= 0)
+      {
+         if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=free_margin_zero");
          return false;
+      }
       final_lot = final_lot * (free_margin / margin_required) * 0.95;
       final_lot = ApplyLotCap(final_lot);
       final_lot = ApplySignalTypeLotCap(zone, final_lot);
@@ -672,17 +1489,29 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    double lot_max = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
    double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
    if(lot_step <= 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=lot_step_zero");
       return false;
+   }
 
    final_lot = MathFloor(final_lot / lot_step) * lot_step;
    if(final_lot < lot_min)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=lot_min final_lot=", final_lot, " min=", lot_min);
       return false;
+   }
    if(final_lot > lot_max)
       final_lot = lot_max;
 
    // v11: 入场时按状态决定TP模式
    double tp = 0.0;
-   if(zone.is_liquidity_sweep)
+   if(zone.is_htf_pullback)
+   {
+      tp = CalcHTFPullbackTP(zone, entry);
+      if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
+         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+   }
+   else if(zone.is_liquidity_sweep)
    {
       tp = CalcLiquiditySweepTP(zone, entry);
       if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
@@ -724,9 +1553,12 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
                                     : -1);
    signal.comment = "WT " + InpVersion + " " + (signal.direction > 0 ? "B" : "S") +
                     (zone.is_range_breakout ? " RB" : "") +
+                    (zone.is_htf_pullback ? " HTFPB" : "") +
+                    (IsLooseSweepZone(zone) ? " LSWP" : "") +
                     (zone.is_liquidity_sweep ? " SWP" : "") +
                     " x" + DoubleToString(pos_mult, 1);
 
+   if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " status=PASS lot=", final_lot, " entry=", entry, " sl=", signal.sl);
    return true;
 }
 
@@ -840,6 +1672,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       double proximity_distance = MathAbs(bid - entry);
       double tp_est = CalcLiquiditySweepTP(zone, entry);
       if(tp_est == 0.0)
+         tp_est = CalcHTFPullbackTP(zone, entry);
+      if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
          tp_est = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
@@ -860,16 +1694,24 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    {
       pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
    }
-   bool deep_entry = (InpEntryDepthPct > 0);
-   if(InpEntryDepthPct > 0 && InpDeepEntryBoost > 1.0)
+   double entry_depth_pct = GetEffectiveEntryDepthPct();
+   bool deep_entry = (entry_depth_pct > 0);
+   if(entry_depth_pct > 0 && InpDeepEntryBoost > 1.0)
       pos_mult *= InpDeepEntryBoost;
    pos_mult = ApplySignalTypePositionMultiplier(zone, pos_mult);
    signal.bounce_seconds = 0;
    signal.bounce_ob_pct = 0.0;
    pos_mult = ApplyDirectionPosMult(zone.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
+   pos_mult = ApplyContextFilterPositionMultiplier(zone.direction, pos_mult);
    pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
-   pos_mult = ApplyBadClusterPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
+   pos_mult = ApplyStartupBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
+   pos_mult = ApplySweepContextPositionMultiplier(zone, state, signal, risk_price, pos_mult);
+   pos_mult = ApplyHTFPullbackContextPositionMultiplier(zone, signal, risk_price, pos_mult);
+   pos_mult = ApplyOBContextPositionMultiplier(zone, pos_mult);
+   pos_mult = ApplyReentryPositionMultiplier(zone, pos_mult);
+   pos_mult = ApplyContinuationPositionMultiplier(zone, pos_mult);
    if(pos_mult < 0)
       return false;
    pos_mult = ApplyHTFNetPushPositionMultiplier(zone.direction, pos_mult);
@@ -919,7 +1761,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
 
    // v11: 入场时按状态决定TP模式（直接入场路径）
    double tp = 0.0;
-   if(zone.is_range_breakout && InpRangeBreakoutTPMult > 0 && zone.range_height > 0)
+   if(zone.is_htf_pullback && InpHTFPullbackTPMult > 0 && zone.range_height > 0)
+      tp = CalcHTFPullbackTP(zone, entry);
+   else if(zone.is_range_breakout && InpRangeBreakoutTPMult > 0 && zone.range_height > 0)
       tp = entry + zone.direction * zone.range_height * InpRangeBreakoutTPMult;
    else if(zone.is_liquidity_sweep)
    {
@@ -966,6 +1810,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    PrintEntryDebug("direct", zone, state, signal, entry, risk_price, spread, pos_mult, score);
    signal.comment = "WT " + InpVersion + " " + (zone.direction > 0 ? "B" : "S") +
                     (zone.is_range_breakout ? " RB" : "") +
+                    (zone.is_htf_pullback ? " HTFPB" : "") +
+                    (IsLooseSweepZone(zone) ? " LSWP" : "") +
                     (zone.is_liquidity_sweep ? " SWP" : "") +
                     " x" + DoubleToString(pos_mult, 1);
 

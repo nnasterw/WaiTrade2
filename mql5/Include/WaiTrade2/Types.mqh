@@ -31,7 +31,9 @@ struct OBZone
     bool     used;           // 是否已入场
     bool     expired;        // 是否已过期
     bool     is_range_breakout; // 是否为震荡区间突破信号
-    bool     is_liquidity_sweep; // 是否为流动性扫损反转信号
+    bool     is_liquidity_sweep; // 是否为流动性扫损反转信号
+    bool     is_loose_sweep; // loose sweep supplemental signal
+    bool     is_htf_pullback; // higher-timeframe net-push pullback signal
     double   range_height;    // 震荡区间高度，用于量度目标
     double   ob_top;          // OB检测原始顶部(实体边界)
     double   ob_bottom;       // OB检测原始底部(实体边界)
