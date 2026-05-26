@@ -26,6 +26,67 @@ apply_patch verification failed: Failed to find expected lines in scripts/yaml_t
 
 ---
 
+## [ERR-20260526-003] yaml_anchor_missing_v11b_xau_r7
+
+**Logged**: 2026-05-26T20:43:00+08:00
+**Priority**: high
+**Status**: fixed
+**Area**: strategy-config
+
+### Summary
+新增 `v11xau_start_r7_nov_guard` 时继承 `*v11b_xau_r7_m1_monthguard`，但父策略未声明同名 anchor，导致 YAML smoke test 和 `.set` 生成失败。
+
+### Error
+```
+yaml.composer.ComposerError: found undefined alias 'v11b_xau_r7_m1_monthguard'
+```
+
+### Context
+- 操作: 为 2024-11 首月 `$200 -> $300+` 缺口设计 R7 低余额小时过滤候选。
+- 修复: 将 `v11b_xau_r7_m1_monthguard:` 改为 `v11b_xau_r7_m1_monthguard: &v11b_xau_r7_m1_monthguard`。
+- 这是同类 anchor 漏写的重复错误，应在新增继承前先补父节点 anchor。
+
+### Suggested Fix
+在 `config/strategies.yaml` 写 `<<: *parent` 前，先 `rg -n "^parent:" config/strategies.yaml` 检查父节点是否是 `parent: &parent`；没有 anchor 就先补，再跑 YAML smoke test。
+
+### Metadata
+- Reproducible: yes
+- Related Files: config/strategies.yaml
+- See Also: ERR-20260526-001, ERR-20260526-002
+- Recurrence-Count: 5
+
+---
+
+## [ERR-20260526-002] yaml_anchor_missing_v11xau_start
+
+**Logged**: 2026-05-26T18:00:00+08:00
+**Priority**: medium
+**Status**: fixed
+**Area**: strategy-config
+
+### Summary
+新增 `v11xau_start_*` 实验策略时，子策略继承 `*v11xau_start_risk10_pt50`，但父策略未声明 anchor，导致 YAML 解析和 preset 生成失败。
+
+### Error
+```
+yaml.composer.ComposerError: found undefined alias 'v11xau_start_risk10_pt50'
+```
+
+### Context
+- 操作: 校验 `python3 scripts/yaml_to_set.py v11xau_start_risk10_pt50`。
+- 修复: 将父节点改为 `v11xau_start_risk10_pt50: &v11xau_start_risk10_pt50`。
+
+### Suggested Fix
+所有会被后续实验继承的策略，都必须在首次定义时同步加同名 YAML anchor。
+
+### Metadata
+- Reproducible: yes
+- Related Files: config/strategies.yaml
+- See Also: ERR-20260526-001
+- Recurrence-Note: 同一批实验中 `v11xau_start_fix050_pt50` 继承 `*v11xau_start_fix030_pt50` 也触发同类问题，已同步给 `fix030` 加 anchor；后续 `v11xau_start_f050_h1415` 又继承 `*v11xau_start_fix050_pt50`，因此 `fix050` 也补为 anchor。
+
+---
+
 ## [ERR-20260518-003] python_command_alias
 
 **Logged**: 2026-05-18T17:00:00+08:00
@@ -196,5 +257,36 @@ yaml.composer.ComposerError: found undefined alias 'v11b_xau_r26_m1_reentry_targ
 - Related Files: config/strategies.yaml
 - See Also: ERR-20260521-001
 - Recurrence-Count: 3
+
+---
+
+## [ERR-20260526-004] yaml_anchor_missing_v11xau_start_fage_monthgate
+
+**Logged**: 2026-05-26T19:58:00+08:00
+**Priority**: high
+**Status**: fixed
+**Area**: strategy-config
+
+### Summary
+新增 `v11xau_start_fage_mg26_fix020` / `fix050` 时继承 `*v11xau_start_fage_2026_monthgate`，但父策略未声明 anchor，导致 MT5 回测脚本加载 YAML 失败。
+
+### Error
+```
+yaml.composer.ComposerError: found undefined alias 'v11xau_start_fage_2026_monthgate'
+```
+
+### Context
+- 操作: 回测 `v11xau_start_fage_mg26_fix020,v11xau_start_fage_mg26_fix050` 的 2026.04.01~2026.05.01 首月窗口。
+- 原因: 重复违反“被子策略继承的父节点必须写成 `strategy: &strategy`”规则。
+- 修复: 将 `v11xau_start_fage_2026_monthgate:` 改为 `v11xau_start_fage_2026_monthgate: &v11xau_start_fage_2026_monthgate`。
+
+### Suggested Fix
+每次在 `config/strategies.yaml` 增加 `<<: *新父策略` 前，先搜索父策略定义是否带 `&同名anchor`；新增后立即跑 YAML smoke test 再开始 MT5 回测。
+
+### Metadata
+- Reproducible: yes
+- Related Files: config/strategies.yaml
+- See Also: ERR-20260526-001
+- Recurrence-Count: 4
 
 ---

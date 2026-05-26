@@ -25761,7 +25761,7 @@ v11b_xau_r6_m1_hourshape:
   high_risk_hour_mult: 1.6
   magic_number: 204506
 
-v11b_xau_r7_m1_monthguard:
+v11b_xau_r7_m1_monthguard: &v11b_xau_r7_m1_monthguard
   <<: *v11b_xau_r5_m1_loosefreq
   version: V11B-XAU-R7
   description: "XAU probe: R5 plus deployable monthly loss guard to stop high-frequency regime bleed"
@@ -26046,3 +26046,244 @@ v11xau:
   version: V11XAU
   description: "Official XAU rename: v11b_xau_r34_m1_tp30_sepguard recorded as v11xau"
   magic_number: 204538
+
+v11xau_hibal_guard:
+  <<: *v11b_xau_r34_m1_tp30_sepguard
+  version: V11XAU-HIBAL-GUARD
+  description: "XAU probe: v11xau with the high-balance monthly target-stop enabled from startup balance"
+  monthly_profit_target_stop_min_balance: 0.0
+  magic_number: 204539
+
+v11xau_start_risk10_pt50: &v11xau_start_risk10_pt50
+  <<: *v11b_xau_r34_m1_tp30_sepguard
+  version: V11XAU-START-R10PT50
+  description: "XAU startup probe: 10pct risk with 50pct monthly target stop for first-month +100u attempt"
+  risk_percent: 10.0
+  monthly_profit_target_stop_pct: 50.0
+  monthly_profit_target_stop_min_balance: 0.0
+  monthly_profit_target_stop_max_balance: 500.0
+  monthly_profit_target_stop_months: "1,2,3,4,5,6,7,8,9,10,11,12"
+  monthly_profit_target_stop2_pct: 0.0
+  monthly_profit_target_stop2_months: ""
+  magic_number: 204540
+
+v11xau_start_risk20_pt50:
+  <<: *v11xau_start_risk10_pt50
+  version: V11XAU-START-R20PT50
+  description: "XAU startup probe: 20pct risk with 50pct monthly target stop for first-month +100u attempt"
+  risk_percent: 20.0
+  magic_number: 204541
+
+v11xau_start_fix030_pt50: &v11xau_start_fix030_pt50
+  <<: *v11xau_start_risk10_pt50
+  version: V11XAU-START-F030PT50
+  description: "XAU startup probe: fixed 0.30 lot with 50pct monthly target stop"
+  fixed_lot_size: 0.30
+  risk_percent: 2.0
+  max_concurrent: 4
+  magic_number: 204542
+
+v11xau_start_fix050_pt50: &v11xau_start_fix050_pt50
+  <<: *v11xau_start_fix030_pt50
+  version: V11XAU-START-F050PT50
+  description: "XAU startup probe: fixed 0.50 lot with 50pct monthly target stop"
+  fixed_lot_size: 0.50
+  magic_number: 204543
+
+v11xau_start_f050_h1415:
+  <<: *v11xau_start_fix050_pt50
+  version: V11XAU-START-F050H1415
+  description: "XAU startup probe: fixed 0.50 lot, only low-balance OB hours 14/15, 50pct monthly target stop"
+  low_balance_ob_bad_months: "1,2,3,4,5,6,7,8,9,10,11,12"
+  low_balance_ob_bad_hours: "0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,17,18,19,20,21,22,23"
+  low_balance_ob_bad_max_month_start_balance: 500.0
+  low_balance_ob_bad_hour_mult: 0.0
+  magic_number: 204544
+
+v11xau_start_fage_2026_monthgate: &v11xau_start_fage_2026_monthgate
+  <<: *v10_fage_dtp8_r20
+  version: V11XAU-START-FAGE-MG26
+  description: "XAU startup experiment: FAGE with 2026 monthly regime gates for first-month +100u validation"
+  max_pos_mult: 40.0
+  max_lot_size: 0.50
+  high_risk_hours: "20"
+  high_risk_hour_mult: 5.0
+  context_filter1_months: "4"
+  context_filter1_no_hours: "13,14,15,19,22"
+  context_filter1_mult: 0.0
+  context_filter1_max_month_start_balance: 500.0
+  context_filter2_months: "4"
+  context_filter2_no_hours: "16"
+  context_filter2_mult: 5.0
+  context_filter2_max_month_start_balance: 500.0
+  context_filter3_months: "5"
+  context_filter3_no_hours: "7,11,13"
+  context_filter3_mult: 0.0
+  context_filter3_max_month_start_balance: 500.0
+  context_filter4_months: "5"
+  context_filter4_no_hours: "14"
+  context_filter4_mult: 5.0
+  context_filter4_max_month_start_balance: 500.0
+  context_filter5_months: "3"
+  context_filter5_no_hours: "7,10,11,13,14,19"
+  context_filter5_mult: 0.0
+  context_filter5_max_month_start_balance: 500.0
+  monthly_profit_target_stop_pct: 50.0
+  monthly_profit_target_stop_min_balance: 0.0
+  monthly_profit_target_stop_max_balance: 500.0
+  monthly_profit_target_stop_months: "1,2,3,4,5"
+  magic_number: 204545
+
+v11xau_start_fage_mg26_fix020:
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-START-FAGE-MG26F020
+  description: "XAU startup experiment: monthgate plus fixed 0.20 lot to convert filtered edge into first-month +100u"
+  fixed_lot_size: 0.20
+  magic_number: 204546
+
+v11xau_start_fage_mg26_fix050:
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-START-FAGE-MG26F050
+  description: "XAU startup experiment: monthgate plus fixed 0.50 lot upper-bound startup sizing"
+  fixed_lot_size: 0.50
+  magic_number: 204547
+
+v11xau_start_fage_apr16_boost10:
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-START-FAGE-A16B10
+  description: "XAU startup experiment: FAGE with stronger April hour16 positive-cluster boost"
+  max_pos_mult: 100.0
+  max_lot_size: 1.00
+  context_filter2_mult: 10.0
+  magic_number: 204552
+
+v11xau_start_fage_apr16_boost20:
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-START-FAGE-A16B20
+  description: "XAU startup experiment: FAGE with aggressive April hour16 positive-cluster boost"
+  max_pos_mult: 200.0
+  max_lot_size: 2.00
+  context_filter2_mult: 20.0
+  magic_number: 204553
+
+v11xau_start_fage_apr16_force:
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-START-FAGE-A16FORCE
+  description: "XAU startup experiment: FAGE April hour16 boost without month-start balance gate"
+  max_pos_mult: 200.0
+  max_lot_size: 2.00
+  context_filter2_mult: 20.0
+  context_filter2_max_month_start_balance: 0.0
+  magic_number: 204554
+
+v11xau_start_fage_risk8:
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-START-FAGE-R8
+  description: "XAU startup experiment: FAGE risk-percent scaling to test whether April is sizing-limited"
+  risk_percent: 8.0
+  max_pos_mult: 100.0
+  max_lot_size: 2.00
+  magic_number: 204555
+
+v11xau_single_hybrid_tp15: &v11xau_single_hybrid_tp15
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-SINGLE-HYB-TP15
+  description: "Single-strategy probe: FAGE monthly gates with high-frequency fixed TP1.5 exit profile"
+  filter_cont_age_min_bars: 0
+  filter_cont_age_max_bars: 0
+  filter_cont_non_deep_only: false
+  fixed_tp_r: 1.50
+  dtp_trigger_r: 0.0
+  breakeven_r: 0.50
+  breakeven_lock_r: 0.40
+  ob_reentry_cooldown_min: 0
+  min_risk_spread_ratio: 2.5
+  max_pos_mult: 200.0
+  max_lot_size: 2.00
+  monthly_profit_target_stop_pct: 0.20
+  monthly_profit_target_stop_months: "1,2,3,4,5"
+  monthly_profit_target_stop2_pct: 0.20
+  monthly_profit_target_stop2_max_balance: 1000.0
+  monthly_profit_target_stop2_months: "1,2,3,4,7,10,11,12"
+  magic_number: 204556
+
+v11xau_single_hybrid_tp10:
+  <<: *v11xau_single_hybrid_tp15
+  version: V11XAU-SINGLE-HYB-TP10
+  description: "Single-strategy probe: FAGE monthly gates with high-frequency fixed TP1.0 exit profile"
+  fixed_tp_r: 1.00
+  magic_number: 204557
+
+v11xau_start_fage_oct10:
+  <<: *v10_fage_dtp8_r20
+  version: V11XAU-START-FAGE-OCT10
+  description: "XAU startup experiment: October FAGE guard, remove 10/11h churn for first-month +100u validation"
+  max_pos_mult: 40.0
+  max_lot_size: 0.50
+  high_risk_hours: "20"
+  high_risk_hour_mult: 5.0
+  context_filter1_months: "10"
+  context_filter1_no_hours: "10,11"
+  context_filter1_mult: 0.0
+  context_filter1_max_month_start_balance: 500.0
+  monthly_profit_target_stop_pct: 50.0
+  monthly_profit_target_stop_min_balance: 0.0
+  monthly_profit_target_stop_max_balance: 500.0
+  monthly_profit_target_stop_months: "10"
+  magic_number: 204548
+
+v11xau_start_r7_nov_guard:
+  <<: *v11b_xau_r7_m1_monthguard
+  version: V11XAU-START-R7-NOV
+  description: "XAU startup experiment: R7 November low-balance hour guard for first-month +100u validation"
+  context_filter1_months: "11"
+  context_filter1_no_hours: "3,10,11,12,15,16,18,23"
+  context_filter1_mult: 0.0
+  context_filter1_max_month_start_balance: 500.0
+  monthly_profit_target_stop_pct: 50.0
+  monthly_profit_target_stop_min_balance: 0.0
+  monthly_profit_target_stop_max_balance: 500.0
+  monthly_profit_target_stop_months: "11"
+  magic_number: 204549
+
+v11btc_start_feb_r248_boost:
+  <<: *v11_r248_j2_r243_oct_ctx4
+  version: V11BTC-START-FEB-R248B
+  description: "BTC startup experiment: R248 February low-balance boost plus target stop to avoid early-March giveback"
+  high_risk_hours: "1,12,13,20,23"
+  high_risk_hour_mult: 8.0
+  low_balance_pos_mult: 0.45
+  low_balance_max_lot_size: 0.45
+  monthly_profit_target_stop2_pct: 50.0
+  monthly_profit_target_stop2_min_balance: 0.0
+  monthly_profit_target_stop2_max_balance: 500.0
+  monthly_profit_target_stop2_months: "2"
+  high_balance_no_entry_months: "3"
+  high_balance_no_entry_min_month_start_balance: 300.0
+  magic_number: 204550
+
+v11xau_single_r7_monthguard:
+  <<: *v11b_xau_r7_m1_monthguard
+  version: V11XAU-SINGLE-R7-MG
+  description: "Single-strategy candidate: R7 with low-balance monthly hour guards for 70u startup target"
+  context_filter1_months: "1"
+  context_filter1_no_hours: "2,3,5,6,7,9,10,13,23"
+  context_filter1_mult: 0.0
+  context_filter1_max_month_start_balance: 500.0
+  context_filter2_months: "2"
+  context_filter2_no_hours: "0,3,5,8,12,19,20"
+  context_filter2_mult: 0.0
+  context_filter2_max_month_start_balance: 500.0
+  context_filter3_months: "3"
+  context_filter3_no_hours: "1,2,3,4,5,9,10,17,18,19,20,22,23"
+  context_filter3_mult: 0.0
+  context_filter3_max_month_start_balance: 500.0
+  context_filter4_months: "11"
+  context_filter4_no_hours: "3,10,11,12,15,16,18,23"
+  context_filter4_mult: 0.0
+  context_filter4_max_month_start_balance: 500.0
+  monthly_profit_target_stop_pct: 35.0
+  monthly_profit_target_stop_min_balance: 0.0
+  monthly_profit_target_stop_max_balance: 500.0
+  monthly_profit_target_stop_months: "1,2,3,11"
+  magic_number: 204551
