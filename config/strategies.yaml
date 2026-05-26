@@ -25409,12 +25409,6 @@ v11btc:
   description: "Official BTC rename: v11b recorded as v11btc"
   magic_number: 204408
 
-v11btc-mix:
-  <<: *v11j2
-  version: V11BTC-MIX
-  description: "Official BTC mix rename: legacy v11a naming recorded as v11btc-mix"
-  magic_number: 203165
-
 # v11b cross-symbol probes: keep the v11b EA/signal family, but remove BTC-only
 # balance/hour/multiplier guards before applying symbol-specific scale.
 v11b_xau_r1_m3_scaled: &v11b_xau_r1_m3_scaled
