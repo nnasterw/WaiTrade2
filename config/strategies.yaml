@@ -26045,7 +26045,7 @@ v11b_xau_r31_m1_tp15: &v11b_xau_r31_m1_tp15
   fixed_tp_r: 1.50
   magic_number: 204535
 
-v11b_xau_r35_m1_tp15_nomonth:
+v11b_xau_r35_m1_tp15_nomonth: &v11b_xau_r35_m1_tp15_nomonth
   <<: *v11b_xau_r31_m1_tp15
   version: V11B-XAU-R35-NOMONTH
   description: "XAU probe: R31 without concrete month filters, testing whether the M1 high-frequency edge generalizes by regime"
@@ -26056,6 +26056,45 @@ v11b_xau_r35_m1_tp15_nomonth:
   monthly_profit_target_stop2_pct: 0.0
   monthly_profit_target_stop2_months: ""
   magic_number: 204545
+
+v11b_xau_r36_m1_tp15_htfpush_hard:
+  <<: *v11b_xau_r35_m1_tp15_nomonth
+  version: V11B-XAU-R36-HTFPUSH-HARD
+  description: "XAU probe: R35 plus hard H1 net-push regime filter; no month or price window"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.45
+  htf_net_push_aligned_mult: 1.0
+  htf_net_push_neutral_mult: 0.0
+  htf_net_push_counter_mult: 0.0
+  magic_number: 204560
+
+v11b_xau_r37_m1_tp15_htfpush_soft:
+  <<: *v11b_xau_r35_m1_tp15_nomonth
+  version: V11B-XAU-R37-HTFPUSH-SOFT
+  description: "XAU probe: R35 plus soft H1 net-push regime sizing; no month or price window"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 60
+  htf_net_push_bars: 3
+  htf_net_push_min_atr: 0.45
+  htf_net_push_aligned_mult: 1.20
+  htf_net_push_neutral_mult: 0.45
+  htf_net_push_counter_mult: 0.0
+  magic_number: 204561
+
+v11b_xau_r38_m1_tp15_h4push_hard:
+  <<: *v11b_xau_r35_m1_tp15_nomonth
+  version: V11B-XAU-R38-H4PUSH-HARD
+  description: "XAU probe: R35 plus hard H4 net-push regime filter; no month or price window"
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 240
+  htf_net_push_bars: 2
+  htf_net_push_min_atr: 0.45
+  htf_net_push_aligned_mult: 1.0
+  htf_net_push_neutral_mult: 0.0
+  htf_net_push_counter_mult: 0.0
+  magic_number: 204562
 
 v11b_xau_r32_m1_tp20: &v11b_xau_r32_m1_tp20
   <<: *v11b_xau_r26_m1_reentry_target_ext2

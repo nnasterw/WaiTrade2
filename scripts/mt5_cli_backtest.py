@@ -159,13 +159,15 @@ def patch_terminal_ini_dates(date_from_str, date_to_str):
     if not ini_path.exists():
         return
 
-    content = ini_path.read_bytes().decode('utf-16-le', errors='replace')
+    raw = ini_path.read_bytes()
+    encoding = 'utf-16-le' if raw[:1000].count(b'\x00') / max(min(len(raw), 1000), 1) > 0.05 else 'utf-8'
+    content = raw.decode(encoding, errors='replace')
 
     content = re_mod.sub(r'(DateFrom=)\d+', f'\\g<1>{ts_from}', content)
     content = re_mod.sub(r'(DateTo=)\d+', f'\\g<1>{ts_to}', content)
     content = re_mod.sub(r'(DateRange=)\d+', '\\g<1>3', content)
 
-    ini_path.write_bytes(content.encode('utf-16-le'))
+    ini_path.write_bytes(content.encode(encoding))
     print(f'  已更新terminal.ini日期: {date_from_str}~{date_to_str}')
 
 
@@ -280,17 +282,28 @@ def _read_utf16_log(path, offset=0):
         return raw.decode('utf-16-le', errors='ignore')
 
 
-def _parse_matching_result(content, symbol=None, date_from=None, date_to=None):
+def _expected_log_markers(strategy_cfg):
+    version = strategy_cfg.get('version') if isinstance(strategy_cfg, dict) else None
+    return [str(version)] if version else []
+
+
+def _parse_matching_result(content, symbol=None, date_from=None, date_to=None, expected_markers=None):
     if not content or not (symbol and date_from and date_to):
         return None
 
-    segment = find_matching_log_segment(content, symbol, date_from, date_to)
+    segment = find_matching_log_segment(
+        content,
+        symbol,
+        date_from,
+        date_to,
+        expected_markers=expected_markers,
+    )
     if segment is None:
         return None
     return parse_agent_log_content('\n'.join(segment['lines']))
 
 
-def parse_agent_log(symbol=None, date_from=None, date_to=None, log_offsets=None):
+def parse_agent_log(symbol=None, date_from=None, date_to=None, log_offsets=None, expected_markers=None):
     log_paths = get_tester_log_paths()
     existing = [p for p in log_paths if p.exists()]
 
@@ -306,19 +319,26 @@ def parse_agent_log(symbol=None, date_from=None, date_to=None, log_offsets=None)
             if use_offsets and log_offsets:
                 offset = log_offsets.get(log_path, 0)
             content = _read_utf16_log(log_path, offset=offset)
-            result = _parse_matching_result(content, symbol=symbol, date_from=date_from, date_to=date_to)
+            result = _parse_matching_result(
+                content,
+                symbol=symbol,
+                date_from=date_from,
+                date_to=date_to,
+                expected_markers=expected_markers,
+            )
             if result is not None:
                 return result
 
-    for use_offsets in (True, False):
-        for log_path in ordered_paths:
-            offset = 0
-            if use_offsets and log_offsets:
-                offset = log_offsets.get(log_path, 0)
-            content = _read_utf16_log(log_path, offset=offset)
-            result = parse_agent_log_content(content) if content else None
-            if result is not None:
-                return result
+    if not expected_markers:
+        for use_offsets in (True, False):
+            for log_path in ordered_paths:
+                offset = 0
+                if use_offsets and log_offsets:
+                    offset = log_offsets.get(log_path, 0)
+                content = _read_utf16_log(log_path, offset=offset)
+                result = parse_agent_log_content(content) if content else None
+                if result is not None:
+                    return result
 
     return None
 
@@ -333,6 +353,7 @@ def build_report_path(strategy_name, date_from, date_to, now=None):
 
 def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeout):
     strategy_cfg = config[strategy_name]
+    expected_markers = _expected_log_markers(strategy_cfg)
     defaults = config.get('backtest_defaults', {})
     deposit = strategy_cfg.get('deposit', defaults.get('deposit', 200))
     leverage = strategy_cfg.get('leverage', defaults.get('leverage', '2000'))
@@ -363,6 +384,7 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
                 date_from=date_from,
                 date_to=date_to,
                 log_offsets=log_offsets,
+                expected_markers=expected_markers,
             )
             stats = calc_stats(result, deposit, days)
             symbol_results[symbol] = stats

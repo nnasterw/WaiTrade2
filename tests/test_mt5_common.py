@@ -1566,6 +1566,60 @@ def test_cli_parse_agent_log_prefers_matching_new_segment(monkeypatch, tmp_path)
     assert result['final_balance'] == 150.0
 
 
+def test_cli_parse_agent_log_filters_expected_marker(monkeypatch, tmp_path):
+    log_path = tmp_path / '20260521.log'
+    old_segment = (
+        'CS\t0\t00:00:01\tTester\tBTCUSDm,M1: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 '
+        'from 2026.04.21 00:00 to 2026.05.21 00:00 started with inputs:\n'
+        'CS\t0\t00:00:01\tTester\t  InpVersion=V11-OLD\n'
+        'CS\t0\t00:00:02\tTrades\tdeal #1 buy 0.01 BTCUSDm at 70000.00 done\n'
+        'CS\t0\t00:00:03\tTrades\tdeal #2 sell 0.01 BTCUSDm at 70100.00 done\n'
+        'CS\t0\t00:00:04\tTester\tfinal balance 240.00\n'
+    )
+    new_segment = (
+        'CS\t0\t00:10:01\tTester\tBTCUSDm,M1: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 '
+        'from 2026.04.21 00:00 to 2026.05.21 00:00 started with inputs:\n'
+        'CS\t0\t00:10:01\tTester\t  InpVersion=V11-NEW\n'
+        'CS\t0\t00:10:02\tTrades\tdeal #10 buy 0.01 BTCUSDm at 71000.00 done\n'
+        'CS\t0\t00:10:03\tTrades\tdeal #11 sell 0.01 BTCUSDm at 70500.00 done\n'
+        'CS\t0\t00:10:04\tTrades\tdeal #12 buy 0.01 BTCUSDm at 70600.00 done\n'
+        'CS\t0\t00:10:05\tTrades\tdeal #13 sell 0.01 BTCUSDm at 70700.00 done\n'
+        'CS\t0\t00:10:06\tTester\tfinal balance 240.00\n'
+    )
+    log_path.write_text(old_segment + new_segment, encoding='utf-16-le')
+
+    monkeypatch.setattr(cli, 'get_tester_log_paths', lambda now=None: [log_path])
+    result = cli.parse_agent_log(
+        symbol='BTCUSDm',
+        date_from='2026.04.21',
+        date_to='2026.05.21',
+        expected_markers=['V11-OLD'],
+    )
+
+    assert result is not None
+    assert result['trades'] == 1
+    assert result['final_balance'] == 240.0
+
+
+def test_cli_patch_terminal_ini_dates_handles_utf8(monkeypatch, tmp_path):
+    mt5_root = tmp_path / 'mt5'
+    config_dir = mt5_root / 'config'
+    config_dir.mkdir(parents=True)
+    ini_path = config_dir / 'terminal.ini'
+    ini_path.write_text(
+        '[Tester]\nDateRange=2\nDateFrom=1767225600\nDateTo=1779753600\n',
+        encoding='utf-8',
+    )
+    monkeypatch.setattr(cli, 'MT5_MAIN', str(mt5_root))
+
+    cli.patch_terminal_ini_dates('2024.08.01', '2024.08.31')
+
+    content = ini_path.read_text(encoding='utf-8')
+    assert 'DateRange=3' in content
+    assert 'DateFrom=1722470400' in content
+    assert 'DateTo=1725062400' in content
+
+
 def test_cli_build_report_path_includes_window_tokens():
     report_path = cli.build_report_path(
         'v11j2',
