@@ -224,6 +224,8 @@ defaults: &defaults
   context_filter1_no_sell_hours: ""
   context_filter1_min_month_start_balance: 0.0
   context_filter1_max_month_start_balance: 0.0
+  context_filter1_min_price: 0.0
+  context_filter1_max_price: 0.0
   context_filter1_mult: 1.0
   context_filter2_months: ""
   context_filter2_no_hours: ""
@@ -231,6 +233,8 @@ defaults: &defaults
   context_filter2_no_sell_hours: ""
   context_filter2_min_month_start_balance: 0.0
   context_filter2_max_month_start_balance: 0.0
+  context_filter2_min_price: 0.0
+  context_filter2_max_price: 0.0
   context_filter2_mult: 1.0
   context_filter3_months: ""
   context_filter3_no_hours: ""
@@ -238,6 +242,8 @@ defaults: &defaults
   context_filter3_no_sell_hours: ""
   context_filter3_min_month_start_balance: 0.0
   context_filter3_max_month_start_balance: 0.0
+  context_filter3_min_price: 0.0
+  context_filter3_max_price: 0.0
   context_filter3_mult: 1.0
   context_filter4_months: ""
   context_filter4_no_hours: ""
@@ -245,6 +251,8 @@ defaults: &defaults
   context_filter4_no_sell_hours: ""
   context_filter4_min_month_start_balance: 0.0
   context_filter4_max_month_start_balance: 0.0
+  context_filter4_min_price: 0.0
+  context_filter4_max_price: 0.0
   context_filter4_mult: 1.0
   context_filter5_months: ""
   context_filter5_no_hours: ""
@@ -252,6 +260,8 @@ defaults: &defaults
   context_filter5_no_sell_hours: ""
   context_filter5_min_month_start_balance: 0.0
   context_filter5_max_month_start_balance: 0.0
+  context_filter5_min_price: 0.0
+  context_filter5_max_price: 0.0
   context_filter5_mult: 1.0
   late_bounce_sec: 0
   late_bounce_mult: 1.0
@@ -26387,10 +26397,36 @@ v11_single_selector: &v11_single_selector
   btc_dtp_post_partial_lock_r: 0.0
   btc_dtp_post_partial_retrace: 0.0
   btc_dtp_reset_peak_after_partial: false
-  enable_xau_fage_alt_profile: true
+  enable_xau_fage_alt_profile: false
   xau_fage_alt_profile_symbol: "XAU"
-  xau_fage_alt_profile_months: "10"
-  xau_alt_context_filter1_months: "10"
+  xau_fage_alt_profile_months: ""
+  xau_fage_alt_use_month_filter: false
+  xau_fage_alt_adaptive_start_day: 5
+  xau_fage_alt_adaptive_max_balance: 0.0
+  context_filter1_no_hours: ""
+  context_filter1_months: ""
+  context_filter1_mult: 1.0
+  context_filter1_max_month_start_balance: 0.0
+  context_filter2_no_hours: ""
+  context_filter2_months: ""
+  context_filter2_mult: 1.0
+  context_filter2_max_month_start_balance: 0.0
+  context_filter3_months: ""
+  context_filter3_no_hours: "7,11,13"
+  context_filter3_mult: 0.0
+  context_filter3_max_month_start_balance: 500.0
+  context_filter3_min_price: 3300.0
+  context_filter4_months: ""
+  context_filter4_no_hours: "14"
+  context_filter4_mult: 5.0
+  context_filter4_max_month_start_balance: 500.0
+  context_filter4_min_price: 3300.0
+  context_filter5_no_hours: ""
+  context_filter5_months: ""
+  context_filter5_mult: 1.0
+  context_filter5_max_month_start_balance: 0.0
+  monthly_profit_target_stop_months: ""
+  xau_alt_context_filter1_months: ""
   xau_alt_context_filter1_no_hours: "10,11"
   xau_alt_context_filter2_max_month_start_balance: 0.0
   xau_alt_context_filter2_months: ""
@@ -26408,7 +26444,7 @@ v11_single_selector: &v11_single_selector
   xau_alt_context_filter5_months: ""
   xau_alt_context_filter5_mult: 1.0
   xau_alt_context_filter5_no_hours: ""
-  xau_alt_monthly_profit_target_stop_months: "10"
+  xau_alt_monthly_profit_target_stop_months: ""
   magic_number: 204558
 
 v11_single_selector_btc_r1:

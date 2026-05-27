@@ -324,6 +324,8 @@ double ApplyOneContextFilterPositionMultiplier(
    string no_sell_hours,
    double min_month_start_balance,
    double max_month_start_balance,
+   double min_price,
+   double max_price,
    double mult,
    int direction,
    double pos_mult
@@ -350,6 +352,19 @@ double ApplyOneContextFilterPositionMultiplier(
          return pos_mult;
    }
 
+   if(min_price > 0 || max_price > 0)
+   {
+      double ref_price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+      if(ref_price <= 0)
+         ref_price = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
+      if(ref_price <= 0)
+         return pos_mult;
+      if(min_price > 0 && ref_price < min_price)
+         return pos_mult;
+      if(max_price > 0 && ref_price > max_price)
+         return pos_mult;
+   }
+
    bool matched = IsHourBlocked(no_hours, dt.hour);
    if(direction == OB_BUY && IsHourBlocked(no_buy_hours, dt.hour))
       matched = true;
@@ -372,6 +387,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter1Months(), CfgContextFilter1NoHours(),
       CfgContextFilter1NoBuyHours(), CfgContextFilter1NoSellHours(),
       CfgContextFilter1MinMonthStartBalance(), CfgContextFilter1MaxMonthStartBalance(),
+      CfgContextFilter1MinPrice(), CfgContextFilter1MaxPrice(),
       CfgContextFilter1Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
@@ -380,6 +396,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter2Months(), CfgContextFilter2NoHours(),
       CfgContextFilter2NoBuyHours(), CfgContextFilter2NoSellHours(),
       CfgContextFilter2MinMonthStartBalance(), CfgContextFilter2MaxMonthStartBalance(),
+      CfgContextFilter2MinPrice(), CfgContextFilter2MaxPrice(),
       CfgContextFilter2Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
@@ -388,6 +405,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter3Months(), CfgContextFilter3NoHours(),
       CfgContextFilter3NoBuyHours(), CfgContextFilter3NoSellHours(),
       CfgContextFilter3MinMonthStartBalance(), CfgContextFilter3MaxMonthStartBalance(),
+      CfgContextFilter3MinPrice(), CfgContextFilter3MaxPrice(),
       CfgContextFilter3Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
@@ -396,6 +414,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter4Months(), CfgContextFilter4NoHours(),
       CfgContextFilter4NoBuyHours(), CfgContextFilter4NoSellHours(),
       CfgContextFilter4MinMonthStartBalance(), CfgContextFilter4MaxMonthStartBalance(),
+      CfgContextFilter4MinPrice(), CfgContextFilter4MaxPrice(),
       CfgContextFilter4Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
@@ -404,6 +423,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter5Months(), CfgContextFilter5NoHours(),
       CfgContextFilter5NoBuyHours(), CfgContextFilter5NoSellHours(),
       CfgContextFilter5MinMonthStartBalance(), CfgContextFilter5MaxMonthStartBalance(),
+      CfgContextFilter5MinPrice(), CfgContextFilter5MaxPrice(),
       CfgContextFilter5Mult(), direction, pos_mult);
 }
 

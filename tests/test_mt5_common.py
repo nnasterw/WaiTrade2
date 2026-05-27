@@ -367,6 +367,9 @@ def test_strategy_to_set_v11_btc_profile_extended_params():
 def test_v11_xau_fage_alt_profile_params_in_flat_map():
     assert FLAT_MAP['enable_xau_fage_alt_profile'] == 'InpEnableXAUFageAltProfile'
     assert FLAT_MAP['xau_fage_alt_profile_months'] == 'InpXAUFageAltProfileMonths'
+    assert FLAT_MAP['xau_fage_alt_use_month_filter'] == 'InpXAUFageAltUseMonthFilter'
+    assert FLAT_MAP['xau_fage_alt_adaptive_start_day'] == 'InpXAUFageAltAdaptiveStartDay'
+    assert FLAT_MAP['xau_fage_alt_adaptive_max_balance'] == 'InpXAUFageAltAdaptiveMaxBalance'
     assert FLAT_MAP['xau_alt_context_filter1_months'] == 'InpXAUAltContextFilter1Months'
     assert FLAT_MAP['xau_alt_context_filter5_no_hours'] == 'InpXAUAltContextFilter5NoHours'
     assert FLAT_MAP['xau_alt_monthly_profit_target_stop_months'] == 'InpXAUAltMonthlyProfitTargetStopMonths'
@@ -377,12 +380,18 @@ def test_strategy_to_set_v11_xau_fage_alt_profile_params():
         'version': 'V11',
         'enable_xau_fage_alt_profile': True,
         'xau_fage_alt_profile_months': '10',
+        'xau_fage_alt_use_month_filter': False,
+        'xau_fage_alt_adaptive_start_day': 5,
+        'xau_fage_alt_adaptive_max_balance': 230.0,
         'xau_alt_context_filter1_no_hours': '10,11',
         'xau_alt_monthly_profit_target_stop_months': '10',
     }
     content = strategy_to_set('v11', cfg)
     assert 'InpEnableXAUFageAltProfile=true' in content
     assert 'InpXAUFageAltProfileMonths=10' in content
+    assert 'InpXAUFageAltUseMonthFilter=false' in content
+    assert 'InpXAUFageAltAdaptiveStartDay=5' in content
+    assert 'InpXAUFageAltAdaptiveMaxBalance=230.0' in content
     assert 'InpXAUAltContextFilter1NoHours=10,11' in content
     assert 'InpXAUAltMonthlyProfitTargetStopMonths=10' in content
 
@@ -838,11 +847,14 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['context_filter1_no_sell_hours'] == 'InpContextFilter1NoSellHours'
     assert FLAT_MAP['context_filter1_min_month_start_balance'] == 'InpContextFilter1MinMonthStartBalance'
     assert FLAT_MAP['context_filter1_max_month_start_balance'] == 'InpContextFilter1MaxMonthStartBalance'
+    assert FLAT_MAP['context_filter1_min_price'] == 'InpContextFilter1MinPrice'
+    assert FLAT_MAP['context_filter1_max_price'] == 'InpContextFilter1MaxPrice'
     assert FLAT_MAP['context_filter1_mult'] == 'InpContextFilter1Mult'
     assert FLAT_MAP['context_filter4_months'] == 'InpContextFilter4Months'
     assert FLAT_MAP['context_filter4_no_buy_hours'] == 'InpContextFilter4NoBuyHours'
     assert FLAT_MAP['context_filter4_no_sell_hours'] == 'InpContextFilter4NoSellHours'
     assert FLAT_MAP['context_filter4_min_month_start_balance'] == 'InpContextFilter4MinMonthStartBalance'
+    assert FLAT_MAP['context_filter4_min_price'] == 'InpContextFilter4MinPrice'
     assert FLAT_MAP['context_filter4_mult'] == 'InpContextFilter4Mult'
     assert FLAT_MAP['context_filter5_months'] == 'InpContextFilter5Months'
     assert FLAT_MAP['context_filter5_no_hours'] == 'InpContextFilter5NoHours'
@@ -953,6 +965,8 @@ def test_context_filter_params_in_set():
         'context_filter1_no_sell_hours': '0,8',
         'context_filter1_min_month_start_balance': 100000.0,
         'context_filter1_max_month_start_balance': 25000.0,
+        'context_filter1_min_price': 3000.0,
+        'context_filter1_max_price': 4500.0,
         'context_filter1_mult': 0.0,
         'context_filter2_months': '3',
         'context_filter2_no_sell_hours': '0,1,8',
@@ -961,6 +975,7 @@ def test_context_filter_params_in_set():
         'context_filter4_no_buy_hours': '18,22',
         'context_filter4_no_sell_hours': '0,1,8',
         'context_filter4_min_month_start_balance': 50000.0,
+        'context_filter4_min_price': 3300.0,
         'context_filter4_mult': 0.0,
         'context_filter5_months': '12',
         'context_filter5_no_hours': '4,5',
@@ -974,6 +989,8 @@ def test_context_filter_params_in_set():
     assert 'InpContextFilter1NoSellHours=0,8' in content
     assert 'InpContextFilter1MinMonthStartBalance=100000.0' in content
     assert 'InpContextFilter1MaxMonthStartBalance=25000.0' in content
+    assert 'InpContextFilter1MinPrice=3000.0' in content
+    assert 'InpContextFilter1MaxPrice=4500.0' in content
     assert 'InpContextFilter1Mult=0.0' in content
     assert 'InpContextFilter2Months=3' in content
     assert 'InpContextFilter2NoSellHours=0,1,8' in content
@@ -982,6 +999,7 @@ def test_context_filter_params_in_set():
     assert 'InpContextFilter4NoBuyHours=18,22' in content
     assert 'InpContextFilter4NoSellHours=0,1,8' in content
     assert 'InpContextFilter4MinMonthStartBalance=50000.0' in content
+    assert 'InpContextFilter4MinPrice=3300.0' in content
     assert 'InpContextFilter4Mult=0.0' in content
     assert 'InpContextFilter5Months=12' in content
     assert 'InpContextFilter5NoHours=4,5' in content

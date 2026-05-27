@@ -313,10 +313,17 @@ yaml.composer.ComposerError: found undefined alias 'v11xau_start_fage_2026_month
 ### Suggested Fix
 每次在 `config/strategies.yaml` 增加 `<<: *新父策略` 前，先搜索父策略定义是否带 `&同名anchor`；新增后立即跑 YAML smoke test 再开始 MT5 回测。
 
+### 2026-05-27 Recurrence
+新增 `v11_single_selector_nomonth_d3_b260` / `d1_b260` 时再次遗漏父节点 anchor，烟测失败后修复为 `v11_single_selector_nomonth: &v11_single_selector_nomonth`。
+
+同日新增 `v11_single_selector_nomonth_lbhour_noalt` 时再次遗漏 `v11_single_selector_nomonth_lbhour` anchor，回测加载 YAML 失败后修复。
+
+同日新增 `v11_single_selector_nomonth_noalt_pt35` 时再次遗漏 `v11_single_selector_nomonth_noalt` anchor，回测加载 YAML 失败后修复。
+
 ### Metadata
 - Reproducible: yes
 - Related Files: config/strategies.yaml
 - See Also: ERR-20260526-001
-- Recurrence-Count: 4
+- Recurrence-Count: 7
 
 ---

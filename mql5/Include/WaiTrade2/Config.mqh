@@ -227,6 +227,8 @@ input string InpContextFilter1NoBuyHours = ""; // Context filter1 blocked buy ho
 input string InpContextFilter1NoSellHours = ""; // Context filter1 blocked sell hours CSV
 input double InpContextFilter1MinMonthStartBalance = 0.0; // Context filter1 month-start min balance
 input double InpContextFilter1MaxMonthStartBalance = 0.0; // Context filter1 month-start max balance
+input double InpContextFilter1MinPrice = 0.0; // Context filter1 min current price(0=不限)
+input double InpContextFilter1MaxPrice = 0.0; // Context filter1 max current price(0=不限)
 input double InpContextFilter1Mult = 1.0;     // Context filter1 position multiplier(<=0=filter)
 input string InpContextFilter2Months = "";   // Context filter2 months CSV(empty=all)
 input string InpContextFilter2NoHours = "";  // Context filter2 blocked hours CSV
@@ -234,6 +236,8 @@ input string InpContextFilter2NoBuyHours = ""; // Context filter2 blocked buy ho
 input string InpContextFilter2NoSellHours = ""; // Context filter2 blocked sell hours CSV
 input double InpContextFilter2MinMonthStartBalance = 0.0; // Context filter2 month-start min balance
 input double InpContextFilter2MaxMonthStartBalance = 0.0; // Context filter2 month-start max balance
+input double InpContextFilter2MinPrice = 0.0; // Context filter2 min current price(0=不限)
+input double InpContextFilter2MaxPrice = 0.0; // Context filter2 max current price(0=不限)
 input double InpContextFilter2Mult = 1.0;     // Context filter2 position multiplier(<=0=filter)
 input string InpContextFilter3Months = "";   // Context filter3 months CSV(empty=all)
 input string InpContextFilter3NoHours = "";  // Context filter3 blocked hours CSV
@@ -241,6 +245,8 @@ input string InpContextFilter3NoBuyHours = ""; // Context filter3 blocked buy ho
 input string InpContextFilter3NoSellHours = ""; // Context filter3 blocked sell hours CSV
 input double InpContextFilter3MinMonthStartBalance = 0.0; // Context filter3 month-start min balance
 input double InpContextFilter3MaxMonthStartBalance = 0.0; // Context filter3 month-start max balance
+input double InpContextFilter3MinPrice = 0.0; // Context filter3 min current price(0=不限)
+input double InpContextFilter3MaxPrice = 0.0; // Context filter3 max current price(0=不限)
 input double InpContextFilter3Mult = 1.0;     // Context filter3 position multiplier(<=0=filter)
 input string InpContextFilter4Months = "";   // Context filter4 months CSV(empty=all)
 input string InpContextFilter4NoHours = "";  // Context filter4 blocked hours CSV
@@ -248,6 +254,8 @@ input string InpContextFilter4NoBuyHours = ""; // Context filter4 blocked buy ho
 input string InpContextFilter4NoSellHours = ""; // Context filter4 blocked sell hours CSV
 input double InpContextFilter4MinMonthStartBalance = 0.0; // Context filter4 month-start min balance
 input double InpContextFilter4MaxMonthStartBalance = 0.0; // Context filter4 month-start max balance
+input double InpContextFilter4MinPrice = 0.0; // Context filter4 min current price(0=不限)
+input double InpContextFilter4MaxPrice = 0.0; // Context filter4 max current price(0=不限)
 input double InpContextFilter4Mult = 1.0;     // Context filter4 position multiplier(<=0=filter)
 input string InpContextFilter5Months = "";   // Context filter5 months CSV(empty=all)
 input string InpContextFilter5NoHours = "";  // Context filter5 blocked hours CSV
@@ -255,6 +263,8 @@ input string InpContextFilter5NoBuyHours = ""; // Context filter5 blocked buy ho
 input string InpContextFilter5NoSellHours = ""; // Context filter5 blocked sell hours CSV
 input double InpContextFilter5MinMonthStartBalance = 0.0; // Context filter5 month-start min balance
 input double InpContextFilter5MaxMonthStartBalance = 0.0; // Context filter5 month-start max balance
+input double InpContextFilter5MinPrice = 0.0; // Context filter5 min current price(0=不限)
+input double InpContextFilter5MaxPrice = 0.0; // Context filter5 max current price(0=不限)
 input double InpContextFilter5Mult = 1.0;     // Context filter5 position multiplier(<=0=filter)
 input int    InpLateBounceSec    = 0;        // Bounce确认超过N秒后降权(0=禁用)
 input double InpLateBounceMult   = 1.0;      // 晚确认仓位倍数
@@ -504,6 +514,9 @@ input bool   InpBTCDTPResetPeakAfterPartial = false; // BTC DTP分批后重置�
 input bool   InpEnableXAUFageAltProfile = false; // 启用XAU FAGE-alt覆盖
 input string InpXAUFageAltProfileSymbol = "XAU"; // 触发XAU alt profile的品种名片段
 input string InpXAUFageAltProfileMonths = "10"; // 触发XAU alt profile的月份
+input bool   InpXAUFageAltUseMonthFilter = false; // true=允许月份触发, false=仅自适应触发
+input int    InpXAUFageAltAdaptiveStartDay = 5; // 月内第N天后允许自适应触发
+input double InpXAUFageAltAdaptiveMaxBalance = 230.0; // 余额低于该值触发alt(0=禁用)
 input string InpXAUAltContextFilter1Months = "10";
 input string InpXAUAltContextFilter1NoHours = "10,11";
 input double InpXAUAltContextFilter2MaxMonthStartBalance = 0.0;
@@ -644,7 +657,15 @@ bool UseXAUFageAltProfile()
 
    MqlDateTime dt;
    TimeToStruct(TimeCurrent(), dt);
-   return CfgCsvIntListed(InpXAUFageAltProfileMonths, dt.mon);
+
+   bool month_trigger = (InpXAUFageAltUseMonthFilter &&
+      CfgCsvIntListed(InpXAUFageAltProfileMonths, dt.mon));
+   bool adaptive_trigger = (InpXAUFageAltAdaptiveStartDay > 0 &&
+      InpXAUFageAltAdaptiveMaxBalance > 0 &&
+      dt.day >= InpXAUFageAltAdaptiveStartDay &&
+      AccountInfoDouble(ACCOUNT_BALANCE) <= InpXAUFageAltAdaptiveMaxBalance);
+
+   return (month_trigger || adaptive_trigger);
 }
 
 double CfgBouncePct() { return UseBTCProfile() ? InpBTCBouncePct : InpBouncePct; }
@@ -746,6 +767,8 @@ string CfgContextFilter1NoBuyHours() { return InpContextFilter1NoBuyHours; }
 string CfgContextFilter1NoSellHours() { return InpContextFilter1NoSellHours; }
 double CfgContextFilter1MinMonthStartBalance() { return InpContextFilter1MinMonthStartBalance; }
 double CfgContextFilter1MaxMonthStartBalance() { return InpContextFilter1MaxMonthStartBalance; }
+double CfgContextFilter1MinPrice() { return InpContextFilter1MinPrice; }
+double CfgContextFilter1MaxPrice() { return InpContextFilter1MaxPrice; }
 double CfgContextFilter1Mult() { return InpContextFilter1Mult; }
 string CfgContextFilter2Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2Months : InpContextFilter2Months; }
 string CfgContextFilter2NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2NoHours : InpContextFilter2NoHours; }
@@ -753,6 +776,8 @@ string CfgContextFilter2NoBuyHours() { return InpContextFilter2NoBuyHours; }
 string CfgContextFilter2NoSellHours() { return InpContextFilter2NoSellHours; }
 double CfgContextFilter2MinMonthStartBalance() { return InpContextFilter2MinMonthStartBalance; }
 double CfgContextFilter2MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2MaxMonthStartBalance : InpContextFilter2MaxMonthStartBalance; }
+double CfgContextFilter2MinPrice() { return InpContextFilter2MinPrice; }
+double CfgContextFilter2MaxPrice() { return InpContextFilter2MaxPrice; }
 double CfgContextFilter2Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2Mult : InpContextFilter2Mult; }
 string CfgContextFilter3Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3Months : InpContextFilter3Months; }
 string CfgContextFilter3NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3NoHours : InpContextFilter3NoHours; }
@@ -760,6 +785,8 @@ string CfgContextFilter3NoBuyHours() { return InpContextFilter3NoBuyHours; }
 string CfgContextFilter3NoSellHours() { return InpContextFilter3NoSellHours; }
 double CfgContextFilter3MinMonthStartBalance() { return InpContextFilter3MinMonthStartBalance; }
 double CfgContextFilter3MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3MaxMonthStartBalance : InpContextFilter3MaxMonthStartBalance; }
+double CfgContextFilter3MinPrice() { return InpContextFilter3MinPrice; }
+double CfgContextFilter3MaxPrice() { return InpContextFilter3MaxPrice; }
 double CfgContextFilter3Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3Mult : InpContextFilter3Mult; }
 string CfgContextFilter4Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4Months : InpContextFilter4Months; }
 string CfgContextFilter4NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4NoHours : InpContextFilter4NoHours; }
@@ -767,6 +794,8 @@ string CfgContextFilter4NoBuyHours() { return InpContextFilter4NoBuyHours; }
 string CfgContextFilter4NoSellHours() { return InpContextFilter4NoSellHours; }
 double CfgContextFilter4MinMonthStartBalance() { return InpContextFilter4MinMonthStartBalance; }
 double CfgContextFilter4MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4MaxMonthStartBalance : InpContextFilter4MaxMonthStartBalance; }
+double CfgContextFilter4MinPrice() { return InpContextFilter4MinPrice; }
+double CfgContextFilter4MaxPrice() { return InpContextFilter4MaxPrice; }
 double CfgContextFilter4Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4Mult : InpContextFilter4Mult; }
 string CfgContextFilter5Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5Months : InpContextFilter5Months; }
 string CfgContextFilter5NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5NoHours : InpContextFilter5NoHours; }
@@ -774,6 +803,8 @@ string CfgContextFilter5NoBuyHours() { return InpContextFilter5NoBuyHours; }
 string CfgContextFilter5NoSellHours() { return InpContextFilter5NoSellHours; }
 double CfgContextFilter5MinMonthStartBalance() { return InpContextFilter5MinMonthStartBalance; }
 double CfgContextFilter5MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5MaxMonthStartBalance : InpContextFilter5MaxMonthStartBalance; }
+double CfgContextFilter5MinPrice() { return InpContextFilter5MinPrice; }
+double CfgContextFilter5MaxPrice() { return InpContextFilter5MaxPrice; }
 double CfgContextFilter5Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5Mult : InpContextFilter5Mult; }
 string CfgMonthlyProfitTargetStopMonths() { return UseXAUFageAltProfile() ? InpXAUAltMonthlyProfitTargetStopMonths : InpMonthlyProfitTargetStopMonths; }
 
