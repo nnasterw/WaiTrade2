@@ -2,4 +2,9 @@ __pycache__/
 *.pyc
 *.pyo
 .env
+# 自动生成的回测分析产物会让 git status 输出暴涨；精选证据需要入库时用 git add -f 指定。
+results/backtest/*.txt
+results/backtest/*.md
+results/backtest/*.trades.csv
 results/backtest/*.jsonl
+temp/*.log

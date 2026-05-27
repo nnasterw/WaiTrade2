@@ -1,5 +1,6 @@
 """低 token 输出接口测试。"""
 import sys
+import subprocess
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'scripts'))
@@ -202,3 +203,23 @@ def test_mt5_cli_brief_lines_are_one_per_symbol():
         'BRIEF strategy=demo symbol=XAUUSDm trades=18 daily=0.6 wr=61.1% pf=3.75 balance=$308.19 report=/tmp/demo.txt',
         'BRIEF strategy=demo symbol=BTCUSDm status=parse_failed report=/tmp/demo.txt',
     ]
+
+
+def test_generated_backtest_artifacts_are_gitignored():
+    root = Path(__file__).resolve().parent.parent
+    candidates = [
+        'results/backtest/generated_20250101_20250131_20990101.txt',
+        'results/backtest/generated_20250101_20250131_20990101.md',
+        'results/backtest/generated_20250101_20250131_20990101.trades.csv',
+        'temp/generated_backtest.log',
+    ]
+
+    result = subprocess.run(
+        ['git', 'check-ignore', *candidates],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    assert set(result.stdout.splitlines()) == set(candidates)
