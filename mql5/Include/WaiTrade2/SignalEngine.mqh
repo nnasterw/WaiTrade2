@@ -427,6 +427,60 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter5Mult(), direction, pos_mult);
 }
 
+bool ShouldApplyContextReverse(int direction, double ref_price, double risk_price)
+{
+   if(UseBTCProfile())
+      return false;
+   if(InpContextReverseHours == "")
+      return false;
+   if(InpContextReverseDirections != "")
+   {
+      if(direction == OB_BUY && StringFind(InpContextReverseDirections, "buy") < 0)
+         return false;
+      if(direction == OB_SELL && StringFind(InpContextReverseDirections, "sell") < 0)
+         return false;
+   }
+   if(InpContextReverseMaxRisk > 0 && risk_price > InpContextReverseMaxRisk)
+      return false;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   if(!IsHourBlocked(InpContextReverseHours, dt.hour))
+      return false;
+   if(direction == OB_SELL &&
+      (InpContextReverseSellEarlyDayMax > 0 || InpContextReverseSellLateDayMin > 0))
+   {
+      bool in_sell_day = false;
+      if(InpContextReverseSellEarlyDayMax > 0 && dt.day <= InpContextReverseSellEarlyDayMax)
+         in_sell_day = true;
+      if(InpContextReverseSellLateDayMin > 0 && dt.day >= InpContextReverseSellLateDayMin)
+         in_sell_day = true;
+      if(!in_sell_day)
+         return false;
+   }
+
+   if(InpContextReverseMaxMonthStartBalance > 0)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance <= 0 ||
+         g_monthly_start_balance > InpContextReverseMaxMonthStartBalance)
+         return false;
+   }
+
+   if(ref_price <= 0)
+      ref_price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   if(ref_price <= 0)
+      ref_price = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
+   if(ref_price <= 0)
+      return false;
+   if(InpContextReverseMinPrice > 0 && ref_price < InpContextReverseMinPrice)
+      return false;
+   if(InpContextReverseMaxPrice > 0 && ref_price > InpContextReverseMaxPrice)
+      return false;
+
+   return true;
+}
+
 double ApplySignalTypePositionMultiplier(const OBZone &zone, double pos_mult)
 {
    if(IsLooseSweepZone(zone))
@@ -1414,6 +1468,19 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    {
       if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=counter_risk_atr risk=", risk_price, " max=", state.atr_value * InpMaxCounterRiskATR);
       return false;
+   }
+
+   if(ShouldApplyContextReverse(signal.direction, entry, risk_price))
+   {
+      int rev_dir = (signal.direction == OB_BUY) ? OB_SELL : OB_BUY;
+      double rev_entry = (rev_dir == OB_BUY) ? ask : bid;
+      double rev_risk = risk_price * MathMax(InpContextReverseRiskMult, 0.1);
+      signal.direction = rev_dir;
+      signal.sl = (rev_dir == OB_BUY) ? rev_entry - rev_risk : rev_entry + rev_risk;
+      signal.tp = (InpContextReverseTPR > 0) ?
+         RToPrice(InpContextReverseTPR, rev_entry, rev_risk, rev_dir) : 0.0;
+      entry = rev_entry;
+      risk_price = rev_risk;
    }
 
    double pos_mult = signal.pos_mult;

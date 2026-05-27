@@ -266,6 +266,21 @@ input double InpContextFilter5MaxMonthStartBalance = 0.0; // Context filter5 mon
 input double InpContextFilter5MinPrice = 0.0; // Context filter5 min current price(0=不限)
 input double InpContextFilter5MaxPrice = 0.0; // Context filter5 max current price(0=不限)
 input double InpContextFilter5Mult = 1.0;     // Context filter5 position multiplier(<=0=filter)
+input string InpContextReverseHours = "";     // 上下文反向入场小时CSV(空=禁用)
+input string InpContextReverseDirections = ""; // 上下文反向方向CSV(buy/sell,空=不限)
+input int    InpContextReverseSellEarlyDayMax = 0; // SELL反向仅限月初<=N日(0=不限)
+input int    InpContextReverseSellLateDayMin = 0;  // SELL反向仅限月末>=N日(0=不限)
+input double InpContextReverseMinPrice = 0.0; // 上下文反向最小当前价格(0=不限)
+input double InpContextReverseMaxPrice = 0.0; // 上下文反向最大当前价格(0=不限)
+input double InpContextReverseMaxMonthStartBalance = 0.0; // 月初余额不高于该值时启用(0=不限)
+input double InpContextReverseRiskMult = 1.0; // 反向入场SL距离=原始risk倍数
+input double InpContextReverseMaxRisk = 0.0;  // 上下文反向最大原始risk价格距离(0=不限)
+input double InpContextReverseTPR = 1.0;      // 反向入场固定TP R(0=无TP)
+input double InpContextBEMinPrice = 0.0;      // 上下文BE最小入场价(0=禁用)
+input double InpContextBEMaxPrice = 0.0;      // 上下文BE最大入场价(0=不限)
+input double InpContextBEMaxMonthStartBalance = 0.0; // 月初余额不高于该值时启用(0=不限)
+input double InpContextBER = 0.0;             // 上下文BE触发R(0=禁用)
+input double InpContextBELockR = 0.0;         // 上下文BE锁定R
 input int    InpLateBounceSec    = 0;        // Bounce确认超过N秒后降权(0=禁用)
 input double InpLateBounceMult   = 1.0;      // 晚确认仓位倍数
 input double InpBounceSweetMinPct = 0.0;     // Bounce甜点下限(OB高度比例,0=禁用)

@@ -858,6 +858,14 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['context_filter4_mult'] == 'InpContextFilter4Mult'
     assert FLAT_MAP['context_filter5_months'] == 'InpContextFilter5Months'
     assert FLAT_MAP['context_filter5_no_hours'] == 'InpContextFilter5NoHours'
+    assert FLAT_MAP['context_reverse_hours'] == 'InpContextReverseHours'
+    assert FLAT_MAP['context_reverse_directions'] == 'InpContextReverseDirections'
+    assert FLAT_MAP['context_reverse_sell_early_day_max'] == 'InpContextReverseSellEarlyDayMax'
+    assert FLAT_MAP['context_reverse_min_price'] == 'InpContextReverseMinPrice'
+    assert FLAT_MAP['context_reverse_max_month_start_balance'] == 'InpContextReverseMaxMonthStartBalance'
+    assert FLAT_MAP['context_reverse_max_risk'] == 'InpContextReverseMaxRisk'
+    assert FLAT_MAP['context_be_min_price'] == 'InpContextBEMinPrice'
+    assert FLAT_MAP['context_be_r'] == 'InpContextBER'
     assert FLAT_MAP['late_bounce_sec'] == 'InpLateBounceSec'
     assert FLAT_MAP['late_bounce_mult'] == 'InpLateBounceMult'
     assert FLAT_MAP['bounce_sweet_min_pct'] == 'InpBounceSweetMinPct'
@@ -981,6 +989,18 @@ def test_context_filter_params_in_set():
         'context_filter5_no_hours': '4,5',
         'context_filter5_max_month_start_balance': 2500.0,
         'context_filter5_mult': 0.25,
+        'context_reverse_hours': '14,15',
+        'context_reverse_directions': 'buy',
+        'context_reverse_sell_early_day_max': 2,
+        'context_reverse_sell_late_day_min': 25,
+        'context_reverse_min_price': 4500.0,
+        'context_reverse_max_month_start_balance': 500.0,
+        'context_reverse_max_risk': 10.0,
+        'context_reverse_tp_r': 1.0,
+        'context_be_min_price': 4500.0,
+        'context_be_max_month_start_balance': 500.0,
+        'context_be_r': 1.0,
+        'context_be_lock_r': 0.2,
     })
 
     assert 'InpContextFilter1Months=11' in content
@@ -1005,6 +1025,18 @@ def test_context_filter_params_in_set():
     assert 'InpContextFilter5NoHours=4,5' in content
     assert 'InpContextFilter5MaxMonthStartBalance=2500.0' in content
     assert 'InpContextFilter5Mult=0.25' in content
+    assert 'InpContextReverseHours=14,15' in content
+    assert 'InpContextReverseDirections=buy' in content
+    assert 'InpContextReverseSellEarlyDayMax=2' in content
+    assert 'InpContextReverseSellLateDayMin=25' in content
+    assert 'InpContextReverseMinPrice=4500.0' in content
+    assert 'InpContextReverseMaxMonthStartBalance=500.0' in content
+    assert 'InpContextReverseMaxRisk=10.0' in content
+    assert 'InpContextReverseTPR=1.0' in content
+    assert 'InpContextBEMinPrice=4500.0' in content
+    assert 'InpContextBEMaxMonthStartBalance=500.0' in content
+    assert 'InpContextBER=1.0' in content
+    assert 'InpContextBELockR=0.2' in content
     assert FLAT_MAP['ob_scan_depth'] == 'InpOBScanDepth'
     assert FLAT_MAP['magic_number'] == 'InpMagicNumber'
     assert FLAT_MAP['enable_entry_debug'] == 'InpEnableEntryDebug'

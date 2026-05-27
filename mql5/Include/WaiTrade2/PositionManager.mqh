@@ -494,6 +494,25 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
         }
     }
 
+    if(!UseBTCProfile() && InpContextBER > 0 && InpContextBEMinPrice > 0)
+    {
+        bool context_be = (track.entry_price >= InpContextBEMinPrice);
+        if(context_be && InpContextBEMaxPrice > 0 && track.entry_price > InpContextBEMaxPrice)
+            context_be = false;
+        if(context_be && InpContextBEMaxMonthStartBalance > 0)
+        {
+            SyncMonthlyRiskState();
+            if(g_monthly_start_balance <= 0 ||
+               g_monthly_start_balance > InpContextBEMaxMonthStartBalance)
+                context_be = false;
+        }
+        if(context_be)
+        {
+            be_r = InpContextBER;
+            be_lock_r = InpContextBELockR;
+        }
+    }
+
     if(be_r <= 0) return;
 
     if(!PositionSelectByTicket(track.ticket)) return;

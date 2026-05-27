@@ -263,6 +263,21 @@ defaults: &defaults
   context_filter5_min_price: 0.0
   context_filter5_max_price: 0.0
   context_filter5_mult: 1.0
+  context_reverse_hours: ""
+  context_reverse_directions: ""
+  context_reverse_sell_early_day_max: 0
+  context_reverse_sell_late_day_min: 0
+  context_reverse_min_price: 0.0
+  context_reverse_max_price: 0.0
+  context_reverse_max_month_start_balance: 0.0
+  context_reverse_risk_mult: 1.0
+  context_reverse_max_risk: 0.0
+  context_reverse_tp_r: 1.0
+  context_be_min_price: 0.0
+  context_be_max_price: 0.0
+  context_be_max_month_start_balance: 0.0
+  context_be_r: 0.0
+  context_be_lock_r: 0.0
   late_bounce_sec: 0
   late_bounce_mult: 1.0
   bounce_sweet_min_pct: 0.0
@@ -26425,6 +26440,21 @@ v11_single_selector: &v11_single_selector
   context_filter5_months: ""
   context_filter5_mult: 1.0
   context_filter5_max_month_start_balance: 0.0
+  context_reverse_hours: "14,15,19,22"
+  context_reverse_directions: "buy,sell"
+  context_reverse_sell_early_day_max: 2
+  context_reverse_sell_late_day_min: 25
+  context_reverse_min_price: 4500.0
+  context_reverse_max_price: 4850.0
+  context_reverse_max_month_start_balance: 500.0
+  context_reverse_risk_mult: 1.0
+  context_reverse_max_risk: 10.0
+  context_reverse_tp_r: 1.0
+  context_be_min_price: 4500.0
+  context_be_max_price: 4850.0
+  context_be_max_month_start_balance: 500.0
+  context_be_r: 1.0
+  context_be_lock_r: 0.2
   monthly_profit_target_stop_months: ""
   xau_alt_context_filter1_months: ""
   xau_alt_context_filter1_no_hours: "10,11"
