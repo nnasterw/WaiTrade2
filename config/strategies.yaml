@@ -26412,16 +26412,19 @@ v11_single_selector: &v11_single_selector
   btc_dtp_post_partial_lock_r: 0.0
   btc_dtp_post_partial_retrace: 0.0
   btc_dtp_reset_peak_after_partial: false
-  enable_xau_fage_alt_profile: false
+  enable_xau_fage_alt_profile: true
   xau_fage_alt_profile_symbol: "XAU"
   xau_fage_alt_profile_months: ""
   xau_fage_alt_use_month_filter: false
   xau_fage_alt_adaptive_start_day: 5
-  xau_fage_alt_adaptive_max_balance: 0.0
+  xau_fage_alt_adaptive_max_balance: 260.0
+  xau_fage_alt_adaptive_max_price: 4350.0
   context_filter1_no_hours: ""
+  context_filter1_no_sell_hours: ""
   context_filter1_months: ""
   context_filter1_mult: 1.0
   context_filter1_max_month_start_balance: 0.0
+  context_filter1_max_price: 0.0
   context_filter2_no_hours: ""
   context_filter2_months: ""
   context_filter2_mult: 1.0

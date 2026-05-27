@@ -370,6 +370,8 @@ def test_v11_xau_fage_alt_profile_params_in_flat_map():
     assert FLAT_MAP['xau_fage_alt_use_month_filter'] == 'InpXAUFageAltUseMonthFilter'
     assert FLAT_MAP['xau_fage_alt_adaptive_start_day'] == 'InpXAUFageAltAdaptiveStartDay'
     assert FLAT_MAP['xau_fage_alt_adaptive_max_balance'] == 'InpXAUFageAltAdaptiveMaxBalance'
+    assert FLAT_MAP['xau_fage_alt_adaptive_min_price'] == 'InpXAUFageAltAdaptiveMinPrice'
+    assert FLAT_MAP['xau_fage_alt_adaptive_max_price'] == 'InpXAUFageAltAdaptiveMaxPrice'
     assert FLAT_MAP['xau_alt_context_filter1_months'] == 'InpXAUAltContextFilter1Months'
     assert FLAT_MAP['xau_alt_context_filter5_no_hours'] == 'InpXAUAltContextFilter5NoHours'
     assert FLAT_MAP['xau_alt_monthly_profit_target_stop_months'] == 'InpXAUAltMonthlyProfitTargetStopMonths'
@@ -383,6 +385,8 @@ def test_strategy_to_set_v11_xau_fage_alt_profile_params():
         'xau_fage_alt_use_month_filter': False,
         'xau_fage_alt_adaptive_start_day': 5,
         'xau_fage_alt_adaptive_max_balance': 230.0,
+        'xau_fage_alt_adaptive_min_price': 2500.0,
+        'xau_fage_alt_adaptive_max_price': 4350.0,
         'xau_alt_context_filter1_no_hours': '10,11',
         'xau_alt_monthly_profit_target_stop_months': '10',
     }
@@ -392,6 +396,8 @@ def test_strategy_to_set_v11_xau_fage_alt_profile_params():
     assert 'InpXAUFageAltUseMonthFilter=false' in content
     assert 'InpXAUFageAltAdaptiveStartDay=5' in content
     assert 'InpXAUFageAltAdaptiveMaxBalance=230.0' in content
+    assert 'InpXAUFageAltAdaptiveMinPrice=2500.0' in content
+    assert 'InpXAUFageAltAdaptiveMaxPrice=4350.0' in content
     assert 'InpXAUAltContextFilter1NoHours=10,11' in content
     assert 'InpXAUAltMonthlyProfitTargetStopMonths=10' in content
 
