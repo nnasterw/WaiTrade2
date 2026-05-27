@@ -26287,3 +26287,80 @@ v11xau_single_r7_monthguard:
   monthly_profit_target_stop_max_balance: 500.0
   monthly_profit_target_stop_months: "1,2,3,11"
   magic_number: 204551
+
+v11_single_selector: &v11_single_selector
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11-SINGLE-SELECTOR
+  description: "Single EA candidate: XAU uses FAGE startup profile, BTC enables R53 override profile inside the same preset"
+  enable_btc_profile: true
+  btc_profile_symbol: "BTC"
+  btc_bounce_pct: 0.25
+  btc_timeout_min: 120
+  btc_max_entry_offset_r: 0.5
+  btc_bar_period_min: 5
+  btc_enable_liquidity_sweep: true
+  btc_liquidity_sweep_only: false
+  btc_no_ob_start_hour: -1
+  btc_no_ob_end_hour: -1
+  btc_sl_buffer_atr: 1.5
+  btc_ob_height_tp_mult: 1.5
+  btc_time_exit_bars: 80
+  btc_sweep_lookback_bars: 8
+  btc_sweep_max_range_atr: 3.0
+  btc_sweep_min_range_spread_mult: 3.0
+  btc_sweep_min_penetration_atr: 0.02
+  btc_sweep_min_wick_pct: 35.0
+  btc_sweep_tp_mult: 0.0
+  btc_breakeven_r: 1.0
+  btc_breakeven_lock_r: 0.2
+  btc_dtp_trigger_r: 3.0
+  btc_dtp_retrace: 0.25
+  btc_fixed_tp_r: 0.0
+  btc_risk_percent: 5.4
+  btc_max_pos_mult: 300.0
+  btc_max_lot_size: 9.0
+  btc_max_concurrent: 8
+  btc_min_risk_spread_ratio: 5.0
+  btc_sweep_pos_mult: 0.1
+  btc_sweep_max_lot_size: 0.01
+  btc_low_balance_threshold: 1000.0
+  btc_low_balance_pos_mult: 0.39
+  btc_low_balance_max_lot_size: 0.39
+  btc_entry_depth_pct: 0.67
+  btc_entry_depth_filter: true
+  btc_require_double_touch: false
+  btc_max_entries_per_ob: 4
+  btc_ob_reentry_cooldown_min: 30
+  btc_cooldown_bars: 1
+  btc_continuation_pos_mult: 1.0
+  btc_filter_cont_age_min_bars: 0
+  btc_filter_cont_age_max_bars: 0
+  btc_filter_cont_non_deep_only: false
+  btc_boost_in_1h_ob: 2.0
+  btc_late_bounce_sec: 30
+  btc_late_bounce_mult: 0.6
+  btc_bounce_sweet_min_pct: 0.26
+  btc_bounce_sweet_max_pct: 0.34
+  btc_outside_bounce_sweet_mult: 0.7
+  btc_bad_risk_min: 150.0
+  btc_bad_risk_max: 200.0
+  btc_bad_risk_mult: 0.6
+  btc_large_risk_min: 300.0
+  btc_large_risk_mult: 4.05
+  btc_no_entry_hours: "0,7,22,23"
+  btc_no_buy_hours: ""
+  btc_no_sell_hours: "17"
+  btc_low_risk_hours: "17"
+  btc_low_risk_hour_mult: 0.35
+  btc_high_risk_hours: "12,13,20,23"
+  btc_high_risk_hour_mult: 8.0
+  magic_number: 204558
+
+v11_single_selector_btc_r1:
+  <<: *v11_single_selector
+  version: V11-SINGLE-SELECTOR-BTCR1
+  description: "Single EA probe: same selector with conservative BTC risk to avoid startup stopout"
+  btc_risk_percent: 1.0
+  btc_max_pos_mult: 100.0
+  btc_max_lot_size: 2.0
+  magic_number: 204559

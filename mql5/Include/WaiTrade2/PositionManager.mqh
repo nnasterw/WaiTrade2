@@ -49,7 +49,7 @@ bool OpenStrongAddOn(PosTrack &track, const EAState &state,
     if(track.failure_reverse || track.strong_addon) return false;
     if(track.addon_count >= InpStrongAddOnMaxCount) return false;
     if(track_count >= MAX_POSITIONS) return false;
-    if(CountPositions() >= InpMaxConcurrent) return false;
+    if(CountPositions() >= CfgMaxConcurrent()) return false;
     if(!PositionSelectByTicket(track.ticket)) return false;
     if(!IsPositionStrong(track, state)) return false;
 
@@ -77,8 +77,8 @@ bool OpenStrongAddOn(PosTrack &track, const EAState &state,
     lot = MathFloor(lot / lot_step) * lot_step;
     if(lot < lot_min)
         return false;
-    if(InpMaxLotSize > 0 && lot > InpMaxLotSize)
-        lot = InpMaxLotSize;
+    if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
+        lot = CfgMaxLotSize();
     if(lot > lot_max)
         lot = lot_max;
 
@@ -146,7 +146,7 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
     if(reason == "mfe_fail" && !InpReverseOnMFEFail) return false;
     if(reason == "no_mfe" && !InpReverseOnNoMFE) return false;
     if(track_count >= MAX_POSITIONS) return false;
-    if(CountPositions() >= InpMaxConcurrent) return false;
+    if(CountPositions() >= CfgMaxConcurrent()) return false;
 
     string symbol = _Symbol;
     int rev_dir = -track.direction;
@@ -160,8 +160,8 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
     if(lot_step <= 0) return false;
     lot = MathFloor(lot / lot_step) * lot_step;
     if(lot < lot_min) return false;
-    if(InpMaxLotSize > 0 && lot > InpMaxLotSize)
-        lot = InpMaxLotSize;
+    if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
+        lot = CfgMaxLotSize();
     if(lot > lot_max) lot = lot_max;
 
     double order_price = (rev_dir > 0) ? SymbolInfoDouble(symbol, SYMBOL_ASK)
@@ -170,8 +170,8 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
     double tp = 0.0;
     if(InpFailureReverseTPR > 0)
         tp = RToPrice(InpFailureReverseTPR, order_price, risk, rev_dir);
-    else if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-        tp = RToPrice(InpFixedTPR, order_price, risk, rev_dir);
+    else if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+        tp = RToPrice(CfgFixedTPR(), order_price, risk, rev_dir);
 
     MqlTradeRequest request = {};
     MqlTradeResult result = {};
@@ -468,8 +468,8 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
 {
     if(track.be_applied) return;
 
-    double be_r = InpBreakevenR;
-    double be_lock_r = InpBreakevenLockR;
+    double be_r = CfgBreakevenR();
+    double be_lock_r = CfgBreakevenLockR();
 
     if(track.direction > 0)
     {
@@ -613,7 +613,7 @@ void CheckTrailing(PosTrack &track)
 
 double GetDTPRetrace(const PosTrack &track, const EAState &state)
 {
-    double dtp_retrace = InpDTPRetrace;
+    double dtp_retrace = CfgDTPRetrace();
     if(track.direction > 0 && InpBuyDTPRetrace > 0)
         dtp_retrace = InpBuyDTPRetrace;
     else if(track.direction < 0 && InpSellDTPRetrace > 0)
@@ -671,7 +671,7 @@ void ApplyDTPPostPartialLock(PosTrack &track, double current_r)
 
 void CheckDTP(PosTrack &track, const EAState &state)
 {
-    double dtp_trigger_r = InpDTPTriggerR;
+    double dtp_trigger_r = CfgDTPTriggerR();
     if(track.direction > 0 && InpBuyDTPTriggerR > 0)
         dtp_trigger_r = InpBuyDTPTriggerR;
     else if(track.direction < 0 && InpSellDTPTriggerR > 0)
@@ -782,7 +782,7 @@ void CheckDecay(PosTrack &track, const EAState &state)
 
 void CheckTimeExit(PosTrack &track, const EAState &state)
 {
-    int time_exit_bars = InpTimeExitBars;
+    int time_exit_bars = CfgTimeExitBars();
 
     // v11: 用入场时锁定的市场状态判断超时
     if(InpEnableStateFilter && track.entry_market_state == 0 && InpRangeTimeExit < 999)

@@ -33,11 +33,11 @@ bool IsImpulse(const MqlRates &rates[], int count, int start_idx, int direction,
 
 bool IsInNoOBWindow(int hour)
 {
-   if(InpNoOBStartHour < 0 || InpNoOBEndHour < 0)
+   if(CfgNoOBStartHour() < 0 || CfgNoOBEndHour() < 0)
       return false;
 
-   int start_hour = InpNoOBStartHour % 24;
-   int end_hour = InpNoOBEndHour % 24;
+   int start_hour = CfgNoOBStartHour() % 24;
+   int end_hour = CfgNoOBEndHour() % 24;
 
    if(start_hour == end_hour)
       return true;
@@ -237,9 +237,9 @@ void UpdateOBStatus(OBZone &zones[], int &zone_count, double bid, double ask, co
 
       long minutes_alive = (long)(now - zones[i].created) / 60;
       // Gap6: 动态TTL — 高strength OB活更久, 低strength快过期
-      int ttl_minutes = InpTimeoutMin;
-      if(zones[i].strength >= 2.0) ttl_minutes = (int)(InpTimeoutMin * 1.5);
-      else if(zones[i].strength < 1.0) ttl_minutes = (int)(InpTimeoutMin * 0.5);
+      int ttl_minutes = CfgTimeoutMin();
+      if(zones[i].strength >= 2.0) ttl_minutes = (int)(CfgTimeoutMin() * 1.5);
+      else if(zones[i].strength < 1.0) ttl_minutes = (int)(CfgTimeoutMin() * 0.5);
       if(minutes_alive > ttl_minutes)
       {
          zones[i].expired = true;
@@ -334,7 +334,7 @@ void MarkZoneUsed(OBZone &zones[], int index)
 {
     if(index >= 0 && index < MAX_OB_ZONES)
     {
-        int max_entries = InpMaxEntriesPerOB;
+        int max_entries = CfgMaxEntriesPerOB();
         if(max_entries < 1)
             max_entries = 1;
 
@@ -533,7 +533,7 @@ void DetectLiquiditySweepWithParams(const MqlRates &rates[], int count, OBZone &
                            double min_range_spread_mult, double min_penetration_atr,
                            double min_wick_pct, bool loose_sweep)
 {
-   if(!InpEnableLiquiditySweep)
+   if(!CfgEnableLiquiditySweep())
       return;
    if(!loose_sweep)
       PruneLooseSweepsForPrimaryCapacity(zones, zone_count);
@@ -762,8 +762,8 @@ void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], 
                            const EAState &state, double atr, double spread)
 {
    DetectLiquiditySweepWithParams(rates, count, zones, zone_count, state, atr, spread,
-      InpSweepLookbackBars, InpSweepMaxRangeATR, InpSweepMinRangeSpreadMult,
-      InpSweepMinPenetrationATR, InpSweepMinWickPct, false);
+      CfgSweepLookbackBars(), CfgSweepMaxRangeATR(), CfgSweepMinRangeSpreadMult(),
+      CfgSweepMinPenetrationATR(), CfgSweepMinWickPct(), false);
 
    if(!InpEnableLooseSweep)
       return;
@@ -794,7 +794,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       return;
    }
    DetectLiquiditySweeps(rates, count, zones, zone_count, state, atr, spread);
-   if(InpLiquiditySweepOnly)
+   if(CfgLiquiditySweepOnly())
       return;
    if(InpRangeBreakoutOnly)
       return;
@@ -826,7 +826,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
                if(rates[k].high > impulse_high) impulse_high = rates[k].high;
 
             double bounce = (impulse_high - rates[i].high) / ob_range;
-            if(bounce < InpBouncePct) continue;
+            if(bounce < CfgBouncePct()) continue;
 
             bool duplicate = false;
             for(int z = 0; z < zone_count; z++)
@@ -903,7 +903,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
                if(rates[k].low < impulse_low) impulse_low = rates[k].low;
 
             double bounce = (rates[i].low - impulse_low) / ob_range;
-            if(bounce < InpBouncePct) continue;
+            if(bounce < CfgBouncePct()) continue;
 
             bool duplicate = false;
             for(int z = 0; z < zone_count; z++)

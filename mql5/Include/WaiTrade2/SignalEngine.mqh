@@ -10,10 +10,10 @@
 
 double CalcOBHeightTP(const OBZone &zone, double entry)
 {
-   if(InpOBHeightTPMult <= 0 || zone.is_range_breakout || zone.is_htf_pullback) return 0.0;
+   if(CfgOBHeightTPMult() <= 0 || zone.is_range_breakout || zone.is_htf_pullback) return 0.0;
    double ob_h = zone.high - zone.low;
    if(ob_h <= 0) return 0.0;
-   return entry + zone.direction * ob_h * InpOBHeightTPMult;
+   return entry + zone.direction * ob_h * CfgOBHeightTPMult();
 }
 
 double CalcHTFPullbackTP(const OBZone &zone, double entry)
@@ -25,11 +25,11 @@ double CalcHTFPullbackTP(const OBZone &zone, double entry)
 
 double CalcLiquiditySweepTP(const OBZone &zone, double entry)
 {
-   if(!zone.is_liquidity_sweep || InpSweepTPMult <= 0 || zone.range_height <= 0)
+   if(!zone.is_liquidity_sweep || CfgSweepTPMult() <= 0 || zone.range_height <= 0)
       return 0.0;
    if(zone.direction == OB_BUY)
-      return zone.high + zone.range_height * InpSweepTPMult;
-   return zone.low - zone.range_height * InpSweepTPMult;
+      return zone.high + zone.range_height * CfgSweepTPMult();
+   return zone.low - zone.range_height * CfgSweepTPMult();
 }
 
 bool IsZoneTouched(const OBZone &zone, double bid, double ask)
@@ -56,7 +56,7 @@ bool IsZoneTouched(const OBZone &zone, double bid, double ask)
 
 bool PassDoubleTouchFilter(const OBZone &zone)
 {
-   if(InpRequireDoubleTch)
+   if(CfgRequireDoubleTch())
    {
       if(zone.touch_count < 2)
          return false;
@@ -79,7 +79,7 @@ bool PassOffsetGuard(double entry_price, double risk_price, int direction, doubl
 
 bool PassSpreadRatio(double risk_distance, double spread)
 {
-   if(spread > 0 && risk_distance / spread < InpMinRiskSpreadRatio)
+   if(spread > 0 && risk_distance / spread < CfgMinRiskSpreadRatio())
       return false;
    return true;
 }
@@ -139,7 +139,7 @@ bool PassNoEntryHours(datetime now)
 
    if(!IsMonthAllowed(InpEntryMonths, dt.mon))
       return false;
-   return !IsHourBlocked(InpNoEntryHours, dt.hour);
+   return !IsHourBlocked(CfgNoEntryHours(), dt.hour);
 }
 
 bool PassDirectionEntryHours(int direction, datetime now)
@@ -149,11 +149,11 @@ bool PassDirectionEntryHours(int direction, datetime now)
 
    if(!IsMonthAllowed(InpEntryMonths, dt.mon))
       return false;
-   if(IsHourBlocked(InpNoEntryHours, dt.hour))
+   if(IsHourBlocked(CfgNoEntryHours(), dt.hour))
       return false;
-   if(direction == OB_BUY && IsHourBlocked(InpNoBuyHours, dt.hour))
+   if(direction == OB_BUY && IsHourBlocked(CfgNoBuyHours(), dt.hour))
       return false;
-   if(direction == OB_SELL && IsHourBlocked(InpNoSellHours, dt.hour))
+   if(direction == OB_SELL && IsHourBlocked(CfgNoSellHours(), dt.hour))
       return false;
 
    return true;
@@ -164,7 +164,7 @@ bool PassEntryMomentumFilter(int direction)
    if(!InpEnableEntryMomentumFilter)
       return true;
 
-   int tf_min = (InpEntryMomentumTF > 0) ? InpEntryMomentumTF : InpBarTF;
+   int tf_min = (InpEntryMomentumTF > 0) ? InpEntryMomentumTF : CfgBarTF();
    ENUM_TIMEFRAMES tf = MinutesToTF(tf_min);
    int need = MathMax(MathMax(InpStrongMomentumBars, InpDecayBars) + 5, 8);
 
@@ -243,15 +243,15 @@ void PrintEntryDebug(const string stage, const OBZone &zone, const EAState &stat
 
 double ApplyPositionMultiplierCap(double pos_mult)
 {
-   if(InpMaxPosMult > 0 && pos_mult > InpMaxPosMult)
-      return InpMaxPosMult;
+   if(CfgMaxPosMult() > 0 && pos_mult > CfgMaxPosMult())
+      return CfgMaxPosMult();
    return pos_mult;
 }
 
 double ApplyLotCap(double lot)
 {
-   if(InpMaxLotSize > 0 && lot > InpMaxLotSize)
-      return InpMaxLotSize;
+   if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
+      return CfgMaxLotSize();
    return lot;
 }
 
@@ -270,8 +270,8 @@ double ApplySignalTypeLotCap(const OBZone &zone, double lot)
    }
    if(zone.is_htf_pullback && InpHTFPullbackMaxLotSize > 0 && lot > InpHTFPullbackMaxLotSize)
       return InpHTFPullbackMaxLotSize;
-   if(zone.is_liquidity_sweep && InpSweepMaxLotSize > 0 && lot > InpSweepMaxLotSize)
-      return InpSweepMaxLotSize;
+   if(zone.is_liquidity_sweep && CfgSweepMaxLotSize() > 0 && lot > CfgSweepMaxLotSize())
+      return CfgSweepMaxLotSize();
    if(zone.is_range_breakout && InpRangeBreakoutMaxLotSize > 0 && lot > InpRangeBreakoutMaxLotSize)
       return InpRangeBreakoutMaxLotSize;
    return lot;
@@ -279,10 +279,10 @@ double ApplySignalTypeLotCap(const OBZone &zone, double lot)
 
 double ApplyBalanceLotCap(double lot)
 {
-   if(InpLowBalanceThreshold <= 0 || InpLowBalanceMaxLotSize <= 0)
+   if(CfgLowBalanceThreshold() <= 0 || CfgLowBalanceMaxLotSize() <= 0)
       return lot;
-   if(AccountInfoDouble(ACCOUNT_BALANCE) < InpLowBalanceThreshold && lot > InpLowBalanceMaxLotSize)
-      return InpLowBalanceMaxLotSize;
+   if(AccountInfoDouble(ACCOUNT_BALANCE) < CfgLowBalanceThreshold() && lot > CfgLowBalanceMaxLotSize())
+      return CfgLowBalanceMaxLotSize();
    return lot;
 }
 
@@ -309,10 +309,10 @@ double ApplyHourPositionMultiplier(double pos_mult)
    MqlDateTime dt;
    TimeToStruct(TimeCurrent(), dt);
 
-   if(InpLowRiskHourMult != 1.0 && IsHourBlocked(InpLowRiskHours, dt.hour))
-      pos_mult *= InpLowRiskHourMult;
-   if(InpHighRiskHourMult != 1.0 && IsHourBlocked(InpHighRiskHours, dt.hour))
-      pos_mult *= InpHighRiskHourMult;
+   if(CfgLowRiskHourMult() != 1.0 && IsHourBlocked(CfgLowRiskHours(), dt.hour))
+      pos_mult *= CfgLowRiskHourMult();
+   if(CfgHighRiskHourMult() != 1.0 && IsHourBlocked(CfgHighRiskHours(), dt.hour))
+      pos_mult *= CfgHighRiskHourMult();
 
    return pos_mult;
 }
@@ -365,6 +365,9 @@ double ApplyOneContextFilterPositionMultiplier(
 
 double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
 {
+   if(UseBTCProfile())
+      return pos_mult;
+
    pos_mult = ApplyOneContextFilterPositionMultiplier(
       InpContextFilter1Months, InpContextFilter1NoHours,
       InpContextFilter1NoBuyHours, InpContextFilter1NoSellHours,
@@ -409,7 +412,7 @@ double ApplySignalTypePositionMultiplier(const OBZone &zone, double pos_mult)
    if(IsLooseSweepZone(zone))
       pos_mult *= InpLooseSweepPosMult;
    else if(zone.is_liquidity_sweep)
-      pos_mult *= InpSweepPosMult;
+      pos_mult *= CfgSweepPosMult();
    if(zone.is_range_breakout)
       pos_mult *= InpRangeBreakoutPosMult;
    if(zone.is_htf_pullback)
@@ -419,10 +422,10 @@ double ApplySignalTypePositionMultiplier(const OBZone &zone, double pos_mult)
 
 double ApplyBalancePositionMultiplier(double pos_mult)
 {
-   if(InpLowBalanceThreshold <= 0 || InpLowBalancePosMult == 1.0)
+   if(CfgLowBalanceThreshold() <= 0 || CfgLowBalancePosMult() == 1.0)
       return pos_mult;
-   if(AccountInfoDouble(ACCOUNT_BALANCE) < InpLowBalanceThreshold)
-      pos_mult *= InpLowBalancePosMult;
+   if(AccountInfoDouble(ACCOUNT_BALANCE) < CfgLowBalanceThreshold())
+      pos_mult *= CfgLowBalancePosMult();
    return pos_mult;
 }
 
@@ -633,6 +636,9 @@ bool IsMonthlyProfitTargetStopSlotEnabled(
 
 bool IsMonthlyProfitTargetStopEnabled()
 {
+   if(UseBTCProfile())
+      return false;
+
    return (
       IsMonthlyProfitTargetStopSlotEnabled(
          InpMonthlyProfitTargetStopPct,
@@ -651,6 +657,9 @@ bool IsMonthlyProfitTargetStopEnabled()
 
 double MonthlyProfitTargetStopPct()
 {
+   if(UseBTCProfile())
+      return 0.0;
+
    if(IsMonthlyProfitTargetStopSlotEnabled(
       InpMonthlyProfitTargetStopPct,
       InpMonthlyProfitTargetStopMinBalance,
@@ -833,25 +842,25 @@ double ApplyMonthlyPositionMultiplier(double pos_mult)
 
 double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double risk_price, double pos_mult)
 {
-   if(InpLateBounceSec > 0 && InpLateBounceMult != 1.0 &&
-      signal.bounce_seconds > InpLateBounceSec)
-      pos_mult *= InpLateBounceMult;
+   if(CfgLateBounceSec() > 0 && CfgLateBounceMult() != 1.0 &&
+      signal.bounce_seconds > CfgLateBounceSec())
+      pos_mult *= CfgLateBounceMult();
 
-   if(InpBounceSweetMinPct > 0 && InpBounceSweetMaxPct > InpBounceSweetMinPct &&
-      InpOutsideBounceSweetMult != 1.0 && signal.bounce_ob_pct > 0)
+   if(CfgBounceSweetMinPct() > 0 && CfgBounceSweetMaxPct() > CfgBounceSweetMinPct() &&
+      CfgOutsideBounceSweetMult() != 1.0 && signal.bounce_ob_pct > 0)
    {
-      if(signal.bounce_ob_pct < InpBounceSweetMinPct ||
-         signal.bounce_ob_pct > InpBounceSweetMaxPct)
-         pos_mult *= InpOutsideBounceSweetMult;
+      if(signal.bounce_ob_pct < CfgBounceSweetMinPct() ||
+         signal.bounce_ob_pct > CfgBounceSweetMaxPct())
+         pos_mult *= CfgOutsideBounceSweetMult();
    }
 
-   if(InpBadRiskMax > InpBadRiskMin && InpBadRiskMult != 1.0 &&
-      risk_price >= InpBadRiskMin && risk_price < InpBadRiskMax)
-      pos_mult *= InpBadRiskMult;
+   if(CfgBadRiskMax() > CfgBadRiskMin() && CfgBadRiskMult() != 1.0 &&
+      risk_price >= CfgBadRiskMin() && risk_price < CfgBadRiskMax())
+      pos_mult *= CfgBadRiskMult();
 
-   if(InpLargeRiskMin > 0 && InpLargeRiskMult != 1.0 &&
-      risk_price >= InpLargeRiskMin)
-      pos_mult *= InpLargeRiskMult;
+   if(CfgLargeRiskMin() > 0 && CfgLargeRiskMult() != 1.0 &&
+      risk_price >= CfgLargeRiskMin())
+      pos_mult *= CfgLargeRiskMult();
 
    if(InpShallowConfirmPosMin > -999.0 && InpShallowConfirmPosMult != 1.0 &&
       signal.confirm_ob_pos > InpShallowConfirmPosMin)
@@ -1242,9 +1251,9 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
 
 bool PassOBReentryCooldown(const OBZone &zone)
 {
-   if(InpOBReentryCooldownMin <= 0 || zone.last_entry_time == 0)
+   if(CfgOBReentryCooldownMin() <= 0 || zone.last_entry_time == 0)
       return true;
-   return (TimeCurrent() - zone.last_entry_time >= InpOBReentryCooldownMin * 60);
+   return (TimeCurrent() - zone.last_entry_time >= CfgOBReentryCooldownMin() * 60);
 }
 
 double ApplyReentryPositionMultiplier(const OBZone &zone, double pos_mult)
@@ -1258,26 +1267,26 @@ double ApplyReentryPositionMultiplier(const OBZone &zone, double pos_mult)
 
 double ApplyContinuationPositionMultiplier(const OBZone &zone, double pos_mult)
 {
-   if(!zone.is_continuation || InpContinuationPosMult == 1.0)
+   if(!zone.is_continuation || CfgContinuationPosMult() == 1.0)
       return pos_mult;
-   if(InpContinuationPosMult <= 0)
+   if(CfgContinuationPosMult() <= 0)
       return -1.0;
-   return pos_mult * InpContinuationPosMult;
+   return pos_mult * CfgContinuationPosMult();
 }
 
 bool PassContinuationAgeFilter(const OBZone &zone, const EAState &state, bool deep_entry)
 {
-   if(InpFilterContAgeMaxBars <= 0)
+   if(CfgFilterContAgeMaxBars() <= 0)
       return true;
-   if(InpFilterContAgeMaxBars < InpFilterContAgeMinBars)
+   if(CfgFilterContAgeMaxBars() < CfgFilterContAgeMinBars())
       return true;
    if(!zone.is_continuation)
       return true;
 
    int age = state.bar_count - zone.created_bar;
-   if(age < InpFilterContAgeMinBars || age > InpFilterContAgeMaxBars)
+   if(age < CfgFilterContAgeMinBars() || age > CfgFilterContAgeMaxBars())
       return true;
-   if(InpFilterContNonDeepOnly && deep_entry)
+   if(CfgFilterContNonDeepOnly() && deep_entry)
       return true;
 
    return false;
@@ -1354,9 +1363,9 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    double confirm_entry = signal.entry;
    if(confirm_entry <= 0)
       confirm_entry = (signal.direction == OB_BUY) ? zone.high : zone.low;
-   if(InpMaxEntryOffsetR > 0 && MathAbs(entry - confirm_entry) / risk_price > InpMaxEntryOffsetR)
+   if(CfgMaxEntryOffsetR() > 0 && MathAbs(entry - confirm_entry) / risk_price > CfgMaxEntryOffsetR())
    {
-      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=offset_r offset=", MathAbs(entry - confirm_entry) / risk_price, " max=", InpMaxEntryOffsetR);
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=offset_r offset=", MathAbs(entry - confirm_entry) / risk_price, " max=", CfgMaxEntryOffsetR());
       return false;
    }
 
@@ -1396,8 +1405,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
          tp_est = CalcHTFPullbackTP(zone, entry);
       if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
-      if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-         tp_est = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+      if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+         tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
       else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
@@ -1453,7 +1462,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       return false;
    }
 
-   double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
+   double final_lot = CalcEntryLot(symbol, CfgRiskPercent(), risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
    final_lot = ApplySignalTypeLotCap(zone, final_lot);
    final_lot = ApplyBalanceLotCap(final_lot);
@@ -1508,14 +1517,14 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(zone.is_htf_pullback)
    {
       tp = CalcHTFPullbackTP(zone, entry);
-      if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+      if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
    else if(zone.is_liquidity_sweep)
    {
       tp = CalcLiquiditySweepTP(zone, entry);
-      if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+      if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
    else if(InpEnableStateFilter && state.market_state == 0)
    {
@@ -1527,14 +1536,14 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
          if(swing_dist > risk_price)
             tp = state.target_price;
       }
-      if(tp == 0.0 && InpFixedTPR > 0)
-         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+      if(tp == 0.0 && CfgFixedTPR() > 0)
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
    else
    {
       // 趋势态: tp=0让DTP接管，除非没有DTP则用固定TP兜底
-      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-         tp = RToPrice(InpFixedTPR, entry, risk_price, signal.direction);
+      if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
 
    signal.entry = entry;
@@ -1603,7 +1612,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(IsInCooldown(state))
       return false;
 
-   if(CountPositions() >= InpMaxConcurrent)
+   if(CountPositions() >= CfgMaxConcurrent())
       return false;
 
    if(!PassOBReentryCooldown(zone))
@@ -1634,9 +1643,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
 
    double sl = 0;
    if(zone.direction == OB_BUY)
-      sl = zone.low - state.atr_value * InpSLBufferATR;
+      sl = zone.low - state.atr_value * CfgSLBufferATR();
    else
-      sl = zone.high + state.atr_value * InpSLBufferATR;
+      sl = zone.high + state.atr_value * CfgSLBufferATR();
 
    double entry = (zone.direction == OB_BUY) ? ask : bid;
    double risk_price = MathAbs(entry - sl);
@@ -1644,7 +1653,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(risk_price <= 0)
       return false;
 
-   if(!zone.is_range_breakout && !PassOffsetGuard(entry, risk_price, zone.direction, zone.mid, InpMaxEntryOffsetR))
+   if(!zone.is_range_breakout && !PassOffsetGuard(entry, risk_price, zone.direction, zone.mid, CfgMaxEntryOffsetR()))
       return false;
 
    if(!PassSpreadRatio(risk_price, spread))
@@ -1675,8 +1684,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
          tp_est = CalcHTFPullbackTP(zone, entry);
       if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
-      if(tp_est == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-         tp_est = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+      if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+         tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
       else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
@@ -1723,7 +1732,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    pos_mult = ApplyBuyNoH1PositionFilter(zone, zone.direction, pos_mult);
    if(pos_mult < 0)
       return false;
-   double final_lot = CalcEntryLot(symbol, InpRiskPercent, risk_price, pos_mult);
+   double final_lot = CalcEntryLot(symbol, CfgRiskPercent(), risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
    final_lot = ApplySignalTypeLotCap(zone, final_lot);
    final_lot = ApplyBalanceLotCap(final_lot);
@@ -1768,8 +1777,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    else if(zone.is_liquidity_sweep)
    {
       tp = CalcLiquiditySweepTP(zone, entry);
-      if(tp == 0.0 && InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-         tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+      if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
    else if(InpEnableStateFilter && state.market_state == 0)
    {
@@ -1780,13 +1789,13 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
          if(swing_dist > risk_price)
             tp = state.target_price;
       }
-      if(tp == 0.0 && InpFixedTPR > 0)
-         tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+      if(tp == 0.0 && CfgFixedTPR() > 0)
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
    else
    {
-      if(InpDTPTriggerR <= 0 && InpFixedTPR > 0)
-         tp = RToPrice(InpFixedTPR, entry, risk_price, zone.direction);
+      if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
 
    signal.direction = zone.direction;
@@ -1823,7 +1832,7 @@ double CalcPositionMultiplier(const OBZone &zone)
    double base = zone.strength;
    double fresh_mult = zone.is_fresh ? 1.5 : 1.0;
    double cont_mult = zone.is_continuation ? 1.3 : 1.0;
-   double boost_1h = zone.is_1h_aligned ? InpBoostIn1HOB : 1.0;
+   double boost_1h = zone.is_1h_aligned ? CfgBoostIn1HOB() : 1.0;
    double ds = InpDSWeight ? zone.ds_weight : 1.0;
 
    return base * fresh_mult * cont_mult * boost_1h * ds;
@@ -1831,9 +1840,9 @@ double CalcPositionMultiplier(const OBZone &zone)
 
 bool IsInCooldown(const EAState &state)
 {
-   if(InpCooldownBars <= 0)
+   if(CfgCooldownBars() <= 0)
       return false;
-   return (state.bar_count - state.last_entry_bar) < InpCooldownBars;
+   return (state.bar_count - state.last_entry_bar) < CfgCooldownBars();
 }
 
 #endif

@@ -32,7 +32,7 @@ double RToPrice(double r_value, double entry, double risk_price, int direction)
 
 ENUM_TIMEFRAMES GetWorkTF()
 {
-   switch(InpBarTF)
+   switch(CfgBarTF())
    {
       case 1:   return PERIOD_M1;
       case 2:   return PERIOD_M2;

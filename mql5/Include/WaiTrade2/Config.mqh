@@ -403,6 +403,70 @@ input int    InpOBScanDepth      = 200;      // OB扫描深度(bars, 0=全量)
 input string InpVersion          = "V96b";   // 策略版本标识
 input int    InpMagicNumber      = 202605;   // EA Magic Number
 
+// ── v11 单策略品种Profile覆盖 ─────────────────────────────────────────────
+input bool   InpEnableBTCProfile = false;    // 启用BTC专属参数覆盖(默认关闭)
+input string InpBTCProfileSymbol = "BTC";    // 触发BTC profile的品种名片段
+input double InpBTCBouncePct = 0.25;         // BTC bounce确认比例
+input int    InpBTCTimeoutMin = 120;         // BTC OB过期分钟
+input double InpBTCMaxEntryOffsetR = 0.5;    // BTC最大入场偏移
+input int    InpBTCBarTF = 5;                // BTC工作周期
+input bool   InpBTCEnableLiquiditySweep = true; // BTC启用Sweep
+input bool   InpBTCLiquiditySweepOnly = false;  // BTC仅Sweep
+input int    InpBTCNoOBStartHour = -1;      // BTC禁止建OB开始小时(-1=禁用)
+input int    InpBTCNoOBEndHour = -1;        // BTC禁止建OB结束小时(-1=禁用)
+input double InpBTCSLBufferATR = 1.5;       // BTC SL ATR buffer
+input double InpBTCOBHeightTPMult = 1.5;    // BTC OB高度TP
+input int    InpBTCTimeExitBars = 80;       // BTC超时退出
+input int    InpBTCSweepLookbackBars = 12;   // BTC Sweep lookback
+input double InpBTCSweepMaxRangeATR = 2.50;  // BTC Sweep range/ATR
+input double InpBTCSweepMinRangeSpreadMult = 4.0; // BTC Sweep range/spread
+input double InpBTCSweepMinPenetrationATR = 0.05; // BTC Sweep penetration
+input double InpBTCSweepMinWickPct = 45.0;   // BTC Sweep wick
+input double InpBTCSweepTPMult = 1.0;        // BTC Sweep TP mult
+input double InpBTCBreakevenR = 1.0;         // BTC BE触发
+input double InpBTCBreakevenLockR = 0.2;     // BTC BE锁定
+input double InpBTCDTPTriggerR = 3.0;        // BTC DTP触发
+input double InpBTCDTPRetrace = 0.25;        // BTC DTP回撤
+input double InpBTCFixedTPR = 0.0;           // BTC固定TP
+input double InpBTCRiskPercent = 5.4;        // BTC风险%
+input double InpBTCMaxPosMult = 300.0;       // BTC最大仓位乘数
+input double InpBTCMaxLotSize = 9.0;         // BTC最大手数
+input int    InpBTCMaxConcurrent = 8;        // BTC最大并发
+input double InpBTCMinRiskSpreadRatio = 5.0; // BTC最小risk/spread
+input double InpBTCSweepPosMult = 0.1;       // BTC Sweep仓位倍数
+input double InpBTCSweepMaxLotSize = 0.01;   // BTC Sweep最大手数
+input double InpBTCLowBalanceThreshold = 1000.0; // BTC低余额阈值
+input double InpBTCLowBalancePosMult = 0.39; // BTC低余额仓位倍数
+input double InpBTCLowBalanceMaxLotSize = 0.39; // BTC低余额最大手数
+input double InpBTCEntryDepthPct = 0.67;     // BTC入场深度
+input bool   InpBTCEntryDepthFilter = true;  // BTC深度硬过滤
+input bool   InpBTCRequireDoubleTch = false; // BTC二触要求
+input int    InpBTCMaxEntriesPerOB = 4;      // BTC每OB入场数
+input int    InpBTCOBReentryCooldownMin = 30; // BTC同OB冷却
+input int    InpBTCCooldownBars = 1;         // BTC开仓冷却bars
+input double InpBTCContinuationPosMult = 1.0; // BTC延续OB倍数
+input int    InpBTCFilterContAgeMinBars = 0; // BTC延续OB过滤最小年龄
+input int    InpBTCFilterContAgeMaxBars = 0; // BTC延续OB过滤最大年龄
+input bool   InpBTCFilterContNonDeepOnly = false; // BTC延续OB仅过滤非深位
+input double InpBTCBoostIn1HOB = 2.0;        // BTC 1H OB倍数
+input int    InpBTCLateBounceSec = 30;       // BTC晚确认秒数
+input double InpBTCLateBounceMult = 0.6;     // BTC晚确认倍数
+input double InpBTCBounceSweetMinPct = 0.26; // BTC bounce甜点下限
+input double InpBTCBounceSweetMaxPct = 0.34; // BTC bounce甜点上限
+input double InpBTCOutsideBounceSweetMult = 0.7; // BTC非甜点倍数
+input double InpBTCBadRiskMin = 150.0;       // BTC弱风险下限
+input double InpBTCBadRiskMax = 200.0;       // BTC弱风险上限
+input double InpBTCBadRiskMult = 0.6;        // BTC弱风险倍数
+input double InpBTCLargeRiskMin = 300.0;     // BTC大风险下限
+input double InpBTCLargeRiskMult = 4.05;     // BTC大风险倍数
+input string InpBTCNoEntryHours = "0,7,22,23"; // BTC禁止入场小时
+input string InpBTCNoBuyHours = "";         // BTC禁止做多小时
+input string InpBTCNoSellHours = "17";      // BTC禁止做空小时
+input string InpBTCLowRiskHours = "17";     // BTC低仓位小时
+input double InpBTCLowRiskHourMult = 0.35;  // BTC低仓位倍数
+input string InpBTCHighRiskHours = "12,13,20,23"; // BTC高仓位小时
+input double InpBTCHighRiskHourMult = 8.0;  // BTC高仓位倍数
+
 // ── v9.8 势位态动 ────────────────────────────────────────────────────────
 // 势(M15趋势)
 input int    InpTrendLookback     = 80;       // M15趋势回溯(bars)
@@ -472,7 +536,7 @@ input double InpHighBalanceNoEntryMinMonthStartBalance = 0.0; // enable when mon
 
 double GetEffectiveEntryDepthPct()
 {
-   double pct = InpEntryDepthPct;
+   double pct = CfgEntryDepthPct();
    if(InpEntryDepthRelaxMinBalance > 0.0 &&
       pct > 0.0 && pct < 0.67 &&
       AccountInfoDouble(ACCOUNT_BALANCE) < InpEntryDepthRelaxMinBalance)
@@ -484,5 +548,73 @@ double GetEffectiveEntryDepthPct()
    if(pct >= 1.0) return 1.0;
    return pct;
 }
+
+bool UseBTCProfile()
+{
+   return (InpEnableBTCProfile &&
+      StringLen(InpBTCProfileSymbol) > 0 &&
+      StringFind(_Symbol, InpBTCProfileSymbol) >= 0);
+}
+
+double CfgBouncePct() { return UseBTCProfile() ? InpBTCBouncePct : InpBouncePct; }
+int CfgTimeoutMin() { return UseBTCProfile() ? InpBTCTimeoutMin : InpTimeoutMin; }
+double CfgMaxEntryOffsetR() { return UseBTCProfile() ? InpBTCMaxEntryOffsetR : InpMaxEntryOffsetR; }
+int CfgBarTF() { return UseBTCProfile() ? InpBTCBarTF : InpBarTF; }
+bool CfgEnableLiquiditySweep() { return UseBTCProfile() ? InpBTCEnableLiquiditySweep : InpEnableLiquiditySweep; }
+bool CfgLiquiditySweepOnly() { return UseBTCProfile() ? InpBTCLiquiditySweepOnly : InpLiquiditySweepOnly; }
+int CfgNoOBStartHour() { return UseBTCProfile() ? InpBTCNoOBStartHour : InpNoOBStartHour; }
+int CfgNoOBEndHour() { return UseBTCProfile() ? InpBTCNoOBEndHour : InpNoOBEndHour; }
+double CfgSLBufferATR() { return UseBTCProfile() ? InpBTCSLBufferATR : InpSLBufferATR; }
+double CfgOBHeightTPMult() { return UseBTCProfile() ? InpBTCOBHeightTPMult : InpOBHeightTPMult; }
+int CfgTimeExitBars() { return UseBTCProfile() ? InpBTCTimeExitBars : InpTimeExitBars; }
+int CfgSweepLookbackBars() { return UseBTCProfile() ? InpBTCSweepLookbackBars : InpSweepLookbackBars; }
+double CfgSweepMaxRangeATR() { return UseBTCProfile() ? InpBTCSweepMaxRangeATR : InpSweepMaxRangeATR; }
+double CfgSweepMinRangeSpreadMult() { return UseBTCProfile() ? InpBTCSweepMinRangeSpreadMult : InpSweepMinRangeSpreadMult; }
+double CfgSweepMinPenetrationATR() { return UseBTCProfile() ? InpBTCSweepMinPenetrationATR : InpSweepMinPenetrationATR; }
+double CfgSweepMinWickPct() { return UseBTCProfile() ? InpBTCSweepMinWickPct : InpSweepMinWickPct; }
+double CfgSweepTPMult() { return UseBTCProfile() ? InpBTCSweepTPMult : InpSweepTPMult; }
+double CfgBreakevenR() { return UseBTCProfile() ? InpBTCBreakevenR : InpBreakevenR; }
+double CfgBreakevenLockR() { return UseBTCProfile() ? InpBTCBreakevenLockR : InpBreakevenLockR; }
+double CfgDTPTriggerR() { return UseBTCProfile() ? InpBTCDTPTriggerR : InpDTPTriggerR; }
+double CfgDTPRetrace() { return UseBTCProfile() ? InpBTCDTPRetrace : InpDTPRetrace; }
+double CfgFixedTPR() { return UseBTCProfile() ? InpBTCFixedTPR : InpFixedTPR; }
+double CfgRiskPercent() { return UseBTCProfile() ? InpBTCRiskPercent : InpRiskPercent; }
+double CfgMaxPosMult() { return UseBTCProfile() ? InpBTCMaxPosMult : InpMaxPosMult; }
+double CfgMaxLotSize() { return UseBTCProfile() ? InpBTCMaxLotSize : InpMaxLotSize; }
+int CfgMaxConcurrent() { return UseBTCProfile() ? InpBTCMaxConcurrent : InpMaxConcurrent; }
+double CfgMinRiskSpreadRatio() { return UseBTCProfile() ? InpBTCMinRiskSpreadRatio : InpMinRiskSpreadRatio; }
+double CfgSweepPosMult() { return UseBTCProfile() ? InpBTCSweepPosMult : InpSweepPosMult; }
+double CfgSweepMaxLotSize() { return UseBTCProfile() ? InpBTCSweepMaxLotSize : InpSweepMaxLotSize; }
+double CfgLowBalanceThreshold() { return UseBTCProfile() ? InpBTCLowBalanceThreshold : InpLowBalanceThreshold; }
+double CfgLowBalancePosMult() { return UseBTCProfile() ? InpBTCLowBalancePosMult : InpLowBalancePosMult; }
+double CfgLowBalanceMaxLotSize() { return UseBTCProfile() ? InpBTCLowBalanceMaxLotSize : InpLowBalanceMaxLotSize; }
+double CfgEntryDepthPct() { return UseBTCProfile() ? InpBTCEntryDepthPct : InpEntryDepthPct; }
+bool CfgEntryDepthFilter() { return UseBTCProfile() ? InpBTCEntryDepthFilter : InpEntryDepthFilter; }
+bool CfgRequireDoubleTch() { return UseBTCProfile() ? InpBTCRequireDoubleTch : InpRequireDoubleTch; }
+int CfgMaxEntriesPerOB() { return UseBTCProfile() ? InpBTCMaxEntriesPerOB : InpMaxEntriesPerOB; }
+int CfgOBReentryCooldownMin() { return UseBTCProfile() ? InpBTCOBReentryCooldownMin : InpOBReentryCooldownMin; }
+int CfgCooldownBars() { return UseBTCProfile() ? InpBTCCooldownBars : InpCooldownBars; }
+double CfgContinuationPosMult() { return UseBTCProfile() ? InpBTCContinuationPosMult : InpContinuationPosMult; }
+int CfgFilterContAgeMinBars() { return UseBTCProfile() ? InpBTCFilterContAgeMinBars : InpFilterContAgeMinBars; }
+int CfgFilterContAgeMaxBars() { return UseBTCProfile() ? InpBTCFilterContAgeMaxBars : InpFilterContAgeMaxBars; }
+bool CfgFilterContNonDeepOnly() { return UseBTCProfile() ? InpBTCFilterContNonDeepOnly : InpFilterContNonDeepOnly; }
+double CfgBoostIn1HOB() { return UseBTCProfile() ? InpBTCBoostIn1HOB : InpBoostIn1HOB; }
+int CfgLateBounceSec() { return UseBTCProfile() ? InpBTCLateBounceSec : InpLateBounceSec; }
+double CfgLateBounceMult() { return UseBTCProfile() ? InpBTCLateBounceMult : InpLateBounceMult; }
+double CfgBounceSweetMinPct() { return UseBTCProfile() ? InpBTCBounceSweetMinPct : InpBounceSweetMinPct; }
+double CfgBounceSweetMaxPct() { return UseBTCProfile() ? InpBTCBounceSweetMaxPct : InpBounceSweetMaxPct; }
+double CfgOutsideBounceSweetMult() { return UseBTCProfile() ? InpBTCOutsideBounceSweetMult : InpOutsideBounceSweetMult; }
+double CfgBadRiskMin() { return UseBTCProfile() ? InpBTCBadRiskMin : InpBadRiskMin; }
+double CfgBadRiskMax() { return UseBTCProfile() ? InpBTCBadRiskMax : InpBadRiskMax; }
+double CfgBadRiskMult() { return UseBTCProfile() ? InpBTCBadRiskMult : InpBadRiskMult; }
+double CfgLargeRiskMin() { return UseBTCProfile() ? InpBTCLargeRiskMin : InpLargeRiskMin; }
+double CfgLargeRiskMult() { return UseBTCProfile() ? InpBTCLargeRiskMult : InpLargeRiskMult; }
+string CfgNoEntryHours() { return UseBTCProfile() ? InpBTCNoEntryHours : InpNoEntryHours; }
+string CfgNoBuyHours() { return UseBTCProfile() ? InpBTCNoBuyHours : InpNoBuyHours; }
+string CfgNoSellHours() { return UseBTCProfile() ? InpBTCNoSellHours : InpNoSellHours; }
+string CfgLowRiskHours() { return UseBTCProfile() ? InpBTCLowRiskHours : InpLowRiskHours; }
+double CfgLowRiskHourMult() { return UseBTCProfile() ? InpBTCLowRiskHourMult : InpLowRiskHourMult; }
+string CfgHighRiskHours() { return UseBTCProfile() ? InpBTCHighRiskHours : InpHighRiskHours; }
+double CfgHighRiskHourMult() { return UseBTCProfile() ? InpBTCHighRiskHourMult : InpHighRiskHourMult; }
 
 #endif

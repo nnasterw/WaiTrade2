@@ -106,7 +106,7 @@ bool PassBounceCloseConfirm(const EntryMonitor &monitor)
         return true;
 
     int bars_needed = InpBounceCloseConfirmBars;
-    int tf_min = (InpBounceCloseTF > 0) ? InpBounceCloseTF : InpBarTF;
+    int tf_min = (InpBounceCloseTF > 0) ? InpBounceCloseTF : CfgBarTF();
     ENUM_TIMEFRAMES tf = MinutesToTF(tf_min);
 
     MqlRates rates[];
@@ -243,7 +243,7 @@ void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
     m.risk_price   = MathAbs(m.entry_price - sig.sl);
     m.pos_mult     = sig.pos_mult;
     m.phase        = PHASE_WAITING_TOUCH;
-    m.expire_time  = TimeCurrent() + InpTimeoutMin * 60;
+    m.expire_time  = TimeCurrent() + CfgTimeoutMin() * 60;
     m.touch_count  = 0;
     m.deep_entry   = false;
     m.active       = true;
@@ -275,7 +275,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
         double entry = monitors[i].entry_price;
         double ob_height = monitors[i].ob_top - monitors[i].ob_bottom;
         if(ob_height <= 0) ob_height = monitors[i].risk_price * 2;
-        double threshold = ob_height * InpBouncePct;
+        double threshold = ob_height * CfgBouncePct();
         double risk = monitors[i].risk_price;
         if(risk <= 0) { monitors[i].active = false; continue; }
 
@@ -288,7 +288,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
         if(monitors[i].phase == PHASE_WAITING_TOUCH)
         {
             bool touched = false;
-            double touch_level = InpEntryDepthFilter ? depth_level :
+            double touch_level = CfgEntryDepthFilter() ? depth_level :
                                  ((monitors[i].direction == OB_BUY) ? monitors[i].ob_top : monitors[i].ob_bottom);
             if(monitors[i].direction == OB_BUY && price <= touch_level) touched = true;
             if(monitors[i].direction == OB_SELL && price >= touch_level) touched = true;
@@ -301,7 +301,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " phase=", monitors[i].phase, " status=TOUCHED count=", monitors[i].touch_count, " price=", price);
 
                 // 二推不破: 需要第二次触及才进入bounce确认
-                if(InpRequireDoubleTch && monitors[i].touch_count < 2)
+                if(CfgRequireDoubleTch() && monitors[i].touch_count < 2)
                 {
                     monitors[i].phase = PHASE_WAITING_DOUBLE;
                     continue;
@@ -345,9 +345,9 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
 
                 // offset guard: 确认价偏离entry过远则放弃
                 double offset_r = MathAbs(price - entry) / risk;
-                if(offset_r > InpMaxEntryOffsetR)
+                if(offset_r > CfgMaxEntryOffsetR())
                 {
-                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=BLOCKED offset_r=", offset_r, " max=", InpMaxEntryOffsetR);
+                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=BLOCKED offset_r=", offset_r, " max=", CfgMaxEntryOffsetR());
                     monitors[i].phase = PHASE_EXPIRED;
                     monitors[i].active = false;
                     continue;
@@ -377,7 +377,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
             }
 
             // bounce超时: 30 bars未确认则过期
-            if((int)(now - monitors[i].touch_time) > 30 * InpBarTF * 60)
+            if((int)(now - monitors[i].touch_time) > 30 * CfgBarTF() * 60)
             {
                 monitors[i].phase = PHASE_EXPIRED;
                 monitors[i].active = false;
@@ -418,7 +418,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
         {
             // 检查第二次触及
             bool touched2 = false;
-            double touch2_level = InpEntryDepthFilter ? depth_level :
+            double touch2_level = CfgEntryDepthFilter() ? depth_level :
                                   ((monitors[i].direction == OB_BUY) ? monitors[i].ob_top : monitors[i].ob_bottom);
             if(monitors[i].direction == OB_BUY && price <= touch2_level) touched2 = true;
             if(monitors[i].direction == OB_SELL && price >= touch2_level) touched2 = true;

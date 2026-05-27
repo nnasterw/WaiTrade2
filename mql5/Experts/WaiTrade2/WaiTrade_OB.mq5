@@ -40,9 +40,9 @@ int OnInit()
     g_htf_monitor_count = 0;
     g_last_entry_attempt = 0;
 
-    if(InpRiskPercent <= 0 || InpRiskPercent > 50)
+    if(CfgRiskPercent() <= 0 || CfgRiskPercent() > 50)
     {
-        Print("参数错误: InpRiskPercent=", InpRiskPercent);
+        Print("参数错误: RiskPercent=", CfgRiskPercent());
         return INIT_PARAMETERS_INCORRECT;
     }
 
@@ -152,9 +152,9 @@ void OnTick()
                 }
 
                 double risk_dist = (g_zones[z].direction == OB_BUY)
-                    ? ((g_zones[z].high + g_zones[z].low) / 2.0) - (g_zones[z].low - g_state.atr_value * InpSLBufferATR)
-                    : (g_zones[z].high + g_state.atr_value * InpSLBufferATR) - ((g_zones[z].high + g_zones[z].low) / 2.0);
-                if(spread > 0 && risk_dist / spread < InpMinRiskSpreadRatio)
+                    ? ((g_zones[z].high + g_zones[z].low) / 2.0) - (g_zones[z].low - g_state.atr_value * CfgSLBufferATR())
+                    : (g_zones[z].high + g_state.atr_value * CfgSLBufferATR()) - ((g_zones[z].high + g_zones[z].low) / 2.0);
+                if(spread > 0 && risk_dist / spread < CfgMinRiskSpreadRatio())
                 {
                     if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " risk_dist=", risk_dist, " spread=", spread, " ratio=", risk_dist/spread, " skip=spread_ratio");
                     continue;
@@ -165,8 +165,8 @@ void OnTick()
                 ZeroMemory(tmp);
                 tmp.direction = g_zones[z].direction;
                 tmp.sl = (g_zones[z].direction == OB_BUY)
-                    ? g_zones[z].low - g_state.atr_value * InpSLBufferATR
-                    : g_zones[z].high + g_state.atr_value * InpSLBufferATR;
+                    ? g_zones[z].low - g_state.atr_value * CfgSLBufferATR()
+                    : g_zones[z].high + g_state.atr_value * CfgSLBufferATR();
                 tmp.risk_price = MathAbs(((g_zones[z].high + g_zones[z].low) / 2.0) - tmp.sl);
                 tmp.ob_index = z;
                 tmp.pos_mult = 1.0;
@@ -209,8 +209,8 @@ void OnTick()
                     ZeroMemory(tmp);
                     tmp.direction = g_htf_zones[z].direction;
                     tmp.sl = (g_htf_zones[z].direction == OB_BUY)
-                        ? g_htf_zones[z].low - g_state.atr_value * InpSLBufferATR
-                        : g_htf_zones[z].high + g_state.atr_value * InpSLBufferATR;
+                        ? g_htf_zones[z].low - g_state.atr_value * CfgSLBufferATR()
+                        : g_htf_zones[z].high + g_state.atr_value * CfgSLBufferATR();
                     tmp.risk_price = MathAbs(((g_htf_zones[z].high + g_htf_zones[z].low) / 2.0) - tmp.sl);
                     tmp.ob_index = z;
                     tmp.pos_mult = 1.0;
@@ -229,7 +229,7 @@ void OnTick()
         // 5. 执行确认的入场
         for(int i = 0; i < conf_count; i++)
         {
-            if(g_state.pos_count >= InpMaxConcurrent) break;
+            if(g_state.pos_count >= CfgMaxConcurrent()) break;
             if(confirmed[i].ob_index < 0 || confirmed[i].ob_index >= g_state.ob_count)
                 continue;
             if(!FinalizeEntryEngineSignal(symbol, g_zones[confirmed[i].ob_index], g_state, confirmed[i]))
@@ -249,7 +249,7 @@ void OnTick()
 
             for(int i = 0; i < htf_conf_count; i++)
             {
-                if(g_state.pos_count >= InpMaxConcurrent) break;
+                if(g_state.pos_count >= CfgMaxConcurrent()) break;
                 if(htf_confirmed[i].ob_index < 0 || htf_confirmed[i].ob_index >= g_htf_zone_count)
                     continue;
                 if(!FinalizeEntryEngineSignal(symbol, g_htf_zones[htf_confirmed[i].ob_index], g_state, htf_confirmed[i]))
@@ -272,7 +272,7 @@ void OnTick()
         // 5. 执行入场
         for(int i = 0; i < sig_count; i++)
         {
-            if(g_state.pos_count >= InpMaxConcurrent) break;
+            if(g_state.pos_count >= CfgMaxConcurrent()) break;
             if(ExecuteSignal(g_signals[i]))
             {
                 g_state.last_entry_bar = g_state.bar_count;

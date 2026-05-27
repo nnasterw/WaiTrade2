@@ -794,3 +794,26 @@ SUMMARY months=24 pass=24 fail=0 missing_records=63
 1. 设计 `v11_single_selector` 的 EA 输入: 基础 profile 用 XAU FAGE，BTC profile 用 R53 关键参数。
 2. 先只覆盖最小必要参数: `BarTF`、`FixedTPR/DTP/BE`、`LiquiditySweep`、`Risk/MaxLot/MaxPosMult`、`EntryDepth/DoubleTouch`、`MaxEntriesPerOB/ReentryCooldown`、`MinRiskSpreadRatio`。
 3. 用同一个 preset 分别回测 XAU 与 BTC 的 2026 月初窗口，验证它能复现“XAU FAGE + BTC R53”的 selector 证据；如果通过，再扩展到 R31/R7 高频 XAU profile。
+
+## `v11_single_selector` EA profile 骨架实验
+
+已实现第一版 EA 级 BTC profile 覆盖层:
+
+- 新增 `InpEnableBTCProfile` 及一组 `InpBTC*` 输入，默认关闭，避免影响现有策略。
+- `v11_single_selector` 继承 XAU FAGE monthgate；当 `_Symbol` 包含 `BTC` 时覆盖 BarTF、Sweep、BE/DTP、风险、并发、小时过滤、SL buffer、低余额降仓、部分入场质量参数。
+- XAU 校准通过: `v11_single_selector` 在 XAUUSDm `2026.01.01~2026.01.31` 为 72 笔、胜率 83.3%、PF 3.24、余额 `$455.63`，基本复现 FAGE `$455.60`。
+
+BTC 校准仍失败:
+
+| 策略 | 覆盖状态 | BTC 2026-04 结果 | 结论 |
+|---|---|---|---|
+| v11_single_selector | 初版关键覆盖 | 8 笔，WR 25.0%，PF 0.01，余额 `$1.44` | 严重漏参/过度风险 |
+| v11_single_selector | 增补 SL/Sweep/低余额/小时/过滤覆盖 | 72 笔，WR 45.8%，PF 1.79，余额 `$-31.77` | 信号变多但仍爆仓 |
+| v11_single_selector_btc_r1 | BTC risk 1%、cap 100/2.0 | 36 笔，WR 52.8%，PF 0.65，余额 `$-0.70` | 不是单纯仓位问题 |
+| v11_r53_j2_g30m10_no072223 | 原始基线复核 | 141 笔，WR 41.1%，PF 1.35，余额 `$890.94` | EA改造未破坏老策略 |
+
+判断:
+
+- 当前 wrapper 方式能保持 XAU FAGE 默认行为，但还不能完整复现 BTC R53。
+- R53 与 FAGE 的差异横跨入场生成、状态/评分、HTF net push、MFE/no-MFE出场、月度风控、风险簇和时间退出；只覆盖少数关键参数不足以成为最终单策略。
+- 下一步应改为“完整 profile 参数表”或“profile struct + effective getter 全量替换”，不要继续零散补 wrapper；否则容易出现 PF 看似好但账户爆仓的错觉。
