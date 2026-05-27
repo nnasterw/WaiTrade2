@@ -1661,6 +1661,25 @@ def test_find_matching_log_segment_prefers_latest_equal_balance():
     assert any('V11-R94-C2S2ML10' in line for line in segment['lines'])
 
 
+def test_find_matching_log_segment_filters_expected_marker():
+    old_segment = SAMPLE_SEGMENT
+    new_segment = SAMPLE_SEGMENT.replace('V11-R10-Q6K', 'V11-R94-C2S2ML10')
+    content = old_segment + '\n' + new_segment
+
+    segment = find_matching_log_segment(
+        content,
+        'BTCUSDm',
+        '2026.03.22',
+        '2026.05.21',
+        240.0,
+        expected_markers=['V11-R10-Q6K'],
+    )
+
+    assert segment is not None
+    assert any('V11-R10-Q6K' in line for line in segment['lines'])
+    assert not any('V11-R94-C2S2ML10' in line for line in segment['lines'])
+
+
 def test_parse_agent_log_segment_details_extracts_trades():
     segment = split_agent_log_segments(SAMPLE_SEGMENT)[0]
     details = parse_agent_log_segment_details(segment['lines'], 'BTCUSDm')

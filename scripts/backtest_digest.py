@@ -10,6 +10,8 @@ from pathlib import Path
 from statistics import mean
 from typing import Iterable
 
+import yaml
+
 from mt5_common import (
     parse_backtest_report_content,
     find_matching_log_segment,
@@ -22,6 +24,7 @@ DEFAULT_WINE_TESTER = Path.home() / (
     'drive_c/Program Files/MetaTrader 5/Tester'
 )
 DEFAULT_WINDOWS_TESTER = Path.home() / 'AppData/Roaming/MetaQuotes/Terminal'
+CONFIG_PATH = ROOT / 'config' / 'strategies.yaml'
 CSV_COLUMNS = [
     'ticket', 'time', 'date', 'hour', 'symbol', 'dir', 'comment', 'signal_type', 'lot', 'pos_mult',
     'entry', 'initial_sl', 'tp', 'exit', 'reason', 'exit_signal', 'risk', 'r',
@@ -647,10 +650,27 @@ def candidate_log_paths(report_path: Path) -> list[Path]:
     return deduped
 
 
+def expected_log_markers(report_data: dict) -> list[str]:
+    """返回用于防止同窗口同余额日志误匹配的EA版本标记。"""
+    markers = []
+    strategy_key = (report_data.get('strategy_name') or '').lower()
+    try:
+        config = yaml.safe_load(CONFIG_PATH.read_text(encoding='utf-8')) or {}
+    except OSError:
+        config = {}
+    strategy = config.get(strategy_key)
+    if isinstance(strategy, dict):
+        version = strategy.get('version')
+        if version:
+            markers.append(str(version))
+    return markers
+
+
 def build_digest_data(report_content: str, log_content: str | None = None) -> tuple[dict, list[dict]]:
     report_data = parse_backtest_report_content(report_content)
     if report_data is None:
         raise ValueError('无法解析回测摘要报告')
+    markers = expected_log_markers(report_data)
 
     symbol_digests = []
     for row in report_data['symbols']:
@@ -662,7 +682,16 @@ def build_digest_data(report_content: str, log_content: str | None = None) -> tu
                 report_data['date_from'],
                 report_data['date_to'],
                 row['final_balance'],
+                expected_markers=markers,
             )
+            if segment is None and markers:
+                segment = find_matching_log_segment(
+                    log_content,
+                    row['symbol'],
+                    report_data['date_from'],
+                    report_data['date_to'],
+                    row['final_balance'],
+                )
             if segment:
                 details = parse_agent_log_segment_details(segment['lines'], row['symbol'])
         symbol_digests.append(build_symbol_digest(row, details, report_data.get('deposit')))
@@ -693,8 +722,16 @@ def generate_backtest_digest(
             report_data = parse_backtest_report_content(report_content)
             if report_data is None:
                 raise ValueError('无法解析回测摘要报告')
+            markers = expected_log_markers(report_data)
             if any(
-                find_matching_log_segment(content, row['symbol'], report_data['date_from'], report_data['date_to'], row['final_balance'])
+                find_matching_log_segment(
+                    content,
+                    row['symbol'],
+                    report_data['date_from'],
+                    report_data['date_to'],
+                    row['final_balance'],
+                    expected_markers=markers,
+                )
                 for row in report_data['symbols']
             ):
                 resolved_log_path = candidate

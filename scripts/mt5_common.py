@@ -521,16 +521,27 @@ def split_agent_log_segments(content):
     return segments
 
 
-def find_matching_log_segment(content, symbol, date_from, date_to, final_balance=None):
+def find_matching_log_segment(
+    content,
+    symbol,
+    date_from,
+    date_to,
+    final_balance=None,
+    expected_markers=None,
+):
     """从多段 Agent 日志中选择与摘要报告最匹配的一段。"""
     segments = split_agent_log_segments(content)
     candidates = []
+    markers = [m for m in (expected_markers or []) if m]
 
     for segment in segments:
         meta = segment['meta']
         if meta['symbol'] != symbol or meta['date_from'] != date_from or meta['date_to'] != date_to:
             continue
-        stats = parse_agent_log_content('\n'.join(segment['lines']))
+        segment_text = '\n'.join(segment['lines'])
+        if markers and not any(marker in segment_text for marker in markers):
+            continue
+        stats = parse_agent_log_content(segment_text)
         balance = stats['final_balance'] if stats else None
         diff = abs(balance - final_balance) if balance is not None and final_balance is not None else float('inf')
         candidates.append((diff, len(candidates), balance, segment))

@@ -26038,12 +26038,24 @@ v11b_xau_r30_m1_tp12:
   fixed_tp_r: 1.20
   magic_number: 204534
 
-v11b_xau_r31_m1_tp15:
+v11b_xau_r31_m1_tp15: &v11b_xau_r31_m1_tp15
   <<: *v11b_xau_r26_m1_reentry_target_ext2
   version: V11B-XAU-R31
   description: "XAU probe: R26 with fixed TP raised to 1.5R as payoff expansion boundary test"
   fixed_tp_r: 1.50
   magic_number: 204535
+
+v11b_xau_r35_m1_tp15_nomonth:
+  <<: *v11b_xau_r31_m1_tp15
+  version: V11B-XAU-R35-NOMONTH
+  description: "XAU probe: R31 without concrete month filters, testing whether the M1 high-frequency edge generalizes by regime"
+  context_filter1_months: ""
+  context_filter1_mult: 1.0
+  monthly_profit_target_stop_pct: 0.0
+  monthly_profit_target_stop_months: ""
+  monthly_profit_target_stop2_pct: 0.0
+  monthly_profit_target_stop2_months: ""
+  magic_number: 204545
 
 v11b_xau_r32_m1_tp20: &v11b_xau_r32_m1_tp20
   <<: *v11b_xau_r26_m1_reentry_target_ext2
