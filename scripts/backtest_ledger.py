@@ -126,6 +126,25 @@ def emit_monthly_brief(rows: list[tuple], missing_count: int):
         )
 
 
+def emit_monthly_selected(rows: list[tuple], missing_count: int):
+    passed_count = sum(1 for row in rows if row[5])
+    failed_count = len(rows) - passed_count
+    print(f'SUMMARY months={len(rows)} pass={passed_count} fail={failed_count} missing_records={missing_count}')
+    for month, date_from, date_to, days, best, passed in rows:
+        if best is None:
+            print(f'MONTH {month:%Y-%m} MISSING window={date_from:%Y.%m.%d}~{date_to:%Y.%m.%d} days={days}')
+            continue
+        leg, record = best
+        status = 'PASS' if passed else 'FAIL'
+        print(
+            f'{status} {month:%Y-%m} best={leg.name}/{leg.symbol}/{leg.strategy} '
+            f'balance=${record["final_balance"]:.2f} trades={record["trades"]} '
+            f'daily={record["daily_trades"]:.1f} wr={record["win_rate"]:.1f}% '
+            f'pf={fmt_float(record["profit_factor"], 2)} '
+            f'window={date_from:%Y.%m.%d}~{date_to:%Y.%m.%d}'
+        )
+
+
 def _parse_day(value: str | None) -> date | None:
     if not value:
         return None
@@ -148,6 +167,7 @@ def main():
     query_parser.add_argument('--available-to')
     query_parser.add_argument('--target-balance', type=float, default=270.0)
     query_parser.add_argument('--leg', action='append', required=True)
+    query_parser.add_argument('--selected', action='store_true', help='输出每月实际选中的最佳腿')
 
     args = parser.parse_args()
     if args.command == 'build':
@@ -164,7 +184,10 @@ def main():
         target_balance=args.target_balance,
         available_to=_parse_day(args.available_to),
     )
-    emit_monthly_brief(rows, missing)
+    if args.selected:
+        emit_monthly_selected(rows, missing)
+    else:
+        emit_monthly_brief(rows, missing)
 
 
 if __name__ == '__main__':

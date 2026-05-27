@@ -745,3 +745,52 @@ SUMMARY months=24 pass=13 fail=11 missing_records=0
 
 - Hybrid TP10/TP15 同时损伤 FAGE 的大R延续和 R31/R7 的高频优势，没有必要扩展到 24 个月。
 - “单策略”不能靠简单混合出场参数解决；需要 EA 级别的 regime selector，在同一个策略内保留多套入场/出场 profile，并用低余额 probe 结果动态选择。
+
+## Selector 明细审计与单参数集反证
+
+为降低后续审计 token，`scripts/backtest_ledger.py query-monthly` 新增 `--selected` 输出模式。它保留一行摘要，同时逐月输出 selector 实际选中的最佳腿，避免只看到 `pass=24` 却不知道依赖哪条腿。
+
+2026 已有月份 selector 明细:
+
+```text
+SUMMARY months=5 pass=5 fail=0 missing_records=15
+PASS 2026-01 best=fage/XAUUSDm/v11xau_start_fage_2026_monthgate balance=$455.60 trades=72 daily=2.4 wr=83.3% pf=3.24
+PASS 2026-02 best=fage/XAUUSDm/v11xau_start_fage_2026_monthgate balance=$324.57 trades=55 daily=1.8 wr=87.3% pf=2.09
+PASS 2026-03 best=fage/XAUUSDm/v11xau_start_fage_2026_monthgate balance=$390.85 trades=1 daily=0.0 wr=100.0% pf=inf
+PASS 2026-04 best=btc/BTCUSDm/v11_r53_j2_g30m10_no072223 balance=$890.94 trades=141 daily=4.7 wr=41.1% pf=1.35
+PASS 2026-05 best=fage/XAUUSDm/v11xau_start_fage_2026_monthgate balance=$370.23 trades=25 daily=1.0 wr=84.0% pf=4.41
+```
+
+近两年 selector 明细确认:
+
+```text
+SUMMARY months=24 pass=24 fail=0 missing_records=63
+```
+
+实际腿分布:
+
+- FAGE 点火腿: 2024-06/07、2025-01/07/11/12、2026-01/02/03/05。
+- XAU 高频腿: R31/R27/R24 覆盖 2024-08/09/12、2025-04/05/06/08/09。
+- R7/nov_guard: 覆盖 2024-11、2025-10。
+- BTC R53: 仅作为 2026-04 强趋势补位。
+
+本轮还补跑了几个“无需 EA 架构改造”的单参数反证:
+
+| 假设 | 窗口 | 结果 | 结论 |
+|---|---|---|---|
+| XAU R31 可替代 BTC 覆盖 2026-04 | 2026.04.01~2026.05.01 | 2 笔，余额 `$202.91` | 失败 |
+| XAU R27 可替代 BTC 覆盖 2026-04 | 2026.04.01~2026.05.01 | 2 笔，余额 `$202.91` | 失败 |
+| BTC R53 同一 preset 直接跑 XAU 可覆盖 2026-01 | 2026.01.01~2026.01.31 | 20 笔，余额 `$197.89` | 失败 |
+| BTC R53 同一 preset 直接跑 XAU 可覆盖 2026-02 | 2026.02.01~2026.03.03 | 6 笔，余额 `$180.51` | 失败 |
+| BTC R53 同一 preset 直接跑 XAU 可覆盖 2026-05 | 2026.05.01~2026.05.26 | 13 笔，余额 `$232.39` | 失败 |
+
+注意:
+
+- MT5 Strategy Tester CLI 只能串行执行；并行跑会竞争 `Tester/cache` 和 `backtest.ini`。本轮第一次并行触发了 `FileExistsError`，后续结果均以串行重跑为准。
+- 上述反证说明“一个静态参数集跨 XAU/BTC”目前不可行；真正的单策略必须进入 EA 级 profile selector，至少要能按品种/启动期 regime 切换 BarTF、出场、入场过滤和扫损腿。
+
+下一步实现目标:
+
+1. 设计 `v11_single_selector` 的 EA 输入: 基础 profile 用 XAU FAGE，BTC profile 用 R53 关键参数。
+2. 先只覆盖最小必要参数: `BarTF`、`FixedTPR/DTP/BE`、`LiquiditySweep`、`Risk/MaxLot/MaxPosMult`、`EntryDepth/DoubleTouch`、`MaxEntriesPerOB/ReentryCooldown`、`MinRiskSpreadRatio`。
+3. 用同一个 preset 分别回测 XAU 与 BTC 的 2026 月初窗口，验证它能复现“XAU FAGE + BTC R53”的 selector 证据；如果通过，再扩展到 R31/R7 高频 XAU profile。

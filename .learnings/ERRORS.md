@@ -57,6 +57,36 @@ yaml.composer.ComposerError: found undefined alias 'v11b_xau_r7_m1_monthguard'
 
 ---
 
+## [ERR-20260527-001] parallel_mt5_backtest_cache_race
+
+**Logged**: 2026-05-27T00:00:00+08:00
+**Priority**: high
+**Status**: fixed
+**Area**: backtest
+
+### Summary
+同时启动多个 `scripts/mt5_cli_backtest.py --background` 进程会竞争同一个 MT5 `Tester/cache` 目录和 `backtest.ini`，导致回测失败或结果互相污染。
+
+### Error
+```
+FileExistsError: [Errno 17] File exists: '.../MetaTrader 5/Tester/cache'
+```
+
+### Context
+- 操作: 并行补跑 `v11_r53_j2_g30m10_no072223` 在 XAU 的 2026-01/02/03 月初窗口。
+- 影响: 2026-02 回测失败；其余并行结果也需谨慎看待，因为共用 `backtest.ini` 和 terminal 日期。
+- 修复: 立即停止并行方式，后续 MT5 Strategy Tester CLI 回测串行执行。
+
+### Suggested Fix
+MT5 CLI 回测只能串行跑；`multi_tool_use.parallel` 仅用于文件读取、`rg`、`sed`、`git diff` 等无共享写状态命令，不用于 MT5 回测。
+
+### Metadata
+- Reproducible: yes
+- Related Files: scripts/mt5_cli_backtest.py
+- Tags: mt5, backtest, concurrency
+
+---
+
 ## [ERR-20260526-002] yaml_anchor_missing_v11xau_start
 
 **Logged**: 2026-05-26T18:00:00+08:00

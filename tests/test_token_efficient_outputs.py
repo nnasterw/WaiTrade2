@@ -128,6 +128,33 @@ def test_backtest_ledger_query_monthly_brief_reports_only_failures(tmp_path, cap
     ]
 
 
+def test_backtest_ledger_selected_outputs_one_line_per_month(tmp_path, capsys):
+    import backtest_ledger
+
+    reports_dir = tmp_path / 'reports'
+    reports_dir.mkdir()
+    (reports_dir / 'good_20250101_20250131_20260526.txt').write_text(SAMPLE_REPORT, encoding='utf-8')
+    ledger = tmp_path / 'ledger.jsonl'
+    backtest_ledger.build_ledger(reports_dir, ledger)
+
+    records = backtest_ledger.load_ledger(ledger)
+    rows, missing = backtest_ledger.query_monthly(
+        records=records,
+        legs=[backtest_ledger.parse_leg('good:XAUUSDm:good')],
+        start_month=backtest_ledger.parse_month('2025.01'),
+        end_month=backtest_ledger.parse_month('2025.02'),
+        target_balance=270,
+    )
+    backtest_ledger.emit_monthly_selected(rows, missing)
+
+    output = capsys.readouterr().out
+    assert output.splitlines() == [
+        'SUMMARY months=2 pass=1 fail=1 missing_records=1',
+        'PASS 2025-01 best=good/XAUUSDm/good balance=$308.19 trades=18 daily=0.6 wr=61.1% pf=3.75 window=2025.01.01~2025.01.31',
+        'MONTH 2025-02 MISSING window=2025.02.01~2025.03.03 days=30',
+    ]
+
+
 def test_trade_cluster_summary_outputs_top_buckets_without_rows(tmp_path, capsys):
     import trade_cluster_summary
 
