@@ -102,14 +102,14 @@ void OnTick()
             Update1HAlignment(g_htf_zones, g_htf_zone_count, h1_dir);
 
         // v9.8: M15 市场状态检测
-        if(InpEnableStateFilter || InpEnableScoring)
+        if(CfgEnableStateFilter() || CfgEnableScoring())
         {
             double target = 0;
             g_state.market_state = (int)DetectMarketState(symbol, target);
             g_state.target_price = target;
 
             MqlRates rates_m15[];
-            int m15_count = CopyRates(symbol, PERIOD_M15, 0, InpTrendLookback, rates_m15);
+            int m15_count = CopyRates(symbol, PERIOD_M15, 0, CfgTrendLookback(), rates_m15);
             if(m15_count > 14)
                 g_state.atr_m15 = CalcATR(rates_m15, m15_count, InpATRPeriod);
         }
@@ -144,7 +144,7 @@ void OnTick()
                     continue;
                 }
 
-                if(InpEnableStateFilter && g_state.market_state != 0
+                if(CfgEnableStateFilter() && g_state.market_state != 0
                    && g_state.market_state != g_zones[z].direction)
                 {
                     if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " state=", g_state.market_state, " skip=state_filter");
@@ -171,13 +171,13 @@ void OnTick()
                 tmp.ob_index = z;
                 tmp.pos_mult = 1.0;
 
-                if(InpEnableScoring)
+                if(CfgEnableScoring())
                 {
                     double prox = (g_state.atr_m15 > 0) ? g_state.atr_m15 : g_state.atr_value * 5;
                     int score = CalcSignalScore(g_zones[z], g_state, g_state.market_state, prox, tmp.risk_price, 0);
-                    if(score < InpMinScore)
+                    if(score < CfgMinScore())
                     {
-                        if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " score=", score, " min=", InpMinScore, " skip=score");
+                        if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " score=", score, " min=", CfgMinScore(), " skip=score");
                         continue;
                     }
                     double mult = ScoreToMultiplier(score);
@@ -201,7 +201,7 @@ void OnTick()
                         continue;
                     if(!PassOBReentryCooldown(g_htf_zones[z]))
                         continue;
-                    if(InpEnableStateFilter && g_state.market_state != 0 &&
+                    if(CfgEnableStateFilter() && g_state.market_state != 0 &&
                        g_state.market_state != g_htf_zones[z].direction)
                         continue;
 
@@ -306,13 +306,13 @@ void OnTick()
 
 int CountActivePositions()
 {
-    if(InpFreeRunMinR <= 0)
+    if(CfgFreeRunMinR() <= 0)
         return CountPositions();
     int count = 0;
     for(int i = 0; i < g_track_count; i++)
     {
         if(g_tracks[i].ticket == 0) continue;
-        if(g_tracks[i].peak_profit_r >= InpFreeRunMinR)
+        if(g_tracks[i].peak_profit_r >= CfgFreeRunMinR())
             continue;
         count++;
     }
@@ -321,17 +321,17 @@ int CountActivePositions()
 
 bool ShouldSkipEntryAttempt()
 {
-    if(InpCloseRetryCooldownSec <= 0)
+    if(CfgCloseRetryCooldownSec() <= 0)
         return false;
 
     datetime now = TimeCurrent();
     return (g_last_entry_attempt > 0 &&
-            now - g_last_entry_attempt < InpCloseRetryCooldownSec);
+            now - g_last_entry_attempt < CfgCloseRetryCooldownSec());
 }
 
 void MarkEntryAttemptFailed()
 {
-    if(InpCloseRetryCooldownSec <= 0)
+    if(CfgCloseRetryCooldownSec() <= 0)
         return;
     datetime now = TimeCurrent();
     g_last_entry_attempt = now;

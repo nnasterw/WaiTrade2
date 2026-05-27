@@ -42,8 +42,9 @@ bool IsSwingLow(const MqlRates &rates[], int idx, int strength, int total)
 MARKET_STATE DetectMarketState(string symbol, double &target_price)
 {
     MqlRates rates[];
-    int count = CopyRates(symbol, PERIOD_M15, 0, InpTrendLookback, rates);
-    if(count < InpSwingStrength * 2 + 5)
+    int swing_strength = CfgSwingStrength();
+    int count = CopyRates(symbol, PERIOD_M15, 0, CfgTrendLookback(), rates);
+    if(count < swing_strength * 2 + 5)
         return STATE_RANGE;
 
     SwingPoint highs[];
@@ -52,9 +53,9 @@ MARKET_STATE DetectMarketState(string symbol, double &target_price)
     ArrayResize(lows, 32);
     int nh = 0, nl = 0;
 
-    for(int i = InpSwingStrength; i < count - InpSwingStrength; i++)
+    for(int i = swing_strength; i < count - swing_strength; i++)
     {
-        if(IsSwingHigh(rates, i, InpSwingStrength, count))
+        if(IsSwingHigh(rates, i, swing_strength, count))
         {
             if(nh >= ArraySize(highs)) ArrayResize(highs, nh * 2);
             highs[nh].price     = rates[i].high;
@@ -62,7 +63,7 @@ MARKET_STATE DetectMarketState(string symbol, double &target_price)
             highs[nh].type      = 1;
             nh++;
         }
-        if(IsSwingLow(rates, i, InpSwingStrength, count))
+        if(IsSwingLow(rates, i, swing_strength, count))
         {
             if(nl >= ArraySize(lows)) ArrayResize(lows, nl * 2);
             lows[nl].price     = rates[i].low;

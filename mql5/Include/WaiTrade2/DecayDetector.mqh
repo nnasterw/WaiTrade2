@@ -7,14 +7,15 @@
 
 bool CheckMomentumDecay(string symbol, int direction, const MqlRates &rates[], int count)
 {
-    int need = InpDecayBars + 2;
+    int decay_bars = CfgDecayBars();
+    int need = decay_bars + 2;
     if(count < need)
         return false;
 
     // 条件1: 二推不破
     bool cond1 = false;
     {
-        int start = count - InpDecayBars;
+        int start = count - decay_bars;
         if(direction > 0)
         {
             double ref_high = rates[start - 1].high;
@@ -24,7 +25,7 @@ bool CheckMomentumDecay(string symbol, int direction, const MqlRates &rates[], i
                 if(rates[i].high > ref_high)
                 { no_new_high = false; break; }
             }
-            if(no_new_high && InpDecayBars >= 3)
+            if(no_new_high && decay_bars >= 3)
             {
                 int a = count - 3, b = count - 2, c = count - 1;
                 if(rates[c].high < rates[b].high && rates[b].high < rates[a].high &&
@@ -41,7 +42,7 @@ bool CheckMomentumDecay(string symbol, int direction, const MqlRates &rates[], i
                 if(rates[i].low < ref_low)
                 { no_new_low = false; break; }
             }
-            if(no_new_low && InpDecayBars >= 3)
+            if(no_new_low && decay_bars >= 3)
             {
                 int a = count - 3, b = count - 2, c = count - 1;
                 if(rates[c].high > rates[b].high && rates[b].high > rates[a].high &&

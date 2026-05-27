@@ -466,6 +466,39 @@ input string InpBTCLowRiskHours = "17";     // BTC低仓位小时
 input double InpBTCLowRiskHourMult = 0.35;  // BTC低仓位倍数
 input string InpBTCHighRiskHours = "12,13,20,23"; // BTC高仓位小时
 input double InpBTCHighRiskHourMult = 8.0;  // BTC高仓位倍数
+input bool   InpBTCEnableStateFilter = true; // BTC启用态过滤
+input int    InpBTCTrendLookback = 80;       // BTC趋势回溯
+input int    InpBTCSwingStrength = 3;        // BTC Swing强度
+input double InpBTCRangeBE_R = 1.0;          // BTC震荡态BE
+input int    InpBTCRangeTimeExit = 20;       // BTC震荡态超时
+input double InpBTCTrendBE_R = 0.0;          // BTC趋势态BE
+input double InpBTCTrendBE_Lock = 0.0;       // BTC趋势态BE锁定
+input double InpBTCTrendDTPRetrace = 0.0;    // BTC趋势态DTP回撤
+input bool   InpBTCEnableScoring = true;     // BTC启用评分
+input int    InpBTCMinScore = 0;             // BTC最低评分
+input double InpBTCProximityATR = 1.0;       // BTC接近度ATR
+input bool   InpBTCEnableDecayExit = true;   // BTC启用衰减退出
+input double InpBTCDecayMinR = 1.0;          // BTC衰减最小R
+input int    InpBTCDecayBars = 3;            // BTC衰减bars
+input double InpBTCMFEFailMinR = 0.5;        // BTC浮盈失败最小R
+input double InpBTCMFEFailExitR = -0.1;      // BTC浮盈失败退出R
+input int    InpBTCNoMFEExitBars = 3;        // BTC无浮盈退出bars
+input double InpBTCNoMFEMinPeakR = 0.1;      // BTC无浮盈最小峰值
+input double InpBTCNoMFEExitR = -0.25;       // BTC无浮盈退出R
+input bool   InpBTCEnableHTFNetPushFilter = true; // BTC启用HTF净推进
+input int    InpBTCHTFNetPushTF = 60;        // BTC HTF净推进周期
+input int    InpBTCHTFNetPushBars = 3;       // BTC HTF净推进bars
+input double InpBTCHTFNetPushMinATR = 0.35;  // BTC HTF净推进阈值
+input double InpBTCHTFNetPushAlignedMult = 1.15; // BTC HTF同向倍数
+input double InpBTCHTFNetPushNeutralMult = 1.0;  // BTC HTF中性倍数
+input double InpBTCHTFNetPushCounterMult = 0.6;  // BTC HTF逆向倍数
+input int    InpBTCCloseRetryCooldownSec = 0;    // BTC交易失败冷却
+input double InpBTCFreeRunMinR = 5.0;       // BTC大浮盈不计并发
+input double InpBTCShallowConfirmPosMin = -0.6; // BTC浅确认阈值
+input double InpBTCShallowConfirmPosMult = 0.45; // BTC浅确认倍数
+input double InpBTCDTPPostPartialLockR = 0.0; // BTC DTP分批后锁定
+input double InpBTCDTPPostPartialRetrace = 0.0; // BTC DTP分批后回撤
+input bool   InpBTCDTPResetPeakAfterPartial = false; // BTC DTP分批后重置峰值
 
 // ── v9.8 势位态动 ────────────────────────────────────────────────────────
 // 势(M15趋势)
@@ -616,5 +649,38 @@ string CfgLowRiskHours() { return UseBTCProfile() ? InpBTCLowRiskHours : InpLowR
 double CfgLowRiskHourMult() { return UseBTCProfile() ? InpBTCLowRiskHourMult : InpLowRiskHourMult; }
 string CfgHighRiskHours() { return UseBTCProfile() ? InpBTCHighRiskHours : InpHighRiskHours; }
 double CfgHighRiskHourMult() { return UseBTCProfile() ? InpBTCHighRiskHourMult : InpHighRiskHourMult; }
+bool CfgEnableStateFilter() { return UseBTCProfile() ? InpBTCEnableStateFilter : InpEnableStateFilter; }
+int CfgTrendLookback() { return UseBTCProfile() ? InpBTCTrendLookback : InpTrendLookback; }
+int CfgSwingStrength() { return UseBTCProfile() ? InpBTCSwingStrength : InpSwingStrength; }
+double CfgRangeBE_R() { return UseBTCProfile() ? InpBTCRangeBE_R : InpRangeBE_R; }
+int CfgRangeTimeExit() { return UseBTCProfile() ? InpBTCRangeTimeExit : InpRangeTimeExit; }
+double CfgTrendBE_R() { return UseBTCProfile() ? InpBTCTrendBE_R : InpTrendBE_R; }
+double CfgTrendBE_Lock() { return UseBTCProfile() ? InpBTCTrendBE_Lock : InpTrendBE_Lock; }
+double CfgTrendDTPRetrace() { return UseBTCProfile() ? InpBTCTrendDTPRetrace : InpTrendDTPRetrace; }
+bool CfgEnableScoring() { return UseBTCProfile() ? InpBTCEnableScoring : InpEnableScoring; }
+int CfgMinScore() { return UseBTCProfile() ? InpBTCMinScore : InpMinScore; }
+double CfgProximityATR() { return UseBTCProfile() ? InpBTCProximityATR : InpProximityATR; }
+bool CfgEnableDecayExit() { return UseBTCProfile() ? InpBTCEnableDecayExit : InpEnableDecayExit; }
+double CfgDecayMinR() { return UseBTCProfile() ? InpBTCDecayMinR : InpDecayMinR; }
+int CfgDecayBars() { return UseBTCProfile() ? InpBTCDecayBars : InpDecayBars; }
+double CfgMFEFailMinR() { return UseBTCProfile() ? InpBTCMFEFailMinR : InpMFEFailMinR; }
+double CfgMFEFailExitR() { return UseBTCProfile() ? InpBTCMFEFailExitR : InpMFEFailExitR; }
+int CfgNoMFEExitBars() { return UseBTCProfile() ? InpBTCNoMFEExitBars : InpNoMFEExitBars; }
+double CfgNoMFEMinPeakR() { return UseBTCProfile() ? InpBTCNoMFEMinPeakR : InpNoMFEMinPeakR; }
+double CfgNoMFEExitR() { return UseBTCProfile() ? InpBTCNoMFEExitR : InpNoMFEExitR; }
+bool CfgEnableHTFNetPushFilter() { return UseBTCProfile() ? InpBTCEnableHTFNetPushFilter : InpEnableHTFNetPushFilter; }
+int CfgHTFNetPushTF() { return UseBTCProfile() ? InpBTCHTFNetPushTF : InpHTFNetPushTF; }
+int CfgHTFNetPushBars() { return UseBTCProfile() ? InpBTCHTFNetPushBars : InpHTFNetPushBars; }
+double CfgHTFNetPushMinATR() { return UseBTCProfile() ? InpBTCHTFNetPushMinATR : InpHTFNetPushMinATR; }
+double CfgHTFNetPushAlignedMult() { return UseBTCProfile() ? InpBTCHTFNetPushAlignedMult : InpHTFNetPushAlignedMult; }
+double CfgHTFNetPushNeutralMult() { return UseBTCProfile() ? InpBTCHTFNetPushNeutralMult : InpHTFNetPushNeutralMult; }
+double CfgHTFNetPushCounterMult() { return UseBTCProfile() ? InpBTCHTFNetPushCounterMult : InpHTFNetPushCounterMult; }
+int CfgCloseRetryCooldownSec() { return UseBTCProfile() ? InpBTCCloseRetryCooldownSec : InpCloseRetryCooldownSec; }
+double CfgFreeRunMinR() { return UseBTCProfile() ? InpBTCFreeRunMinR : InpFreeRunMinR; }
+double CfgShallowConfirmPosMin() { return UseBTCProfile() ? InpBTCShallowConfirmPosMin : InpShallowConfirmPosMin; }
+double CfgShallowConfirmPosMult() { return UseBTCProfile() ? InpBTCShallowConfirmPosMult : InpShallowConfirmPosMult; }
+double CfgDTPPostPartialLockR() { return UseBTCProfile() ? InpBTCDTPPostPartialLockR : InpDTPPostPartialLockR; }
+double CfgDTPPostPartialRetrace() { return UseBTCProfile() ? InpBTCDTPPostPartialRetrace : InpDTPPostPartialRetrace; }
+bool CfgDTPResetPeakAfterPartial() { return UseBTCProfile() ? InpBTCDTPResetPeakAfterPartial : InpDTPResetPeakAfterPartial; }
 
 #endif

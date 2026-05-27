@@ -26354,6 +26354,39 @@ v11_single_selector: &v11_single_selector
   btc_low_risk_hour_mult: 0.35
   btc_high_risk_hours: "12,13,20,23"
   btc_high_risk_hour_mult: 8.0
+  btc_enable_state_filter: true
+  btc_trend_lookback: 80
+  btc_swing_strength: 3
+  btc_range_be_r: 1.0
+  btc_range_time_exit: 20
+  btc_trend_be_r: 0.0
+  btc_trend_be_lock: 0.0
+  btc_trend_dtp_retrace: 0.0
+  btc_enable_scoring: true
+  btc_min_score: 0
+  btc_proximity_atr: 1.0
+  btc_enable_decay_exit: true
+  btc_decay_min_r: 1.0
+  btc_decay_bars: 3
+  btc_mfe_fail_min_r: 0.5
+  btc_mfe_fail_exit_r: -0.1
+  btc_no_mfe_exit_bars: 3
+  btc_no_mfe_min_peak_r: 0.1
+  btc_no_mfe_exit_r: -0.25
+  btc_enable_htf_net_push_filter: true
+  btc_htf_net_push_tf: 60
+  btc_htf_net_push_bars: 3
+  btc_htf_net_push_min_atr: 0.35
+  btc_htf_net_push_aligned_mult: 1.15
+  btc_htf_net_push_neutral_mult: 1.0
+  btc_htf_net_push_counter_mult: 0.6
+  btc_close_retry_cooldown_sec: 0
+  btc_free_run_min_r: 5.0
+  btc_shallow_confirm_pos_min: -0.6
+  btc_shallow_confirm_pos_mult: 0.45
+  btc_dtp_post_partial_lock_r: 0.0
+  btc_dtp_post_partial_retrace: 0.0
+  btc_dtp_reset_peak_after_partial: false
   magic_number: 204558
 
 v11_single_selector_btc_r1:

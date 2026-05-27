@@ -35,8 +35,8 @@ int CalcSignalScore(const OBZone &zone, const EAState &state, int mkt_state,
     if(mkt_state == zone.direction)
         score++;
 
-    // 5. 关键位接近: proximity_distance < InpProximityATR * ATR(M15)
-    if(state.atr_m15 > 0 && proximity_distance < InpProximityATR * state.atr_m15)
+    // 5. 关键位接近: proximity_distance < CfgProximityATR() * ATR(M15)
+    if(state.atr_m15 > 0 && proximity_distance < CfgProximityATR() * state.atr_m15)
         score++;
 
     // 6. 二次确认: touch_count >= 2

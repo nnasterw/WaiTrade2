@@ -261,17 +261,17 @@ void PrintPositionGoneDebug(const PosTrack &track)
 
 bool ShouldSkipCloseAttempt(PosTrack &track)
 {
-    if(InpCloseRetryCooldownSec <= 0)
+    if(CfgCloseRetryCooldownSec() <= 0)
         return false;
 
     datetime now = TimeCurrent();
     return (track.last_close_attempt > 0 &&
-            now - track.last_close_attempt < InpCloseRetryCooldownSec);
+            now - track.last_close_attempt < CfgCloseRetryCooldownSec());
 }
 
 void MarkCloseAttemptFailed(PosTrack &track)
 {
-    if(InpCloseRetryCooldownSec <= 0)
+    if(CfgCloseRetryCooldownSec() <= 0)
         return;
     datetime now = TimeCurrent();
     track.last_close_attempt = now;
@@ -345,7 +345,7 @@ void SyncPositions(PosTrack &tracks[], int &track_count)
 void CheckMFEFailExit(PosTrack &track, const EAState &state,
                       PosTrack &tracks[], int &track_count)
 {
-    if(InpMFEFailMinR <= 0) return;
+    if(CfgMFEFailMinR() <= 0) return;
     if(track.be_applied || track.trail_level > 0 || track.dtp_active || track.partial_closed || track.dtp_partial_closed)
         return;
     if(!PositionSelectByTicket(track.ticket)) return;
@@ -354,9 +354,9 @@ void CheckMFEFailExit(PosTrack &track, const EAState &state,
     double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
     track.peak_profit_r = MathMax(track.peak_profit_r, current_r);
 
-    if(track.peak_profit_r < InpMFEFailMinR)
+    if(track.peak_profit_r < CfgMFEFailMinR())
         return;
-    if(current_r > InpMFEFailExitR)
+    if(current_r > CfgMFEFailExitR())
         return;
     if(ShouldSkipCloseAttempt(track))
         return;
@@ -394,7 +394,7 @@ void CheckEarlyLossCut(PosTrack &track, const EAState &state,
 void CheckNoMFEExit(PosTrack &track, const EAState &state,
                     PosTrack &tracks[], int &track_count)
 {
-    if(InpNoMFEExitBars <= 0) return;
+    if(CfgNoMFEExitBars() <= 0) return;
     if(track.be_applied || track.trail_level > 0 || track.dtp_active || track.partial_closed || track.dtp_partial_closed)
         return;
     if(!PositionSelectByTicket(track.ticket)) return;
@@ -404,11 +404,11 @@ void CheckNoMFEExit(PosTrack &track, const EAState &state,
     track.peak_profit_r = MathMax(track.peak_profit_r, current_r);
 
     int bars_held = state.bar_count - track.open_bar;
-    if(bars_held < InpNoMFEExitBars)
+    if(bars_held < CfgNoMFEExitBars())
         return;
-    if(track.peak_profit_r >= InpNoMFEMinPeakR)
+    if(track.peak_profit_r >= CfgNoMFEMinPeakR())
         return;
-    if(current_r > InpNoMFEExitR)
+    if(current_r > CfgNoMFEExitR())
         return;
     if(ShouldSkipCloseAttempt(track))
         return;
@@ -483,14 +483,14 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
     }
 
     // v11: 用入场时锁定的市场状态
-    if(InpEnableStateFilter)
+    if(CfgEnableStateFilter())
     {
-        if(track.entry_market_state == 0 && InpRangeBE_R > 0)
-            be_r = InpRangeBE_R;
+        if(track.entry_market_state == 0 && CfgRangeBE_R() > 0)
+            be_r = CfgRangeBE_R();
         else if(track.entry_market_state != 0)
         {
-            if(InpTrendBE_R > 0) be_r = InpTrendBE_R;
-            if(InpTrendBE_Lock > 0) be_lock_r = InpTrendBE_Lock;
+            if(CfgTrendBE_R() > 0) be_r = CfgTrendBE_R();
+            if(CfgTrendBE_Lock() > 0) be_lock_r = CfgTrendBE_Lock();
         }
     }
 
@@ -620,14 +620,14 @@ double GetDTPRetrace(const PosTrack &track, const EAState &state)
         dtp_retrace = InpSellDTPRetrace;
     if(track.htf_target && InpHTFDTPRetrace > 0)
         dtp_retrace = InpHTFDTPRetrace;
-    if(InpEnableStateFilter && track.entry_market_state != 0 && InpTrendDTPRetrace > 0)
-        dtp_retrace = InpTrendDTPRetrace / 100.0;
+    if(CfgEnableStateFilter() && track.entry_market_state != 0 && CfgTrendDTPRetrace() > 0)
+        dtp_retrace = CfgTrendDTPRetrace() / 100.0;
     if(InpDTPStage2TriggerR > 0 && InpDTPStage2Retrace > 0 && track.dtp_peak_r >= InpDTPStage2TriggerR)
         dtp_retrace = InpDTPStage2Retrace;
     if(InpDTPStage3TriggerR > 0 && InpDTPStage3Retrace > 0 && track.dtp_peak_r >= InpDTPStage3TriggerR)
         dtp_retrace = InpDTPStage3Retrace;
-    if(track.dtp_partial_closed && InpDTPPostPartialRetrace > 0)
-        dtp_retrace = InpDTPPostPartialRetrace;
+    if(track.dtp_partial_closed && CfgDTPPostPartialRetrace() > 0)
+        dtp_retrace = CfgDTPPostPartialRetrace();
     if(track.htf_target && track.dtp_partial_closed && InpHTFDTPPostPartialRetrace > 0)
         dtp_retrace = InpHTFDTPPostPartialRetrace;
     if(InpEnableMomentumRegime && InpStrongDTPRetraceMult > 0 && IsPositionStrong(track, state))
@@ -637,14 +637,14 @@ double GetDTPRetrace(const PosTrack &track, const EAState &state)
 
 void ApplyDTPPostPartialLock(PosTrack &track, double current_r)
 {
-    if(InpDTPPostPartialLockR <= 0) return;
-    if(current_r <= InpDTPPostPartialLockR) return;
+    if(CfgDTPPostPartialLockR() <= 0) return;
+    if(current_r <= CfgDTPPostPartialLockR()) return;
     if(!PositionSelectByTicket(track.ticket)) return;
 
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
     double current_sl = PositionGetDouble(POSITION_SL);
     double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
-    double new_sl = RToPrice(InpDTPPostPartialLockR, track.entry_price, track.risk_price, track.direction);
+    double new_sl = RToPrice(CfgDTPPostPartialLockR(), track.entry_price, track.risk_price, track.direction);
 
     if(track.direction > 0)
     {
@@ -709,7 +709,7 @@ void CheckDTP(PosTrack &track, const EAState &state)
                     track.dtp_partial_closed = true;
                     ApplyDTPPostPartialLock(track, current_r);
                     PrintExitDebug("dtp_partial", track, current_r, state);
-                    if(InpDTPResetPeakAfterPartial)
+                    if(CfgDTPResetPeakAfterPartial())
                         track.dtp_peak_r = current_r;
                     return;
                 }
@@ -737,7 +737,7 @@ bool IsPositionStrong(const PosTrack &track, const EAState &state)
 
 void CheckDecay(PosTrack &track, const EAState &state)
 {
-    if(!InpEnableDecayExit && !InpEnableMomentumRegime) return;
+    if(!CfgEnableDecayExit() && !InpEnableMomentumRegime) return;
 
     // DTP激活后禁用衰减检测，让大赢单自由跑
     if(track.dtp_active) return;
@@ -750,9 +750,9 @@ void CheckDecay(PosTrack &track, const EAState &state)
     if(state.bar_count != s_decay_bar)
     {
         s_decay_bar = state.bar_count;
-        s_m1_count = CopyRates(_Symbol, PERIOD_M1, 0, InpDecayBars + 5, s_m1_rates);
+        s_m1_count = CopyRates(_Symbol, PERIOD_M1, 0, CfgDecayBars() + 5, s_m1_rates);
     }
-    if(s_m1_count < InpDecayBars + 2) return;
+    if(s_m1_count < CfgDecayBars() + 2) return;
 
     if(!PositionSelectByTicket(track.ticket)) return;
 
@@ -760,11 +760,11 @@ void CheckDecay(PosTrack &track, const EAState &state)
     double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
 
     // 震荡态入场单衰减门槛更低(0.5R)，趋势态用主参数
-    double effective_decay_min = InpDecayMinR;
-    if(track.entry_market_state == 0 && InpDecayMinR > 0.5)
+    double effective_decay_min = CfgDecayMinR();
+    if(track.entry_market_state == 0 && CfgDecayMinR() > 0.5)
         effective_decay_min = 0.5;
 
-    bool decay = InpEnableDecayExit && current_r >= effective_decay_min &&
+    bool decay = CfgEnableDecayExit() && current_r >= effective_decay_min &&
                  CheckMomentumDecay(_Symbol, track.direction, s_m1_rates, s_m1_count);
     bool weak = InpEnableMomentumRegime && current_r >= InpWeakExitMinR &&
                 CheckMomentumWeakness(_Symbol, track.direction, s_m1_rates, s_m1_count);
@@ -785,8 +785,8 @@ void CheckTimeExit(PosTrack &track, const EAState &state)
     int time_exit_bars = CfgTimeExitBars();
 
     // v11: 用入场时锁定的市场状态判断超时
-    if(InpEnableStateFilter && track.entry_market_state == 0 && InpRangeTimeExit < 999)
-        time_exit_bars = InpRangeTimeExit;
+    if(CfgEnableStateFilter() && track.entry_market_state == 0 && CfgRangeTimeExit() < 999)
+        time_exit_bars = CfgRangeTimeExit();
 
     if(time_exit_bars >= 999) return;
 

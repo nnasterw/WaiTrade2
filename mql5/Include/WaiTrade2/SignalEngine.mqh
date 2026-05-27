@@ -166,7 +166,7 @@ bool PassEntryMomentumFilter(int direction)
 
    int tf_min = (InpEntryMomentumTF > 0) ? InpEntryMomentumTF : CfgBarTF();
    ENUM_TIMEFRAMES tf = MinutesToTF(tf_min);
-   int need = MathMax(MathMax(InpStrongMomentumBars, InpDecayBars) + 5, 8);
+   int need = MathMax(MathMax(InpStrongMomentumBars, CfgDecayBars()) + 5, 8);
 
    MqlRates rates[];
    int count = CopyRates(_Symbol, tf, 0, need, rates);
@@ -862,12 +862,12 @@ double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double ris
       risk_price >= CfgLargeRiskMin())
       pos_mult *= CfgLargeRiskMult();
 
-   if(InpShallowConfirmPosMin > -999.0 && InpShallowConfirmPosMult != 1.0 &&
-      signal.confirm_ob_pos > InpShallowConfirmPosMin)
+   if(CfgShallowConfirmPosMin() > -999.0 && CfgShallowConfirmPosMult() != 1.0 &&
+      signal.confirm_ob_pos > CfgShallowConfirmPosMin())
    {
-      if(InpShallowConfirmPosMult <= 0)
+      if(CfgShallowConfirmPosMult() <= 0)
          return -1.0;
-      pos_mult *= InpShallowConfirmPosMult;
+      pos_mult *= CfgShallowConfirmPosMult();
    }
 
    return pos_mult;
@@ -1218,12 +1218,12 @@ double ApplyOBContextPositionMultiplier(const OBZone &zone, double pos_mult)
 
 double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
 {
-   if(!InpEnableHTFNetPushFilter || InpHTFNetPushMinATR <= 0)
+   if(!CfgEnableHTFNetPushFilter() || CfgHTFNetPushMinATR() <= 0)
       return pos_mult;
 
-   int bars = MathMax(InpHTFNetPushBars, 1);
+   int bars = MathMax(CfgHTFNetPushBars(), 1);
    int need = bars + InpATRPeriod + 1;
-   ENUM_TIMEFRAMES tf = MinutesToTF(InpHTFNetPushTF);
+   ENUM_TIMEFRAMES tf = MinutesToTF(CfgHTFNetPushTF());
 
    MqlRates rates[];
    int count = CopyRates(_Symbol, tf, 1, need, rates);
@@ -1237,12 +1237,12 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
    int start = count - bars;
    double net_move = (rates[count - 1].close - rates[start].open) * direction;
    double net_atr = net_move / atr;
-   double mult = InpHTFNetPushNeutralMult;
+   double mult = CfgHTFNetPushNeutralMult();
 
-   if(net_atr >= InpHTFNetPushMinATR)
-      mult = InpHTFNetPushAlignedMult;
-   else if(net_atr <= -InpHTFNetPushMinATR)
-      mult = InpHTFNetPushCounterMult;
+   if(net_atr >= CfgHTFNetPushMinATR())
+      mult = CfgHTFNetPushAlignedMult();
+   else if(net_atr <= -CfgHTFNetPushMinATR())
+      mult = CfgHTFNetPushCounterMult();
 
    if(mult <= 0)
       return -1.0;
@@ -1397,7 +1397,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    }
 
    double pos_mult = signal.pos_mult;
-   if(InpEnableScoring)
+   if(CfgEnableScoring())
    {
       double proximity_distance = MathAbs(bid - entry);
       double tp_est = CalcLiquiditySweepTP(zone, entry);
@@ -1407,16 +1407,16 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
          tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
-      else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+      else if(tp_est == 0.0 && CfgEnableStateFilter() && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
          tp_est = RToPrice(2.0, entry, risk_price, signal.direction);
       double target_distance = MathAbs(tp_est - entry);
       int score = CalcSignalScore(zone, state, state.market_state,
                                   proximity_distance, risk_price, target_distance);
-      if(InpMinScore > 0 && score < InpMinScore)
+      if(CfgMinScore() > 0 && score < CfgMinScore())
       {
-         if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=score score=", score, " min=", InpMinScore);
+         if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=score score=", score, " min=", CfgMinScore());
          return false;
       }
       pos_mult = ScoreToMultiplier(score);
@@ -1526,7 +1526,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
          tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
-   else if(InpEnableStateFilter && state.market_state == 0)
+   else if(CfgEnableStateFilter() && state.market_state == 0)
    {
       // 震荡态: OBHeight TP优先，其次swing目标，最后固定TP
       tp = CalcOBHeightTP(zone, entry);
@@ -1556,7 +1556,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    signal.htf_partial_pct = 0;
    ApplyHTFTarget(symbol, entry, risk_price, signal);
    PrintEntryDebug("entry_engine", zone, state, signal, entry, risk_price, spread, pos_mult,
-                   InpEnableScoring ? CalcSignalScore(zone, state, state.market_state,
+                   CfgEnableScoring() ? CalcSignalScore(zone, state, state.market_state,
                                                       MathAbs(bid - entry), risk_price,
                                                       MathAbs(RToPrice(2.0, entry, risk_price, signal.direction) - entry))
                                     : -1);
@@ -1638,7 +1638,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       return false;
 
    // v9.8 态过滤: 趋势态硬过滤逆势
-   if(InpEnableStateFilter && state.market_state != 0 && state.market_state != zone.direction)
+   if(CfgEnableStateFilter() && state.market_state != 0 && state.market_state != zone.direction)
       return false;
 
    double sl = 0;
@@ -1676,7 +1676,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    // v9.8 评分系统
    double pos_mult = 1.0;
    int score = -1;
-   if(InpEnableScoring)
+   if(CfgEnableScoring())
    {
       double proximity_distance = MathAbs(bid - entry);
       double tp_est = CalcLiquiditySweepTP(zone, entry);
@@ -1686,14 +1686,14 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
          tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
-      else if(tp_est == 0.0 && InpEnableStateFilter && state.market_state == 0 && state.target_price > 0)
+      else if(tp_est == 0.0 && CfgEnableStateFilter() && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
          tp_est = RToPrice(2.0, entry, risk_price, zone.direction);
       double target_distance = MathAbs(tp_est - entry);
       score = CalcSignalScore(zone, state, state.market_state,
                               proximity_distance, risk_price, target_distance);
-      if(InpMinScore > 0 && score < InpMinScore)
+      if(CfgMinScore() > 0 && score < CfgMinScore())
          return false;
       pos_mult = ScoreToMultiplier(score);
       if(pos_mult < 0)
@@ -1780,7 +1780,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
          tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
-   else if(InpEnableStateFilter && state.market_state == 0)
+   else if(CfgEnableStateFilter() && state.market_state == 0)
    {
       tp = CalcOBHeightTP(zone, entry);
       if(tp == 0.0 && state.target_price > 0)

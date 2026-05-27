@@ -334,6 +334,36 @@ def test_v98_decay_params_in_flat_map():
     assert FLAT_MAP['engulf_body_pct'] == 'InpEngulfBodyPct'
 
 
+def test_v11_btc_profile_extended_params_in_flat_map():
+    assert FLAT_MAP['btc_enable_state_filter'] == 'InpBTCEnableStateFilter'
+    assert FLAT_MAP['btc_enable_scoring'] == 'InpBTCEnableScoring'
+    assert FLAT_MAP['btc_enable_decay_exit'] == 'InpBTCEnableDecayExit'
+    assert FLAT_MAP['btc_mfe_fail_min_r'] == 'InpBTCMFEFailMinR'
+    assert FLAT_MAP['btc_no_mfe_exit_bars'] == 'InpBTCNoMFEExitBars'
+    assert FLAT_MAP['btc_enable_htf_net_push_filter'] == 'InpBTCEnableHTFNetPushFilter'
+    assert FLAT_MAP['btc_htf_net_push_tf'] == 'InpBTCHTFNetPushTF'
+    assert FLAT_MAP['btc_free_run_min_r'] == 'InpBTCFreeRunMinR'
+    assert FLAT_MAP['btc_shallow_confirm_pos_mult'] == 'InpBTCShallowConfirmPosMult'
+    assert FLAT_MAP['btc_dtp_reset_peak_after_partial'] == 'InpBTCDTPResetPeakAfterPartial'
+
+
+def test_strategy_to_set_v11_btc_profile_extended_params():
+    cfg = {
+        'version': 'V11',
+        'btc_enable_state_filter': True,
+        'btc_mfe_fail_exit_r': -0.1,
+        'btc_no_mfe_exit_bars': 3,
+        'btc_htf_net_push_tf': 60,
+        'btc_dtp_reset_peak_after_partial': False,
+    }
+    content = strategy_to_set('v11', cfg)
+    assert 'InpBTCEnableStateFilter=true' in content
+    assert 'InpBTCMFEFailExitR=-0.1' in content
+    assert 'InpBTCNoMFEExitBars=3' in content
+    assert 'InpBTCHTFNetPushTF=60' in content
+    assert 'InpBTCDTPResetPeakAfterPartial=false' in content
+
+
 def test_v98_strategy_full_set():
     cfg = {
         'version': 'V98',

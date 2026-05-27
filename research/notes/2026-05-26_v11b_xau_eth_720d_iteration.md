@@ -817,3 +817,27 @@ BTC 校准仍失败:
 - 当前 wrapper 方式能保持 XAU FAGE 默认行为，但还不能完整复现 BTC R53。
 - R53 与 FAGE 的差异横跨入场生成、状态/评分、HTF net push、MFE/no-MFE出场、月度风控、风险簇和时间退出；只覆盖少数关键参数不足以成为最终单策略。
 - 下一步应改为“完整 profile 参数表”或“profile struct + effective getter 全量替换”，不要继续零散补 wrapper；否则容易出现 PF 看似好但账户爆仓的错觉。
+
+## `v11_single_selector` BTC profile 复现 R53
+
+本轮把 BTC profile 从“少数关键参数覆盖”推进到“高影响执行路径覆盖”:
+
+- `Config.mqh` 增加 BTC 专属输入与 `Cfg*` getter，覆盖状态/评分、MFE/no-MFE 退出、衰减退出、HTF 净推进、浅确认降权、DTP 分批后处理、free-run 并发与交易失败冷却。
+- `SignalEngine/PositionManager/MarketState/ScoreEngine/DecayDetector/WaiTrade_OB` 中相关直接 `Inp*` 读取改为 `Cfg*`，避免 XAU FAGE 基线污染 BTC profile。
+- `v11_single_selector` 仍以 XAU FAGE 为基础；BTC 图表上通过同一个 preset 自动启用 R53 逻辑。
+
+后台 MT5 Strategy Tester 串行复核:
+
+| 月份 | 品种/profile | 窗口 | 交易 | 日均 | 胜率 | PF | 余额 | 结论 |
+|---|---|---|---:|---:|---:|---:|---:|---|
+| 2026-01 | XAU FAGE profile | 2026.01.01~2026.01.31 | 72 | 2.4 | 83.3% | 3.24 | $455.63 | 达标 |
+| 2026-02 | XAU FAGE profile | 2026.02.01~2026.03.03 | 55 | 1.8 | 87.3% | 2.09 | $324.57 | 达标 |
+| 2026-03 | XAU FAGE profile | 2026.03.01~2026.03.31 | 1 | 0.0 | 100.0% | inf | $390.88 | 达标但频率极低 |
+| 2026-04 | BTC R53 profile | 2026.04.01~2026.05.01 | 141 | 4.7 | 41.1% | 1.35 | $890.94 | 达标，复现 R53 |
+| 2026-05 | XAU FAGE profile | 2026.05.01~2026.05.26 | 25 | 1.0 | 84.0% | 4.41 | $370.23 | 达标 |
+
+阶段结论:
+
+- `v11_single_selector` 现在已经用同一个 EA/preset 复现了 2026 已有月份 selector 的核心证据: XAU 负责 1/2/3/5 月启动，BTC 负责 4 月趋势补位。
+- 这仍不是最终“近两年每月首月 +70u”的完成态，因为 2024-06~2025-12 还依赖 R31/R27/R24/R7 等 XAU 高频/补位 profile；下一步需要把 XAU 高频 profile 也纳入 EA 级 selector，或设计启动期 regime 规则自动选择 FAGE/R31/R7 子逻辑。
+- 2026-03 虽盈利很强但只有 1 笔，说明单策略目标若继续要求“稳步小余额爬坡”，不能只看余额达标，还要补一个低频月份的风险审计。
