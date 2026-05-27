@@ -320,10 +320,12 @@ yaml.composer.ComposerError: found undefined alias 'v11xau_start_fage_2026_month
 
 同日新增 `v11_single_selector_nomonth_noalt_pt35` 时再次遗漏 `v11_single_selector_nomonth_noalt` anchor，回测加载 YAML 失败后修复。
 
+同日新增 `v11_btc_dual_r*` 实验策略时再次遗漏 `v11_btc_m5_r21` anchor，`yaml_to_set.py` 与 pytest 均因 `found undefined alias 'v11_btc_m5_r21'` 失败；已修复为 `v11_btc_m5_r21: &v11_btc_m5_r21`。
+
 ### Metadata
 - Reproducible: yes
 - Related Files: config/strategies.yaml
 - See Also: ERR-20260526-001
-- Recurrence-Count: 7
+- Recurrence-Count: 8
 
 ---

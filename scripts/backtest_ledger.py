@@ -37,6 +37,7 @@ def records_from_report(path: Path) -> list[dict]:
                 'date_to': parsed['date_to'],
                 'days': parsed['days'],
                 'deposit': parsed.get('deposit'),
+                'model': parsed.get('model'),
                 'trades': row['trades'],
                 'daily_trades': row['daily_trades'],
                 'win_rate': row['win_rate'],

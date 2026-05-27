@@ -73,13 +73,13 @@ def fmt_float(value, digits=1):
     return f'{value:.{digits}f}'
 
 
-def emit_commands(legs: list[Leg], start: date, end: date, deposit: float, timeout: int):
+def emit_commands(legs: list[Leg], start: date, end: date, deposit: float, timeout: int, model: str):
     for leg in legs:
         print(
             'python3 scripts/mt5_cli_backtest.py --background '
             f'--strategy {leg.strategy} --symbol {leg.symbol} '
             f'--from {start.strftime("%Y.%m.%d")} --to {end.strftime("%Y.%m.%d")} '
-            f'--deposit {deposit:g} --timeout {timeout}'
+            f'--deposit {deposit:g} --timeout {timeout} --model {model}'
         )
 
 
@@ -127,6 +127,7 @@ def main():
     parser.add_argument('--target-balance', type=float, default=300.0)
     parser.add_argument('--deposit', type=float, default=200.0)
     parser.add_argument('--timeout', type=int, default=360)
+    parser.add_argument('--model', default='4', help='MT5 Strategy Tester Model；默认4=Real ticks')
     parser.add_argument('--emit-missing-commands', action='store_true')
     parser.add_argument('--hide-missing', action='store_true', help='只输出缺失数量，不展开缺失清单')
     parser.add_argument('--only-failures', action='store_true', help='只输出未达标或缺失的月份')
@@ -165,7 +166,7 @@ def main():
         if args.emit_missing_commands and missing:
             print('COMMANDS')
             for leg, date_from, date_to in missing:
-                emit_commands([leg], date_from, date_to, args.deposit, args.timeout)
+                emit_commands([leg], date_from, date_to, args.deposit, args.timeout, args.model)
         return
 
     print('| 月份 | 窗口 | 最佳腿 | 余额 | 交易 | 日均 | 胜率 | PF | 达标 |')
@@ -195,7 +196,7 @@ def main():
         if args.emit_missing_commands:
             print('\n待跑命令:')
             for leg, date_from, date_to in missing:
-                emit_commands([leg], date_from, date_to, args.deposit, args.timeout)
+                emit_commands([leg], date_from, date_to, args.deposit, args.timeout, args.model)
 
 
 if __name__ == '__main__':

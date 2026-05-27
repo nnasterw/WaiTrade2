@@ -63,7 +63,8 @@ POSITION_GONE_PATTERN = re.compile(
 REPORT_TITLE_PATTERN = re.compile(r'MT5 Strategy Tester 回测报告 —\s*(\S+)')
 REPORT_META_PATTERN = re.compile(
     r'日期:\s*(\d{4}\.\d{2}\.\d{2})\s*~\s*(\d{4}\.\d{2}\.\d{2})\s*\((\d+)天\)'
-    r'\s*\|\s*资金:\s*\$(\d+(?:\.\d+)?)\s*\|\s*杠杆:\s*1:(\d+)',
+    r'\s*\|\s*资金:\s*\$(\d+(?:\.\d+)?)\s*\|\s*杠杆:\s*1:(\d+)'
+    r'(?:\s*\|\s*模型:\s*(\d+))?',
 )
 REPORT_ROW_PATTERN = re.compile(
     r'^(\S+)\s+(\d+)\s+([\d.]+)\s+([\d.]+)\s*(?:%\s*([\d.]+|inf))?\s+(N/A|[+-]?[\d.]+)\s+\$(-?[\d.]+)$'
@@ -207,11 +208,12 @@ def calc_stats(result, deposit, days):
     }
 
 
-def format_report(strategy_name, date_from, date_to, days, deposit, leverage, symbol_results):
+def format_report(strategy_name, date_from, date_to, days, deposit, leverage, symbol_results, model=None):
+    model_text = f' | 模型: {model}' if model is not None else ''
     header = f"""
 =====================================================================
 MT5 Strategy Tester 回测报告 — {strategy_name.upper()}
-日期: {date_from} ~ {date_to} ({days}天) | 资金: ${deposit} | 杠杆: 1:{leverage}
+日期: {date_from} ~ {date_to} ({days}天) | 资金: ${deposit} | 杠杆: 1:{leverage}{model_text}
 =====================================================================
 
 品种         交易  日均  胜率   盈亏比  净R     余额
@@ -321,6 +323,7 @@ def backtest_main(description, run_fn, args=None):
     parser.add_argument('--to', dest='date_to', help='回测结束日期 YYYY.MM.DD')
     parser.add_argument('--timeout', type=int, default=300, help='每个品种的超时秒数（默认300）')
     parser.add_argument('--deposit', type=float, help='覆盖初始资金')
+    parser.add_argument('--model', help='覆盖 MT5 Strategy Tester Model；4=Real ticks')
 
     parsed = parser.parse_args(args)
 
@@ -332,6 +335,10 @@ def backtest_main(description, run_fn, args=None):
     if parsed.deposit is not None:
         for name in strategy_names:
             config[name]['deposit'] = parsed.deposit
+
+    if parsed.model is not None:
+        for name in strategy_names:
+            config[name]['model'] = parsed.model
 
     symbol_arg = parsed.symbol or parsed.symbols
     symbols = resolve_symbols(config, symbol_arg)
@@ -461,6 +468,7 @@ def parse_backtest_report_content(content):
                     'days': int(meta_match.group(3)),
                     'deposit': float(meta_match.group(4)),
                     'leverage': meta_match.group(5),
+                    'model': meta_match.group(6),
                 }
                 continue
 

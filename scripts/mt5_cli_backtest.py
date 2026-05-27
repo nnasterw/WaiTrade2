@@ -357,6 +357,7 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
     defaults = config.get('backtest_defaults', {})
     deposit = strategy_cfg.get('deposit', defaults.get('deposit', 200))
     leverage = strategy_cfg.get('leverage', defaults.get('leverage', '2000'))
+    model = strategy_cfg.get('model', defaults.get('model', '1'))
     if isinstance(leverage, str) and ':' in leverage:
         leverage = leverage.split(':')[-1]
 
@@ -395,7 +396,7 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
         else:
             symbol_results[symbol] = None
 
-    report = format_report(strategy_name, date_from, date_to, days, deposit, leverage, symbol_results)
+    report = format_report(strategy_name, date_from, date_to, days, deposit, leverage, symbol_results, model=model)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     report_path = build_report_path(strategy_name, date_from, date_to)
     with open(report_path, 'w', encoding='utf-8') as f:

@@ -554,6 +554,48 @@ input double InpXAUAltContextFilter5Mult = 1.0;
 input string InpXAUAltContextFilter5NoHours = "";
 input string InpXAUAltMonthlyProfitTargetStopMonths = "10";
 
+// ── v11 单策略 XAU 趋势爆发 Profile覆盖 ────────────────────────────────
+input bool   InpEnableXAUTrendProfile = false; // 启用XAU趋势爆发覆盖
+input string InpXAUTrendProfileSymbol = "XAU"; // 触发XAU趋势profile的品种名片段
+input int    InpXAUTrendTriggerTF = 60;        // 趋势触发净推进周期
+input int    InpXAUTrendTriggerBars = 3;       // 趋势触发净推进bars
+input double InpXAUTrendMinAbsNetATR = 0.45;   // 趋势触发最小绝对净推进ATR
+input int    InpXAUTrendRangeTF = 240;         // 波动扩张确认周期
+input int    InpXAUTrendRangeBars = 12;        // 波动扩张确认bars
+input double InpXAUTrendMinRangeATR = 4.0;     // 波动扩张最小区间ATR(<=0禁用)
+input double InpXAUTrendMonthlyStopLossPct = 0.0; // 趋势腿月内回撤停用百分比(0=禁用)
+input double InpXAUTrendBouncePct = 0.18;
+input int    InpXAUTrendTimeoutMin = 120;
+input double InpXAUTrendMaxEntryOffsetR = 1.2;
+input int    InpXAUTrendBarTF = 1;
+input int    InpXAUTrendTimeExitBars = 20;
+input double InpXAUTrendBreakevenR = 0.50;
+input double InpXAUTrendBreakevenLockR = 0.40;
+input double InpXAUTrendDTPTriggerR = 0.0;
+input double InpXAUTrendDTPRetrace = 0.20;
+input double InpXAUTrendFixedTPR = 1.50;
+input double InpXAUTrendRiskPercent = 2.0;
+input double InpXAUTrendMaxPosMult = 200.0;
+input double InpXAUTrendMaxLotSize = 2.0;
+input int    InpXAUTrendMaxConcurrent = 14;
+input double InpXAUTrendMinRiskSpreadRatio = 2.5;
+input double InpXAUTrendEntryDepthPct = 0.67;
+input bool   InpXAUTrendEntryDepthFilter = true;
+input bool   InpXAUTrendRequireDoubleTch = false;
+input int    InpXAUTrendMaxEntriesPerOB = 20;
+input int    InpXAUTrendOBReentryCooldownMin = 0;
+input int    InpXAUTrendCooldownBars = 0;
+input int    InpXAUTrendFilterContAgeMinBars = 0;
+input int    InpXAUTrendFilterContAgeMaxBars = 0;
+input bool   InpXAUTrendFilterContNonDeepOnly = false;
+input bool   InpXAUTrendEnableHTFNetPushFilter = true;
+input int    InpXAUTrendHTFNetPushTF = 60;
+input int    InpXAUTrendHTFNetPushBars = 3;
+input double InpXAUTrendHTFNetPushMinATR = 0.45;
+input double InpXAUTrendHTFNetPushAlignedMult = 1.20;
+input double InpXAUTrendHTFNetPushNeutralMult = 0.45;
+input double InpXAUTrendHTFNetPushCounterMult = 0.0;
+
 // ── v9.8 势位态动 ────────────────────────────────────────────────────────
 // 势(M15趋势)
 input int    InpTrendLookback     = 80;       // M15趋势回溯(bars)
@@ -665,6 +707,104 @@ bool CfgCsvIntListed(string csv, int value)
    return false;
 }
 
+ENUM_TIMEFRAMES CfgMinutesToTF(int minutes)
+{
+   switch(minutes)
+   {
+      case 1:   return PERIOD_M1;
+      case 2:   return PERIOD_M2;
+      case 3:   return PERIOD_M3;
+      case 4:   return PERIOD_M4;
+      case 5:   return PERIOD_M5;
+      case 6:   return PERIOD_M6;
+      case 10:  return PERIOD_M10;
+      case 12:  return PERIOD_M12;
+      case 15:  return PERIOD_M15;
+      case 20:  return PERIOD_M20;
+      case 30:  return PERIOD_M30;
+      case 60:  return PERIOD_H1;
+      case 240: return PERIOD_H4;
+      default:  return PERIOD_M15;
+   }
+}
+
+double CfgCalcATRLocal(const MqlRates &rates[], int count, int period)
+{
+   if(count < period + 1)
+      return 0.0;
+   double sum = 0.0;
+   for(int i = count - period; i < count; i++)
+   {
+      double tr = rates[i].high - rates[i].low;
+      double tr2 = MathAbs(rates[i].high - rates[i - 1].close);
+      double tr3 = MathAbs(rates[i].low - rates[i - 1].close);
+      if(tr2 > tr) tr = tr2;
+      if(tr3 > tr) tr = tr3;
+      sum += tr;
+   }
+   return sum / period;
+}
+
+bool CalcXAUTrendStats(int tf_minutes, int bars, double &net_atr, double &range_atr)
+{
+   bars = MathMax(bars, 1);
+   int need = bars + InpATRPeriod + 1;
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, CfgMinutesToTF(tf_minutes), 1, need, rates);
+   if(count < bars + 1)
+      return false;
+
+   double atr = CfgCalcATRLocal(rates, count, InpATRPeriod);
+   if(atr <= 0)
+      return false;
+
+   int start = count - bars;
+   double hi = rates[start].high;
+   double lo = rates[start].low;
+   for(int i = start + 1; i < count; i++)
+   {
+      hi = MathMax(hi, rates[i].high);
+      lo = MathMin(lo, rates[i].low);
+   }
+
+   net_atr = (rates[count - 1].close - rates[start].open) / atr;
+   range_atr = (hi - lo) / atr;
+   return true;
+}
+
+bool XAUTrendMonthlyFeedbackAllows()
+{
+   if(InpXAUTrendMonthlyStopLossPct <= 0)
+      return true;
+
+   static int s_key = 0;
+   static double s_start_balance = 0.0;
+   static bool s_disabled = false;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   int key = dt.year * 100 + dt.mon;
+   if(key != s_key || s_start_balance <= 0)
+   {
+      s_key = key;
+      s_start_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      s_disabled = false;
+   }
+
+   if(s_disabled)
+      return false;
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double stop_balance = s_start_balance * (1.0 - InpXAUTrendMonthlyStopLossPct / 100.0);
+   if(balance <= stop_balance)
+   {
+      s_disabled = true;
+      return false;
+   }
+
+   return true;
+}
+
 bool UseXAUFageAltProfile()
 {
    if(!InpEnableXAUFageAltProfile ||
@@ -695,48 +835,77 @@ bool UseXAUFageAltProfile()
    return (month_trigger || adaptive_trigger);
 }
 
-double CfgBouncePct() { return UseBTCProfile() ? InpBTCBouncePct : InpBouncePct; }
-int CfgTimeoutMin() { return UseBTCProfile() ? InpBTCTimeoutMin : InpTimeoutMin; }
-double CfgMaxEntryOffsetR() { return UseBTCProfile() ? InpBTCMaxEntryOffsetR : InpMaxEntryOffsetR; }
-int CfgBarTF() { return UseBTCProfile() ? InpBTCBarTF : InpBarTF; }
+bool UseXAUTrendProfile()
+{
+   if(!InpEnableXAUTrendProfile ||
+      StringLen(InpXAUTrendProfileSymbol) <= 0 ||
+      StringFind(_Symbol, InpXAUTrendProfileSymbol) < 0)
+      return false;
+   if(!XAUTrendMonthlyFeedbackAllows())
+      return false;
+
+   double trigger_net = 0.0;
+   double trigger_range = 0.0;
+   if(!CalcXAUTrendStats(InpXAUTrendTriggerTF, InpXAUTrendTriggerBars, trigger_net, trigger_range))
+      return false;
+   if(MathAbs(trigger_net) < InpXAUTrendMinAbsNetATR)
+      return false;
+
+   if(InpXAUTrendMinRangeATR > 0)
+   {
+      double range_net = 0.0;
+      double range_atr = 0.0;
+      if(!CalcXAUTrendStats(InpXAUTrendRangeTF, InpXAUTrendRangeBars, range_net, range_atr))
+         return false;
+      if(range_atr < InpXAUTrendMinRangeATR)
+         return false;
+   }
+
+   return true;
+}
+
+double CfgBouncePct() { return UseBTCProfile() ? InpBTCBouncePct : (UseXAUTrendProfile() ? InpXAUTrendBouncePct : InpBouncePct); }
+int CfgTimeoutMin() { return UseBTCProfile() ? InpBTCTimeoutMin : (UseXAUTrendProfile() ? InpXAUTrendTimeoutMin : InpTimeoutMin); }
+double CfgMaxEntryOffsetR() { return UseBTCProfile() ? InpBTCMaxEntryOffsetR : (UseXAUTrendProfile() ? InpXAUTrendMaxEntryOffsetR : InpMaxEntryOffsetR); }
+int CfgBarTF() { return UseBTCProfile() ? InpBTCBarTF : (UseXAUTrendProfile() ? InpXAUTrendBarTF : InpBarTF); }
 bool CfgEnableLiquiditySweep() { return UseBTCProfile() ? InpBTCEnableLiquiditySweep : InpEnableLiquiditySweep; }
 bool CfgLiquiditySweepOnly() { return UseBTCProfile() ? InpBTCLiquiditySweepOnly : InpLiquiditySweepOnly; }
 int CfgNoOBStartHour() { return UseBTCProfile() ? InpBTCNoOBStartHour : InpNoOBStartHour; }
 int CfgNoOBEndHour() { return UseBTCProfile() ? InpBTCNoOBEndHour : InpNoOBEndHour; }
 double CfgSLBufferATR() { return UseBTCProfile() ? InpBTCSLBufferATR : InpSLBufferATR; }
 double CfgOBHeightTPMult() { return UseBTCProfile() ? InpBTCOBHeightTPMult : InpOBHeightTPMult; }
-int CfgTimeExitBars() { return UseBTCProfile() ? InpBTCTimeExitBars : InpTimeExitBars; }
+int CfgTimeExitBars() { return UseBTCProfile() ? InpBTCTimeExitBars : (UseXAUTrendProfile() ? InpXAUTrendTimeExitBars : InpTimeExitBars); }
 int CfgSweepLookbackBars() { return UseBTCProfile() ? InpBTCSweepLookbackBars : InpSweepLookbackBars; }
 double CfgSweepMaxRangeATR() { return UseBTCProfile() ? InpBTCSweepMaxRangeATR : InpSweepMaxRangeATR; }
 double CfgSweepMinRangeSpreadMult() { return UseBTCProfile() ? InpBTCSweepMinRangeSpreadMult : InpSweepMinRangeSpreadMult; }
 double CfgSweepMinPenetrationATR() { return UseBTCProfile() ? InpBTCSweepMinPenetrationATR : InpSweepMinPenetrationATR; }
 double CfgSweepMinWickPct() { return UseBTCProfile() ? InpBTCSweepMinWickPct : InpSweepMinWickPct; }
 double CfgSweepTPMult() { return UseBTCProfile() ? InpBTCSweepTPMult : InpSweepTPMult; }
-double CfgBreakevenR() { return UseBTCProfile() ? InpBTCBreakevenR : InpBreakevenR; }
-double CfgBreakevenLockR() { return UseBTCProfile() ? InpBTCBreakevenLockR : InpBreakevenLockR; }
-double CfgDTPTriggerR() { return UseBTCProfile() ? InpBTCDTPTriggerR : InpDTPTriggerR; }
-double CfgDTPRetrace() { return UseBTCProfile() ? InpBTCDTPRetrace : InpDTPRetrace; }
-double CfgFixedTPR() { return UseBTCProfile() ? InpBTCFixedTPR : InpFixedTPR; }
-double CfgRiskPercent() { return UseBTCProfile() ? InpBTCRiskPercent : InpRiskPercent; }
-double CfgMaxPosMult() { return UseBTCProfile() ? InpBTCMaxPosMult : InpMaxPosMult; }
-double CfgMaxLotSize() { return UseBTCProfile() ? InpBTCMaxLotSize : InpMaxLotSize; }
-int CfgMaxConcurrent() { return UseBTCProfile() ? InpBTCMaxConcurrent : InpMaxConcurrent; }
-double CfgMinRiskSpreadRatio() { return UseBTCProfile() ? InpBTCMinRiskSpreadRatio : InpMinRiskSpreadRatio; }
+double CfgBreakevenR() { return UseBTCProfile() ? InpBTCBreakevenR : (UseXAUTrendProfile() ? InpXAUTrendBreakevenR : InpBreakevenR); }
+double CfgBreakevenLockR() { return UseBTCProfile() ? InpBTCBreakevenLockR : (UseXAUTrendProfile() ? InpXAUTrendBreakevenLockR : InpBreakevenLockR); }
+double CfgDTPTriggerR() { return UseBTCProfile() ? InpBTCDTPTriggerR : (UseXAUTrendProfile() ? InpXAUTrendDTPTriggerR : InpDTPTriggerR); }
+double CfgDTPRetrace() { return UseBTCProfile() ? InpBTCDTPRetrace : (UseXAUTrendProfile() ? InpXAUTrendDTPRetrace : InpDTPRetrace); }
+double CfgFixedTPR() { return UseBTCProfile() ? InpBTCFixedTPR : (UseXAUTrendProfile() ? InpXAUTrendFixedTPR : InpFixedTPR); }
+double CfgRiskPercent() { return UseBTCProfile() ? InpBTCRiskPercent : (UseXAUTrendProfile() ? InpXAUTrendRiskPercent : InpRiskPercent); }
+double CfgMaxPosMult() { return UseBTCProfile() ? InpBTCMaxPosMult : (UseXAUTrendProfile() ? InpXAUTrendMaxPosMult : InpMaxPosMult); }
+double CfgMaxLotSize() { return UseBTCProfile() ? InpBTCMaxLotSize : (UseXAUTrendProfile() ? InpXAUTrendMaxLotSize : InpMaxLotSize); }
+int CfgMaxConcurrent() { return UseBTCProfile() ? InpBTCMaxConcurrent : (UseXAUTrendProfile() ? InpXAUTrendMaxConcurrent : InpMaxConcurrent); }
+double CfgMinRiskSpreadRatio() { return UseBTCProfile() ? InpBTCMinRiskSpreadRatio : (UseXAUTrendProfile() ? InpXAUTrendMinRiskSpreadRatio : InpMinRiskSpreadRatio); }
 double CfgSweepPosMult() { return UseBTCProfile() ? InpBTCSweepPosMult : InpSweepPosMult; }
 double CfgSweepMaxLotSize() { return UseBTCProfile() ? InpBTCSweepMaxLotSize : InpSweepMaxLotSize; }
 double CfgLowBalanceThreshold() { return UseBTCProfile() ? InpBTCLowBalanceThreshold : InpLowBalanceThreshold; }
 double CfgLowBalancePosMult() { return UseBTCProfile() ? InpBTCLowBalancePosMult : InpLowBalancePosMult; }
 double CfgLowBalanceMaxLotSize() { return UseBTCProfile() ? InpBTCLowBalanceMaxLotSize : InpLowBalanceMaxLotSize; }
-double CfgEntryDepthPct() { return UseBTCProfile() ? InpBTCEntryDepthPct : InpEntryDepthPct; }
-bool CfgEntryDepthFilter() { return UseBTCProfile() ? InpBTCEntryDepthFilter : InpEntryDepthFilter; }
-bool CfgRequireDoubleTch() { return UseBTCProfile() ? InpBTCRequireDoubleTch : InpRequireDoubleTch; }
-int CfgMaxEntriesPerOB() { return UseBTCProfile() ? InpBTCMaxEntriesPerOB : InpMaxEntriesPerOB; }
-int CfgOBReentryCooldownMin() { return UseBTCProfile() ? InpBTCOBReentryCooldownMin : InpOBReentryCooldownMin; }
-int CfgCooldownBars() { return UseBTCProfile() ? InpBTCCooldownBars : InpCooldownBars; }
+double CfgEntryDepthPct() { return UseBTCProfile() ? InpBTCEntryDepthPct : (UseXAUTrendProfile() ? InpXAUTrendEntryDepthPct : InpEntryDepthPct); }
+bool CfgEntryDepthFilter() { return UseBTCProfile() ? InpBTCEntryDepthFilter : (UseXAUTrendProfile() ? InpXAUTrendEntryDepthFilter : InpEntryDepthFilter); }
+bool CfgRequireDoubleTch() { return UseBTCProfile() ? InpBTCRequireDoubleTch : (UseXAUTrendProfile() ? InpXAUTrendRequireDoubleTch : InpRequireDoubleTch); }
+int CfgMaxEntriesPerOB() { return UseBTCProfile() ? InpBTCMaxEntriesPerOB : (UseXAUTrendProfile() ? InpXAUTrendMaxEntriesPerOB : InpMaxEntriesPerOB); }
+int CfgOBReentryCooldownMin() { return UseBTCProfile() ? InpBTCOBReentryCooldownMin : (UseXAUTrendProfile() ? InpXAUTrendOBReentryCooldownMin : InpOBReentryCooldownMin); }
+int CfgCooldownBars() { return UseBTCProfile() ? InpBTCCooldownBars : (UseXAUTrendProfile() ? InpXAUTrendCooldownBars : InpCooldownBars); }
 double CfgContinuationPosMult() { return UseBTCProfile() ? InpBTCContinuationPosMult : InpContinuationPosMult; }
-int CfgFilterContAgeMinBars() { return UseBTCProfile() ? InpBTCFilterContAgeMinBars : InpFilterContAgeMinBars; }
-int CfgFilterContAgeMaxBars() { return UseBTCProfile() ? InpBTCFilterContAgeMaxBars : InpFilterContAgeMaxBars; }
-bool CfgFilterContNonDeepOnly() { return UseBTCProfile() ? InpBTCFilterContNonDeepOnly : InpFilterContNonDeepOnly; }
+int CfgFilterContAgeMinBars() { return UseBTCProfile() ? InpBTCFilterContAgeMinBars : (UseXAUTrendProfile() ? InpXAUTrendFilterContAgeMinBars : InpFilterContAgeMinBars); }
+int CfgFilterContAgeMaxBars() { return UseBTCProfile() ? InpBTCFilterContAgeMaxBars : (UseXAUTrendProfile() ? InpXAUTrendFilterContAgeMaxBars : InpFilterContAgeMaxBars); }
+bool CfgFilterContNonDeepOnly() { return UseBTCProfile() ? InpBTCFilterContNonDeepOnly : (UseXAUTrendProfile() ? InpXAUTrendFilterContNonDeepOnly : InpFilterContNonDeepOnly); }
 double CfgBoostIn1HOB() { return UseBTCProfile() ? InpBTCBoostIn1HOB : InpBoostIn1HOB; }
 int CfgLateBounceSec() { return UseBTCProfile() ? InpBTCLateBounceSec : InpLateBounceSec; }
 double CfgLateBounceMult() { return UseBTCProfile() ? InpBTCLateBounceMult : InpLateBounceMult; }
@@ -774,13 +943,13 @@ double CfgMFEFailExitR() { return UseBTCProfile() ? InpBTCMFEFailExitR : InpMFEF
 int CfgNoMFEExitBars() { return UseBTCProfile() ? InpBTCNoMFEExitBars : InpNoMFEExitBars; }
 double CfgNoMFEMinPeakR() { return UseBTCProfile() ? InpBTCNoMFEMinPeakR : InpNoMFEMinPeakR; }
 double CfgNoMFEExitR() { return UseBTCProfile() ? InpBTCNoMFEExitR : InpNoMFEExitR; }
-bool CfgEnableHTFNetPushFilter() { return UseBTCProfile() ? InpBTCEnableHTFNetPushFilter : InpEnableHTFNetPushFilter; }
-int CfgHTFNetPushTF() { return UseBTCProfile() ? InpBTCHTFNetPushTF : InpHTFNetPushTF; }
-int CfgHTFNetPushBars() { return UseBTCProfile() ? InpBTCHTFNetPushBars : InpHTFNetPushBars; }
-double CfgHTFNetPushMinATR() { return UseBTCProfile() ? InpBTCHTFNetPushMinATR : InpHTFNetPushMinATR; }
-double CfgHTFNetPushAlignedMult() { return UseBTCProfile() ? InpBTCHTFNetPushAlignedMult : InpHTFNetPushAlignedMult; }
-double CfgHTFNetPushNeutralMult() { return UseBTCProfile() ? InpBTCHTFNetPushNeutralMult : InpHTFNetPushNeutralMult; }
-double CfgHTFNetPushCounterMult() { return UseBTCProfile() ? InpBTCHTFNetPushCounterMult : InpHTFNetPushCounterMult; }
+bool CfgEnableHTFNetPushFilter() { return UseBTCProfile() ? InpBTCEnableHTFNetPushFilter : (UseXAUTrendProfile() ? InpXAUTrendEnableHTFNetPushFilter : InpEnableHTFNetPushFilter); }
+int CfgHTFNetPushTF() { return UseBTCProfile() ? InpBTCHTFNetPushTF : (UseXAUTrendProfile() ? InpXAUTrendHTFNetPushTF : InpHTFNetPushTF); }
+int CfgHTFNetPushBars() { return UseBTCProfile() ? InpBTCHTFNetPushBars : (UseXAUTrendProfile() ? InpXAUTrendHTFNetPushBars : InpHTFNetPushBars); }
+double CfgHTFNetPushMinATR() { return UseBTCProfile() ? InpBTCHTFNetPushMinATR : (UseXAUTrendProfile() ? InpXAUTrendHTFNetPushMinATR : InpHTFNetPushMinATR); }
+double CfgHTFNetPushAlignedMult() { return UseBTCProfile() ? InpBTCHTFNetPushAlignedMult : (UseXAUTrendProfile() ? InpXAUTrendHTFNetPushAlignedMult : InpHTFNetPushAlignedMult); }
+double CfgHTFNetPushNeutralMult() { return UseBTCProfile() ? InpBTCHTFNetPushNeutralMult : (UseXAUTrendProfile() ? InpXAUTrendHTFNetPushNeutralMult : InpHTFNetPushNeutralMult); }
+double CfgHTFNetPushCounterMult() { return UseBTCProfile() ? InpBTCHTFNetPushCounterMult : (UseXAUTrendProfile() ? InpXAUTrendHTFNetPushCounterMult : InpHTFNetPushCounterMult); }
 int CfgCloseRetryCooldownSec() { return UseBTCProfile() ? InpBTCCloseRetryCooldownSec : InpCloseRetryCooldownSec; }
 double CfgFreeRunMinR() { return UseBTCProfile() ? InpBTCFreeRunMinR : InpFreeRunMinR; }
 double CfgShallowConfirmPosMin() { return UseBTCProfile() ? InpBTCShallowConfirmPosMin : InpShallowConfirmPosMin; }

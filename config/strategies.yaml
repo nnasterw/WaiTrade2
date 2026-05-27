@@ -372,6 +372,46 @@ defaults: &defaults
   htf_net_push_aligned_mult: 1.0
   htf_net_push_neutral_mult: 1.0
   htf_net_push_counter_mult: 1.0
+  enable_xau_trend_profile: false
+  xau_trend_profile_symbol: "XAU"
+  xau_trend_trigger_tf: 60
+  xau_trend_trigger_bars: 3
+  xau_trend_min_abs_net_atr: 0.45
+  xau_trend_range_tf: 240
+  xau_trend_range_bars: 12
+  xau_trend_min_range_atr: 4.0
+  xau_trend_monthly_stop_loss_pct: 0.0
+  xau_trend_bounce_pct: 0.18
+  xau_trend_timeout_min: 120
+  xau_trend_max_entry_offset_r: 1.2
+  xau_trend_bar_period_min: 1
+  xau_trend_time_exit_bars: 20
+  xau_trend_breakeven_r: 0.50
+  xau_trend_breakeven_lock_r: 0.40
+  xau_trend_dtp_trigger_r: 0.0
+  xau_trend_dtp_retrace: 0.20
+  xau_trend_fixed_tp_r: 1.50
+  xau_trend_risk_percent: 2.0
+  xau_trend_max_pos_mult: 200.0
+  xau_trend_max_lot_size: 2.0
+  xau_trend_max_concurrent: 14
+  xau_trend_min_risk_spread_ratio: 2.5
+  xau_trend_entry_depth_pct: 0.67
+  xau_trend_entry_depth_filter: true
+  xau_trend_require_double_touch: false
+  xau_trend_max_entries_per_ob: 20
+  xau_trend_ob_reentry_cooldown_min: 0
+  xau_trend_cooldown_bars: 0
+  xau_trend_filter_cont_age_min_bars: 0
+  xau_trend_filter_cont_age_max_bars: 0
+  xau_trend_filter_cont_non_deep_only: false
+  xau_trend_enable_htf_net_push_filter: true
+  xau_trend_htf_net_push_tf: 60
+  xau_trend_htf_net_push_bars: 3
+  xau_trend_htf_net_push_min_atr: 0.45
+  xau_trend_htf_net_push_aligned_mult: 1.20
+  xau_trend_htf_net_push_neutral_mult: 0.45
+  xau_trend_htf_net_push_counter_mult: 0.0
   buy_min_strength: 0.0
   sell_min_strength: 0.0
   buy_pos_mult: 1.0
@@ -26096,6 +26136,27 @@ v11b_xau_r38_m1_tp15_h4push_hard:
   htf_net_push_counter_mult: 0.0
   magic_number: 204562
 
+v11xau_trend: &v11xau_trend
+  <<: *v11b_xau_r35_m1_tp15_nomonth
+  version: V11XAU-TREND
+  description: "Official XAU trend leg: R35 no-month M1 high-frequency trend breakout profile"
+  magic_number: 204546
+
+v11xau_trend_h04_block:
+  <<: *v11xau_trend
+  version: V11XAU-TREND-H04-BLOCK
+  description: "XAU trend leg experiment: block 04:00 entries, the weakest edge-hour candidate from edge-vs-strong cluster contrast"
+  no_entry_hours: "4"
+  magic_number: 204576
+
+v11xau_trend_h04_half:
+  <<: *v11xau_trend
+  version: V11XAU-TREND-H04-HALF
+  description: "XAU trend leg experiment: halve 04:00 entries instead of hard blocking"
+  low_risk_hours: "4"
+  low_risk_hour_mult: 0.5
+  magic_number: 204577
+
 v11b_xau_r32_m1_tp20: &v11b_xau_r32_m1_tp20
   <<: *v11b_xau_r26_m1_reentry_target_ext2
   version: V11B-XAU-R32
@@ -26530,6 +26591,135 @@ v11_single_selector: &v11_single_selector
   xau_alt_context_filter5_no_hours: ""
   xau_alt_monthly_profit_target_stop_months: ""
   magic_number: 204558
+
+v11xau_range: &v11xau_range
+  <<: *v11_single_selector
+  version: V11XAU-RANGE
+  description: "Official XAU range/conservative leg: single-selector XAU FAGE profile for chop or weak trend feedback"
+  magic_number: 204559
+
+v11xau_range_h15_block:
+  <<: *v11xau_range
+  version: V11XAU-RANGE-H15-BLOCK
+  description: "XAU range leg experiment: block 15:00 entries; candidate from range edge-vs-strong cluster contrast"
+  no_entry_hours: "0,9,12,15,17,18"
+  magic_number: 204578
+
+v11xau_range_h1415_half:
+  <<: *v11xau_range
+  version: V11XAU-RANGE-H1415-HALF
+  description: "XAU range leg experiment: halve 14:00/15:00 entries instead of hard blocking"
+  low_risk_hours: "14,15"
+  low_risk_hour_mult: 0.5
+  magic_number: 204579
+
+v11_single_selector_xau_trend_r1: &v11_single_selector_xau_trend_r1
+  <<: *v11_single_selector
+  version: V11-SINGLE-XAU-TREND-R1
+  description: "Single EA probe: FAGE base plus XAU R35-style trend profile triggered by HTF net-push and range expansion"
+  enable_xau_trend_profile: true
+  xau_trend_trigger_tf: 60
+  xau_trend_trigger_bars: 3
+  xau_trend_min_abs_net_atr: 0.45
+  xau_trend_range_tf: 240
+  xau_trend_range_bars: 12
+  xau_trend_min_range_atr: 4.0
+  xau_trend_htf_net_push_tf: 60
+  xau_trend_htf_net_push_bars: 3
+  xau_trend_htf_net_push_min_atr: 0.45
+  xau_trend_htf_net_push_aligned_mult: 1.20
+  xau_trend_htf_net_push_neutral_mult: 0.45
+  xau_trend_htf_net_push_counter_mult: 0.0
+  magic_number: 204563
+
+v11_single_selector_xau_trend_r2:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R2
+  description: "Single EA probe: R1 with stricter HTF range expansion gate"
+  xau_trend_min_range_atr: 8.0
+  magic_number: 204564
+
+v11_single_selector_xau_trend_r3:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R3
+  description: "Single EA probe: R1 with stricter net-push and range expansion gates"
+  xau_trend_min_abs_net_atr: 0.90
+  xau_trend_min_range_atr: 8.0
+  magic_number: 204565
+
+v11_single_selector_xau_trend_r4:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R4
+  description: "Single EA probe: R1 with very strict range expansion gate"
+  xau_trend_min_range_atr: 12.0
+  magic_number: 204566
+
+v11_single_selector_xau_trend_r5:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R5
+  description: "Single EA probe: R1 with medium 5ATR range expansion gate"
+  xau_trend_min_range_atr: 5.0
+  magic_number: 204567
+
+v11_single_selector_xau_trend_r6:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R6
+  description: "Single EA probe: R1 with medium 6ATR range expansion gate"
+  xau_trend_min_range_atr: 6.0
+  magic_number: 204568
+
+v11_single_selector_xau_trend_r7:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R7
+  description: "Single EA probe: R1 with medium 7ATR range expansion gate"
+  xau_trend_min_range_atr: 7.0
+  magic_number: 204569
+
+v11_single_selector_xau_trend_r8:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R8
+  description: "Single EA probe: R1 with 10-day H4 range expansion gate"
+  xau_trend_range_bars: 60
+  xau_trend_min_range_atr: 8.0
+  magic_number: 204570
+
+v11_single_selector_xau_trend_r9:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R9
+  description: "Single EA probe: R1 with stricter 10-day H4 range expansion gate"
+  xau_trend_range_bars: 60
+  xau_trend_min_range_atr: 12.0
+  magic_number: 204571
+
+v11_single_selector_xau_trend_r10:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R10
+  description: "Single EA probe: R1 with looser net-push and 10-day H4 range expansion gate"
+  xau_trend_min_abs_net_atr: 0.30
+  xau_trend_range_bars: 60
+  xau_trend_min_range_atr: 8.0
+  magic_number: 204572
+
+v11_single_selector_xau_trend_r11:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R11
+  description: "Single EA probe: R1 with 5pct monthly feedback stop for trend leg"
+  xau_trend_monthly_stop_loss_pct: 5.0
+  magic_number: 204573
+
+v11_single_selector_xau_trend_r12:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R12
+  description: "Single EA probe: R1 with 10pct monthly feedback stop for trend leg"
+  xau_trend_monthly_stop_loss_pct: 10.0
+  magic_number: 204574
+
+v11_single_selector_xau_trend_r13:
+  <<: *v11_single_selector_xau_trend_r1
+  version: V11-SINGLE-XAU-TREND-R13
+  description: "Single EA probe: R1 with 2pct monthly feedback stop for trend leg"
+  xau_trend_monthly_stop_loss_pct: 2.0
+  magic_number: 204575
 
 v11_single_selector_btc_r1:
   <<: *v11_single_selector

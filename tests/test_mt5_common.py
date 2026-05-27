@@ -36,6 +36,19 @@ def test_repo_strategies_yaml_loads():
     assert 'v11_r221_j2_r61_context_march_probe' in strategies
 
 
+def test_xau_range_hour_experiments_preserve_base_no_entry_hours():
+    strategies = load_strategies(
+        Path(__file__).resolve().parent.parent / 'config' / 'strategies.yaml'
+    )
+
+    base_hours = set(strategies['v11xau_range']['no_entry_hours'].split(','))
+    block_hours = set(strategies['v11xau_range_h15_block']['no_entry_hours'].split(','))
+
+    assert block_hours == base_hours | {'15'}
+    assert strategies['v11xau_range_h1415_half']['no_entry_hours'] == strategies['v11xau_range']['no_entry_hours']
+    assert strategies['v11xau_range_h1415_half']['low_risk_hours'] == '14,15'
+
+
 def test_resolve_symbols_csv():
     config = {'symbols': {'forex': ['EURUSD', 'GBPUSD'], 'metals': ['XAUUSD']}}
     assert resolve_symbols(config, 'EURUSD,GBPUSD') == ['EURUSD', 'GBPUSD']
@@ -232,6 +245,19 @@ def test_format_report_contains_strategy():
     assert '$230.00' in report
 
 
+def test_format_report_can_include_model():
+    symbol_results = {'XAUUSDm': {
+        'trades': 1, 'wins': 1, 'losses': 0,
+        'win_rate': 100.0, 'profit_factor': float('inf'), 'daily_trades': 0.03,
+        'final_balance': 230.0, 'profit': 30.0, 'net_r': 2.0,
+    }}
+    report = format_report('v96b', '2026.04.15', '2026.05.15', 30, 200, '2000', symbol_results, model=4)
+    parsed = parse_backtest_report_content(report)
+
+    assert '模型: 4' in report
+    assert parsed['model'] == '4'
+
+
 def test_format_report_failed_symbol():
     symbol_results = {'BTCUSDm': None}
     report = format_report('v96b', '2026.04.15', '2026.05.15', 30, 200, '2000', symbol_results)
@@ -375,6 +401,34 @@ def test_v11_xau_fage_alt_profile_params_in_flat_map():
     assert FLAT_MAP['xau_alt_context_filter1_months'] == 'InpXAUAltContextFilter1Months'
     assert FLAT_MAP['xau_alt_context_filter5_no_hours'] == 'InpXAUAltContextFilter5NoHours'
     assert FLAT_MAP['xau_alt_monthly_profit_target_stop_months'] == 'InpXAUAltMonthlyProfitTargetStopMonths'
+
+
+def test_v11_xau_trend_profile_params_in_flat_map():
+    assert FLAT_MAP['enable_xau_trend_profile'] == 'InpEnableXAUTrendProfile'
+    assert FLAT_MAP['xau_trend_min_abs_net_atr'] == 'InpXAUTrendMinAbsNetATR'
+    assert FLAT_MAP['xau_trend_min_range_atr'] == 'InpXAUTrendMinRangeATR'
+    assert FLAT_MAP['xau_trend_fixed_tp_r'] == 'InpXAUTrendFixedTPR'
+    assert FLAT_MAP['xau_trend_max_entries_per_ob'] == 'InpXAUTrendMaxEntriesPerOB'
+    assert FLAT_MAP['xau_trend_htf_net_push_counter_mult'] == 'InpXAUTrendHTFNetPushCounterMult'
+
+
+def test_strategy_to_set_v11_xau_trend_profile_params():
+    cfg = {
+        'version': 'V11',
+        'enable_xau_trend_profile': True,
+        'xau_trend_min_abs_net_atr': 0.55,
+        'xau_trend_min_range_atr': 5.0,
+        'xau_trend_fixed_tp_r': 1.5,
+        'xau_trend_max_entries_per_ob': 20,
+        'xau_trend_htf_net_push_counter_mult': 0.0,
+    }
+    content = strategy_to_set('v11', cfg)
+    assert 'InpEnableXAUTrendProfile=true' in content
+    assert 'InpXAUTrendMinAbsNetATR=0.55' in content
+    assert 'InpXAUTrendMinRangeATR=5.0' in content
+    assert 'InpXAUTrendFixedTPR=1.5' in content
+    assert 'InpXAUTrendMaxEntriesPerOB=20' in content
+    assert 'InpXAUTrendHTFNetPushCounterMult=0.0' in content
 
 
 def test_strategy_to_set_v11_xau_fage_alt_profile_params():
@@ -1533,6 +1587,34 @@ def test_backtest_main_deposit_override(monkeypatch):
     assert called_with['deposit'] == 507.58
 
 
+def test_backtest_main_model_override(monkeypatch):
+    called_with = {}
+    fake_config = {
+        'defaults': {},
+        'symbols': {'metals': ['XAUUSDm']},
+        'backtest_defaults': {'model': 0},
+        'mt5_account': {},
+        'v99j2': {'version': 'V99j2', 'model': 0},
+    }
+
+    def fake_run(strategy_names, symbols, date_from, date_to, days, config, timeout):
+        called_with['model'] = config['v99j2']['model']
+
+    monkeypatch.setattr('mt5_common.load_config', lambda: fake_config)
+    backtest_main(
+        'test',
+        fake_run,
+        args=[
+            '--strategy', 'v99j2',
+            '--symbol', 'XAUUSDm',
+            '--from', '2024.11.01',
+            '--to', '2024.11.30',
+            '--model', '4',
+        ],
+    )
+    assert called_with['model'] == '4'
+
+
 def test_cli_parse_agent_log_prefers_matching_new_segment(monkeypatch, tmp_path):
     today = datetime(2026, 5, 21)
     log_path = tmp_path / '20260521.log'
@@ -1686,6 +1768,7 @@ def test_parse_backtest_report_content_extracts_meta():
     assert parsed['strategy_name'] == 'V11_BTC_M5_R21'
     assert parsed['date_from'] == '2026.03.22'
     assert parsed['date_to'] == '2026.05.21'
+    assert parsed['model'] is None
     assert parsed['symbols'][0]['symbol'] == 'BTCUSDm'
     assert parsed['symbols'][0]['final_balance'] == 240.0
 
