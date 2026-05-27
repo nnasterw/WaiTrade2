@@ -369,42 +369,42 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       return pos_mult;
 
    pos_mult = ApplyOneContextFilterPositionMultiplier(
-      InpContextFilter1Months, InpContextFilter1NoHours,
-      InpContextFilter1NoBuyHours, InpContextFilter1NoSellHours,
-      InpContextFilter1MinMonthStartBalance, InpContextFilter1MaxMonthStartBalance,
-      InpContextFilter1Mult, direction, pos_mult);
+      CfgContextFilter1Months(), CfgContextFilter1NoHours(),
+      CfgContextFilter1NoBuyHours(), CfgContextFilter1NoSellHours(),
+      CfgContextFilter1MinMonthStartBalance(), CfgContextFilter1MaxMonthStartBalance(),
+      CfgContextFilter1Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
 
    pos_mult = ApplyOneContextFilterPositionMultiplier(
-      InpContextFilter2Months, InpContextFilter2NoHours,
-      InpContextFilter2NoBuyHours, InpContextFilter2NoSellHours,
-      InpContextFilter2MinMonthStartBalance, InpContextFilter2MaxMonthStartBalance,
-      InpContextFilter2Mult, direction, pos_mult);
+      CfgContextFilter2Months(), CfgContextFilter2NoHours(),
+      CfgContextFilter2NoBuyHours(), CfgContextFilter2NoSellHours(),
+      CfgContextFilter2MinMonthStartBalance(), CfgContextFilter2MaxMonthStartBalance(),
+      CfgContextFilter2Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
 
    pos_mult = ApplyOneContextFilterPositionMultiplier(
-      InpContextFilter3Months, InpContextFilter3NoHours,
-      InpContextFilter3NoBuyHours, InpContextFilter3NoSellHours,
-      InpContextFilter3MinMonthStartBalance, InpContextFilter3MaxMonthStartBalance,
-      InpContextFilter3Mult, direction, pos_mult);
+      CfgContextFilter3Months(), CfgContextFilter3NoHours(),
+      CfgContextFilter3NoBuyHours(), CfgContextFilter3NoSellHours(),
+      CfgContextFilter3MinMonthStartBalance(), CfgContextFilter3MaxMonthStartBalance(),
+      CfgContextFilter3Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
 
    pos_mult = ApplyOneContextFilterPositionMultiplier(
-      InpContextFilter4Months, InpContextFilter4NoHours,
-      InpContextFilter4NoBuyHours, InpContextFilter4NoSellHours,
-      InpContextFilter4MinMonthStartBalance, InpContextFilter4MaxMonthStartBalance,
-      InpContextFilter4Mult, direction, pos_mult);
+      CfgContextFilter4Months(), CfgContextFilter4NoHours(),
+      CfgContextFilter4NoBuyHours(), CfgContextFilter4NoSellHours(),
+      CfgContextFilter4MinMonthStartBalance(), CfgContextFilter4MaxMonthStartBalance(),
+      CfgContextFilter4Mult(), direction, pos_mult);
    if(pos_mult < 0)
       return pos_mult;
 
    return ApplyOneContextFilterPositionMultiplier(
-      InpContextFilter5Months, InpContextFilter5NoHours,
-      InpContextFilter5NoBuyHours, InpContextFilter5NoSellHours,
-      InpContextFilter5MinMonthStartBalance, InpContextFilter5MaxMonthStartBalance,
-      InpContextFilter5Mult, direction, pos_mult);
+      CfgContextFilter5Months(), CfgContextFilter5NoHours(),
+      CfgContextFilter5NoBuyHours(), CfgContextFilter5NoSellHours(),
+      CfgContextFilter5MinMonthStartBalance(), CfgContextFilter5MaxMonthStartBalance(),
+      CfgContextFilter5Mult(), direction, pos_mult);
 }
 
 double ApplySignalTypePositionMultiplier(const OBZone &zone, double pos_mult)
@@ -644,7 +644,7 @@ bool IsMonthlyProfitTargetStopEnabled()
          InpMonthlyProfitTargetStopPct,
          InpMonthlyProfitTargetStopMinBalance,
          InpMonthlyProfitTargetStopMaxBalance,
-         InpMonthlyProfitTargetStopMonths
+         CfgMonthlyProfitTargetStopMonths()
       ) ||
       IsMonthlyProfitTargetStopSlotEnabled(
          InpMonthlyProfitTargetStop2Pct,
@@ -664,7 +664,7 @@ double MonthlyProfitTargetStopPct()
       InpMonthlyProfitTargetStopPct,
       InpMonthlyProfitTargetStopMinBalance,
       InpMonthlyProfitTargetStopMaxBalance,
-      InpMonthlyProfitTargetStopMonths
+      CfgMonthlyProfitTargetStopMonths()
    ))
       return InpMonthlyProfitTargetStopPct;
 

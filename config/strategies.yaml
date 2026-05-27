@@ -26387,6 +26387,28 @@ v11_single_selector: &v11_single_selector
   btc_dtp_post_partial_lock_r: 0.0
   btc_dtp_post_partial_retrace: 0.0
   btc_dtp_reset_peak_after_partial: false
+  enable_xau_fage_alt_profile: true
+  xau_fage_alt_profile_symbol: "XAU"
+  xau_fage_alt_profile_months: "10"
+  xau_alt_context_filter1_months: "10"
+  xau_alt_context_filter1_no_hours: "10,11"
+  xau_alt_context_filter2_max_month_start_balance: 0.0
+  xau_alt_context_filter2_months: ""
+  xau_alt_context_filter2_mult: 1.0
+  xau_alt_context_filter2_no_hours: ""
+  xau_alt_context_filter3_max_month_start_balance: 0.0
+  xau_alt_context_filter3_months: ""
+  xau_alt_context_filter3_mult: 1.0
+  xau_alt_context_filter3_no_hours: ""
+  xau_alt_context_filter4_max_month_start_balance: 0.0
+  xau_alt_context_filter4_months: ""
+  xau_alt_context_filter4_mult: 1.0
+  xau_alt_context_filter4_no_hours: ""
+  xau_alt_context_filter5_max_month_start_balance: 0.0
+  xau_alt_context_filter5_months: ""
+  xau_alt_context_filter5_mult: 1.0
+  xau_alt_context_filter5_no_hours: ""
+  xau_alt_monthly_profit_target_stop_months: "10"
   magic_number: 204558
 
 v11_single_selector_btc_r1:

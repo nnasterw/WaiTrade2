@@ -500,6 +500,30 @@ input double InpBTCDTPPostPartialLockR = 0.0; // BTC DTP分批后锁定
 input double InpBTCDTPPostPartialRetrace = 0.0; // BTC DTP分批后回撤
 input bool   InpBTCDTPResetPeakAfterPartial = false; // BTC DTP分批后重置峰值
 
+// ── v11 单策略 XAU FAGE-alt Profile覆盖 ────────────────────────────────
+input bool   InpEnableXAUFageAltProfile = false; // 启用XAU FAGE-alt覆盖
+input string InpXAUFageAltProfileSymbol = "XAU"; // 触发XAU alt profile的品种名片段
+input string InpXAUFageAltProfileMonths = "10"; // 触发XAU alt profile的月份
+input string InpXAUAltContextFilter1Months = "10";
+input string InpXAUAltContextFilter1NoHours = "10,11";
+input double InpXAUAltContextFilter2MaxMonthStartBalance = 0.0;
+input string InpXAUAltContextFilter2Months = "";
+input double InpXAUAltContextFilter2Mult = 1.0;
+input string InpXAUAltContextFilter2NoHours = "";
+input double InpXAUAltContextFilter3MaxMonthStartBalance = 0.0;
+input string InpXAUAltContextFilter3Months = "";
+input double InpXAUAltContextFilter3Mult = 1.0;
+input string InpXAUAltContextFilter3NoHours = "";
+input double InpXAUAltContextFilter4MaxMonthStartBalance = 0.0;
+input string InpXAUAltContextFilter4Months = "";
+input double InpXAUAltContextFilter4Mult = 1.0;
+input string InpXAUAltContextFilter4NoHours = "";
+input double InpXAUAltContextFilter5MaxMonthStartBalance = 0.0;
+input string InpXAUAltContextFilter5Months = "";
+input double InpXAUAltContextFilter5Mult = 1.0;
+input string InpXAUAltContextFilter5NoHours = "";
+input string InpXAUAltMonthlyProfitTargetStopMonths = "10";
+
 // ── v9.8 势位态动 ────────────────────────────────────────────────────────
 // 势(M15趋势)
 input int    InpTrendLookback     = 80;       // M15趋势回溯(bars)
@@ -587,6 +611,40 @@ bool UseBTCProfile()
    return (InpEnableBTCProfile &&
       StringLen(InpBTCProfileSymbol) > 0 &&
       StringFind(_Symbol, InpBTCProfileSymbol) >= 0);
+}
+
+bool CfgCsvIntListed(string csv, int value)
+{
+   if(StringLen(csv) == 0)
+      return false;
+
+   string parts[];
+   ushort sep = StringGetCharacter(",", 0);
+   int count = StringSplit(csv, sep, parts);
+   for(int i = 0; i < count; i++)
+   {
+      string token = parts[i];
+      StringTrimLeft(token);
+      StringTrimRight(token);
+      if(StringLen(token) == 0)
+         continue;
+      if((int)StringToInteger(token) == value)
+         return true;
+   }
+
+   return false;
+}
+
+bool UseXAUFageAltProfile()
+{
+   if(!InpEnableXAUFageAltProfile ||
+      StringLen(InpXAUFageAltProfileSymbol) <= 0 ||
+      StringFind(_Symbol, InpXAUFageAltProfileSymbol) < 0)
+      return false;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   return CfgCsvIntListed(InpXAUFageAltProfileMonths, dt.mon);
 }
 
 double CfgBouncePct() { return UseBTCProfile() ? InpBTCBouncePct : InpBouncePct; }
@@ -682,5 +740,41 @@ double CfgShallowConfirmPosMult() { return UseBTCProfile() ? InpBTCShallowConfir
 double CfgDTPPostPartialLockR() { return UseBTCProfile() ? InpBTCDTPPostPartialLockR : InpDTPPostPartialLockR; }
 double CfgDTPPostPartialRetrace() { return UseBTCProfile() ? InpBTCDTPPostPartialRetrace : InpDTPPostPartialRetrace; }
 bool CfgDTPResetPeakAfterPartial() { return UseBTCProfile() ? InpBTCDTPResetPeakAfterPartial : InpDTPResetPeakAfterPartial; }
+string CfgContextFilter1Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Months : InpContextFilter1Months; }
+string CfgContextFilter1NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter1NoHours : InpContextFilter1NoHours; }
+string CfgContextFilter1NoBuyHours() { return InpContextFilter1NoBuyHours; }
+string CfgContextFilter1NoSellHours() { return InpContextFilter1NoSellHours; }
+double CfgContextFilter1MinMonthStartBalance() { return InpContextFilter1MinMonthStartBalance; }
+double CfgContextFilter1MaxMonthStartBalance() { return InpContextFilter1MaxMonthStartBalance; }
+double CfgContextFilter1Mult() { return InpContextFilter1Mult; }
+string CfgContextFilter2Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2Months : InpContextFilter2Months; }
+string CfgContextFilter2NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2NoHours : InpContextFilter2NoHours; }
+string CfgContextFilter2NoBuyHours() { return InpContextFilter2NoBuyHours; }
+string CfgContextFilter2NoSellHours() { return InpContextFilter2NoSellHours; }
+double CfgContextFilter2MinMonthStartBalance() { return InpContextFilter2MinMonthStartBalance; }
+double CfgContextFilter2MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2MaxMonthStartBalance : InpContextFilter2MaxMonthStartBalance; }
+double CfgContextFilter2Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2Mult : InpContextFilter2Mult; }
+string CfgContextFilter3Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3Months : InpContextFilter3Months; }
+string CfgContextFilter3NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3NoHours : InpContextFilter3NoHours; }
+string CfgContextFilter3NoBuyHours() { return InpContextFilter3NoBuyHours; }
+string CfgContextFilter3NoSellHours() { return InpContextFilter3NoSellHours; }
+double CfgContextFilter3MinMonthStartBalance() { return InpContextFilter3MinMonthStartBalance; }
+double CfgContextFilter3MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3MaxMonthStartBalance : InpContextFilter3MaxMonthStartBalance; }
+double CfgContextFilter3Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter3Mult : InpContextFilter3Mult; }
+string CfgContextFilter4Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4Months : InpContextFilter4Months; }
+string CfgContextFilter4NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4NoHours : InpContextFilter4NoHours; }
+string CfgContextFilter4NoBuyHours() { return InpContextFilter4NoBuyHours; }
+string CfgContextFilter4NoSellHours() { return InpContextFilter4NoSellHours; }
+double CfgContextFilter4MinMonthStartBalance() { return InpContextFilter4MinMonthStartBalance; }
+double CfgContextFilter4MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4MaxMonthStartBalance : InpContextFilter4MaxMonthStartBalance; }
+double CfgContextFilter4Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter4Mult : InpContextFilter4Mult; }
+string CfgContextFilter5Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5Months : InpContextFilter5Months; }
+string CfgContextFilter5NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5NoHours : InpContextFilter5NoHours; }
+string CfgContextFilter5NoBuyHours() { return InpContextFilter5NoBuyHours; }
+string CfgContextFilter5NoSellHours() { return InpContextFilter5NoSellHours; }
+double CfgContextFilter5MinMonthStartBalance() { return InpContextFilter5MinMonthStartBalance; }
+double CfgContextFilter5MaxMonthStartBalance() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5MaxMonthStartBalance : InpContextFilter5MaxMonthStartBalance; }
+double CfgContextFilter5Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter5Mult : InpContextFilter5Mult; }
+string CfgMonthlyProfitTargetStopMonths() { return UseXAUFageAltProfile() ? InpXAUAltMonthlyProfitTargetStopMonths : InpMonthlyProfitTargetStopMonths; }
 
 #endif

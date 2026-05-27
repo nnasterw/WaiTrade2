@@ -364,6 +364,29 @@ def test_strategy_to_set_v11_btc_profile_extended_params():
     assert 'InpBTCDTPResetPeakAfterPartial=false' in content
 
 
+def test_v11_xau_fage_alt_profile_params_in_flat_map():
+    assert FLAT_MAP['enable_xau_fage_alt_profile'] == 'InpEnableXAUFageAltProfile'
+    assert FLAT_MAP['xau_fage_alt_profile_months'] == 'InpXAUFageAltProfileMonths'
+    assert FLAT_MAP['xau_alt_context_filter1_months'] == 'InpXAUAltContextFilter1Months'
+    assert FLAT_MAP['xau_alt_context_filter5_no_hours'] == 'InpXAUAltContextFilter5NoHours'
+    assert FLAT_MAP['xau_alt_monthly_profit_target_stop_months'] == 'InpXAUAltMonthlyProfitTargetStopMonths'
+
+
+def test_strategy_to_set_v11_xau_fage_alt_profile_params():
+    cfg = {
+        'version': 'V11',
+        'enable_xau_fage_alt_profile': True,
+        'xau_fage_alt_profile_months': '10',
+        'xau_alt_context_filter1_no_hours': '10,11',
+        'xau_alt_monthly_profit_target_stop_months': '10',
+    }
+    content = strategy_to_set('v11', cfg)
+    assert 'InpEnableXAUFageAltProfile=true' in content
+    assert 'InpXAUFageAltProfileMonths=10' in content
+    assert 'InpXAUAltContextFilter1NoHours=10,11' in content
+    assert 'InpXAUAltMonthlyProfitTargetStopMonths=10' in content
+
+
 def test_v98_strategy_full_set():
     cfg = {
         'version': 'V98',
