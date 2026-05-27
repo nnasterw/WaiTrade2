@@ -15,3 +15,35 @@ Started: 2026-05-21
 ### 对后续 story 的影响
 - US-001 与 US-002 需要优先沉淀月度评估器和坏簇归因器，否则后续 diagnose 会重复人工分析。
 - 后续候选筛选必须同时看 daily_trades、final_balance、negative_months 和 stopout。
+
+## [XAU-GOAL] XAU 双腿 Selector 研究 — 2026-05-28
+
+### 目标
+每月月初 $200 起步，30天内收益≥35%（余额≥$270），连续2年（24个月）。
+
+### 完成的工作
+- 解析 v11b_xau_r34_m1_tp30_sepguard 720d 月度收益，定位两类问题月份：
+  - 稀疏月（15个）：R34 每月仅 1-60 笔，0-4% 收益（2024-06~2025-04 和 2026 全段）
+  - 活跃弱月（4个）：500+笔但仅 14-31%（2025-07/08/11/12）
+- 发现 v11b_xau_r35_m1_tp15_nomonth 在 2024-08~2025-12 极强，但 2026 全段亏损（-33% to -82%）
+- 发现 v11_single_selector 在 2026 全段达标（44%~231%），但在 2025-05/06/08/09 亏损
+- **核心突破：双腿选择器实现 24/24 月全部达标**
+  - 振荡腿：v11_single_selector（range）
+  - 趋势腿：v11b_xau_r35_m1_tp15_nomonth（trend）
+  - 选择规则：probe_days=5，trend_min_trades=15，net_r≥-15，sl_pct≤78%
+  - 最低月份：$274.72（2024-09，37.4%），24月余额和 $86,839
+- 运行15月份 h04_half/block 批量回测，验证趋势腿变体对比：
+  - h04_half ≈ base trend（差异±5%），弱月无改善，结论：趋势腿用 base 即可
+  - 2024-07 / 2025-01 所有三个趋势变体均失败，选择器必须切 range
+
+### 发现的注意事项
+- 2026 的 XAU 是"假趋势/高噪音"regime，所有趋势类策略（R35/h04/HTF push）均失败
+- v11_single_selector 在 2026 能赚钱的关键是其 FAGE + 月份上下文过滤器，PF 相对稳定
+- 探测窗口 probe_days=5 已经足够区分趋势/振荡月，不需要更长探测期
+- 切换逻辑目前需要两个 EA 实例实现，EA 内置 feedback probe 机制待开发
+
+### 对后续 story 的影响
+- R39 需要 EA 层实现月内探测+切换机制（Config.mqh 新增 probe 相关参数）
+- 下一轮应先设计 EA 层的 probe 机制，再运行 720d 顺序复利验证
+- v11_single_selector 可直接作为振荡腿上线（单独使用已16/24达标）
+- 参考：research/notes/2026-05-28_xau_dual_selector_24_24.md
