@@ -62,6 +62,26 @@ void OnTick()
     string symbol = _Symbol;
     ENUM_TIMEFRAMES tf = GetWorkTF();
 
+    // 月初OB zone重置（消除多月状态延续对信号质量的影响）
+    if(InpMonthlyZoneReset)
+    {
+        static int s_prev_month = 0;
+        MqlDateTime dt;
+        TimeToStruct(TimeCurrent(), dt);
+        int cur_month = dt.year * 100 + dt.mon;
+        if(s_prev_month != 0 && cur_month != s_prev_month)
+        {
+            ZeroMemory(g_zones);
+            ZeroMemory(g_htf_zones);
+            g_state.ob_count = 0;
+            g_htf_zone_count = 0;
+            g_monitor_count = 0;
+            g_htf_monitor_count = 0;
+            Print("月初Zone重置 ", dt.year, ".", StringFormat("%02d", dt.mon));
+        }
+        s_prev_month = cur_month;
+    }
+
     // 1. 加载K线数据
     MqlRates rates[];
     int copied = CopyRates(symbol, tf, 0, InpBars, rates);

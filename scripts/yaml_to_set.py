@@ -496,6 +496,7 @@ FLAT_MAP = {
     "btc_dtp_post_partial_lock_r": "InpBTCDTPPostPartialLockR",
     "btc_dtp_post_partial_retrace": "InpBTCDTPPostPartialRetrace",
     "btc_dtp_reset_peak_after_partial": "InpBTCDTPResetPeakAfterPartial",
+    "monthly_zone_reset": "InpMonthlyZoneReset",
     "enable_xau_fage_alt_profile": "InpEnableXAUFageAltProfile",
     "xau_fage_alt_profile_symbol": "InpXAUFageAltProfileSymbol",
     "xau_fage_alt_profile_months": "InpXAUFageAltProfileMonths",

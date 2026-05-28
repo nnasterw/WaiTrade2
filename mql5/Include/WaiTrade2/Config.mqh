@@ -554,6 +554,9 @@ input double InpXAUAltContextFilter5Mult = 1.0;
 input string InpXAUAltContextFilter5NoHours = "";
 input string InpXAUAltMonthlyProfitTargetStopMonths = "10";
 
+// ── 月初状态重置 ──────────────────────────────────────────────────────
+input bool   InpMonthlyZoneReset = false; // 每月初清除OB zone缓存（消除状态延续影响）
+
 // ── v11 单策略 XAU 趋势爆发 Profile覆盖 ────────────────────────────────
 input bool   InpEnableXAUTrendProfile = false; // 启用XAU趋势爆发覆盖
 input string InpXAUTrendProfileSymbol = "XAU"; // 触发XAU趋势profile的品种名片段
