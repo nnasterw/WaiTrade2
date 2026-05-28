@@ -1,3 +1,21 @@
+## [ERR-20260528-001] mt5_backtest_parallel_race
+
+**Logged**: 2026-05-28T00:00:00+08:00
+**Priority**: medium
+**Status**: resolved
+
+### Summary
+用 bash `&` 并行跑两个 mt5_cli_backtest.py 命令，第一个回测返回 0 笔交易（"回测失败或无数据"）。
+
+### Error
+MT5 只能同时运行一个 Strategy Tester 实例。两个命令竞争同一个 MT5 terminal，第一个请求被第二个覆盖。
+
+### Fix
+mt5_cli_backtest.py 的 `--strategies s1,s2` 参数已支持顺序多策略，不要用 bash `&` 并行化回测命令。
+确实需要并行时用工具的 `run_in_background` 参数而非 `&`。
+
+---
+
 ## [ERR-20260518-001] apply_patch_context
 
 **Logged**: 2026-05-18T00:00:00+08:00

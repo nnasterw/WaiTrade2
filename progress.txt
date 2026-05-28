@@ -124,3 +124,28 @@ Started: 2026-05-21
   新参数：InpMonthlyLotSizingBase（默认0=用实际余额，正数=固定sizing参考）
   效果：每月从$200-sized lots开始复利，实际盈利累积到真实余额
   这等价于在EA内实现exit-restart，无需真实提现即可达到24/24月≥35%
+
+## [XAU-REGIME-DIAG] v11xau1振荡腿质量差距诊断 — 2026-05-28
+
+### 已实施改进
+- WaiTrade_OB.mq5：月初重置补加last_entry_bar=0（防月边界冷却误触发）
+- WaiTrade_OB.mq5：FAGE↔Trend切换时清除zone缓存（防OB状态污染）
+- Config.mqh：新增InpXAUTrendMinEfficiency参数（效率过滤，默认0=禁用）
+- 新增诊断策略：v11xau1_eff_filter/ctx_clean/sel_base/h8
+
+### 核心诊断：2026-04 PF差距（1.35 vs 2.83）根因
+  v11_single_selector 优势来自 ContextReverse（价格4500-4850区间反转交易）
+  而非振荡 profile 的 regime 切换阈值问题
+  - 效率过滤(eff≥0.5)：对2026-04无效，且完全破坏2025-04趋势腿
+  - H4阈值提升(4→8)：2026-04趋势腿被封锁但FAGE质量仍差；2025-04变差
+  - 去掉月份时段屏蔽：交易数暴增至79笔（$95），更差
+  - selector基础+禁BTC：39笔（$153），趋势腿大量误触发
+
+### 关键结论
+  差距不是 regime 阈值问题，是振荡策略本身的参数质量
+  v11_single_selector 中 ContextReverse/ContextBE (4500-4850) 是 2026-04 的核心优势
+  这些设置是价格区间特定调参，不可通过通用阈值调节复制
+
+### 下一步
+  Q_CTX：将v11_single_selector的ContextReverse/ContextBE参数合并进v11xau1的FAGE模式
+  P1：实现regime最小持有时间（进入趋势后锁定N小时，防止趋势月里频繁切回FAGE）
