@@ -536,6 +536,7 @@ input double InpXAUFageAltAdaptiveMinPrice = 0.0; // 自适应触发最小价格
 input double InpXAUFageAltAdaptiveMaxPrice = 0.0; // 自适应触发最大价格(0=不限)
 input string InpXAUAltContextFilter1Months = "10";
 input string InpXAUAltContextFilter1NoHours = "10,11";
+input double InpXAUAltContextFilter1Mult = 1.0;
 input double InpXAUAltContextFilter2MaxMonthStartBalance = 0.0;
 input string InpXAUAltContextFilter2Months = "";
 input double InpXAUAltContextFilter2Mult = 1.0;
@@ -1030,7 +1031,7 @@ double CfgContextFilter1MinMonthStartBalance() { return InpContextFilter1MinMont
 double CfgContextFilter1MaxMonthStartBalance() { return InpContextFilter1MaxMonthStartBalance; }
 double CfgContextFilter1MinPrice() { return InpContextFilter1MinPrice; }
 double CfgContextFilter1MaxPrice() { return InpContextFilter1MaxPrice; }
-double CfgContextFilter1Mult() { return InpContextFilter1Mult; }
+double CfgContextFilter1Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Mult : InpContextFilter1Mult; }
 string CfgContextFilter2Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2Months : InpContextFilter2Months; }
 string CfgContextFilter2NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2NoHours : InpContextFilter2NoHours; }
 string CfgContextFilter2NoBuyHours() { return InpContextFilter2NoBuyHours; }

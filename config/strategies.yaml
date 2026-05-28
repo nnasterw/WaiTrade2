@@ -26841,7 +26841,7 @@ v11xau1_ctx_clean:
   magic_number: 204595
 
 # v11xau1_sel_base — v11_single_selector为振荡腿基础 + 关闭BTC + XAU趋势切换
-v11xau1_sel_base:
+v11xau1_sel_base: &v11xau1_sel_base
   <<: *v11_single_selector
   version: V11XAU1-SEL-BASE
   description: "诊断：selector振荡腿+禁用BTC+XAU趋势切换，测试是否修复2026-04 PF差距"
@@ -26898,3 +26898,26 @@ v11xau1_lock5:
   description: "月度锁定：前5天实时评估，第6天起按H1 120bars净推进锁定全月regime"
   xau_trend_monthly_lock_days: 5
   magic_number: 204598
+
+# v11xau1_sel_filtered — selector振荡基础+FAGE时段保护+趋势切换
+# 目标：测试selector ContextReverse是否在FAGE过滤后仍可工作
+# selector base保留ContextReverse(4500-4850)+ContextBE
+# FAGE的context_filter1/2/5(月份时段屏蔽)重新加回
+v11xau1_sel_filtered:
+  <<: *v11xau1_sel_base
+  version: V11XAU1-SEL-FILT
+  description: "selector基础+FAGE时段过滤+趋势切换：验证ContextReverse与filter组合"
+  # 从FAGE重新加回April/May时段屏蔽
+  context_filter1_months: "4"
+  context_filter1_no_hours: "13,14,15,19,22"
+  context_filter1_max_month_start_balance: 500.0
+  context_filter1_mult: 0.0
+  context_filter2_months: "4"
+  context_filter2_no_hours: "16"
+  context_filter2_max_month_start_balance: 500.0
+  context_filter2_mult: 5.0
+  context_filter5_months: "3"
+  context_filter5_no_hours: "7,10,11,13,14,19"
+  context_filter5_max_month_start_balance: 500.0
+  context_filter5_mult: 0.0
+  magic_number: 204599

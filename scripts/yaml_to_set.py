@@ -507,6 +507,7 @@ FLAT_MAP = {
     "xau_fage_alt_adaptive_max_price": "InpXAUFageAltAdaptiveMaxPrice",
     "xau_alt_context_filter1_months": "InpXAUAltContextFilter1Months",
     "xau_alt_context_filter1_no_hours": "InpXAUAltContextFilter1NoHours",
+    "xau_alt_context_filter1_mult": "InpXAUAltContextFilter1Mult",
     "xau_alt_context_filter2_max_month_start_balance": "InpXAUAltContextFilter2MaxMonthStartBalance",
     "xau_alt_context_filter2_months": "InpXAUAltContextFilter2Months",
     "xau_alt_context_filter2_mult": "InpXAUAltContextFilter2Mult",
