@@ -381,6 +381,7 @@ defaults: &defaults
   xau_trend_range_tf: 240
   xau_trend_range_bars: 12
   xau_trend_min_range_atr: 4.0
+  xau_trend_min_range_net_atr: 0.0
   xau_trend_min_efficiency: 0.0
   xau_trend_monthly_lock_days: 0
   xau_trend_monthly_stop_loss_pct: 0.0
@@ -26913,6 +26914,57 @@ v11xau1_v2: &v11xau1_v2
   xau_trend_context_filter1_no_hours: "13,14,15,19,22"
   xau_trend_context_filter1_mult: 0.0
   magic_number: 204600
+
+# v11xau1_v2h8 — v2基础 + H4阈值8.0（减少2026-04类震荡月的趋势误触发）
+v11xau1_v2h8:
+  <<: *v11xau1_v2
+  version: V11XAU1-V2H8
+  description: "v2+H4阈值8.0：selector振荡+高阈值趋势，减少震荡月坏趋势入场"
+  xau_trend_min_range_atr: 8.0
+  magic_number: 204601
+
+# v11xau1_v2_rna — v2 + H4方向性净推进过滤(range_net_atr>=1.5)
+# 目标：保留Sep2024类真实趋势，过滤2026-04类高波动震荡
+v11xau1_v2_rna: &v11xau1_v2_rna
+  <<: *v11xau1_v2
+  version: V11XAU1-V2-RNA
+  description: "v2+H4净推进≥1.5 ATR：区分真实趋势(高净推进)和高波动震荡(低净推进)"
+  xau_trend_min_range_net_atr: 1.5
+  magic_number: 204602
+
+# v11xau1_v2_rna2 — rna+移除趋势模式context_filter1屏蔽（rna已保护2026-04，无需额外屏蔽）
+v11xau1_v2_rna2: &v11xau1_v2_rna2
+  <<: *v11xau1_v2_rna
+  version: V11XAU1-V2-RNA2
+  description: "rna2：rna基础+移除趋势模式April时段屏蔽（rna过滤器已防止2026-04触发趋势）"
+  xau_trend_context_filter1_months: ""
+  xau_trend_context_filter1_no_hours: ""
+  xau_trend_context_filter1_mult: -1.0
+  magic_number: 204603
+
+# v11xau1_v2_rna2_lock3 — rna2 + 3天后锁定（趋势月day4锁定TREND，积累更多M1 zone → >$270）
+v11xau1_v2_rna2_lock3: &v11xau1_v2_rna2_lock3
+  <<: *v11xau1_v2_rna2
+  version: V11XAU1-V2-RNA2-L3
+  description: "rna2+3天锁定：Sep2024 day4锁定趋势→积累M1 zone→更多趋势入场；2026-04 rna过滤→不锁定"
+  xau_trend_monthly_lock_days: 3
+  magic_number: 204604
+
+# v11xau1_v2_rna08 — 降低range_net阈值至0.8（可能区分Sep2024真趋势 vs 2026-04震荡）
+v11xau1_v2_rna08: &v11xau1_v2_rna08
+  <<: *v11xau1_v2_rna2
+  version: V11XAU1-V2-RNA08
+  description: "rna08：H4净推进阈值0.8（原1.5），尝试Sep2024触发、2026-04不触发"
+  xau_trend_min_range_net_atr: 0.8
+  magic_number: 204605
+
+# v11xau1_v2_rna12 — 中间阈值1.2
+v11xau1_v2_rna12: &v11xau1_v2_rna12
+  <<: *v11xau1_v2_rna2
+  version: V11XAU1-V2-RNA12
+  description: "rna12：H4净推进阈值1.2，测试2026-04是否仍然被阻止"
+  xau_trend_min_range_net_atr: 1.2
+  magic_number: 204606
 
 # v11xau1_sel_filtered — selector振荡基础+FAGE时段保护+趋势切换
 # 目标：测试selector ContextReverse是否在FAGE过滤后仍可工作

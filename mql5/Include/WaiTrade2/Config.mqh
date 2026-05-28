@@ -567,6 +567,7 @@ input double InpXAUTrendMinAbsNetATR = 0.45;   // 趋势触发最小绝对净推
 input int    InpXAUTrendRangeTF = 240;         // 波动扩张确认周期
 input int    InpXAUTrendRangeBars = 12;        // 波动扩张确认bars
 input double InpXAUTrendMinRangeATR = 4.0;     // 波动扩张最小区间ATR(<=0禁用)
+input double InpXAUTrendMinRangeNetATR = 0.0;  // H4区间方向性净推进下限(0=禁用,建议1.5)
 input double InpXAUTrendMinEfficiency = 0.0;   // 趋势净推进效率下限=净推进/区间(0=禁用,建议0.5)
 input int    InpXAUTrendMonthlyLockDays = 0;   // 月度锁定：前N天自由切换,N+1天起评估锁定(0=禁用)
 input double InpXAUTrendMonthlyStopLossPct = 0.0; // 趋势腿月内回撤停用百分比(0=禁用)
@@ -885,6 +886,8 @@ bool CalcXAUTrendProfileRaw()
             double rng_net = 0.0, rng_atr = 0.0;
             range_ok = CalcXAUTrendStats(InpXAUTrendRangeTF, InpXAUTrendRangeBars, rng_net, rng_atr)
                        && rng_atr >= InpXAUTrendMinRangeATR;
+            if(range_ok && InpXAUTrendMinRangeNetATR > 0 && MathAbs(rng_net) < InpXAUTrendMinRangeNetATR)
+               range_ok = false;
          }
 
          s_lock_result  = (net_ok && range_ok);
@@ -913,6 +916,8 @@ bool CalcXAUTrendProfileRaw()
       if(!CalcXAUTrendStats(InpXAUTrendRangeTF, InpXAUTrendRangeBars, range_net, range_atr))
          return false;
       if(range_atr < InpXAUTrendMinRangeATR)
+         return false;
+      if(InpXAUTrendMinRangeNetATR > 0 && MathAbs(range_net) < InpXAUTrendMinRangeNetATR)
          return false;
    }
 
