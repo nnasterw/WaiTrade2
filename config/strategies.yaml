@@ -26761,7 +26761,7 @@ v11xau_r39_range_lot5:
   max_pos_mult: 200.0
   magic_number: 204590
 
-v11xau_r39_trend_lot5:
+v11xau_r39_trend_lot5: &v11xau_r39_trend_lot5
   <<: *v11xau_trend
   version: V11XAU-R39-TREND-LOT5
   description: "R39 trend leg: h04_half params + max_lot 5.0 to extend 35%/month floor to $200K+ balance"
@@ -27019,3 +27019,21 @@ v11xau1_sel_filtered:
   context_filter5_max_month_start_balance: 500.0
   context_filter5_mult: 0.0
   magic_number: 204599
+
+# ═══════════════════════════════════════════════════════════════
+# 正式命名策略（对外部署名）
+# ═══════════════════════════════════════════════════════════════
+
+# v11xau-zd — 振荡腿（等价于 v11_single_selector）
+v11xau-zd: &v11xau-zd
+  <<: *v11_single_selector
+  version: V11XAU-ZD
+  description: "振荡腿正式版：FAGE+月份上下文，适用于震荡/弱趋势行情"
+  magic_number: 204800
+
+# v11xau-qs — 趋势腿（等价于 v11xau_r39_trend_lot5）
+v11xau-qs: &v11xau-qs
+  <<: *v11xau_r39_trend_lot5
+  version: V11XAU-QS
+  description: "趋势腿正式版：OB M1 lot5，适用于单边趋势行情"
+  magic_number: 204801
