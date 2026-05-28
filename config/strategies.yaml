@@ -206,6 +206,7 @@ defaults: &defaults
   shared_monthly_guard_key: ""
   monthly_zone_reset: false
   enable_dual_zone_channel: false
+  max_ob_age_bars_tf: 0
   shared_monthly_guard_debug: false
   max_concurrent: 5
   free_run_min_r: 0.0
@@ -26978,12 +26979,23 @@ v11xau1_v2_rna12: &v11xau1_v2_rna12
   magic_number: 204606
 
 # v11xau1_v2_rna12_dual — rna12 + 双zone通道（M1趋势/M3振荡各自独立维护，消除切换干扰）
-v11xau1_v2_rna12_dual:
+v11xau1_v2_rna12_dual: &v11xau1_v2_rna12_dual
   <<: *v11xau1_v2_rna12
   version: V11XAU1-V2-RNA12-DUAL
   description: "rna12+双zone通道：M3振荡OB始终维护，趋势切换不清除，修复模式干扰失败月"
   enable_dual_zone_channel: true
   magic_number: 204607
+
+# v11xau1_v2_rna12_dual_dyn — dual + 动态OB年龄管理（7天=3360 M3 bars）+ 无月初硬清除
+# M3 bars/day = 24h × 60min/3min = 480，7天 = 3360
+# zone超过7天自动失效，跨月污染通过滚动窗口消除（替代月初硬清除）
+v11xau1_v2_rna12_dual_dyn:
+  <<: *v11xau1_v2_rna12_dual
+  version: V11XAU1-V2-RNA12-DUAL-DYN
+  description: "dual+动态年龄：OB超7天自动失效，月初不硬清除zone（避免月初质量低谷）"
+  monthly_zone_reset: false
+  max_ob_age_bars_tf: 3360
+  magic_number: 204608
 
 # v11xau1_sel_filtered — selector振荡基础+FAGE时段保护+趋势切换
 # 目标：测试selector ContextReverse是否在FAGE过滤后仍可工作

@@ -558,6 +558,7 @@ input string InpXAUAltMonthlyProfitTargetStopMonths = "10";
 // ── 月初状态重置 ──────────────────────────────────────────────────────
 input bool   InpMonthlyZoneReset = false; // 每月初清除OB zone缓存（消除状态延续影响）
 input bool   InpEnableDualZoneChannel = false; // 启用双zone通道（M3振荡/M1趋势各自独立维护，消除切换干扰）
+input int    InpMaxOBAgeBarsTF = 0;  // OB动态年龄上限（bars，0=禁用）超过则自动失效，替代月初硬清除
 
 // ── v11 单策略 XAU 趋势爆发 Profile覆盖 ────────────────────────────────
 input bool   InpEnableXAUTrendProfile = false; // 启用XAU趋势爆发覆盖

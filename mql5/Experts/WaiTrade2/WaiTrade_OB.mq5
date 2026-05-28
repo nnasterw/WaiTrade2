@@ -35,6 +35,18 @@ EntryMonitor g_monitors_osc[MAX_MONITORS];
 int          g_monitor_count_osc = 0;
 bool         g_osc_active = false; // 当前tick是否使用振荡通道
 
+// ── OB动态年龄管理：超龄zone自动标记为expired ────────────────────────
+void ExpireOldZones(OBZone& zones[], int ob_count, int bar_count)
+{
+    if(InpMaxOBAgeBarsTF <= 0) return;
+    for(int z = 0; z < ob_count; z++)
+    {
+        if(zones[z].expired) continue;
+        if(bar_count - zones[z].created_bar > InpMaxOBAgeBarsTF)
+            zones[z].expired = true;
+    }
+}
+
 // ── 双通道辅助函数：注册活跃OB为监视器 ──────────────────────────────
 void RegisterChannelMonitors(OBZone& zones[], EAState& state,
                               EntryMonitor& mons[], int& mon_count,
@@ -204,8 +216,8 @@ void OnTick()
         g_state.bar_count++;
 
         DetectOrderBlocks(rates, copied, g_zones, g_state.ob_count, g_state);
-        if(InpConsolidateOB)
-            ConsolidateOBs(g_zones, g_state.ob_count);
+        if(InpConsolidateOB) ConsolidateOBs(g_zones, g_state.ob_count);
+        ExpireOldZones(g_zones, g_state.ob_count, g_state.bar_count);
         if(InpEnableHTFPullback && !InpHTFPullbackOnly)
         {
             CompactZones(g_htf_zones, g_htf_zone_count);
@@ -252,6 +264,7 @@ void OnTick()
                 g_state_osc.bar_count++;
                 DetectOrderBlocks(osc_rates, osc_copied, g_zones_osc, g_state_osc.ob_count, g_state_osc);
                 if(InpConsolidateOB) ConsolidateOBs(g_zones_osc, g_state_osc.ob_count);
+                ExpireOldZones(g_zones_osc, g_state_osc.ob_count, g_state_osc.bar_count);
 
                 MqlRates osc_h1[];
                 int osc_h1c = CopyRates(symbol, PERIOD_H1, 0, 100, osc_h1);
