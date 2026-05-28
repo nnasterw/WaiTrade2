@@ -149,3 +149,29 @@ Started: 2026-05-21
 ### 下一步
   Q_CTX：将v11_single_selector的ContextReverse/ContextBE参数合并进v11xau1的FAGE模式
   P1：实现regime最小持有时间（进入趋势后锁定N小时，防止趋势月里频繁切回FAGE）
+
+## [XAU-P1-CACHE] Tick缓存和月度锁定实现 — 2026-05-28
+
+### 已完成
+- UseXAUTrendProfile()拆分为CalcXAUTrendProfileRaw() + tick级缓存包装
+  - 同一时间戳内所有Cfg*()调用返回相同regime结果（消除多次计算不一致）
+- InpXAUTrendMonthlyLockDays参数实现（默认0=禁用）
+  - 前N天实时评估，第N+1天评估H1 N*24 bars净推进后锁定全月
+
+### 月度锁定诊断结果
+  2026-04（震荡月）：lock5正确锁定RANGE → $218.98
+  2025-04（趋势月）：lock5错误锁定RANGE → $227.72（原版无锁 $300.55）
+  结论：前5天趋势未充分发展时，月度锁定损害趋势月。锁定参数保留但默认禁用
+
+### 根因最终确认：selector base + 趋势切换 = 39笔 $153
+  - 非tick内profile计算不一致（tick缓存测试无效，39笔不变）
+  - 根因是selector缺少FAGE的context_filter1时段屏蔽（月4，mult=0）
+  - FAGE月份屏蔽(mult=0) vs selector ContextReverse = 两套不兼容参数体系
+  - 任何参数级别的合并尝试均失败或产生副作用
+
+### 架构结论
+  v11xau1振荡腿($216在2026-04)和v11_single_selector($307)的差距
+  需要架构级解决方案：EA内实现完整双参数集选择
+  - 振荡模式：完全使用v11_single_selector参数集
+  - 趋势模式：完全使用v11xau_trend参数集
+  这是下一轮改进的正确方向，不是参数外科手术
