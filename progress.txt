@@ -169,9 +169,24 @@ Started: 2026-05-21
   - FAGE月份屏蔽(mult=0) vs selector ContextReverse = 两套不兼容参数体系
   - 任何参数级别的合并尝试均失败或产生副作用
 
-### 架构结论
-  v11xau1振荡腿($216在2026-04)和v11_single_selector($307)的差距
-  需要架构级解决方案：EA内实现完整双参数集选择
-  - 振荡模式：完全使用v11_single_selector参数集
-  - 趋势模式：完全使用v11xau_trend参数集
-  这是下一轮改进的正确方向，不是参数外科手术
+### 架构结论（最终确认）
+  FAGE base的低质量OB vs selector高质量OB → 无法通过参数覆盖解决
+  root cause of zone cache interference：趋势和振荡模式共享zone cache(g_zones)
+  - 趋势模式：M1 bar OB检测（细粒度，14个并发zone）
+  - 振荡模式：M3 bar OB检测（粗粒度，3个并发zone）
+  - 每次模式切换触发zone clear → 振荡模式从零重检 → 质量不稳定 → 29笔$146
+  - v11_single_selector无切换 → zone稳定积累 → 19笔$307
+
+### 唯一真正的架构解决方案
+  需要独立的双通道zone cache：
+  - g_zones_osc[]：M3 bar振荡OB检测，持续维护不清除
+  - g_zones_trend[]：M1 bar趋势OB检测，持续维护不清除
+  - UseXAUTrendProfile()决定使用哪个zone channel进行信号扫描
+  这需要重写EA的OB检测+信号扫描模块，属于v2架构改造
+
+### 已添加基础设施（有价值，为v2做准备）
+  - InpXAUTrendContextFilter1Months/NoHours/Mult（趋势模式专用filter1）
+  - CfgContextFilter1*()支持Trend > FageAlt > Default优先级
+  - UseXAUTrendProfile() tick级缓存（消除同tick内计算不一致）
+  - Profile切换zone清除（在双通道实现前的临时保护）
+  - InpXAUTrendMonthlyLockDays（月度锁定，减少切换次数）
