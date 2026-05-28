@@ -138,6 +138,8 @@ input double InpFixedLotSize     = 0.0;      // 固定手数(>0时忽略风险%)
 input bool   InpEnablePosMult    = true;     // 启用仓位乘数(false=固定1.0)
 input double InpMaxPosMult       = 0.0;      // 最大仓位乘数(0=不限制)
 input double InpMaxLotSize       = 0.0;      // 最大手数(0=不限制)
+input double InpAdaptiveLotBase  = 0.0;      // 自适应lot上限基准余额(0=禁用)：max_lot随余额等比扩大，维持pos_mult放大倍数
+input double InpAdaptiveLotCap   = 0.0;      // 自适应lot绝对上限(0=无上限)：防保证金爆仓
 input double InpSweepPosMult     = 1.0;      // 扫损反转信号仓位倍数
 input double InpRangeBreakoutPosMult = 1.0;  // 区间突破信号仓位倍数
 input double InpHTFPullbackPosMult = 1.0;    // HTF回踩信号仓位倍数
@@ -1004,7 +1006,19 @@ double CfgDTPRetrace() { return UseBTCProfile() ? InpBTCDTPRetrace : (UseXAUTren
 double CfgFixedTPR() { return UseBTCProfile() ? InpBTCFixedTPR : (UseXAUTrendProfile() ? InpXAUTrendFixedTPR : InpFixedTPR); }
 double CfgRiskPercent() { return UseBTCProfile() ? InpBTCRiskPercent : (UseXAUTrendProfile() ? InpXAUTrendRiskPercent : InpRiskPercent); }
 double CfgMaxPosMult() { return UseBTCProfile() ? InpBTCMaxPosMult : (UseXAUTrendProfile() ? InpXAUTrendMaxPosMult : InpMaxPosMult); }
-double CfgMaxLotSize() { return UseBTCProfile() ? InpBTCMaxLotSize : (UseXAUTrendProfile() ? InpXAUTrendMaxLotSize : InpMaxLotSize); }
+double CfgMaxLotSize()
+{
+   double base = UseBTCProfile() ? InpBTCMaxLotSize : (UseXAUTrendProfile() ? InpXAUTrendMaxLotSize : InpMaxLotSize);
+   if(base <= 0) return base; // 0=不限制，直接返回
+   if(InpAdaptiveLotBase > 0)
+   {
+      double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      double scaled  = base * (balance / InpAdaptiveLotBase);
+      if(InpAdaptiveLotCap > 0) scaled = MathMin(scaled, InpAdaptiveLotCap);
+      return MathMax(scaled, base); // 至少保持原始上限
+   }
+   return base;
+}
 int CfgMaxConcurrent() { return UseBTCProfile() ? InpBTCMaxConcurrent : (UseXAUTrendProfile() ? InpXAUTrendMaxConcurrent : InpMaxConcurrent); }
 double CfgMinRiskSpreadRatio() { return UseBTCProfile() ? InpBTCMinRiskSpreadRatio : (UseXAUTrendProfile() ? InpXAUTrendMinRiskSpreadRatio : InpMinRiskSpreadRatio); }
 double CfgSweepPosMult() { return UseBTCProfile() ? InpBTCSweepPosMult : InpSweepPosMult; }

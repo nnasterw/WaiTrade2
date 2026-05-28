@@ -133,6 +133,8 @@ defaults: &defaults
   enable_pos_mult: true
   max_pos_mult: 0.0
   max_lot_size: 0.0
+  adaptive_lot_base: 0.0
+  adaptive_lot_cap: 0.0
   sweep_pos_mult: 1.0
   range_breakout_pos_mult: 1.0
   htf_pullback_pos_mult: 1.0
@@ -27030,14 +27032,24 @@ v11xau1_sel_filtered:
 v11xau-zd: &v11xau-zd
   <<: *v11_single_selector
   version: V11XAU-ZD
-  description: "振荡腿正式版：FAGE+月份上下文，适用于震荡/弱趋势行情"
+  description: "振荡腿正式版：FAGE+月份上下文+OB 30天动态年龄（不设月亏损止损，因低频高方差）"
+  monthly_zone_reset: false        # 改用动态年龄替代月初硬清除
+  max_ob_age_bars_tf: 14400        # 30天 M3 zone 自然老化（480 M3 bars/day × 30）
+  monthly_loss_stop_pct: 0.0       # 振荡腿不设月亏损止损（低频高方差，初期亏损后常大幅回弹）
   magic_number: 204800
 
 # v11xau-qs — 趋势腿（等价于 v11xau_r39_trend_lot5）
 v11xau-qs: &v11xau-qs
   <<: *v11xau_r39_trend_lot5
   version: V11XAU-QS
-  description: "趋势腿正式版：OB M1 lot5，适用于单边趋势行情"
+  description: "趋势腿正式版：OB M1 lot5+自适应lot上限+DTP+月亏损保护"
+  adaptive_lot_base: 200.0         # lot 上限随余额等比扩大（维持 pos_mult 135x 放大）
+  adaptive_lot_cap: 50.0           # 绝对安全上限 50 手（防保证金爆仓）
+  fixed_tp_r: 0.0                  # 关闭固定 TP，改用 DTP 让趋势跑更远
+  dtp_trigger_r: 3.0               # 3R 后激活 DTP（原 8.0，降低触发门槛）
+  dtp_retrace: 0.2                 # 回撤 20% 触发
+  monthly_loss_stop_pct: 8.0       # 月内亏损超 8% 停止交易
+  monthly_loss_stop_min_trades: 5  # 至少 5 笔才触发
   magic_number: 204801
 
 # ─── Regime 确认滞后测试系列 ──────────────────────────────────────────

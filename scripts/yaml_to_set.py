@@ -124,6 +124,8 @@ FLAT_MAP = {
     "enable_pos_mult": "InpEnablePosMult",
     "max_pos_mult": "InpMaxPosMult",
     "max_lot_size": "InpMaxLotSize",
+    "adaptive_lot_base": "InpAdaptiveLotBase",
+    "adaptive_lot_cap": "InpAdaptiveLotCap",
     "sweep_pos_mult": "InpSweepPosMult",
     "range_breakout_pos_mult": "InpRangeBreakoutPosMult",
     "htf_pullback_pos_mult": "InpHTFPullbackPosMult",
