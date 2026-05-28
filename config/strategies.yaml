@@ -381,6 +381,7 @@ defaults: &defaults
   xau_trend_range_tf: 240
   xau_trend_range_bars: 12
   xau_trend_min_range_atr: 4.0
+  xau_trend_min_efficiency: 0.0
   xau_trend_monthly_stop_loss_pct: 0.0
   xau_trend_bounce_pct: 0.18
   xau_trend_timeout_min: 120
@@ -26816,3 +26817,75 @@ v11xau1: &v11xau1
   low_risk_hours: "4"
   low_risk_hour_mult: 0.5
   magic_number: 204592
+
+# v11xau1_eff_filter — 加趋势效率过滤（H1：净推进/区间≥0.5），防止高波动震荡误判为趋势
+v11xau1_eff_filter:
+  <<: *v11xau1
+  version: V11XAU1-EFF-FILTER
+  description: "H1效率过滤：|net_push|/range>=0.5，防止2026-04类震荡月触发趋势腿"
+  xau_trend_min_efficiency: 0.5
+  magic_number: 204594
+
+# v11xau1_ctx_clean — 去掉FAGE月份时段屏蔽过滤器（验证是否是PF 1.46 vs 2.83的根因）
+v11xau1_ctx_clean:
+  <<: *v11xau1
+  version: V11XAU1-CTX-CLEAN
+  description: "诊断：禁用FAGE的4月/5月特定时段屏蔽(mult=0)，保留其余参数"
+  context_filter1_no_hours: ""
+  context_filter1_mult: 1.0
+  context_filter2_no_hours: ""
+  context_filter2_mult: 1.0
+  context_filter5_no_hours: ""
+  context_filter5_mult: 1.0
+  magic_number: 204595
+
+# v11xau1_sel_base — v11_single_selector为振荡腿基础 + 关闭BTC + XAU趋势切换
+v11xau1_sel_base:
+  <<: *v11_single_selector
+  version: V11XAU1-SEL-BASE
+  description: "诊断：selector振荡腿+禁用BTC+XAU趋势切换，测试是否修复2026-04 PF差距"
+  enable_btc_profile: false
+  monthly_zone_reset: true
+  enable_xau_trend_profile: true
+  xau_trend_profile_symbol: "XAU"
+  xau_trend_trigger_tf: 60
+  xau_trend_trigger_bars: 3
+  xau_trend_min_abs_net_atr: 0.45
+  xau_trend_range_tf: 240
+  xau_trend_range_bars: 12
+  xau_trend_min_range_atr: 4.0
+  xau_trend_risk_percent: 2.0
+  xau_trend_max_pos_mult: 200.0
+  xau_trend_max_lot_size: 5.0
+  xau_trend_bar_period_min: 1
+  xau_trend_fixed_tp_r: 1.50
+  xau_trend_breakeven_r: 0.50
+  xau_trend_breakeven_lock_r: 0.40
+  xau_trend_timeout_min: 120
+  xau_trend_bounce_pct: 0.18
+  xau_trend_max_entry_offset_r: 1.2
+  xau_trend_max_concurrent: 14
+  xau_trend_min_risk_spread_ratio: 2.5
+  xau_trend_entry_depth_pct: 0.67
+  xau_trend_entry_depth_filter: true
+  xau_trend_require_double_touch: false
+  xau_trend_max_entries_per_ob: 20
+  xau_trend_time_exit_bars: 20
+  xau_trend_enable_htf_net_push_filter: true
+  xau_trend_htf_net_push_tf: 60
+  xau_trend_htf_net_push_bars: 3
+  xau_trend_htf_net_push_min_atr: 0.45
+  xau_trend_htf_net_push_aligned_mult: 1.20
+  xau_trend_htf_net_push_neutral_mult: 0.45
+  xau_trend_htf_net_push_counter_mult: 0.0
+  low_risk_hours: "4"
+  low_risk_hour_mult: 0.5
+  magic_number: 204596
+
+# v11xau1_h8 — 提高H4区间阈值至8.0 ATR，减少震荡月误触发趋势腿
+v11xau1_h8:
+  <<: *v11xau1
+  version: V11XAU1-H8
+  description: "H4区间阈值8.0 ATR（原4.0），防止2026-04类震荡月触发趋势腿"
+  xau_trend_min_range_atr: 8.0
+  magic_number: 204597

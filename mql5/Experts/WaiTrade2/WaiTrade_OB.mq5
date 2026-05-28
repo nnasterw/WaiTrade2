@@ -77,9 +77,28 @@ void OnTick()
             g_htf_zone_count = 0;
             g_monitor_count = 0;
             g_htf_monitor_count = 0;
+            g_state.last_entry_bar = 0;
             Print("月初Zone重置 ", dt.year, ".", StringFormat("%02d", dt.mon));
         }
         s_prev_month = cur_month;
+    }
+
+    // profile切换时清除zone缓存（防止趋势/振荡OB相互污染）
+    if(InpEnableXAUTrendProfile)
+    {
+        static bool s_last_trend_profile = false;
+        bool cur_trend = UseXAUTrendProfile();
+        if(cur_trend != s_last_trend_profile)
+        {
+            ZeroMemory(g_zones);
+            ZeroMemory(g_htf_zones);
+            g_state.ob_count = 0;
+            g_htf_zone_count = 0;
+            g_monitor_count = 0;
+            g_htf_monitor_count = 0;
+            s_last_trend_profile = cur_trend;
+            Print("Profile切换zone清除: ", cur_trend ? "→Trend" : "→FAGE");
+        }
     }
 
     // 1. 加载K线数据

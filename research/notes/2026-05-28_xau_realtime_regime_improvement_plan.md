@@ -251,6 +251,71 @@ python3 scripts/mt5_cli_backtest.py --background --brief --strategy v11xau1_targ
 python3 scripts/xau_goal_audit.py --refresh-ledger --available-to 2026.05.26 --details --commands
 ```
 
+## 前序快速验证（Phase 0.5）
+
+以下改进成本低、可独立验证，优先于 P1-P4 进行。
+
+### Q1：bar_count 月度重置（1 行代码）
+
+**背景**：`g_state.bar_count` 在 `OnTick` 中持续自增，从不重置。SignalEngine.mqh 中多处使用 `bar_count - zone.created_bar` 计算 OB 年龄，以及 `bar_count - last_entry_bar` 计算冷却。月初 zone 重置后，新检测到的 zone 的 `created_bar = 当前 bar_count`，年龄=0，过了冷却 min_bars 后可正常进入。所以 bar_count 不重置**不会**导致 age filter 异常。
+
+**但**：`g_state.last_entry_bar` 不随 zone 重置而清除。若上月最后一笔交易在 bar 215,999，月初 bar 216,000，冷却检查 `216,000 - 215,999 = 1 < CfgCooldownBars()`，则开月后最多 `CfgCooldownBars()` 根 bar 内禁止开仓，XAU 趋势策略 `InpXAUTrendCooldownBars=0` 所以不受影响。此项已排除为死寂月根因。
+
+**结论**：bar_count 不重置不是死寂月原因，**但 `last_entry_bar` 月初应重置为 0**，以免月边界产生错误冷却（当 `InpCooldownBars > 0` 时）。
+
+```cpp
+// 月初重置时补充：
+g_state.last_entry_bar = 0;
+```
+
+### Q2：FAGE lot5 + max_pos_mult=200 = 0 交易的根因
+
+**已确认**：`v11xau_r39_range_lot5`（FAGE lot5，无 max_pos_mult=200）可以正常运行，720d 获得 $294,641。问题出在 `v11xau1` 组合中将 `max_pos_mult=200` 与 FAGE 组合时。
+
+**根因**：`max_pos_mult=200` 触发某个内部安全阈值，判断开仓等效风险 = `max_pos_mult × base_lot × risk_factor` 超限后屏蔽所有入场。
+
+**修复**：`v11xau1` 的 FAGE 部分不设 `max_pos_mult=200`，使用 FAGE 原本的 `max_pos_mult=40`（默认）。FAGE 振荡腿不依赖高 pos_mult，lot0.5 上限下 pos_mult 放大收益有限。
+
+### Q3：模式切换时 zone 污染清除
+
+**背景**：`UseXAUTrendProfile()` 切换时，上一模式检测到的 OB zone 仍然残留，导致趋势 zone 在震荡状态下触发，反之亦然。
+
+**修复**：在 `OnTick` 中记录上一 tick 的 profile 状态，若状态发生变化，立即清除 zone 缓存：
+
+```cpp
+static bool s_last_trend_profile = false;
+bool cur_trend = UseXAUTrendProfile();
+if(cur_trend != s_last_trend_profile) {
+    ZeroMemory(g_zones); ZeroMemory(g_htf_zones);
+    g_state.ob_count = 0; g_htf_zone_count = 0;
+    g_monitor_count = 0; g_htf_monitor_count = 0;
+    s_last_trend_profile = cur_trend;
+    Print("Profile切换zone清除: ", cur_trend ? "→Trend" : "→FAGE");
+}
+```
+
+注意：profile 切换本身 P1 阶段会改为状态缓存机制，到时这段逻辑迁移到 `XAURegimeCache` 更新处。
+
+### Q4：自适应 lot 上限（解除高余额 pos_mult 衰减）
+
+**数学证明**：固定 max_lot 时，当余额超过 `max_lot × SL × pip_value / risk_pct` 后，`pos_mult` 放大倍数从 135x 递减到 1.27x，月度% 不可逆衰减。
+
+**修复方案**（P4 之前可先实验）：
+
+```cpp
+// 可选参数：
+// InpAdaptiveMaxLotBase = 200.0 (参照余额，0=禁用)
+// InpAdaptiveMaxLotCap  = 50.0  (绝对安全上限)
+
+if(InpAdaptiveMaxLotBase > 0) {
+    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+    effective_max_lot = CfgMaxLotSize() * (balance / InpAdaptiveMaxLotBase);
+    effective_max_lot = MathMin(effective_max_lot, InpAdaptiveMaxLotCap);
+}
+```
+
+预期效果：余额 $200→5 lots，$2K→50 lots（上限），维持 pos_mult 135x 放大倍数，月度% 不衰减。
+
 ## 实施计划
 
 ### P0：证据链修复
@@ -320,10 +385,35 @@ python3 scripts/mt5_cli_backtest.py --background --brief --strategy <candidate> 
 python3 scripts/xau_goal_audit.py --refresh-ledger --available-to 2026.05.26 --details --commands
 ```
 
-## 当前优先级
+## 诊断进展（2026-05-28 实施轮）
 
-1. 先修证据链，否则所有优化都可能被旧报告污染。
-2. 再做实时状态缓存和入场 profile 锁定，这是低风险基础设施。
-3. 然后用 2026-04 验证实时分类器，目标先让 `v11xau1` 不低于 `v11_single_selector`。
-4. 最后才做目标驱动风险容量，因为它会显著放大亏损，必须依赖可靠 regime。
+### 已完成
+- ✅ WaiTrade_OB.mq5：月初 zone 重置时补加 `last_entry_bar = 0`（防月边界冷却误触发）
+- ✅ WaiTrade_OB.mq5：profile 切换（FAGE↔Trend）时清除 zone 缓存（防止 OB 相互污染）
+- ✅ Config.mqh：新增 `InpXAUTrendMinEfficiency` 参数（效率过滤，默认 0=禁用）
+- ✅ yaml_to_set.py：新增 `xau_trend_min_efficiency` FLAT_MAP 映射
+
+### 关键诊断发现：2026-04 差距根因
+
+| 策略 | 交易 | PF | 余额 |
+|---|---|---|---|
+| v11_single_selector | 19 | 2.83 | $307.22 ✓ |
+| v11xau_start_fage_2026_monthgate | 21 | 1.46 | $218.98 ✗ |
+| v11xau1 (H4≥4.0) | 22 | 1.35 | $216.14 ✗ |
+| v11xau1_h8 (H4≥8.0) | 21 | 1.46 | $218.98 ✗ |
+| v11xau1_eff_filter (eff≥0.5) | 22 | 1.35 | $216.14 ✗ |
+| v11xau1_sel_base (selector基础) | 39 | 0.68 | $153.21 ✗ |
+
+**结论**：2026-04 差距不是 regime 阈值问题，而是**振荡策略质量**本身差距。v11_single_selector 使用 ContextReverse（在价格 4500-4850 区间允许反转入场）和 ContextBE，这在 2026-04 高价 XAU 的特定时段（14,15,19,22 时）提供了 FAGE 基础策略没有的高质量交易。
+
+- 效率过滤（eff≥0.5）：对 2026-04 无效（FAGE 模式里 3 笔趋势交易的效率本来就 ≥ 0.5），且完全破坏了 2025-04（趋势月的 H1 3bar 窗口效率 < 0.5）
+- 提高 H4 阈值（4.0→8.0）：2026-04 趋势腿被完全封锁，但 FAGE 模式质量仍低于 selector；2025-04 趋势腿活跃度降低，整体变差
+
+### 下一步最高优先级
+
+1. **P0**：修证据链（报告命名 + freshness 校验），否则后续验证不可信。
+2. **Q_CTX**：将 v11_single_selector 的 ContextReverse/ContextBE 参数合并进 v11xau1 的 FAGE 模式——这是填补 PF 差距的直接路径。
+   - 注意：4500-4850 是当前 XAU 价位的特定 tuning，需要验证是否通用。
+3. **P1**：Regime 缓存（进入趋势后锁定最小 N 小时，防止 trending 期间反复切回 FAGE）
+4. 数学限制仍未解决：35%/月目标在顺序复利下需要 exit-restart 或自适应 lot 上限。
 

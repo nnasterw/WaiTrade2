@@ -566,6 +566,7 @@ input double InpXAUTrendMinAbsNetATR = 0.45;   // 趋势触发最小绝对净推
 input int    InpXAUTrendRangeTF = 240;         // 波动扩张确认周期
 input int    InpXAUTrendRangeBars = 12;        // 波动扩张确认bars
 input double InpXAUTrendMinRangeATR = 4.0;     // 波动扩张最小区间ATR(<=0禁用)
+input double InpXAUTrendMinEfficiency = 0.0;   // 趋势净推进效率下限=净推进/区间(0=禁用,建议0.5)
 input double InpXAUTrendMonthlyStopLossPct = 0.0; // 趋势腿月内回撤停用百分比(0=禁用)
 input double InpXAUTrendBouncePct = 0.18;
 input int    InpXAUTrendTimeoutMin = 120;
@@ -852,6 +853,9 @@ bool UseXAUTrendProfile()
    if(!CalcXAUTrendStats(InpXAUTrendTriggerTF, InpXAUTrendTriggerBars, trigger_net, trigger_range))
       return false;
    if(MathAbs(trigger_net) < InpXAUTrendMinAbsNetATR)
+      return false;
+   if(InpXAUTrendMinEfficiency > 0 && trigger_range > 0 &&
+      MathAbs(trigger_net) / trigger_range < InpXAUTrendMinEfficiency)
       return false;
 
    if(InpXAUTrendMinRangeATR > 0)
