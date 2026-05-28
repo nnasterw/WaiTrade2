@@ -28,6 +28,75 @@ int          g_monitor_count = 0;
 int          g_htf_monitor_count = 0;
 datetime     g_last_entry_attempt = 0;
 
+// 双zone通道：M3振荡腿独立zone缓存（始终维护，不受趋势模式切换影响）
+OBZone      g_zones_osc[MAX_OB_ZONES];
+EAState     g_state_osc;
+EntryMonitor g_monitors_osc[MAX_MONITORS];
+int          g_monitor_count_osc = 0;
+bool         g_osc_active = false; // 当前tick是否使用振荡通道
+
+// ── 双通道辅助函数：注册活跃OB为监视器 ──────────────────────────────
+void RegisterChannelMonitors(OBZone& zones[], EAState& state,
+                              EntryMonitor& mons[], int& mon_count,
+                              bool new_active_bar, string symbol)
+{
+    if(!new_active_bar) return;
+    double spread = GetSpread(symbol);
+    for(int z = 0; z < state.ob_count; z++)
+    {
+        if(zones[z].expired || zones[z].used) continue;
+        if(!PassOBReentryCooldown(zones[z])) continue;
+        if(CfgEnableStateFilter() && state.market_state != 0
+           && state.market_state != zones[z].direction) continue;
+
+        double risk_dist = (zones[z].direction == OB_BUY)
+            ? ((zones[z].high + zones[z].low) / 2.0) - (zones[z].low - state.atr_value * CfgSLBufferATR())
+            : (zones[z].high + state.atr_value * CfgSLBufferATR()) - ((zones[z].high + zones[z].low) / 2.0);
+        if(spread > 0 && risk_dist / spread < CfgMinRiskSpreadRatio()) continue;
+
+        TradeSignal tmp;
+        ZeroMemory(tmp);
+        tmp.direction  = zones[z].direction;
+        tmp.sl         = (zones[z].direction == OB_BUY)
+            ? zones[z].low  - state.atr_value * CfgSLBufferATR()
+            : zones[z].high + state.atr_value * CfgSLBufferATR();
+        tmp.risk_price = MathAbs(((zones[z].high + zones[z].low) / 2.0) - tmp.sl);
+        tmp.ob_index   = z;
+        tmp.pos_mult   = 1.0;
+
+        if(CfgEnableScoring())
+        {
+            double prox = (state.atr_m15 > 0) ? state.atr_m15 : state.atr_value * 5;
+            int score   = CalcSignalScore(zones[z], state, state.market_state, prox, tmp.risk_price, 0);
+            if(score < CfgMinScore()) continue;
+            double mult = ScoreToMultiplier(score);
+            if(mult < 0) continue;
+            tmp.pos_mult = mult;
+        }
+        AddEntryMonitor(tmp, zones[z], mons, mon_count);
+    }
+}
+
+// ── 双通道辅助函数：执行已确认的入场 ────────────────────────────────
+void ExecuteChannelConfirmed(OBZone& zones[], EAState& state,
+                              EntryMonitor& mons[], int& mon_count,
+                              double bid, double ask, string symbol)
+{
+    TradeSignal confirmed[10];
+    int conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), mons, mon_count, confirmed, 10);
+    for(int i = 0; i < conf_count; i++)
+    {
+        if(state.pos_count >= CfgMaxConcurrent()) break;
+        if(confirmed[i].ob_index < 0 || confirmed[i].ob_index >= state.ob_count) continue;
+        if(!FinalizeEntryEngineSignal(symbol, zones[confirmed[i].ob_index], state, confirmed[i])) continue;
+        if(ExecuteSignal(confirmed[i]))
+        {
+            state.last_entry_bar = state.bar_count;
+            state.pos_count++;
+        }
+    }
+}
+
 int OnInit()
 {
     ZeroMemory(g_state);
@@ -38,6 +107,10 @@ int OnInit()
     g_htf_zone_count = 0;
     g_monitor_count = 0;
     g_htf_monitor_count = 0;
+    ZeroMemory(g_state_osc);
+    ZeroMemory(g_zones_osc);
+    ZeroMemory(g_monitors_osc);
+    g_monitor_count_osc = 0;
     g_last_entry_attempt = 0;
 
     if(CfgRiskPercent() <= 0 || CfgRiskPercent() > 50)
@@ -78,13 +151,20 @@ void OnTick()
             g_monitor_count = 0;
             g_htf_monitor_count = 0;
             g_state.last_entry_bar = 0;
+            // 同步清除振荡通道
+            ZeroMemory(g_zones_osc);
+            g_state_osc.ob_count = 0;
+            g_monitor_count_osc = 0;
+            g_state_osc.last_entry_bar = 0;
             Print("月初Zone重置 ", dt.year, ".", StringFormat("%02d", dt.mon));
         }
         s_prev_month = cur_month;
     }
 
-    // profile切换时清除zone缓存（防止趋势/振荡OB相互污染）
-    if(InpEnableXAUTrendProfile)
+    // 双通道模式：M3振荡通道独立维护，无切换清除
+    // 单通道模式（兜底）：切换时清除，防止TF不同的OB相互污染
+    bool s_dual = InpEnableDualZoneChannel && InpEnableXAUTrendProfile;
+    if(InpEnableXAUTrendProfile && !s_dual)
     {
         static bool s_last_trend_profile = false;
         bool cur_trend = UseXAUTrendProfile();
@@ -97,26 +177,28 @@ void OnTick()
             g_monitor_count = 0;
             g_htf_monitor_count = 0;
             s_last_trend_profile = cur_trend;
-            Print("Profile切换zone清除: ", cur_trend ? "→Trend" : "→FAGE");
+            Print("Profile切换zone清除(单通道): ", cur_trend ? "→Trend" : "→FAGE");
         }
     }
 
     // 1. 加载K线数据
+    // 双通道模式：主通道固定用M1（趋势通道）；另有M3振荡通道独立更新
+    ENUM_TIMEFRAMES act_tf = s_dual ? (ENUM_TIMEFRAMES)CfgMinutesToTF(InpXAUTrendBarTF) : tf;
     MqlRates rates[];
-    int copied = CopyRates(symbol, tf, 0, InpBars, rates);
+    int copied = CopyRates(symbol, act_tf, 0, InpBars, rates);
     if(copied < 100) {
         static datetime s_last_copy_fail = 0;
-        if(TimeCurrent() - s_last_copy_fail >= 300) {  // 每5分钟打印一次
+        if(TimeCurrent() - s_last_copy_fail >= 300) {
             s_last_copy_fail = TimeCurrent();
-            Print("CopyRates失败: symbol=", symbol, " tf=", tf, " copied=", copied);
+            Print("CopyRates失败: symbol=", symbol, " tf=", act_tf, " copied=", copied);
         }
         return;
     }
 
     g_state.atr_value = CalcATR(rates, copied, InpATRPeriod);
 
-    // 2. 新bar处理
-    bool new_bar = IsNewBar(symbol, tf);
+    // 2. 新bar处理（趋势通道 / 单通道主通道）
+    bool new_bar = IsNewBar(symbol, act_tf);
     if(new_bar)
     {
         g_state.bar_count++;
@@ -140,7 +222,6 @@ void OnTick()
         if(InpEnableHTFPullback && !InpHTFPullbackOnly)
             Update1HAlignment(g_htf_zones, g_htf_zone_count, h1_dir);
 
-        // v9.8: M15 市场状态检测
         if(CfgEnableStateFilter() || CfgEnableScoring())
         {
             double target = 0;
@@ -154,146 +235,108 @@ void OnTick()
         }
     }
 
-    // 3. 更新OB状态(每tick)
+    // 双通道：M3振荡通道始终独立更新（new_osc_bar_tick 提升作用域供信号扫描使用）
+    bool new_osc_bar_tick = false;
+    if(s_dual)
+    {
+        ENUM_TIMEFRAMES osc_tf = (ENUM_TIMEFRAMES)CfgMinutesToTF(InpBarTF);
+        MqlRates osc_rates[];
+        int osc_copied = CopyRates(symbol, osc_tf, 0, InpBars, osc_rates);
+        if(osc_copied >= 100)
+        {
+            g_state_osc.atr_value = CalcATR(osc_rates, osc_copied, InpATRPeriod);
+            bool new_osc = IsNewBar(symbol, osc_tf);
+            new_osc_bar_tick = new_osc;
+            if(new_osc)
+            {
+                g_state_osc.bar_count++;
+                DetectOrderBlocks(osc_rates, osc_copied, g_zones_osc, g_state_osc.ob_count, g_state_osc);
+                if(InpConsolidateOB) ConsolidateOBs(g_zones_osc, g_state_osc.ob_count);
+
+                MqlRates osc_h1[];
+                int osc_h1c = CopyRates(symbol, PERIOD_H1, 0, 100, osc_h1);
+                if(osc_h1c > InpATRPeriod)
+                    g_state_osc.atr_1h = CalcATR(osc_h1, osc_h1c, InpATRPeriod);
+                int osc_h1dir = Detect1HOBDirection(symbol);
+                Update1HAlignment(g_zones_osc, g_state_osc.ob_count, osc_h1dir);
+
+                if(CfgEnableStateFilter() || CfgEnableScoring())
+                {
+                    double osc_target = 0;
+                    g_state_osc.market_state = (int)DetectMarketState(symbol, osc_target);
+                    g_state_osc.target_price = osc_target;
+                    MqlRates osc_m15[];
+                    int osc_m15c = CopyRates(symbol, PERIOD_M15, 0, CfgTrendLookback(), osc_m15);
+                    if(osc_m15c > 14)
+                        g_state_osc.atr_m15 = CalcATR(osc_m15, osc_m15c, InpATRPeriod);
+                }
+            }
+        }
+    }
+
+    // 3. 更新OB状态(每tick) + 选择活跃通道
+    g_osc_active = s_dual && !UseXAUTrendProfile();
     double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
     double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
     UpdateOBStatus(g_zones, g_state.ob_count, bid, ask, g_state);
-    if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+    if(s_dual)
+        UpdateOBStatus(g_zones_osc, g_state_osc.ob_count, bid, ask, g_state_osc);
+    else if(InpEnableHTFPullback && !InpHTFPullbackOnly)
         UpdateOBStatus(g_htf_zones, g_htf_zone_count, bid, ask, g_state);
-    // 4. 扫描入场信号
-    g_state.pos_count = CountActivePositions();
+    // 4. 扫描入场信号（双通道：振荡用M3 osc通道，趋势用M1主通道）
+    bool new_active_bar = g_osc_active ? new_osc_bar_tick : new_bar;
+
+    if(g_osc_active)
+        g_state_osc.pos_count = CountActivePositions();
+    else
+        g_state.pos_count = CountActivePositions();
 
     if(InpEnableEntryEngine)
     {
-        // v9.8a: EntryEngine 状态机模式
-        // 新 bar 时将活跃 OB 注册为 monitor（不做 touch 检查，由 EntryEngine 处理）
-        if(new_bar)
+        // 注册活跃通道的OB监视器
+        if(g_osc_active)
+            RegisterChannelMonitors(g_zones_osc, g_state_osc, g_monitors_osc, g_monitor_count_osc, new_active_bar, symbol);
+        else
+            RegisterChannelMonitors(g_zones, g_state, g_monitors, g_monitor_count, new_active_bar, symbol);
+
+        // HTF pullback（仅单通道或趋势通道模式）
+        if(!g_osc_active && new_bar && InpEnableHTFPullback && !InpHTFPullbackOnly)
         {
-            double spread = GetSpread(symbol);
-            for(int z = 0; z < g_state.ob_count; z++)
+            for(int z = 0; z < g_htf_zone_count; z++)
             {
-                if(g_zones[z].expired || g_zones[z].used)
-                {
-                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " skip=expired/used");
-                    continue;
-                }
-                if(!PassOBReentryCooldown(g_zones[z]))
-                {
-                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " skip=cooldown");
-                    continue;
-                }
+                if(g_htf_zones[z].expired || g_htf_zones[z].used) continue;
+                if(!PassOBReentryCooldown(g_htf_zones[z])) continue;
+                if(CfgEnableStateFilter() && g_state.market_state != 0 &&
+                   g_state.market_state != g_htf_zones[z].direction) continue;
 
-                if(CfgEnableStateFilter() && g_state.market_state != 0
-                   && g_state.market_state != g_zones[z].direction)
-                {
-                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " state=", g_state.market_state, " skip=state_filter");
-                    continue;
-                }
-
-                double risk_dist = (g_zones[z].direction == OB_BUY)
-                    ? ((g_zones[z].high + g_zones[z].low) / 2.0) - (g_zones[z].low - g_state.atr_value * CfgSLBufferATR())
-                    : (g_zones[z].high + g_state.atr_value * CfgSLBufferATR()) - ((g_zones[z].high + g_zones[z].low) / 2.0);
-                if(spread > 0 && risk_dist / spread < CfgMinRiskSpreadRatio())
-                {
-                    if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " risk_dist=", risk_dist, " spread=", spread, " ratio=", risk_dist/spread, " skip=spread_ratio");
-                    continue;
-                }
-
-                // 构造临时 signal 用于注册
                 TradeSignal tmp;
                 ZeroMemory(tmp);
-                tmp.direction = g_zones[z].direction;
-                tmp.sl = (g_zones[z].direction == OB_BUY)
-                    ? g_zones[z].low - g_state.atr_value * CfgSLBufferATR()
-                    : g_zones[z].high + g_state.atr_value * CfgSLBufferATR();
-                tmp.risk_price = MathAbs(((g_zones[z].high + g_zones[z].low) / 2.0) - tmp.sl);
-                tmp.ob_index = z;
-                tmp.pos_mult = 1.0;
-
-                if(CfgEnableScoring())
-                {
-                    double prox = (g_state.atr_m15 > 0) ? g_state.atr_m15 : g_state.atr_value * 5;
-                    int score = CalcSignalScore(g_zones[z], g_state, g_state.market_state, prox, tmp.risk_price, 0);
-                    if(score < CfgMinScore())
-                    {
-                        if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " score=", score, " min=", CfgMinScore(), " skip=score");
-                        continue;
-                    }
-                    double mult = ScoreToMultiplier(score);
-                    if(mult < 0)
-                    {
-                        if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " mult=", mult, " skip=mult");
-                        continue;
-                    }
-                    tmp.pos_mult = mult;
-                }
-
-                AddEntryMonitor(tmp, g_zones[z], g_monitors, g_monitor_count);
-                if(InpEnableEntryDebug) Print("OB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_zones[z].direction, " strength=", g_zones[z].strength, " status=REGISTERED");
+                tmp.direction  = g_htf_zones[z].direction;
+                tmp.sl         = (g_htf_zones[z].direction == OB_BUY)
+                    ? g_htf_zones[z].low  - g_state.atr_value * CfgSLBufferATR()
+                    : g_htf_zones[z].high + g_state.atr_value * CfgSLBufferATR();
+                tmp.risk_price = MathAbs(((g_htf_zones[z].high + g_htf_zones[z].low) / 2.0) - tmp.sl);
+                tmp.ob_index   = z;
+                tmp.pos_mult   = 1.0;
+                AddEntryMonitor(tmp, g_htf_zones[z], g_htf_monitors, g_htf_monitor_count);
             }
-
-            if(InpEnableHTFPullback && !InpHTFPullbackOnly)
-            {
-                for(int z = 0; z < g_htf_zone_count; z++)
-                {
-                    if(g_htf_zones[z].expired || g_htf_zones[z].used)
-                        continue;
-                    if(!PassOBReentryCooldown(g_htf_zones[z]))
-                        continue;
-                    if(CfgEnableStateFilter() && g_state.market_state != 0 &&
-                       g_state.market_state != g_htf_zones[z].direction)
-                        continue;
-
-                    TradeSignal tmp;
-                    ZeroMemory(tmp);
-                    tmp.direction = g_htf_zones[z].direction;
-                    tmp.sl = (g_htf_zones[z].direction == OB_BUY)
-                        ? g_htf_zones[z].low - g_state.atr_value * CfgSLBufferATR()
-                        : g_htf_zones[z].high + g_state.atr_value * CfgSLBufferATR();
-                    tmp.risk_price = MathAbs(((g_htf_zones[z].high + g_htf_zones[z].low) / 2.0) - tmp.sl);
-                    tmp.ob_index = z;
-                    tmp.pos_mult = 1.0;
-
-                    AddEntryMonitor(tmp, g_htf_zones[z], g_htf_monitors, g_htf_monitor_count);
-                    if(InpEnableEntryDebug) Print("HTFPB_DIAG bar=", g_state.bar_count, " z=", z, " dir=", g_htf_zones[z].direction, " status=REGISTERED");
-                }
-            }
-
         }
-
-        // 每 tick 更新 monitors，获取确认的入场
-        TradeSignal confirmed[10];
-        int conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), g_monitors, g_monitor_count, confirmed, 10);
 
         // 5. 执行确认的入场
-        for(int i = 0; i < conf_count; i++)
-        {
-            if(g_state.pos_count >= CfgMaxConcurrent()) break;
-            if(confirmed[i].ob_index < 0 || confirmed[i].ob_index >= g_state.ob_count)
-                continue;
-            if(!FinalizeEntryEngineSignal(symbol, g_zones[confirmed[i].ob_index], g_state, confirmed[i]))
-                continue;
+        if(g_osc_active)
+            ExecuteChannelConfirmed(g_zones_osc, g_state_osc, g_monitors_osc, g_monitor_count_osc, bid, ask, symbol);
+        else
+            ExecuteChannelConfirmed(g_zones, g_state, g_monitors, g_monitor_count, bid, ask, symbol);
 
-            if(ExecuteSignal(confirmed[i]))
-            {
-                g_state.last_entry_bar = g_state.bar_count;
-                g_state.pos_count++;
-            }
-        }
-
-        if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+        if(!g_osc_active && InpEnableHTFPullback && !InpHTFPullbackOnly)
         {
             TradeSignal htf_confirmed[10];
             int htf_conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), g_htf_monitors, g_htf_monitor_count, htf_confirmed, 10);
-
             for(int i = 0; i < htf_conf_count; i++)
             {
                 if(g_state.pos_count >= CfgMaxConcurrent()) break;
-                if(htf_confirmed[i].ob_index < 0 || htf_confirmed[i].ob_index >= g_htf_zone_count)
-                    continue;
-                if(!FinalizeEntryEngineSignal(symbol, g_htf_zones[htf_confirmed[i].ob_index], g_state, htf_confirmed[i]))
-                    continue;
-
+                if(htf_confirmed[i].ob_index < 0 || htf_confirmed[i].ob_index >= g_htf_zone_count) continue;
+                if(!FinalizeEntryEngineSignal(symbol, g_htf_zones[htf_confirmed[i].ob_index], g_state, htf_confirmed[i])) continue;
                 if(ExecuteSignalFromZone(htf_confirmed[i], g_htf_zones, g_htf_zone_count, false))
                 {
                     g_state.last_entry_bar = g_state.bar_count;
@@ -301,21 +344,27 @@ void OnTick()
                 }
             }
         }
-
     }
     else
     {
-        // 原始模式: 直接入场
-        int sig_count = ScanSignals(symbol, g_zones, g_state.ob_count, g_state, g_signals, 10);
-
-        // 5. 执行入场
-        for(int i = 0; i < sig_count; i++)
+        // 原始模式: 直接入场（使用活跃通道）
+        int sig_count;
+        if(g_osc_active)
         {
-            if(g_state.pos_count >= CfgMaxConcurrent()) break;
-            if(ExecuteSignal(g_signals[i]))
+            sig_count = ScanSignals(symbol, g_zones_osc, g_state_osc.ob_count, g_state_osc, g_signals, 10);
+            for(int i = 0; i < sig_count; i++)
             {
-                g_state.last_entry_bar = g_state.bar_count;
-                g_state.pos_count++;
+                if(g_state_osc.pos_count >= CfgMaxConcurrent()) break;
+                if(ExecuteSignal(g_signals[i])) { g_state_osc.last_entry_bar = g_state_osc.bar_count; g_state_osc.pos_count++; }
+            }
+        }
+        else
+        {
+            sig_count = ScanSignals(symbol, g_zones, g_state.ob_count, g_state, g_signals, 10);
+            for(int i = 0; i < sig_count; i++)
+            {
+                if(g_state.pos_count >= CfgMaxConcurrent()) break;
+                if(ExecuteSignal(g_signals[i])) { g_state.last_entry_bar = g_state.bar_count; g_state.pos_count++; }
             }
         }
     }

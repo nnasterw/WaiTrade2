@@ -205,6 +205,7 @@ defaults: &defaults
   shared_monthly_guard: false
   shared_monthly_guard_key: ""
   monthly_zone_reset: false
+  enable_dual_zone_channel: false
   shared_monthly_guard_debug: false
   max_concurrent: 5
   free_run_min_r: 0.0
@@ -26599,6 +26600,16 @@ v11_single_selector: &v11_single_selector
   xau_alt_monthly_profit_target_stop_months: ""
   magic_number: 204558
 
+# v11_single_selector_m1 — M1 bar TF（原M3），验证振荡腿在M1下是否保持PF质量
+# 关键改动：bar_period_min 3→1，放宽点差比 3.0→2.0 以适配M1更小的SL距离
+v11_single_selector_m1:
+  <<: *v11_single_selector
+  version: V11-SINGLE-SEL-M1
+  description: "M1振荡腿测试：验证M1下PF是否接近M3(若接近则可统一TF消除zone cache问题)"
+  bar_period_min: 1
+  min_risk_spread_ratio: 2.0
+  magic_number: 204700
+
 v11xau_range: &v11xau_range
   <<: *v11_single_selector
   version: V11XAU-RANGE
@@ -26965,6 +26976,14 @@ v11xau1_v2_rna12: &v11xau1_v2_rna12
   description: "rna12：H4净推进阈值1.2，测试2026-04是否仍然被阻止"
   xau_trend_min_range_net_atr: 1.2
   magic_number: 204606
+
+# v11xau1_v2_rna12_dual — rna12 + 双zone通道（M1趋势/M3振荡各自独立维护，消除切换干扰）
+v11xau1_v2_rna12_dual:
+  <<: *v11xau1_v2_rna12
+  version: V11XAU1-V2-RNA12-DUAL
+  description: "rna12+双zone通道：M3振荡OB始终维护，趋势切换不清除，修复模式干扰失败月"
+  enable_dual_zone_channel: true
+  magic_number: 204607
 
 # v11xau1_sel_filtered — selector振荡基础+FAGE时段保护+趋势切换
 # 目标：测试selector ContextReverse是否在FAGE过滤后仍可工作
