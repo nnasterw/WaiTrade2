@@ -186,6 +186,7 @@ defaults: &defaults
   monthly_guard_min_balance: 0.0
   monthly_loss_stop_pct: 0.0
   monthly_loss_stop_min_trades: 0
+  monthly_drawdown_stop_pct: 0.0
   monthly_early_loss_stop_trades: 0
   monthly_early_loss_stop_pct: 0.0
   monthly_early_loss_stop_min_balance: 0.0
@@ -27043,13 +27044,16 @@ v11xau-qs: &v11xau-qs
   <<: *v11xau_r39_trend_lot5
   version: V11XAU-QS
   description: "趋势腿正式版：OB M1 lot5+自适应lot上限+DTP+月亏损保护"
-  adaptive_lot_base: 200.0         # lot 上限随余额等比扩大（维持 pos_mult 135x 放大）
-  adaptive_lot_cap: 50.0           # 绝对安全上限 50 手（防保证金爆仓）
+  max_lot_size: 0.5                # 保守起点：$200时max lot=0.5（3并发=120风险=60%余额）
+  adaptive_lot_base: 200.0        # 随余额等比扩大：$2K时max lot=5.0，$20K时=50（含cap）
+  adaptive_lot_cap: 50.0          # 绝对安全上限 50 手
   fixed_tp_r: 0.0                  # 关闭固定 TP，改用 DTP 让趋势跑更远
   dtp_trigger_r: 3.0               # 3R 后激活 DTP（原 8.0，降低触发门槛）
   dtp_retrace: 0.2                 # 回撤 20% 触发
-  monthly_loss_stop_pct: 8.0       # 月内亏损超 8% 停止交易
-  monthly_loss_stop_min_trades: 5  # 至少 5 笔才触发
+  monthly_loss_stop_pct: 4.0         # 从起始余额亏损超 4% 停止（$200→$192）
+  monthly_loss_stop_min_trades: 2    # 至少 2 笔才触发
+  monthly_drawdown_stop_pct: 10.0    # 从月内峰值回撤超 10% 停止（保护 lot5 放大后的收益）
+  max_concurrent: 3                  # 降低并发（原14）：防止14仓同时亏损×lot5瞬间爆仓
   magic_number: 204801
 
 # ─── Regime 确认滞后测试系列 ──────────────────────────────────────────

@@ -682,6 +682,23 @@ bool CheckMonthlyLossStop(bool lock_stop)
       return true;
    }
 
+   // 峰值回撤止损：从月内最高余额回撤超过阈值则停止（适用于lot5放大场景）
+   if(InpMonthlyDrawdownStopPct > 0 && g_monthly_peak_balance > 0)
+   {
+      double dd_stop = g_monthly_peak_balance * (1.0 - InpMonthlyDrawdownStopPct / 100.0);
+      if(risk_balance <= dd_stop)
+      {
+         if(lock_stop)
+         {
+            g_monthly_loss_stopped = true;
+            g_monthly_entry_stopped = true;
+            SaveSharedMonthlyState();
+            PrintSharedMonthlyDiag("drawdown_stop");
+         }
+         return true;
+      }
+   }
+
    return false;
 }
 

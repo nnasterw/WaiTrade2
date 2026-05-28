@@ -177,6 +177,7 @@ FLAT_MAP = {
     "monthly_guard_min_balance": "InpMonthlyGuardMinBalance",
     "monthly_loss_stop_pct": "InpMonthlyLossStopPct",
     "monthly_loss_stop_min_trades": "InpMonthlyLossStopMinTrades",
+    "monthly_drawdown_stop_pct": "InpMonthlyDrawdownStopPct",
     "monthly_early_loss_stop_trades": "InpMonthlyEarlyLossStopTrades",
     "monthly_early_loss_stop_pct": "InpMonthlyEarlyLossStopPct",
     "monthly_early_loss_stop_min_balance": "InpMonthlyEarlyLossStopMinBalance",
