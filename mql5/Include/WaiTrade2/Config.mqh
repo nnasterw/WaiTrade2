@@ -571,6 +571,8 @@ input int    InpXAUTrendRangeBars = 12;        // 波动扩张确认bars
 input double InpXAUTrendMinRangeATR = 4.0;     // 波动扩张最小区间ATR(<=0禁用)
 input double InpXAUTrendMinRangeNetATR = 0.0;  // H4区间方向性净推进下限(0=禁用,建议1.5)
 input double InpXAUTrendMinEfficiency = 0.0;   // 趋势净推进效率下限=净推进/区间(0=禁用,建议0.5)
+input int    InpTrendConfirmEnterMin = 0;       // 进入趋势模式所需持续满足时间(分钟,0=禁用,建议120)
+input int    InpTrendConfirmExitMin  = 0;       // 退出趋势模式所需持续不满足时间(分钟,0=禁用,建议360)
 input int    InpXAUTrendMonthlyLockDays = 0;   // 月度锁定：前N天自由切换,N+1天起评估锁定(0=禁用)
 input double InpXAUTrendMonthlyStopLossPct = 0.0; // 趋势腿月内回撤停用百分比(0=禁用)
 input string InpXAUTrendContextFilter1Months = "";   // 趋势腿上下文过滤1月份(空=继承默认)
@@ -926,17 +928,55 @@ bool CalcXAUTrendProfileRaw()
    return true;
 }
 
-// tick级缓存：同一时间戳内所有Cfg*()调用返回相同结果，消除多次计算的不一致
+// tick级缓存 + 非对称确认滞后：
+//   InpTrendConfirmEnterMin: 进入趋势需持续满足N分钟（过滤假趋势信号）
+//   InpTrendConfirmExitMin:  退出趋势需持续不满足N分钟（防止真趋势中途颤振）
 bool UseXAUTrendProfile()
 {
-   static datetime s_cache_time   = 0;
-   static bool     s_cache_result = false;
+   static datetime s_cache_time     = 0;
+   static bool     s_cache_result   = false;
 
    datetime now = TimeCurrent();
    if(now == s_cache_time) return s_cache_result;
 
-   s_cache_result = CalcXAUTrendProfileRaw();
-   s_cache_time   = now;
+   bool raw = CalcXAUTrendProfileRaw();
+
+   if(InpTrendConfirmEnterMin > 0 || InpTrendConfirmExitMin > 0)
+   {
+      static bool     s_confirmed     = false;
+      static bool     s_last_raw      = false;
+      static datetime s_raw_since     = 0;  // 当前raw值持续开始的时间
+
+      if(raw != s_last_raw)
+      {
+         s_last_raw  = raw;
+         s_raw_since = now;
+      }
+
+      int confirm_secs = s_confirmed
+         ? (InpTrendConfirmExitMin  > 0 ? InpTrendConfirmExitMin  * 60 : 0)   // 退出确认时间
+         : (InpTrendConfirmEnterMin > 0 ? InpTrendConfirmEnterMin * 60 : 0);  // 进入确认时间
+
+      // raw 与当前确认状态相反（说明在倒计时切换中）
+      if(raw != s_confirmed && confirm_secs > 0)
+      {
+         if(now - s_raw_since >= (datetime)confirm_secs)
+            s_confirmed = raw;  // 持续满足确认时间 → 切换regime
+      }
+      else if(raw == s_confirmed)
+      {
+         // raw 与确认状态一致：重置计时器（无需切换）
+         s_raw_since = now;
+      }
+
+      s_cache_result = s_confirmed;
+   }
+   else
+   {
+      s_cache_result = raw;
+   }
+
+   s_cache_time = now;
    return s_cache_result;
 }
 

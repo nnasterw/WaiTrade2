@@ -385,6 +385,8 @@ defaults: &defaults
   xau_trend_min_range_atr: 4.0
   xau_trend_min_range_net_atr: 0.0
   xau_trend_min_efficiency: 0.0
+  trend_confirm_enter_min: 0
+  trend_confirm_exit_min: 0
   xau_trend_monthly_lock_days: 0
   xau_trend_monthly_stop_loss_pct: 0.0
   xau_trend_context_filter1_months: ""
@@ -27037,3 +27039,24 @@ v11xau-qs: &v11xau-qs
   version: V11XAU-QS
   description: "趋势腿正式版：OB M1 lot5，适用于单边趋势行情"
   magic_number: 204801
+
+# ─── Regime 确认滞后测试系列 ──────────────────────────────────────────
+# 目标：filter Jun2024假信号($168→$527?) + 保留Nov2024真趋势($195→$574?)
+
+# v11xau1_v2_rna12_dual_h120e360 — 进入120分钟确认 + 退出360分钟确认
+v11xau1_v2_rna12_dual_h120e360: &v11xau1_v2_rna12_dual_h120e360
+  <<: *v11xau1_v2_rna12_dual
+  version: V11XAU1-V2-RNA12-DUAL-H120E360
+  description: "rna12_dual+非对称确认：进入趋势120min，退出趋势360min"
+  trend_confirm_enter_min: 120
+  trend_confirm_exit_min: 360
+  magic_number: 204900
+
+# v11xau1_v2_rna12_dual_h60e180 — 更快的确认参数（进入60min，退出180min）
+v11xau1_v2_rna12_dual_h60e180:
+  <<: *v11xau1_v2_rna12_dual
+  version: V11XAU1-V2-RNA12-DUAL-H60E180
+  description: "rna12_dual+非对称确认：进入趋势60min，退出趋势180min"
+  trend_confirm_enter_min: 60
+  trend_confirm_exit_min: 180
+  magic_number: 204901
