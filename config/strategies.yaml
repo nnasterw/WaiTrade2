@@ -382,6 +382,7 @@ defaults: &defaults
   xau_trend_range_bars: 12
   xau_trend_min_range_atr: 4.0
   xau_trend_min_efficiency: 0.0
+  xau_trend_monthly_lock_days: 0
   xau_trend_monthly_stop_loss_pct: 0.0
   xau_trend_bounce_pct: 0.18
   xau_trend_timeout_min: 120
@@ -26889,3 +26890,11 @@ v11xau1_h8:
   description: "H4区间阈值8.0 ATR（原4.0），防止2026-04类震荡月触发趋势腿"
   xau_trend_min_range_atr: 8.0
   magic_number: 204597
+
+# v11xau1_lock5 — 月度锁定版：前5天自由切换，第6天评估H1 5日净推进后锁定全月
+v11xau1_lock5:
+  <<: *v11xau1
+  version: V11XAU1-LOCK5
+  description: "月度锁定：前5天实时评估，第6天起按H1 120bars净推进锁定全月regime"
+  xau_trend_monthly_lock_days: 5
+  magic_number: 204598

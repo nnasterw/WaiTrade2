@@ -567,6 +567,7 @@ input int    InpXAUTrendRangeTF = 240;         // 波动扩张确认周期
 input int    InpXAUTrendRangeBars = 12;        // 波动扩张确认bars
 input double InpXAUTrendMinRangeATR = 4.0;     // 波动扩张最小区间ATR(<=0禁用)
 input double InpXAUTrendMinEfficiency = 0.0;   // 趋势净推进效率下限=净推进/区间(0=禁用,建议0.5)
+input int    InpXAUTrendMonthlyLockDays = 0;   // 月度锁定：前N天自由切换,N+1天起评估锁定(0=禁用)
 input double InpXAUTrendMonthlyStopLossPct = 0.0; // 趋势腿月内回撤停用百分比(0=禁用)
 input double InpXAUTrendBouncePct = 0.18;
 input int    InpXAUTrendTimeoutMin = 120;
@@ -839,7 +840,7 @@ bool UseXAUFageAltProfile()
    return (month_trigger || adaptive_trigger);
 }
 
-bool UseXAUTrendProfile()
+bool CalcXAUTrendProfileRaw()
 {
    if(!InpEnableXAUTrendProfile ||
       StringLen(InpXAUTrendProfileSymbol) <= 0 ||
@@ -847,6 +848,49 @@ bool UseXAUTrendProfile()
       return false;
    if(!XAUTrendMonthlyFeedbackAllows())
       return false;
+
+   // 月度锁定：前N天自由切换，第N+1天起评估H1净推进并锁定剩余月份
+   if(InpXAUTrendMonthlyLockDays > 0)
+   {
+      static int  s_lock_month    = 0;
+      static bool s_lock_decided  = false;
+      static bool s_lock_result   = false;
+
+      MqlDateTime dt;
+      TimeToStruct(TimeCurrent(), dt);
+      int month_key = dt.year * 100 + dt.mon;
+
+      if(month_key != s_lock_month)
+      {
+         s_lock_month   = month_key;
+         s_lock_decided = false;
+      }
+
+      if(s_lock_decided) return s_lock_result;
+
+      if(dt.day > InpXAUTrendMonthlyLockDays)
+      {
+         int   lock_bars = InpXAUTrendMonthlyLockDays * 24;
+         double lock_net = 0.0, lock_range = 0.0;
+         bool net_ok = CalcXAUTrendStats(InpXAUTrendTriggerTF, lock_bars, lock_net, lock_range)
+                       && MathAbs(lock_net) >= InpXAUTrendMinAbsNetATR;
+
+         bool range_ok = true;
+         if(InpXAUTrendMinRangeATR > 0)
+         {
+            double rng_net = 0.0, rng_atr = 0.0;
+            range_ok = CalcXAUTrendStats(InpXAUTrendRangeTF, InpXAUTrendRangeBars, rng_net, rng_atr)
+                       && rng_atr >= InpXAUTrendMinRangeATR;
+         }
+
+         s_lock_result  = (net_ok && range_ok);
+         s_lock_decided = true;
+         Print("XAUTrendLock day=", dt.day, " regime=", s_lock_result ? "TREND" : "RANGE",
+               " net5d=", lock_net, " net_ok=", net_ok, " range_ok=", range_ok);
+         return s_lock_result;
+      }
+      // 前N天：继续实时评估（落入下方正常逻辑）
+   }
 
    double trigger_net = 0.0;
    double trigger_range = 0.0;
@@ -869,6 +913,20 @@ bool UseXAUTrendProfile()
    }
 
    return true;
+}
+
+// tick级缓存：同一时间戳内所有Cfg*()调用返回相同结果，消除多次计算的不一致
+bool UseXAUTrendProfile()
+{
+   static datetime s_cache_time   = 0;
+   static bool     s_cache_result = false;
+
+   datetime now = TimeCurrent();
+   if(now == s_cache_time) return s_cache_result;
+
+   s_cache_result = CalcXAUTrendProfileRaw();
+   s_cache_time   = now;
+   return s_cache_result;
 }
 
 double CfgBouncePct() { return UseBTCProfile() ? InpBTCBouncePct : (UseXAUTrendProfile() ? InpXAUTrendBouncePct : InpBouncePct); }

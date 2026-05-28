@@ -533,6 +533,7 @@ FLAT_MAP = {
     "xau_trend_range_bars": "InpXAUTrendRangeBars",
     "xau_trend_min_range_atr": "InpXAUTrendMinRangeATR",
     "xau_trend_min_efficiency": "InpXAUTrendMinEfficiency",
+    "xau_trend_monthly_lock_days": "InpXAUTrendMonthlyLockDays",
     "xau_trend_monthly_stop_loss_pct": "InpXAUTrendMonthlyStopLossPct",
     "xau_trend_bounce_pct": "InpXAUTrendBouncePct",
     "xau_trend_timeout_min": "InpXAUTrendTimeoutMin",
