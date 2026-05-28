@@ -26729,3 +26729,25 @@ v11_single_selector_btc_r1:
   btc_max_pos_mult: 100.0
   btc_max_lot_size: 2.0
   magic_number: 204559
+
+# === R39 双腿Selector lot放大系列 ===
+# 目标：将35%月收益下限延伸至$200K+余额（Tier2）
+# 振荡腿：max_lot 0.5→5.0（10x），趋势腿：max_lot 2.0→5.0（2.5x）
+
+v11xau_r39_range_lot5:
+  <<: *v11xau_start_fage_2026_monthgate
+  version: V11XAU-R39-RANGE-LOT5
+  description: "R39 oscillation leg: FAGE base with max_lot 5.0 to extend 35%/month floor to $200K+ balance"
+  max_lot_size: 5.0
+  max_pos_mult: 200.0
+  magic_number: 204590
+
+v11xau_r39_trend_lot5:
+  <<: *v11xau_trend
+  version: V11XAU-R39-TREND-LOT5
+  description: "R39 trend leg: h04_half params + max_lot 5.0 to extend 35%/month floor to $200K+ balance"
+  low_risk_hours: "4"
+  low_risk_hour_mult: 0.5
+  max_lot_size: 5.0
+  xau_trend_max_lot_size: 5.0
+  magic_number: 204591
