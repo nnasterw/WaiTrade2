@@ -1,99 +1,96 @@
-# Ralph Loop — 自主执行 Agent
+# AGENTS.md
 
-## 你的身份
-你是一个自主编码 Agent，在 `WaiTrade2` 项目中工作。
-每次运行只处理 `prd.json` 中一个 `passes: false` 的 story，完成后停止。
+WaiTrade2 是 macOS/Windows 双平台 MT5 量化工具链：参数化 OB/SMC EA、MT5 CLI 回测、Live 部署与策略迭代。
 
-## 执行流程（严格按顺序）
+## 必守规则
 
-### 1. 读取状态
-- 读取 `prd.json`，找到优先级最高（`priority` 最小）且 `passes: false` 的 story
-- 读取 `progress.txt`，了解之前迭代的发现和注意事项
-- 如果所有 story 都是 `passes: true`，输出 `<promise>COMPLETE</promise>` 然后停止
+- 全程中文交流；代码注释和 git 提交信息也尽量中文。
+- 所有smc等策略相关概念，统一用中文表示
+- “回测”只指 MT5 Strategy Tester CLI：`terminal64.exe /config:`；Python 只能称为模拟。
+- 默认初始资金 `$200`；MT5 可信标准是 Model 4 / Real Ticks。
+- 回测命令优先 `--background --brief`；禁止整份读取原始 Agent 日志。
+- 默认只推送 WaiTrade2：`git@github.com:nnasterw/WaiTrade2.git`。
+- 一个 MT5 账号只能部署一个 EA；多品种/多腿组合必须在同一 EA 配置内用 profile/selector 实现。
+- 不 revert 用户或他人改动；不提交大数据文件。
 
-### 2. 理解任务
-- 仔细阅读该 story 的 `description` 和 `acceptanceCriteria`
-- 在动手之前，先通过读取相关文件理解现有代码结构
-- 不要假设，要实际读取代码
-- 需要回看历史结论时，优先读取 `research/notes/`、`results/backtest/` 和已有终端日志
+## 常用命令
 
-### 3. 实现
-- 只修改与当前 story 相关的文件
-- 优先通过 `config/strategies.yaml` 做策略迭代；只有配置粒度不足时才修改 MQL5 逻辑
-- 如果新增参数，必须同步更新：
-  - `mql5/Include/WaiTrade2/Config.mqh`
-  - `scripts/yaml_to_set.py`
-  - `config/strategies.yaml`
-- 每次文件修改后立即检查语法与 YAML 可读性
-- 不要新建 Markdown 文档；跨轮记忆统一追加到 `progress.txt`
-
-### 4. 质量验证（这是强制步骤，不可跳过）
-运行统一质量门禁命令：
 ```bash
-python3 -c "import yaml, pathlib; yaml.safe_load(pathlib.Path('config/strategies.yaml').read_text(encoding='utf-8'))" && python3 -m pytest tests/test_mt5_common.py tests/test_mt5_backtest_win.py -q
-```
-- 如果命令失败（exit code 非 0）：修复问题，重新运行，直到通过
-- 不允许在门禁失败的情况下继续下一步
-- 不允许通过删测试、跳过测试、修改无关断言来“伪通过”
+# 编译 / 生成 set
+python3 scripts/mt5_compile.py WaiTrade2/WaiTrade_OB
+python3 scripts/yaml_to_set.py --all
 
-### 5. 回测验收（故事级强制步骤）
-- 该项目的正式验收只认 **MT5 Strategy Tester Real Ticks**
-- 需要跑回测时，优先使用后台命令：
-```bash
-python3 scripts/mt5_cli_backtest.py --bg ...
-```
-- 必须等待回测日志/报告真正落盘，再根据结果判定 story 是否通过
-- 任何 720 天长窗验收都要明确检查：
-  - `daily_trades`
-  - `final_balance`
-  - `negative_months`
-  - `stopout` 或提前停机迹象
-- 不允许用 Python 模拟结果替代 MT5 Real Ticks
+# MT5 回测
+python3 scripts/mt5_cli_backtest.py --background --brief --strategy v11_single_selector --symbol XAUUSDm --days 30
+python3 scripts/mt5_cli_backtest.py --background --brief --strategies s1,s2 --symbol XAUUSDm --from 2025.04.01 --to 2025.05.01
+python3 scripts/mt5_backtest_win.py --strategy v11_single_selector --symbol XAUUSDm --days 30
 
-### 6. Diagnose 约束
-- 每轮都优先构建最小反馈环：报告 + Agent 日志 + 月度/坏簇摘要
-- 重点关注：
-  - `hour`
-  - `direction`
-  - `risk`
-  - `confirm_pos`
-  - `deep/htf`
-  - `stop out occurred`
-- 目标不是“提高某一段收益”，而是逐轮压缩坏簇，并保住高频盈利腿
-- 如果发现只靠配置无法表达需要的筛选逻辑，再进入参数/逻辑扩展 story
+# Live
+python3 scripts/mt5_live_runner.py --strategy v11_single_selector --symbols XAUUSDm,BTCUSDm
+python3 scripts/mt5_live_runner.py --status
 
-### 7. 提交
-门禁全部通过后：
-```bash
-git add .
-git commit -m "feat(btc-ralph): <story 标题>"
+# 低 token 分析
+python3 scripts/backtest_digest.py --report results/backtest/xxx.txt --brief
+python3 scripts/backtest_digest.py --report results/backtest/xxx.txt --export-csv --brief
+python3 scripts/trade_cluster_summary.py --csv results/backtest/xxx.trades.csv --top 8
+
+# 测试
+python3 -m pytest tests/ -q
 ```
 
-### 8. 更新状态
-- 将 `prd.json` 中该 story 的 `passes` 改为 `true`
-- 将本次迭代的发现追加到 `progress.txt`：
-  ```
-  ## [US-XXX] <story 标题> — <日期>
-  ### 完成的工作
-  - <做了什么>
-  ### 发现的注意事项
-  - <坑/特殊行为/需要后续注意的>
-  ### 对后续 story 的影响
-  - <如有>
-  ```
+依赖：`pip install pyyaml pytest`。
 
-## 硬性约束（违反即停止）
-- 每轮只处理一个 story
-- 质量门禁必须真实通过，不能跳过
-- 回测必须使用 MT5 Strategy Tester Real Ticks，不能用近似路径冒充
-- 不能修改其他 story 涉及的文件
-- 不能声称“基本完成”——要么完全通过，要么继续修
-- 发现需要额外权限才能继续时，输出 `<promise>NEED_PERMISSIONS</promise>` 并说明原因
+## 关键路径
 
-## 技术约束
-- 全程使用中文输出、注释、提交信息
-- 策略正式验收目标：`daily_trades > 5`、`final_balance > 50000`、`negative_months = 0`
-- 回测和 live 执行路径必须保持一致，不能通过跳过逻辑或解耦路径换速度
-- 修改策略参数前，优先核对 `strategy_versions/` 和已有研究结论
-- 读取大型 Agent 日志时，优先做摘要，不直接整份通读
-- 后台回测前优先检查现有 terminals 是否已有同类任务在运行
+- 策略配置：`config/strategies.yaml`
+- YAML 映射：`scripts/yaml_to_set.py`
+- 回测脚本：`scripts/mt5_cli_backtest.py`、`scripts/mt5_backtest_win.py`
+- EA：`mql5/Experts/WaiTrade2/WaiTrade_OB.mq5`、`mql5/Include/WaiTrade2/*.mqh`
+- 结果与记录：`results/backtest/`、`research/notes/`
+
+## 工作流
+
+```text
+config/strategies.yaml -> yaml_to_set.py -> mql5/Presets/*.set
+  -> mt5_cli_backtest.py / mt5_backtest_win.py
+  -> MT5 terminal64.exe /config:
+  -> results/backtest/*.txt + digest/trades.csv
+```
+
+`WaiTrade_OB.mq5` tick 流程：ATR/行情 -> OB检测 -> 市场状态 -> OB更新 -> 信号扫描 -> 入场 -> 持仓同步 -> 持仓管理。
+
+## 改参数同步
+
+新增或修改 EA input 必须同步：
+
+1. `mql5/Include/WaiTrade2/Config.mqh`
+2. `scripts/yaml_to_set.py` 的 `FLAT_MAP`
+3. `config/strategies.yaml` 的 `defaults`
+4. 对应测试，通常是 `tests/test_mt5_common.py`
+5. 编译验证：`python3 scripts/mt5_compile.py WaiTrade2/WaiTrade_OB`
+
+每个 `.set` 必须显式写入所有 input；`InpBarTF` 用数字：`1=M1, 5=M5, 60=H1`。
+
+## 回测纪律
+
+- 先用 `backtest_digest.py`、`backtest_ledger.py` 或 `trade_cluster_summary.py` 提炼日志。
+- 关键结果单独复跑，并校验品种、日期、策略版本标记。
+- macOS MT5 `/config:` 路径必须使用 Windows 反斜杠。
+- 回测和 Live 的入场价、offset、SL、TP、DTP、timeout、并发、cooldown、去重逻辑必须等效。
+
+## 策略纪律
+
+- 新策略写入 `config/strategies.yaml` 并用 MT5 CLI 验证。
+- 重大结论写入 `research/notes/`。
+- 不信任 WR > 80% 的异常结果，必须查成交假设、缓存、日志匹配和日期窗口。
+- 不做具体月份过滤作为最终通用策略；月份只能用于诊断。
+- XAU/BTC 分开调参；加密通常需要更大 SL、timeout、BE、DTP 尺度。
+
+## 高危坑
+
+- BTC 百分比限价容差会失真，应使用 spread 相关绝对容差。
+- Model 0 幻觉严重；Real Ticks 才可信。
+- M1 小 risk 容易被 spread 杀死；BE 太近会被 tick 噪音秒扫。
+- Trail 过早会截断大赢；简单 BE + DTP 常更稳。
+- OB 核心区间用实体，不用影线。
+- 负余额解析必须支持负号。

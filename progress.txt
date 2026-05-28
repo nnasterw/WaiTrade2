@@ -78,3 +78,28 @@ Started: 2026-05-21
 - Exit-Restart阈值设为$50K时，每个循环约持续6-8个月，年化累积财富可观
 - EA层需要实现月初探测+切换机制才能让双腿选择器在实盘生效
 - 参考：research/notes/2026-05-28_xau_dual_selector_24_24.md
+
+## [XAU-POSM] pos_mult收敛效应深度诊断 — 2026-05-28
+
+### 完成的工作
+- 实现月初zone重置（Config.mqh+WaiTrade_OB.mq5），验证zone缓存非根因
+- v11xau1_trend_zreset vs v11xau_r39_trend_lot5：结果几乎完全相同（$575K），zone重置无效
+- 实现并测试v11xau1实时HTF切换：FAGE+OB, 1800笔, $50K, 4/24达标
+- 从数学层面确认：pos_mult收敛效应是顺序复利达不到35%月盈率的根本原因
+
+### 根因（数学）
+  $200起步：lots 0.037→5（135x放大），强月数千%
+  $15K起步：lots 3.95→5（1.27x放大），同样市场条件仅2.8%
+  各种参数调整（zone重置/低阈值/lot20）均无法改变这个数学限制
+
+### 720d顺序复利回测成绩汇总
+  v11_single_selector (range lot0.5)：$36,642，5/24月≥35%
+  v11xau_r39_range_lot5：$294,641，5/24月≥35%
+  v11xau_r39_trend_lot5：$575,128，6/24月≥35%（最优单策略）
+  v11xau1 FAGE+OB实时切换：$50,616，4/24月≥35%（切换反而更差）
+
+### 下一步
+唯一出路：EA内实现月初sizing基准重置
+  新参数：InpMonthlyLotSizingBase（默认0=用实际余额，正数=固定sizing参考）
+  效果：每月从$200-sized lots开始复利，实际盈利累积到真实余额
+  这等价于在EA内实现exit-restart，无需真实提现即可达到24/24月≥35%
