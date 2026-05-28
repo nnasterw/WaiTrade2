@@ -26776,7 +26776,7 @@ v11xau1: &v11xau1
   <<: *v11xau_start_fage_2026_monthgate
   version: V11XAU1
   description: "XAU官方策略v1：单EA实时HTF regime切换+月初zone重置，FAGE振荡腿(lot0.5)默认+OB趋势腿(lot5)按需激活"
-  # 月初OB zone缓存重置（修复顺序复利状态延续问题）
+  # 月初OB zone缓存重置
   monthly_zone_reset: true
   # 开启实时双腿切换
   enable_xau_trend_profile: true
