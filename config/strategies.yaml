@@ -26760,6 +26760,18 @@ v11xau_r39_trend_lot5:
 #   H1 3bar净推进 >= 0.45*ATR  AND  H4 12bar区间 >= 4.0*ATR
 # EA自动在每根K线实时判断regime并切换参数集
 
+# 纯趋势腿+月初zone重置（验证zone缓存是否是死寂月根因）
+v11xau1_trend_zreset:
+  <<: *v11xau_trend
+  version: V11XAU1-TREND-ZRESET
+  description: "测试：纯OB趋势腿lot5+月初zone重置，验证是否修复死寂月"
+  monthly_zone_reset: true
+  low_risk_hours: "4"
+  low_risk_hour_mult: 0.5
+  max_lot_size: 5.0
+  xau_trend_max_lot_size: 5.0
+  magic_number: 204593
+
 v11xau1: &v11xau1
   <<: *v11xau_start_fage_2026_monthgate
   version: V11XAU1
