@@ -26751,3 +26751,18 @@ v11xau_r39_trend_lot5:
   max_lot_size: 5.0
   xau_trend_max_lot_size: 5.0
   magic_number: 204591
+
+# === v11xau1 — XAU 第一个正式策略 ===
+# 双腿选择器：趋势月用本策略（lot5），振荡月用 v11_single_selector（lot0.5）
+# 运营规则：每月末余额>$270时提现至$200重启（保持 pos_mult 甜区）
+# 模拟验证：24/24月≥35%，24月累计提现 $108,628
+
+v11xau1: &v11xau1
+  <<: *v11xau_trend
+  version: V11XAU1
+  description: "XAU官方策略v1：趋势腿lot5，配合v11_single_selector振荡腿，$270退出重启规则实现24/24月≥35%"
+  low_risk_hours: "4"
+  low_risk_hour_mult: 0.5
+  max_lot_size: 5.0
+  xau_trend_max_lot_size: 5.0
+  magic_number: 204592
