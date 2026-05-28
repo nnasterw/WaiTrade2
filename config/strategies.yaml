@@ -384,6 +384,9 @@ defaults: &defaults
   xau_trend_min_efficiency: 0.0
   xau_trend_monthly_lock_days: 0
   xau_trend_monthly_stop_loss_pct: 0.0
+  xau_trend_context_filter1_months: ""
+  xau_trend_context_filter1_no_hours: ""
+  xau_trend_context_filter1_mult: -1.0
   xau_trend_bounce_pct: 0.18
   xau_trend_timeout_min: 120
   xau_trend_max_entry_offset_r: 1.2
@@ -26898,6 +26901,18 @@ v11xau1_lock5:
   description: "月度锁定：前5天实时评估，第6天起按H1 120bars净推进锁定全月regime"
   xau_trend_monthly_lock_days: 5
   magic_number: 204598
+
+# v11xau1_v2 — selector振荡腿 + 趋势模式April时段保护
+# 关键假设：selector基础提供高质量振荡信号，trend模式用filter1封住April坏时段
+v11xau1_v2: &v11xau1_v2
+  <<: *v11xau1_sel_base
+  version: V11XAU1-V2
+  description: "v2：selector振荡质量+趋势模式April 13-22时段屏蔽"
+  # 趋势模式中封住April坏时段（阻止selector base在这些时段的低质量趋势入场）
+  xau_trend_context_filter1_months: "4"
+  xau_trend_context_filter1_no_hours: "13,14,15,19,22"
+  xau_trend_context_filter1_mult: 0.0
+  magic_number: 204600
 
 # v11xau1_sel_filtered — selector振荡基础+FAGE时段保护+趋势切换
 # 目标：测试selector ContextReverse是否在FAGE过滤后仍可工作

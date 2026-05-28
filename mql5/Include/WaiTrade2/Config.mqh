@@ -570,6 +570,9 @@ input double InpXAUTrendMinRangeATR = 4.0;     // 波动扩张最小区间ATR(<=
 input double InpXAUTrendMinEfficiency = 0.0;   // 趋势净推进效率下限=净推进/区间(0=禁用,建议0.5)
 input int    InpXAUTrendMonthlyLockDays = 0;   // 月度锁定：前N天自由切换,N+1天起评估锁定(0=禁用)
 input double InpXAUTrendMonthlyStopLossPct = 0.0; // 趋势腿月内回撤停用百分比(0=禁用)
+input string InpXAUTrendContextFilter1Months = "";   // 趋势腿上下文过滤1月份(空=继承默认)
+input string InpXAUTrendContextFilter1NoHours = "";  // 趋势腿上下文过滤1屏蔽小时(空=继承默认)
+input double InpXAUTrendContextFilter1Mult = -1.0;   // 趋势腿上下文过滤1乘数(<0=继承默认)
 input double InpXAUTrendBouncePct = 0.18;
 input int    InpXAUTrendTimeoutMin = 120;
 input double InpXAUTrendMaxEntryOffsetR = 1.2;
@@ -1023,15 +1026,24 @@ double CfgShallowConfirmPosMult() { return UseBTCProfile() ? InpBTCShallowConfir
 double CfgDTPPostPartialLockR() { return UseBTCProfile() ? InpBTCDTPPostPartialLockR : InpDTPPostPartialLockR; }
 double CfgDTPPostPartialRetrace() { return UseBTCProfile() ? InpBTCDTPPostPartialRetrace : InpDTPPostPartialRetrace; }
 bool CfgDTPResetPeakAfterPartial() { return UseBTCProfile() ? InpBTCDTPResetPeakAfterPartial : InpDTPResetPeakAfterPartial; }
-string CfgContextFilter1Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Months : InpContextFilter1Months; }
-string CfgContextFilter1NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter1NoHours : InpContextFilter1NoHours; }
+string CfgContextFilter1Months()  {
+   if(UseXAUTrendProfile() && StringLen(InpXAUTrendContextFilter1Months) > 0)  return InpXAUTrendContextFilter1Months;
+   return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Months : InpContextFilter1Months;
+}
+string CfgContextFilter1NoHours() {
+   if(UseXAUTrendProfile() && StringLen(InpXAUTrendContextFilter1NoHours) > 0) return InpXAUTrendContextFilter1NoHours;
+   return UseXAUFageAltProfile() ? InpXAUAltContextFilter1NoHours : InpContextFilter1NoHours;
+}
 string CfgContextFilter1NoBuyHours() { return InpContextFilter1NoBuyHours; }
 string CfgContextFilter1NoSellHours() { return InpContextFilter1NoSellHours; }
 double CfgContextFilter1MinMonthStartBalance() { return InpContextFilter1MinMonthStartBalance; }
 double CfgContextFilter1MaxMonthStartBalance() { return InpContextFilter1MaxMonthStartBalance; }
 double CfgContextFilter1MinPrice() { return InpContextFilter1MinPrice; }
 double CfgContextFilter1MaxPrice() { return InpContextFilter1MaxPrice; }
-double CfgContextFilter1Mult() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Mult : InpContextFilter1Mult; }
+double CfgContextFilter1Mult() {
+   if(UseXAUTrendProfile() && InpXAUTrendContextFilter1Mult >= 0) return InpXAUTrendContextFilter1Mult;
+   return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Mult : InpContextFilter1Mult;
+}
 string CfgContextFilter2Months() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2Months : InpContextFilter2Months; }
 string CfgContextFilter2NoHours() { return UseXAUFageAltProfile() ? InpXAUAltContextFilter2NoHours : InpContextFilter2NoHours; }
 string CfgContextFilter2NoBuyHours() { return InpContextFilter2NoBuyHours; }
