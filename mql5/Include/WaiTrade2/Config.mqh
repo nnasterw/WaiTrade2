@@ -375,6 +375,7 @@ input bool   InpEnableHTFNetPushFilter = false; // 启用HTF净推进仓位过�
 input int    InpHTFNetPushTF     = 15;       // HTF净推进周期(分钟)
 input int    InpHTFNetPushBars   = 4;        // HTF净推进观察闭合K数
 input double InpHTFNetPushMinATR = 0.50;     // 净推进阈值(ATR倍数,<=0禁用)
+input double InpHTFNetPushMinPct = 0.0;      // 净推进阈值(%变化,>0时替代MinATR比较)
 input double InpHTFNetPushAlignedMult = 1.0; // HTF同向净推进仓位倍数
 input double InpHTFNetPushNeutralMult = 1.0; // HTF无明显净推进仓位倍数
 input double InpHTFNetPushCounterMult = 1.0; // HTF反向净推进仓位倍数(<=0过滤)

@@ -363,6 +363,7 @@ FLAT_MAP = {
     "htf_net_push_tf": "InpHTFNetPushTF",
     "htf_net_push_bars": "InpHTFNetPushBars",
     "htf_net_push_min_atr": "InpHTFNetPushMinATR",
+    "htf_net_push_min_pct": "InpHTFNetPushMinPct",
     "htf_net_push_aligned_mult": "InpHTFNetPushAlignedMult",
     "htf_net_push_neutral_mult": "InpHTFNetPushNeutralMult",
     "htf_net_push_counter_mult": "InpHTFNetPushCounterMult",

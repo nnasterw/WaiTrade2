@@ -1327,16 +1327,28 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
 
    int start = count - bars;
    double net_move = (rates[count - 1].close - rates[start].open) * direction;
-   double net_atr = net_move / atr;
+   double base_price = rates[start].open;
+   double net_metric;
+   double threshold;
+   if(InpHTFNetPushMinPct > 0 && base_price > 0)
+   {
+      net_metric = net_move / base_price * 100.0;
+      threshold = InpHTFNetPushMinPct;
+   }
+   else
+   {
+      net_metric = (atr > 0) ? net_move / atr : 0;
+      threshold = CfgHTFNetPushMinATR();
+   }
    double mult = CfgHTFNetPushNeutralMult();
 
-   if(net_atr >= CfgHTFNetPushMinATR())
+   if(net_metric >= threshold)
    {
       mult = CfgHTFNetPushAlignedMult();
       double dir_scale = (direction < 0) ? InpHTFNetPushSellAlignedScale : InpHTFNetPushBuyAlignedScale;
       mult *= dir_scale;
    }
-   else if(net_atr <= -CfgHTFNetPushMinATR())
+   else if(net_metric <= -threshold)
    {
       mult = CfgHTFNetPushCounterMult();
       double dir_scale = (direction < 0) ? InpHTFNetPushSellCounterScale : InpHTFNetPushBuyCounterScale;
