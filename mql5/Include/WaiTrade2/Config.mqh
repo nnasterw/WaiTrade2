@@ -45,6 +45,7 @@ input double InpRangeBreakoutMinSpreadMult = 3.0; // 区间最小高度/spread
 input double InpRangeBreakoutATR = 0.10;     // 有效突破额外ATR阈值
 input double InpRangeBreakoutTPMult = 1.0;   // TP=区间高度倍数(0=不用固定TP)
 input bool   InpRangeBreakoutBodyDir = true; // 突破K必须同方向实体
+input bool   InpForceMinLot = false;      // lot不足min时强制提升到min_lot
 // BTC动量追踪入场（连续同向K线追入，趋势月专用）
 input bool   InpEnableMomentum       = false; // 启用动量追踪入场
 input int    InpMomentumTF           = 60;    // 动量检测周期(分钟,默认H1)

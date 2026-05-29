@@ -1635,8 +1635,13 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    final_lot = MathFloor(final_lot / lot_step) * lot_step;
    if(final_lot < lot_min)
    {
-      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=lot_min final_lot=", final_lot, " min=", lot_min);
-      return false;
+      if(InpForceMinLot)
+         final_lot = lot_min;
+      else
+      {
+         if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=lot_min final_lot=", final_lot, " min=", lot_min);
+         return false;
+      }
    }
    if(final_lot > lot_max)
       final_lot = lot_max;

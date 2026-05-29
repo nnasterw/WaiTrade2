@@ -64,6 +64,7 @@ FLAT_MAP = {
     "h4_trend_sl_bars": "InpH4TrendSLBars",
     "h4_trend_sl_buffer_atr": "InpH4TrendSLBufferATR",
     "h4_trend_cooldown_bars": "InpH4TrendCooldownBars",
+    "force_min_lot": "InpForceMinLot",
     "enable_momentum": "InpEnableMomentum",
     "momentum_tf": "InpMomentumTF",
     "momentum_bars": "InpMomentumBars",
