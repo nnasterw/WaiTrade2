@@ -27110,11 +27110,20 @@ v11btc-r26: &v11btc-r26
 v11btc-r234: &v11btc-r234
   <<: *v11_r234_j2_r227_ctx50
   version: V11BTC-R234
-  description: "BTC第四腿：R234 j2高频+DTP2.5/0.20+risk6.5%+bounce0.30（10/23月≥50%，含Oct25✅）"
+  description: "BTC高频腿：R234 j2+DTP2.5+risk6.5%+bounce0.30+D1SELL屏蔽+neutral1.1→12/23月≥50%"
   dtp_trigger_r: 2.5
   dtp_retrace: 0.20
   risk_percent: 6.5
   bounce_pct: 0.30
+  enable_htf_net_push_filter: true
+  htf_net_push_tf: 1440
+  htf_net_push_bars: 5
+  htf_net_push_min_atr: 2.0
+  htf_net_push_aligned_mult: 1.15
+  htf_net_push_neutral_mult: 1.1
+  htf_net_push_counter_mult: 0.6
+  htf_net_push_sell_counter_scale: 0.0
+  htf_net_push_buy_counter_scale: 1.0
   magic_number: 204806
 
 # ─── Regime 确认滞后测试系列 ──────────────────────────────────────────

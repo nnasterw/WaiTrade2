@@ -1,4 +1,4 @@
-; V11BTC-R234 — BTC第四腿：R234 j2高频+DTP2.5/0.20+risk6.5%+bounce0.30（10/23月≥50%，含Oct25✅）
+; V11BTC-R234 — BTC高频腿：R234 j2+DTP2.5+risk6.5%+bounce0.30+D1SELL屏蔽+neutral1.1→12/23月≥50%
 InpBouncePct=0.3
 InpTimeoutMin=120
 InpMaxEntryOffsetR=0.5
@@ -341,12 +341,14 @@ InpStartupBadCluster4ConfirmMax=999.0
 InpStartupBadCluster4Mult=1.0
 InpStartupBadCluster4Signal=
 InpEnableHTFNetPushFilter=true
-InpHTFNetPushTF=60
-InpHTFNetPushBars=3
-InpHTFNetPushMinATR=0.35
+InpHTFNetPushTF=1440
+InpHTFNetPushBars=5
+InpHTFNetPushMinATR=2.0
 InpHTFNetPushAlignedMult=1.15
-InpHTFNetPushNeutralMult=1.0
+InpHTFNetPushNeutralMult=1.1
 InpHTFNetPushCounterMult=0.6
+InpHTFNetPushSellCounterScale=0.0
+InpHTFNetPushBuyCounterScale=1.0
 InpBuyMinStrength=0.0
 InpSellMinStrength=0.0
 InpBuyPosMult=1.0

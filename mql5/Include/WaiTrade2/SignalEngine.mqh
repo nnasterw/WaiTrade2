@@ -1333,7 +1333,11 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
    if(net_atr >= CfgHTFNetPushMinATR())
       mult = CfgHTFNetPushAlignedMult();
    else if(net_atr <= -CfgHTFNetPushMinATR())
+   {
       mult = CfgHTFNetPushCounterMult();
+      double dir_scale = (direction < 0) ? InpHTFNetPushSellCounterScale : InpHTFNetPushBuyCounterScale;
+      mult *= dir_scale;
+   }
 
    if(mult <= 0)
       return -1.0;

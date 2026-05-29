@@ -378,6 +378,8 @@ input double InpHTFNetPushMinATR = 0.50;     // 净推进阈值(ATR倍数,<=0禁
 input double InpHTFNetPushAlignedMult = 1.0; // HTF同向净推进仓位倍数
 input double InpHTFNetPushNeutralMult = 1.0; // HTF无明显净推进仓位倍数
 input double InpHTFNetPushCounterMult = 1.0; // HTF反向净推进仓位倍数(<=0过滤)
+input double InpHTFNetPushSellCounterScale = 1.0; // SELL逆势额外缩放(0=屏蔽,1=同主过滤)
+input double InpHTFNetPushBuyCounterScale  = 1.0; // BUY逆势额外缩放(0=屏蔽,1=同主过滤)
 input bool   InpEnableHTFPullback = false; // 启用HTF净推进后的回踩区信号
 input bool   InpHTFPullbackOnly = false;   // 仅交易HTF回踩区信号
 input int    InpHTFPullbackTF = 15;        // HTF回踩信号周期(分钟)
