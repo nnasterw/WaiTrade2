@@ -1,5 +1,5 @@
-; V11BTC-R234 — BTC第四腿：R234 j2高频+DTP2.5/0.20+risk6.5%（Jul24✅/Aug25✅/Nov25✅/Oct25✅, 2腿10/23）
-InpBouncePct=0.25
+; V11BTC-R234 — BTC第四腿：R234 j2高频+DTP2.5/0.20+risk6.5%+bounce0.30（10/23月≥50%，含Oct25✅）
+InpBouncePct=0.3
 InpTimeoutMin=120
 InpMaxEntryOffsetR=0.5
 InpEntryDepthPct=0.67
