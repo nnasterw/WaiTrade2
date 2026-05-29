@@ -27126,6 +27126,29 @@ v11btc-r234: &v11btc-r234
   htf_net_push_buy_counter_scale: 1.0
   magic_number: 204806
 
+# v11btc-atr — BTC ATR通道均值回归策略（高位振荡月专用）
+v11btc-atr: &v11btc-atr
+  <<: *v11_btc_m5_r21
+  version: V11BTC-ATR
+  description: "BTC ATR通道均值回归：H1中枢±1.5ATR边界入场，振荡月专用"
+  enable_atr_channel: true
+  atr_channel_bars: 20
+  atr_channel_tf: 60
+  atr_channel_mult: 2.0
+  atr_channel_entry_band: 1.0
+  atr_channel_sl_mult: 0.5
+  atr_channel_lot: 0.05
+  atr_channel_cooldown: 48
+  range_breakout_only: true
+  enable_liquidity_sweep: false
+  enable_state_filter: false
+  enable_scoring: false
+  max_concurrent: 2
+  risk_percent: 3.0
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.20
+  magic_number: 204808
+
 # v11btc-h4 — BTC H4 OB策略（牛市月专用，H4时间框架入场）
 v11btc-h4: &v11btc-h4
   <<: *v11_btc_m5_r21

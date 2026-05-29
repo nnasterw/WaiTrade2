@@ -385,6 +385,9 @@ void OnTick()
     // 5b. H4趋势追单（独立于OB系统，用于BTC牛市月顺势入场）
     TryH4TrendEntry(symbol, new_bar);
 
+    // 5c. ATR通道均值回归入场（BTC高位振荡月专用）
+    TryATRChannelEntry(symbol, new_bar);
+
     // 6. 每小时存活日志
     {
         static datetime s_last_hb = 0;
@@ -598,6 +601,72 @@ void TryH4TrendEntry(string symbol, bool new_m5_bar)
         g_state.pos_count++;
         s_h4_cooldown = (int)InpH4TrendCooldownBars;
         Print("H4TREND入场 sl=", DoubleToString(sl, _Digits), " lot=", InpH4TrendLot);
+    }
+}
+
+// ATR通道均值回归：价格触碰通道边界时逆向入场
+void TryATRChannelEntry(string symbol, bool new_bar)
+{
+    if(!InpEnableATRChannel || !new_bar) return;
+    if(g_state.pos_count >= CfgMaxConcurrent()) return;
+
+    static int s_atr_cooldown = 0;
+    if(s_atr_cooldown > 0) { s_atr_cooldown--; return; }
+
+    ENUM_TIMEFRAMES tf = MinutesToTF(InpATRChannelTF);
+    int n = InpATRChannelBars;
+    MqlRates rates[];
+    if(CopyRates(symbol, tf, 1, n + InpATRPeriod + 1, rates) < n + 1) return;
+    int cnt = ArraySize(rates);
+
+    // 计算中枢(最近n根K的平均收盘价)和ATR
+    double atr = CalcATR(rates, cnt, InpATRPeriod);
+    if(atr <= 0) return;
+
+    double sum = 0;
+    for(int i = cnt - n; i < cnt; i++) sum += rates[i].close;
+    double mid = sum / n;
+
+    double upper = mid + InpATRChannelMult * atr;
+    double lower = mid - InpATRChannelMult * atr;
+
+    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
+    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+
+    // 触碰下边界做多，触碰上边界做空
+    int direction = 0;
+    if(bid <= lower * InpATRChannelEntryBand + upper * (1.0 - InpATRChannelEntryBand))
+        direction = OB_BUY;
+    else if(ask >= upper * InpATRChannelEntryBand + lower * (1.0 - InpATRChannelEntryBand))
+        direction = OB_SELL;
+    if(direction == 0) return;
+
+    // 简化入场条件：价格触及通道边界侧
+    double entry_threshold = (direction == OB_BUY) ? lower : upper;
+    if(direction == OB_BUY && bid > entry_threshold) return;
+    if(direction == OB_SELL && ask < entry_threshold) return;
+
+    double sl = (direction == OB_BUY)
+        ? lower - InpATRChannelSLMult * atr
+        : upper + InpATRChannelSLMult * atr;
+
+    TradeSignal sig;
+    ZeroMemory(sig);
+    sig.direction  = direction;
+    sig.sl         = sl;
+    sig.tp         = 0.0;
+    sig.risk_price = MathAbs(((direction == OB_BUY) ? ask : bid) - sl);
+    sig.lot        = (InpATRChannelLot > 0) ? InpATRChannelLot : 0.01;
+    sig.pos_mult   = 1.0;
+    sig.ob_index   = -1;
+    sig.comment    = "ATRCHAN";
+
+    if(ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, false))
+    {
+        g_state.pos_count++;
+        s_atr_cooldown = InpATRChannelCooldown;
+        Print("ATRCHAN入场 dir=", direction, " mid=", DoubleToString(mid, _Digits),
+              " upper=", DoubleToString(upper, _Digits), " lower=", DoubleToString(lower, _Digits));
     }
 }
 

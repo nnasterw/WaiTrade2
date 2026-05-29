@@ -45,6 +45,15 @@ input double InpRangeBreakoutMinSpreadMult = 3.0; // 区间最小高度/spread
 input double InpRangeBreakoutATR = 0.10;     // 有效突破额外ATR阈值
 input double InpRangeBreakoutTPMult = 1.0;   // TP=区间高度倍数(0=不用固定TP)
 input bool   InpRangeBreakoutBodyDir = true; // 突破K必须同方向实体
+// ATR通道均值回归入场（BTC振荡月专用）
+input bool   InpEnableATRChannel     = false; // 启用ATR通道边界入场
+input int    InpATRChannelBars       = 20;    // 通道计算K线数
+input int    InpATRChannelTF         = 60;    // 通道周期(分钟, 默认H1)
+input double InpATRChannelMult       = 1.5;   // 通道边界=中枢+/-N*ATR
+input double InpATRChannelEntryBand  = 0.9;   // 入场触发(=边界的N倍, <1表示未到边界时入场)
+input double InpATRChannelSLMult     = 0.5;   // SL=边界外N*ATR
+input double InpATRChannelLot        = 0.01;  // 固定手数(0=用risk计算)
+input int    InpATRChannelCooldown   = 12;    // 冷却K线数(防重复)
 input bool   InpEnableLiquiditySweep = false; // 启用流动性扫损反转入场
 input bool   InpLiquiditySweepOnly = false;   // 仅交易扫损反转，关闭常规OB
 input int    InpSweepLookbackBars = 12;       // 扫损参考区间bar数
