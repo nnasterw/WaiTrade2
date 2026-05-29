@@ -45,6 +45,14 @@ input double InpRangeBreakoutMinSpreadMult = 3.0; // 区间最小高度/spread
 input double InpRangeBreakoutATR = 0.10;     // 有效突破额外ATR阈值
 input double InpRangeBreakoutTPMult = 1.0;   // TP=区间高度倍数(0=不用固定TP)
 input bool   InpRangeBreakoutBodyDir = true; // 突破K必须同方向实体
+// BTC动量追踪入场（连续同向K线追入，趋势月专用）
+input bool   InpEnableMomentum       = false; // 启用动量追踪入场
+input int    InpMomentumTF           = 60;    // 动量检测周期(分钟,默认H1)
+input int    InpMomentumBars         = 3;     // 连续同向K线数
+input double InpMomentumMinPct       = 0.8;   // 每根K线最小涨跌幅%
+input double InpMomentumLot          = 0.02;  // 追单手数
+input double InpMomentumSLATRMult    = 1.0;   // SL=N根前起始价外N*ATR
+input int    InpMomentumCooldown     = 6;     // 冷却K线数
 // ATR通道均值回归入场（BTC振荡月专用）
 input bool   InpEnableATRChannel     = false; // 启用ATR通道边界入场
 input int    InpATRChannelBars       = 20;    // 通道计算K线数

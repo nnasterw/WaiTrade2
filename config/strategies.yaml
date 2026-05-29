@@ -27149,6 +27149,27 @@ v11btc-atr: &v11btc-atr
   dtp_retrace: 0.20
   magic_number: 204808
 
+# v11btc-mom — BTC H1动量追踪策略（连续同向K线，趋势月专用）
+v11btc-mom: &v11btc-mom
+  <<: *v11_btc_m5_r21
+  version: V11BTC-MOM
+  description: "BTC H1动量追踪：连续3根同向H1 K线追单（趋势月专用）"
+  enable_momentum: true
+  momentum_tf: 60
+  momentum_bars: 3
+  momentum_min_pct: 0.3
+  momentum_lot: 0.02
+  momentum_sl_atr_mult: 1.0
+  momentum_cooldown: 6
+  range_breakout_only: true
+  enable_liquidity_sweep: false
+  enable_state_filter: false
+  enable_scoring: false
+  max_concurrent: 2
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  magic_number: 204809
+
 # v11btc-h4 — BTC H4 OB策略（牛市月专用，H4时间框架入场）
 v11btc-h4: &v11btc-h4
   <<: *v11_btc_m5_r21

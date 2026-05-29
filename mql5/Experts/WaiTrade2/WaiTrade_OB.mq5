@@ -388,6 +388,9 @@ void OnTick()
     // 5c. ATR通道均值回归入场（BTC高位振荡月专用）
     TryATRChannelEntry(symbol, new_bar);
 
+    // 5d. 动量追踪入场（连续同向H1 K线追单，单向趋势月专用）
+    TryMomentumEntry(symbol, new_bar);
+
     // 6. 每小时存活日志
     {
         static datetime s_last_hb = 0;
@@ -667,6 +670,67 @@ void TryATRChannelEntry(string symbol, bool new_bar)
         s_atr_cooldown = InpATRChannelCooldown;
         Print("ATRCHAN入场 dir=", direction, " mid=", DoubleToString(mid, _Digits),
               " upper=", DoubleToString(upper, _Digits), " lower=", DoubleToString(lower, _Digits));
+    }
+}
+
+// 动量追踪：连续N根同向K线后追入
+void TryMomentumEntry(string symbol, bool new_bar)
+{
+    if(!InpEnableMomentum || !new_bar) return;
+    if(g_state.pos_count >= CfgMaxConcurrent()) return;
+
+    static int s_mom_cooldown = 0;
+    if(s_mom_cooldown > 0) { s_mom_cooldown--; return; }
+
+    ENUM_TIMEFRAMES tf = MinutesToTF(InpMomentumTF);
+    int n = InpMomentumBars;
+    MqlRates rates[];
+    if(CopyRates(symbol, tf, 1, n + InpATRPeriod + 1, rates) < n + 1) return;
+    int cnt = ArraySize(rates);
+
+    double atr = CalcATR(rates, cnt, InpATRPeriod);
+    if(atr <= 0) return;
+
+    // 检查最近n根已收盘K线是否同向且每根涨跌幅>=MinPct%
+    int direction = 0;
+    bool all_up = true, all_dn = true;
+    for(int i = cnt - n; i < cnt; i++)
+    {
+        double pct = 0;
+        if(rates[i].open > 0) pct = (rates[i].close - rates[i].open) / rates[i].open * 100.0;
+        if(pct < InpMomentumMinPct)  all_up = false;
+        if(pct > -InpMomentumMinPct) all_dn = false;
+    }
+    if(all_up)       direction = OB_BUY;
+    else if(all_dn)  direction = OB_SELL;
+    if(direction == 0) return;
+
+    // SL = n根起始价外 N*ATR
+    double sl_base = (direction == OB_BUY)
+        ? rates[cnt - n].open - InpMomentumSLATRMult * atr
+        : rates[cnt - n].open + InpMomentumSLATRMult * atr;
+
+    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
+    if(direction == OB_BUY && sl_base >= ask)   return;
+    if(direction == OB_SELL && sl_base <= bid)  return;
+
+    TradeSignal sig;
+    ZeroMemory(sig);
+    sig.direction  = direction;
+    sig.sl         = sl_base;
+    sig.tp         = 0.0;
+    sig.risk_price = MathAbs(((direction == OB_BUY) ? ask : bid) - sl_base);
+    sig.lot        = InpMomentumLot > 0 ? InpMomentumLot : 0.01;
+    sig.pos_mult   = 1.0;
+    sig.ob_index   = -1;
+    sig.comment    = "MOM";
+
+    if(ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, false))
+    {
+        g_state.pos_count++;
+        s_mom_cooldown = InpMomentumCooldown;
+        Print("MOM入场 dir=", direction, " n=", n, " pct>=", InpMomentumMinPct, "%");
     }
 }
 
