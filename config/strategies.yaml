@@ -27110,7 +27110,7 @@ v11btc-r26: &v11btc-r26
 v11btc-r234: &v11btc-r234
   <<: *v11_r234_j2_r227_ctx50
   version: V11BTC-R234
-  description: "BTC高频腿：R234 j2+DTP2.5/0.20+risk6.5%+bounce0.30+D1 SELL屏蔽+neutral1.1（12/23）"
+  description: "BTC高频腿：R234 j2+DTP2.5/0.20+risk6.5%+bounce0.30+D1 SELL屏蔽+neutral1.1+H14屏蔽（14/23）"
   dtp_trigger_r: 2.5
   dtp_retrace: 0.20
   risk_percent: 6.5
@@ -27120,10 +27120,12 @@ v11btc-r234: &v11btc-r234
   htf_net_push_bars: 5
   htf_net_push_min_atr: 2.0
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 0.5
+  htf_net_push_neutral_mult: 1.1
   htf_net_push_counter_mult: 0.6
   htf_net_push_sell_counter_scale: 0.0
   htf_net_push_buy_counter_scale: 1.0
+  low_risk_hours: 14
+  low_risk_hour_mult: 0.0
   magic_number: 204806
 
 # v11btc-atr — BTC ATR通道均值回归策略（高位振荡月专用）
