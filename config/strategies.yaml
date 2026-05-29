@@ -27136,7 +27136,7 @@ v11btc-h4: &v11btc-h4
   btc_timeout_min: 2880
   btc_bounce_pct: 0.15
   btc_max_entry_offset_r: 1.5
-  impulse_atr_mult: 0.01
+  impulse_atr_mult: 0.3
   impulse_lookback: 2
   min_impulse_body_pct: 30.0
   min_impulse_vol_ratio: 0.0
