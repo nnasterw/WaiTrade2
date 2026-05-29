@@ -374,3 +374,35 @@ Started: 2026-05-21
   - 方向A：BTC振荡月专用非OB策略（均值回归/区间边界）
   - 方向B：EA新增MACD/EMA200等指标实时过滤（需代码改造）
   - 方向C：吸收R248研究笔记的$200独立启动优化经验
+
+## [BTC-R248-ANALYSIS] R248/R235启动期坏簇分析结论 — 2026-05-29
+
+### R248核心成功机制（720d复利）
+  - 720d结果：$137,351从$200, 0亏损月, 3721笔, WR=42.1%, PF=1.62
+  - 每月审计：2024-06至2026-05全部盈利（2025-03仅+$0.66, 2025-05仅+$20.12）
+  - 机制：context_filter1/2/3/4 在月初余额 ≥ $50K时激活特定月份的方向小时过滤
+  - 复利路径：$200→$50K（无过滤保护）→$50K+（精准月份保护）
+
+### R235 startup_bad_cluster（低余额坏簇过滤）
+  参数：startup_bad_cluster_max_month_start_balance: 1000.0
+  4组坏簇（小时+风险范围+浅确认+OB信号→完全屏蔽）
+  对月独立测试理论上有效（$200 < $1000始终激活）
+
+### 为什么不能直接移植到v11btc-qs(r21)
+  R235坏簇cluster2（H2,3,14,19, risk≥300, confirm<-0.6）
+  在Jul24 r21回测中会误杀H19那笔 R=2.92的大赢单（BTC当月最大赢）
+  原因：R235坏簇是针对R227(j2高频sweep)策略定制，不适用于r21(低频OB)
+  结论：需要为r21做专项坏簇分析（需InpEnableEntryDebug=true采集数据）
+
+### 下一步行动（r21专项坏簇分析）
+  1. 为v11btc-qs开启InpEnableEntryDebug=true
+  2. 对失败月份回测（Jul24/Sep24/Oct24/Oct25/Jan26等）
+  3. 收集ENTRY_DIAG日志，分析小时×方向×风险×confirm_pos×R的联合分布
+  4. 找出系统性亏损组合（high-loss clusters）并定制startup_bad_cluster参数
+  5. 验证过滤后不破坏通过月份（Feb25/Jun25/Nov25/Dec25/Mar26/Apr26等）
+
+### 已确认BTC最优配置（截止2026-05-29）
+  v11btc-qs: r21 + D1 5天净推进（aligned=2x, neutral=0.5x, counter=0.1x）
+  v11btc-r26: r26基线（sweep补频，不修改）
+  v11btc-zd: single_selector btc_profile（振荡腿基线）
+  三腿择优结果：8/23月≥60%，24月总余额+$688提升
