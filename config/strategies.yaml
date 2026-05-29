@@ -12159,7 +12159,7 @@ v10_fage_dtp7_r20:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.20
   dtp_exit_mode: 0
   trail_levels:
@@ -12420,7 +12420,7 @@ v10_fage_dtp7_r18:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.18
   dtp_exit_mode: 0
   trail_levels:
@@ -12447,7 +12447,7 @@ v10_fage_dtp7_r15:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -12478,7 +12478,7 @@ v10_fage_dtp7_r15_f3099:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -12508,7 +12508,7 @@ v10_fage_dtp7_r15_bh1: &v10_fage_dtp7_r15_bh1
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -12535,7 +12535,7 @@ v10_fage_dtp7_r12:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.12
   dtp_exit_mode: 0
   trail_levels:
@@ -12624,7 +12624,7 @@ v10_fage_d7r15bh1_c4:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -12655,7 +12655,7 @@ v10_fage_d7r15bh1_ah:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -12685,7 +12685,7 @@ v10_fage_d7r15bh1_be15:
   breakeven_r: 0.25
   breakeven_lock_r: 0.15
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -12716,7 +12716,7 @@ v10_fage_d7bh1_c4_be15:
   breakeven_r: 0.25
   breakeven_lock_r: 0.15
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -12781,7 +12781,7 @@ v10_fage_d7bh1_htf:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   enable_htf_target: true
@@ -12822,7 +12822,7 @@ v10_fage_d7bh1_mom:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   enable_momentum_regime: true
@@ -12861,7 +12861,7 @@ v10_fage_d7bh1_smart:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   enable_htf_target: true
@@ -12912,7 +12912,7 @@ v10_fage_d7bh1_c4_htf:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   enable_htf_target: true
@@ -13020,7 +13020,7 @@ v10_fage_d7r12bh1_c4:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.12
   dtp_exit_mode: 0
   trail_levels:
@@ -13132,7 +13132,7 @@ v10_fage_d7c4bh1_f3099:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -13163,7 +13163,7 @@ v10_fage_d7c4bh1_f3589:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -13194,7 +13194,7 @@ v10_fage_d7c4bh1_bh20:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -13258,7 +13258,7 @@ v10_fage_d7c4bh1_iq55:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -13324,7 +13324,7 @@ v10_fage_d7r12_c4bh20:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.12
   dtp_exit_mode: 0
   trail_levels:
@@ -13355,7 +13355,7 @@ v10_fage_d7r15_c4bh20_f30:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   dtp_exit_mode: 0
   trail_levels:
@@ -13837,7 +13837,7 @@ v10_fage_state_adapt:
   breakeven_r: 0.25
   breakeven_lock_r: 0.08
   fixed_tp_r: 0.0
-  dtp_trigger_r: 7.0
+  dtp_trigger_r: 5.0
   dtp_retrace: 0.15
   range_be_r: 0.5
   range_time_exit: 20
@@ -27033,7 +27033,7 @@ v11xau1_sel_filtered:
 v11xau-zd: &v11xau-zd
   <<: *v11_single_selector
   version: V11XAU-ZD
-  description: "振荡腿正式版：FAGE+月份上下文+OB 30天动态年龄（不设月亏损止损，因低频高方差）"
+  description: "振荡腿正式版：FAGE+月份上下文+OB 30天动态年龄（不设月亏损止损）"
   monthly_zone_reset: false        # 改用动态年龄替代月初硬清除
   max_ob_age_bars_tf: 14400        # 30天 M3 zone 自然老化（480 M3 bars/day × 30）
   monthly_loss_stop_pct: 0.0       # 振荡腿不设月亏损止损（低频高方差，初期亏损后常大幅回弹）
@@ -27043,13 +27043,14 @@ v11xau-zd: &v11xau-zd
 v11xau-qs: &v11xau-qs
   <<: *v11xau_r39_trend_lot5
   version: V11XAU-QS
-  description: "趋势腿正式版：OB M1 lot5+自适应lot上限+DTP+月亏损保护"
+  description: "趋势腿正式版：OB M1 lot5+自适应lot上限+DTP+月亏损保护+SL引线缓冲"
   max_lot_size: 0.5                # 保守起点：$200时max lot=0.5（3并发=120风险=60%余额）
   adaptive_lot_base: 200.0        # 随余额等比扩大：$2K时max lot=5.0，$20K时=50（含cap）
   adaptive_lot_cap: 50.0          # 绝对安全上限 50 手
   fixed_tp_r: 0.0                  # 关闭固定 TP，改用 DTP 让趋势跑更远
   dtp_trigger_r: 3.0               # 3R 后激活 DTP（原 8.0，降低触发门槛）
   dtp_retrace: 0.2                 # 回撤 20% 触发
+  sl_buffer_atr: 0.5               # SL缓冲扩大（原0.3→0.5），覆盖OB K线引线区域
   monthly_loss_stop_pct: 4.0         # 从起始余额亏损超 4% 停止（$200→$192）
   monthly_loss_stop_min_trades: 2    # 至少 2 笔才触发
   monthly_drawdown_stop_pct: 10.0    # 从月内峰值回撤超 10% 停止（保护 lot5 放大后的收益）

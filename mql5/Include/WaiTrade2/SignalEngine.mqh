@@ -1747,9 +1747,17 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
 
    double sl = 0;
    if(zone.direction == OB_BUY)
-      sl = zone.low - state.atr_value * CfgSLBufferATR();
+   {
+      // 引线锚点：ob_bottom存储OB K线完整低点（含下引线），比实体底更低更真实
+      double sl_base = (zone.ob_bottom > 0 && zone.ob_bottom < zone.low) ? zone.ob_bottom : zone.low;
+      sl = sl_base - state.atr_value * CfgSLBufferATR();
+   }
    else
-      sl = zone.high + state.atr_value * CfgSLBufferATR();
+   {
+      // 引线锚点：ob_top存储OB K线完整高点（含上引线），比实体顶更高更真实
+      double sl_base = (zone.ob_top > 0 && zone.ob_top > zone.high) ? zone.ob_top : zone.high;
+      sl = sl_base + state.atr_value * CfgSLBufferATR();
+   }
 
    double entry = (zone.direction == OB_BUY) ? ask : bid;
    double risk_price = MathAbs(entry - sl);
