@@ -27086,7 +27086,7 @@ v11btc-zd: &v11btc-zd
 v11btc-r26: &v11btc-r26
   <<: *v11_btc_m5_r26
   version: V11BTC-R26
-  description: "BTC补频腿：sweep补频+主OB风险放大，日均>5笔，适合高波动月"
+  description: "BTC补频腿：sweep补频+主OB风险放大，日均>5笔"
   magic_number: 204804
 
 # ─── Regime 确认滞后测试系列 ──────────────────────────────────────────
