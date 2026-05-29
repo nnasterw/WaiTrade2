@@ -368,6 +368,8 @@ FLAT_MAP = {
     "htf_net_push_counter_mult": "InpHTFNetPushCounterMult",
     "htf_net_push_sell_counter_scale": "InpHTFNetPushSellCounterScale",
     "htf_net_push_buy_counter_scale": "InpHTFNetPushBuyCounterScale",
+    "htf_net_push_sell_neutral_scale": "InpHTFNetPushSellNeutralScale",
+    "htf_net_push_buy_neutral_scale": "InpHTFNetPushBuyNeutralScale",
     "buy_min_strength": "InpBuyMinStrength",
     "sell_min_strength": "InpSellMinStrength",
     "buy_pos_mult": "InpBuyPosMult",

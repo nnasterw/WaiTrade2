@@ -1338,6 +1338,11 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
       double dir_scale = (direction < 0) ? InpHTFNetPushSellCounterScale : InpHTFNetPushBuyCounterScale;
       mult *= dir_scale;
    }
+   else
+   {
+      double dir_scale = (direction < 0) ? InpHTFNetPushSellNeutralScale : InpHTFNetPushBuyNeutralScale;
+      mult *= dir_scale;
+   }
 
    if(mult <= 0)
       return -1.0;

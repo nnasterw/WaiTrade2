@@ -27110,7 +27110,7 @@ v11btc-r26: &v11btc-r26
 v11btc-r234: &v11btc-r234
   <<: *v11_r234_j2_r227_ctx50
   version: V11BTC-R234
-  description: "BTC高频腿：R234 j2+DTP2.5+risk6.5%+bounce0.30+D1SELL屏蔽+neutral1.1→12/23月≥50%"
+  description: "BTC高频腿：R234 j2+DTP2.5/0.20+risk6.5%+bounce0.30+D1 SELL屏蔽+neutral1.1（12/23）"
   dtp_trigger_r: 2.5
   dtp_retrace: 0.20
   risk_percent: 6.5
