@@ -27063,7 +27063,7 @@ v11xau-qs: &v11xau-qs
 v11btc-qs: &v11btc-qs
   <<: *v11_btc_m5_r21
   version: V11BTC-QS
-  description: "BTC趋势腿：M5 OB浅确认+H1净推进+大结构放大（与r21等价）"
+  description: "BTC趋势腿：M5 OB浅确认+H1净推进+大结构放大（r21等价基线）"
   magic_number: 204802
 
 # v11btc-zd — BTC 振荡腿（基于 v11_single_selector BTC profile，低风险高频）
