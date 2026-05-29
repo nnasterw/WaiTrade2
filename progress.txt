@@ -205,3 +205,33 @@ Started: 2026-05-21
   - UseXAUTrendProfile() tick级缓存（消除同tick内计算不一致）
   - Profile切换zone清除（在双通道实现前的临时保护）
   - InpXAUTrendMonthlyLockDays（月度锁定，减少切换次数）
+
+## [XAU-SL05-DEC24] v11xau-qs SL缓冲改进：Dec24新通过 — 2026-05-29
+
+### 改进内容
+- v11xau-qs: sl_buffer_atr 0.3→0.5，SL从OB实体底下推约1点至引线以下
+- OBDetector.mqh: BUY OB存zone.ob_bottom=rates[i].low，SELL OB存zone.ob_top=rates[i].high
+- SignalEngine.mqh: SL计算优先使用ob_bottom/ob_top（有引线时更低，无引线时回退实体底）
+
+### 24月择优结果更新（60%目标=$320）
+  通过 20/23 月（上次 19/23，Dec24 新通过）
+  新通过：Dec24（qs $281→$328）
+  失败4月（均正收益）：Sep24($250/25%), Jan25($308/54%), Jan26($288/44%), Apr26($307/54%)
+
+### 深度诊断结论
+- Sep24/Jan26：低频振荡月，两策略交易机会少，无法通过参数调整突破
+- Jan25/Apr26：月止盈50%保护在$300停手（余额$308/$307），继续交易净亏，差$12-$13
+  - DTP4-7均使Jul24大趋势单从$373退化到$313（Jul24的2笔单需DTP8才能全捕获）
+  - DTP4-7换Apr26通过换Jul24失败，净收益为零
+  - pt60%让EA在$300后继续交易，实测更差（$308→$262）
+- sl_buffer 0.5对振荡月（Sep24）有害，扩大SL在振荡市场增加损失；趋势月（Dec24）改善
+
+### Live vs 回测对比（2026-05-28晚 BJ22:xx）
+- OB区间识别：Live与回测完全一致（SL位置误差<0.002点）
+- 止损点位：live SL≈4467.2，目标4465.5；实测价格最低测至4465.9，仍会被扫
+- 根因不在SL，在max_concurrent=14（Live）vs yaml=3；Live参数与yaml严重不符
+
+### 下一步方向
+- Jan25/Apr26：需要EA层"月度目标锁定"——在$320精准停手的新机制（非全局pt%调整）
+- Sep24/Jan26：需要更好的振荡市行情下的OB质量过滤（badcluster or 时段屏蔽）
+- Live部署：立即更新Live参数为yaml版（max_concurrent=3等）防止连续割肉
