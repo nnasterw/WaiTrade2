@@ -27063,7 +27063,15 @@ v11xau-qs: &v11xau-qs
 v11btc-qs: &v11btc-qs
   <<: *v11_btc_m5_r21
   version: V11BTC-QS
-  description: "BTC趋势腿：M5 OB浅确认+H1净推进+大结构放大（r21等价基线）"
+  description: "BTC趋势腿：M5 OB+D1 5天净推进仓位调节（趋势月放大，弱势月缩小）"
+  # D1 5日净推进实时Regime检测（无前视偏差，纯实时K线数据）
+  # 原理：过去5个D1柱净方向 > 0.5*ATR → 顺势放大2x；逆势 → 缩小0.1x（接近停止）
+  htf_net_push_tf: 1440            # D1（日线柱）
+  htf_net_push_bars: 5             # 5根D1柱 = 近一周净方向偏置
+  htf_net_push_min_atr: 0.5        # 需要0.5*ATR才算有方向
+  htf_net_push_aligned_mult: 2.0   # 顺势放大2x（强趋势月赢更多）
+  htf_net_push_neutral_mult: 0.5   # 无明显方向减半
+  htf_net_push_counter_mult: 0.1   # 逆势缩小90%（保留微量避免完全错过）
   magic_number: 204802
 
 # v11btc-zd — BTC 振荡腿（基于 v11_single_selector BTC profile，低风险高频）
@@ -27086,7 +27094,7 @@ v11btc-zd: &v11btc-zd
 v11btc-r26: &v11btc-r26
   <<: *v11_btc_m5_r26
   version: V11BTC-R26
-  description: "BTC补频腿：sweep补频+主OB风险放大，日均>5笔"
+  description: "BTC补频腿：sweep补频+主OB风险放大，日均>5笔（基线不变）"
   magic_number: 204804
 
 # ─── Regime 确认滞后测试系列 ──────────────────────────────────────────
