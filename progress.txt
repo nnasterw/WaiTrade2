@@ -522,3 +522,31 @@ Started: 2026-05-21
     - Jun24 r234 $412→$274（r26=$324仍覆盖，无净影响）
   risk7.5%+bounce0.30 Jan25测试：$286→$252（非单调，更差）
   最终最优：r234 bounce=0.30 + risk6.5% + DTP2.5/0.20
+
+## [BTC-12/23] D1方向特定SELL屏蔽机制：12/23月通过 — 2026-05-29
+
+### 新EA功能实现
+- Config.mqh: InpHTFNetPushSellCounterScale（SELL逆势额外缩放，0=屏蔽）
+- Config.mqh: InpHTFNetPushBuyCounterScale（BUY逆势额外缩放，1=保留）
+- SignalEngine.mqh: ApplyHTFNetPushPositionMultiplier添加方向缩放
+- yaml_to_set.py: htf_net_push_sell/buy_counter_scale 映射
+
+### r234 D1方向过滤最终配置（min_atr=2.0, bars=5）
+  htf_net_push_sell_counter_scale=0.0（D1牛市中屏蔽SELL逆势）
+  htf_net_push_buy_counter_scale=1.0（D1熊市中保留BUY抄底）
+  htf_net_push_neutral_mult=1.1（横盘小幅放大，推Mar26 $284→$301✅）
+  min_atr=2.0确保只在强趋势月触发，横盘月免疫（保护Oct25）
+
+### 效果（vs 10/23基线）
+  Jan25: $286→$333 新通过✅（D1熊市BUY抄底）
+  Mar26: $284→$301 新通过✅（neutral=1.1推过边界）
+  Oct25: $369→$336 仍通过✅（min_atr=2保护横盘）
+
+### 12/23通过月（r26+r234两腿择优）
+  Jun24(r26 $324) Jul24(r234 $437) Jan25(r234 $333) Feb25(r26 $580)
+  Jun25(r234 $457) Aug25(r234 $742) Oct25(r234 $336) Nov25(r234 $1223)
+  Dec25(r26 $665) Feb26(r26 $330) Mar26(r234 $301) Apr26(r26 $692)
+
+### 近失败月（11个失败月）
+  Jul25: $280（差$20）, Sep25: $266（差$34）
+  Aug24-Dec24（5月连续）: BTC慢牛无回调，OB策略结构性失败
