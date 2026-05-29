@@ -376,7 +376,7 @@ defaults: &defaults
   htf_net_push_bars: 4
   htf_net_push_min_atr: 0.50
   htf_net_push_aligned_mult: 1.0
-  htf_net_push_neutral_mult: 1.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 1.0
   enable_xau_trend_profile: false
   xau_trend_profile_symbol: "XAU"
@@ -424,7 +424,7 @@ defaults: &defaults
   xau_trend_htf_net_push_bars: 3
   xau_trend_htf_net_push_min_atr: 0.45
   xau_trend_htf_net_push_aligned_mult: 1.20
-  xau_trend_htf_net_push_neutral_mult: 0.45
+  xau_trend_htf_net_push_neutral_mult: 0.5
   xau_trend_htf_net_push_counter_mult: 0.0
   buy_min_strength: 0.0
   sell_min_strength: 0.0
@@ -19903,7 +19903,7 @@ v11_r14_qsoft_m15push:
   htf_net_push_bars: 4
   htf_net_push_min_atr: 0.45
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 1.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.45
   magic_number: 202741
 
@@ -19916,7 +19916,7 @@ v11_r14_qsoft_h1push:
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.35
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 1.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.45
   magic_number: 202742
 
@@ -19929,7 +19929,7 @@ v11_r14_freq_m15push:
   htf_net_push_bars: 4
   htf_net_push_min_atr: 0.45
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 0.80
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.30
   magic_number: 202743
 
@@ -19942,7 +19942,7 @@ v11_r14_freq_h1push:
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.35
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 0.80
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.30
   magic_number: 202744
 
@@ -19955,7 +19955,7 @@ v11_r14_6k_m15push:
   htf_net_push_bars: 4
   htf_net_push_min_atr: 0.45
   htf_net_push_aligned_mult: 1.20
-  htf_net_push_neutral_mult: 0.80
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.25
   magic_number: 202745
 
@@ -19970,7 +19970,7 @@ v11_r15_q1120_h1push: &v11_r15_q1120_h1push
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.35
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 1.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.45
   magic_number: 202751
 
@@ -19983,7 +19983,7 @@ v11_r15_q45a_h1push: &v11_r15_q45a_h1push
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.35
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 1.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.45
   magic_number: 202752
 
@@ -19996,7 +19996,7 @@ v11_r15_freq_h1soft:
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.35
   htf_net_push_aligned_mult: 1.10
-  htf_net_push_neutral_mult: 1.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.60
   magic_number: 202753
 
@@ -20009,7 +20009,7 @@ v11_r15_6k_h1push:
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.35
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 1.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.45
   magic_number: 202754
 
@@ -26120,7 +26120,7 @@ v11b_xau_r36_m1_tp15_htfpush_hard:
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.45
   htf_net_push_aligned_mult: 1.0
-  htf_net_push_neutral_mult: 0.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.0
   magic_number: 204560
 
@@ -26133,7 +26133,7 @@ v11b_xau_r37_m1_tp15_htfpush_soft:
   htf_net_push_bars: 3
   htf_net_push_min_atr: 0.45
   htf_net_push_aligned_mult: 1.20
-  htf_net_push_neutral_mult: 0.45
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.0
   magic_number: 204561
 
@@ -26146,7 +26146,7 @@ v11b_xau_r38_m1_tp15_h4push_hard:
   htf_net_push_bars: 2
   htf_net_push_min_atr: 0.45
   htf_net_push_aligned_mult: 1.0
-  htf_net_push_neutral_mult: 0.0
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.0
   magic_number: 204562
 
@@ -26529,7 +26529,7 @@ v11_single_selector: &v11_single_selector
   btc_htf_net_push_bars: 3
   btc_htf_net_push_min_atr: 0.35
   btc_htf_net_push_aligned_mult: 1.15
-  btc_htf_net_push_neutral_mult: 1.0
+  btc_htf_net_push_neutral_mult: 0.5
   btc_htf_net_push_counter_mult: 0.6
   btc_close_retry_cooldown_sec: 0
   btc_free_run_min_r: 5.0
@@ -26652,7 +26652,7 @@ v11_single_selector_xau_trend_r1: &v11_single_selector_xau_trend_r1
   xau_trend_htf_net_push_bars: 3
   xau_trend_htf_net_push_min_atr: 0.45
   xau_trend_htf_net_push_aligned_mult: 1.20
-  xau_trend_htf_net_push_neutral_mult: 0.45
+  xau_trend_htf_net_push_neutral_mult: 0.5
   xau_trend_htf_net_push_counter_mult: 0.0
   magic_number: 204563
 
@@ -26834,7 +26834,7 @@ v11xau1: &v11xau1
   xau_trend_htf_net_push_bars: 3
   xau_trend_htf_net_push_min_atr: 0.45
   xau_trend_htf_net_push_aligned_mult: 1.20
-  xau_trend_htf_net_push_neutral_mult: 0.45
+  xau_trend_htf_net_push_neutral_mult: 0.5
   xau_trend_htf_net_push_counter_mult: 0.0
   low_risk_hours: "4"
   low_risk_hour_mult: 0.5
@@ -26898,7 +26898,7 @@ v11xau1_sel_base: &v11xau1_sel_base
   xau_trend_htf_net_push_bars: 3
   xau_trend_htf_net_push_min_atr: 0.45
   xau_trend_htf_net_push_aligned_mult: 1.20
-  xau_trend_htf_net_push_neutral_mult: 0.45
+  xau_trend_htf_net_push_neutral_mult: 0.5
   xau_trend_htf_net_push_counter_mult: 0.0
   low_risk_hours: "4"
   low_risk_hour_mult: 0.5
@@ -27120,7 +27120,7 @@ v11btc-r234: &v11btc-r234
   htf_net_push_bars: 5
   htf_net_push_min_atr: 2.0
   htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 1.1
+  htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.6
   htf_net_push_sell_counter_scale: 0.0
   htf_net_push_buy_counter_scale: 1.0
