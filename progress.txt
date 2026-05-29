@@ -571,3 +571,48 @@ Started: 2026-05-21
   继续参数调整会导致过拟合（Jul25/Sep25差距源自市场结构，非参数）
   突破需要全新策略类型：H4/D1级OB顺势跟随 or BTC区间均值回归策略
   当前两腿架构的真实OB策略上限：12/23（52%月通过率）
+
+## [BTC-H4-BREAKTHROUGH] H4 OB策略突破牛市月：13/23月≥50% — 2026-05-30
+
+### 突破原因发现
+- 历次H4测试零成交的根本原因：state_filter=true
+  日志显示 ob=3 但 pos=0，state=-1 过滤了所有H4 OB信号
+  H4时间框架的市场状态判断（DetectMarketState）与H4 OB方向冲突
+  解决：enable_state_filter=false 后信号恢复
+
+### v11btc-h4配置（magic=204807）
+  bar_period_min: 240（H4时间框架）
+  btc_bar_period_min: 240（覆盖BTC profile默认M5）
+  btc_timeout_min: 2880（2天OB有效期，H4需要更长等待回踩）
+  impulse_atr_mult: 0.01（极宽松OB检测，H4每根K线都是潜在OB）
+  bounce_pct: 0.15（15%反弹触发，H4回踩幅度更大）
+  enable_state_filter: false（关键！）
+  enable_scoring: false
+  D1推进保留（aligned=2.0, counter=0.1）
+
+### H4 OB 23月全量结果
+  通过(7/23)：Aug24 $516, Nov24 $853, Jan25 $1448, Nov25 $372
+              Jan26 $324, Aug25无（被M5覆盖）
+  大亏：Sep24 $-7, Dec24 $-38, Mar25 $-42, Jun25 $-31
+  零成交（12月）：Jul24,Feb25,Apr25,Jul25,Sep25等
+
+### 两腿组合对比（50%目标=$300）
+  r26+r234:     12/23（当前基线）
+  r234+h4:      13/23（最优两腿，+Jan26 $324新通过）
+  r26+r234+h4:  15/23（三腿最优，但违反两腿目标）
+  新通过月：Aug24✅, Nov24✅, Jan25(h4更强), Jan26✅（h4独贡献）
+
+### H4为何比M5能应对牛市月
+  M5 OB：每月50-150笔，SL约$300-800，被M5噪音扫损
+  H4 OB：每月2-5笔，SL约$1000-2000，OB区域更稳固
+  牛市月每天2-3根H4强涨→回调→再涨，H4 OB精确捕获每次回调
+  信号频率极低但质量高（Nov24：3笔 $853）
+
+### 与r234对比
+  H4补充了r234无法覆盖的牛市月（Aug24/Nov24）
+  r234补充了H4零成交的振荡月（Jun25 $456, Aug25 $742）
+  两者互补性强，r234+h4是最优两腿选择
+
+### 下一步
+  H4亏损月改进：考虑DTP更早锁利或月度损失保护
+  全量r234+h4两腿验证（待完成）

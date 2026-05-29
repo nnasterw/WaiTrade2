@@ -1,4 +1,4 @@
-; V11BTC-H4 — BTC H4 OB测试：H4时间框架OB检测，牛市月顺势入场
+; V11BTC-H4 — BTC H4腿：H4 OB+D1推进+state_filter禁用（r234+h4=13/23月≥50%）
 InpBouncePct=0.15
 InpTimeoutMin=2880
 InpMaxEntryOffsetR=0.5

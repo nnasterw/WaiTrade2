@@ -27130,7 +27130,7 @@ v11btc-r234: &v11btc-r234
 v11btc-h4: &v11btc-h4
   <<: *v11_btc_m5_r21
   version: V11BTC-H4
-  description: "BTC H4 OB测试：H4时间框架OB检测，牛市月顺势入场"
+  description: "BTC H4腿：H4 OB+D1推进+state_filter禁用（r234+h4=13/23月≥50%）"
   bar_period_min: 240
   btc_bar_period_min: 240
   btc_timeout_min: 2880
