@@ -27100,7 +27100,9 @@ v11btc-zd: &v11btc-zd
 v11btc-r26: &v11btc-r26
   <<: *v11_btc_m5_r26
   version: V11BTC-R26
-  description: "BTC补频腿：sweep补频+主OB风险放大，日均>5笔（基线）"
+  description: "BTC振荡腿：DTP2.5/0.20，sweep+OB（Jun24✅/Feb25✅/Aug25✅/Dec25✅/Feb26✅/Apr26✅）"
+  dtp_trigger_r: 2.5
+  dtp_retrace: 0.20
   magic_number: 204804
 
 # v11btc-r234 — BTC 第四腿（R234 j2高频策略，Jul24 $556✅，Aug25 $555✅，Nov25 $883✅）
@@ -27108,7 +27110,10 @@ v11btc-r26: &v11btc-r26
 v11btc-r234: &v11btc-r234
   <<: *v11_r234_j2_r227_ctx50
   version: V11BTC-R234
-  description: "BTC第四腿：R234 j2高频OB+sweep，risk5.4%，Jul24 $556✅/Nov25 $883✅（基线，无D1推进）"
+  description: "BTC第四腿：R234 j2高频+DTP2.5/0.20+risk6.5%（Jul24✅/Aug25✅/Nov25✅/Oct25✅, 2腿10/23）"
+  dtp_trigger_r: 2.5
+  dtp_retrace: 0.20
+  risk_percent: 6.5
   magic_number: 204806
 
 # ─── Regime 确认滞后测试系列 ──────────────────────────────────────────
