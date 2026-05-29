@@ -1,4 +1,4 @@
-; V11BTC-R234 — BTC高频腿：R234 j2+DTP2.5/0.20+risk6.5%+bounce0.30+D1 SELL屏蔽+neutral1.1（12/23基线）
+; V11BTC-R234 — BTC高频腿：R234 j2+DTP2.5/0.20+risk6.5%+bounce0.30+D1 SELL屏蔽+neutral1.1（12/23）
 InpBouncePct=0.3
 InpTimeoutMin=120
 InpMaxEntryOffsetR=0.5

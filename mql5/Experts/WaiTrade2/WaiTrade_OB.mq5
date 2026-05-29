@@ -382,6 +382,9 @@ void OnTick()
         }
     }
 
+    // 5b. H4趋势追单（独立于OB系统，用于BTC牛市月顺势入场）
+    TryH4TrendEntry(symbol, new_bar);
+
     // 6. 每小时存活日志
     {
         static datetime s_last_hb = 0;
@@ -544,6 +547,58 @@ bool ExecuteMicroEntryOrders(const TradeSignal &sig)
 bool ExecuteSignal(const TradeSignal &sig)
 {
     return ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, true);
+}
+
+// H4连续强涨追单：N根H4每根涨幅>X%时顺势入场
+void TryH4TrendEntry(string symbol, bool new_m5_bar)
+{
+    if(!InpEnableH4Trend || !new_m5_bar) return;
+    if(g_state.pos_count >= CfgMaxConcurrent()) return;
+
+    static int s_h4_cooldown = 0;
+    if(s_h4_cooldown > 0) { s_h4_cooldown--; return; }
+
+    MqlRates h4[];
+    int n = MathMax(InpH4TrendBars + 1, 3);
+    if(CopyRates(symbol, PERIOD_H4, 1, n, h4) < n) return;
+
+    // 检查最近 InpH4TrendBars 根已收盘H4 (h4[0]是最旧的，h4[n-1]是最新已收盘)
+    for(int i = 0; i < InpH4TrendBars; i++)
+    {
+        int idx = n - InpH4TrendBars + i;  // 从最旧到最新
+        double pct = 0;
+        if(h4[idx].open > 0)
+            pct = (h4[idx].close - h4[idx].open) / h4[idx].open * 100.0;
+        if(pct < InpH4TrendMinPctPerBar) return;  // 任一根未达标，不追单
+    }
+
+    // 所有H4均达标，构造追单
+    // SL = 最近 InpH4TrendSLBars 根H4的最低点
+    double sl_low = h4[n-1].low;
+    for(int i = 0; i < (int)InpH4TrendSLBars && i < n; i++)
+        sl_low = MathMin(sl_low, h4[n-1-i].low);
+
+    double sl = sl_low - g_state.atr_value * InpH4TrendSLBufferATR;
+    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+    if(sl >= ask) return;  // SL无效
+
+    TradeSignal sig;
+    ZeroMemory(sig);
+    sig.direction  = OB_BUY;
+    sig.sl         = sl;
+    sig.tp         = 0.0;
+    sig.risk_price = ask - sl;
+    sig.lot        = InpH4TrendLot;
+    sig.pos_mult   = 1.0;
+    sig.ob_index   = -1;
+    sig.comment    = "H4TREND";
+
+    if(ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, false))
+    {
+        g_state.pos_count++;
+        s_h4_cooldown = (int)InpH4TrendCooldownBars;
+        Print("H4TREND入场 sl=", DoubleToString(sl, _Digits), " lot=", InpH4TrendLot);
+    }
 }
 
 bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_count, bool allow_layered)
