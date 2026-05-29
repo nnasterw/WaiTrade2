@@ -27189,6 +27189,7 @@ v11btc-h4: &v11btc-h4
   entry_depth_filter: false
   min_ob_strength: 0.2
   timeout_min: 2880
+  enable_entry_debug: false
   enable_state_filter: false
   enable_scoring: false
   max_concurrent: 2
