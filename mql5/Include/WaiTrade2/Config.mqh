@@ -83,6 +83,11 @@ input double InpATRChannelSLMult     = 0.5;   // SL=杈圭晫澶朜*ATR
 input double InpATRChannelLot        = 0.01;  // 鍥哄畾鎵嬫暟(0=鐢╮isk璁＄畻)
 input int    InpATRChannelCooldown   = 12;    // 鍐峰嵈K绾挎暟(闃查噸澶?
 // EMA趋势追踪入场（BTC强牛市月顺势BUY，覆盖OB策略盲区）
+// H4高波动屏蔽：BTC急跌急涨时暂停M5 OB新开仓（实时ATR过滤，非后视镜）
+input bool   InpEnableHTFVolBlock    = false; // 启用H4高波动屏蔽
+input double InpHTFVolBlockATRMult   = 3.0;   // H4 ATR超过M5 ATR的倍数阈值（超过则屏蔽）
+input int    InpHTFVolBlockTF        = 240;   // 高波动检测周期(分钟，默认H4=240)
+input int    InpHTFVolBlockPeriod    = 14;    // ATR计算周期
 input bool   InpEnableEMATrend       = false; // 启用EMA趋势追踪入场
 input int    InpEMATrendTF           = 1440;  // EMA计算周期(分钟，默认D1=1440)
 input int    InpEMATrendPeriod       = 20;    // EMA均线周期

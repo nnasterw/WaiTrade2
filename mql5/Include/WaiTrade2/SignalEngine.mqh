@@ -1728,6 +1728,32 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
 int ScanSignals(string symbol, const OBZone &zones[], int zone_count,
                 const EAState &state, TradeSignal &signals[], int max_signals)
 {
+   // H4高波动屏蔽：使用H4时间框架的标准ATR与M5 ATR比较
+   // 当H4 ATR（14周期）> M5 ATR × 阈值 → 市场高波动，停止M5 OB开仓
+   if(InpEnableHTFVolBlock && state.atr_value > 0)
+   {
+      ENUM_TIMEFRAMES htfTF = MinutesToTF(InpHTFVolBlockTF);
+      MqlRates htfRates[];
+      int needed = InpHTFVolBlockPeriod + 2;
+      if(CopyRates(symbol, htfTF, 1, needed, htfRates) >= needed)  // shift=1 跳过未完成bar
+      {
+         int cnt = ArraySize(htfRates);
+         double htf_atr = 0;
+         for(int _i = 1; _i < cnt; _i++)
+         {
+            double tr = htfRates[_i].high - htfRates[_i].low;
+            double tr2 = MathAbs(htfRates[_i].high - htfRates[_i-1].close);
+            double tr3 = MathAbs(htfRates[_i].low  - htfRates[_i-1].close);
+            if(tr2 > tr) tr = tr2;
+            if(tr3 > tr) tr = tr3;
+            htf_atr += tr;
+         }
+         htf_atr /= (cnt - 1);
+         // H4 ATR与M5 ATR的比值：正常市场约4-8x，高波动时>10x
+         if(htf_atr > InpHTFVolBlockATRMult * state.atr_value)
+            return 0;  // 高波动期，暂停M5 OB新开仓
+      }
+   }
    int count = 0;
    int best_idx = -1;
    double best_strength = 0;

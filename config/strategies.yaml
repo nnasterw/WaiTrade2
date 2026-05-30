@@ -84,6 +84,10 @@ defaults: &defaults
   loose_sweep_min_penetration_atr: 0.01
   loose_sweep_min_wick_pct: 30.0
   loose_sweep_max_active_zones: 20
+  enable_htf_vol_block: false
+  htf_vol_block_atr_mult: 3.0
+  htf_vol_block_tf: 240
+  htf_vol_block_period: 14
   enable_ema_trend: false
   ema_trend_tf: 1440
   ema_trend_period: 20
@@ -27180,6 +27184,8 @@ v11btc-r234: &v11btc-r234
   htf_net_push_counter_mult: 0.6
   htf_net_push_sell_counter_scale: 0.0
   htf_net_push_buy_counter_scale: 1.0
+  enable_htf_vol_block: true
+  htf_vol_block_atr_mult: 0.1   # 极低阈值测试（几乎肯定触发）
   low_risk_hours: 14
   low_risk_hour_mult: 0.0
   magic_number: 204806
