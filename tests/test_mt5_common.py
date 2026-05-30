@@ -1284,6 +1284,39 @@ def test_v11_layered_params_in_set():
     assert 'InpMicroEntryMaxLotSize=0.01' in content
 
 
+def test_xau_defensive_params_in_set():
+    assert FLAT_MAP['defensive_confirm_max_balance'] == 'InpDefensiveConfirmMaxBalance'
+    assert FLAT_MAP['defensive_bounce_close_min_body_pct'] == 'InpDefensiveBounceCloseMinBodyPct'
+    assert FLAT_MAP['defensive_max_entries_per_ob'] == 'InpDefensiveMaxEntriesPerOB'
+    assert FLAT_MAP['defensive_virtual_sl_confirm_bars'] == 'InpDefensiveVirtualSLConfirmBars'
+
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'defensive_confirm_max_balance': 250.0,
+        'defensive_confirm_min_price': 4350.0,
+        'defensive_bounce_close_confirm_bars': 1,
+        'defensive_bounce_close_require_body': True,
+        'defensive_bounce_close_min_body_pct': 45.0,
+        'defensive_max_entries_per_ob': 3,
+        'defensive_ob_reentry_cooldown_min': 5,
+        'defensive_shallow_confirm_pos_min': 1.0,
+        'defensive_shallow_confirm_pos_mult': 0.0,
+        'defensive_virtual_sl_confirm_bars': 1,
+        'defensive_virtual_sl_hard_buffer_r': 0.25,
+    })
+    assert 'InpDefensiveConfirmMaxBalance=250.0' in content
+    assert 'InpDefensiveConfirmMinPrice=4350.0' in content
+    assert 'InpDefensiveBounceCloseConfirmBars=1' in content
+    assert 'InpDefensiveBounceCloseRequireBody=true' in content
+    assert 'InpDefensiveBounceCloseMinBodyPct=45.0' in content
+    assert 'InpDefensiveMaxEntriesPerOB=3' in content
+    assert 'InpDefensiveOBReentryCooldownMin=5' in content
+    assert 'InpDefensiveShallowConfirmPosMin=1.0' in content
+    assert 'InpDefensiveShallowConfirmPosMult=0.0' in content
+    assert 'InpDefensiveVirtualSLConfirmBars=1' in content
+    assert 'InpDefensiveVirtualSLHardBufferR=0.25' in content
+
+
 def test_v98a_strategy_set():
     cfg = {
         'version': 'V98a',

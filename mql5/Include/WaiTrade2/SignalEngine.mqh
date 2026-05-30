@@ -220,7 +220,8 @@ void PrintEntryDebug(const string stage, const OBZone &zone, const EAState &stat
          " dir=", signal.direction,
          " hour=", hour,
          " ob_age=", age,
-         " touch=", zone.touch_count,
+         " touch_count=", zone.touch_count,
+         " entry_count=", zone.entry_count,
          " strength=", DoubleToString(zone.strength, 2),
          " ds=", DoubleToString(zone.ds_weight, 2),
          " fresh=", zone.is_fresh ? 1 : 0,
@@ -231,7 +232,7 @@ void PrintEntryDebug(const string stage, const OBZone &zone, const EAState &stat
          " bounce_sec=", signal.bounce_seconds,
          " bounce_ob=", DoubleToString(signal.bounce_ob_pct, 3),
          " confirm_pos=", DoubleToString(signal.confirm_ob_pos, 3),
-         " touch=", DoubleToString(signal.touch_price, _Digits),
+         " touch_price=", DoubleToString(signal.touch_price, _Digits),
          " confirm=", DoubleToString(signal.confirm_price, _Digits),
          " risk_atr=", DoubleToString(risk_atr, 2),
          " spread_risk=", DoubleToString(spread_risk, 3),
@@ -937,12 +938,27 @@ double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double ris
       signal.bounce_seconds > CfgLateBounceSec())
       pos_mult *= CfgLateBounceMult();
 
-   if(CfgBounceSweetMinPct() > 0 && CfgBounceSweetMaxPct() > CfgBounceSweetMinPct() &&
-      CfgOutsideBounceSweetMult() != 1.0 && signal.bounce_ob_pct > 0)
+   double bounce_sweet_min = CfgDefensiveBounceSweetMinPct();
+   double bounce_sweet_max = CfgDefensiveBounceSweetMaxPct();
+   double outside_bounce_sweet_mult = CfgDefensiveOutsideBounceSweetMult();
+   if(bounce_sweet_min > 0 && bounce_sweet_max > bounce_sweet_min &&
+      outside_bounce_sweet_mult != 1.0 && signal.bounce_ob_pct > 0)
    {
-      if(signal.bounce_ob_pct < CfgBounceSweetMinPct() ||
-         signal.bounce_ob_pct > CfgBounceSweetMaxPct())
-         pos_mult *= CfgOutsideBounceSweetMult();
+      if(signal.bounce_ob_pct < bounce_sweet_min ||
+         signal.bounce_ob_pct > bounce_sweet_max)
+      {
+         if(outside_bounce_sweet_mult <= 0)
+            return -1.0;
+         pos_mult *= outside_bounce_sweet_mult;
+      }
+   }
+
+   if(CfgBounceCloseWeakBodyPct() > 0 && CfgBounceCloseWeakBodyMult() != 1.0 &&
+      signal.confirm_body_pct > 0 && signal.confirm_body_pct < CfgBounceCloseWeakBodyPct())
+   {
+      if(CfgBounceCloseWeakBodyMult() <= 0)
+         return -1.0;
+      pos_mult *= CfgBounceCloseWeakBodyMult();
    }
 
    if(CfgBadRiskMax() > CfgBadRiskMin() && CfgBadRiskMult() != 1.0 &&
@@ -1367,6 +1383,10 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
 
 bool PassOBReentryCooldown(const OBZone &zone)
 {
+   int max_entries = CfgMaxEntriesPerOB();
+   if(max_entries > 0 && zone.entry_count >= max_entries)
+      return false;
+
    if(CfgOBReentryCooldownMin() <= 0 || zone.last_entry_time == 0)
       return true;
    return (TimeCurrent() - zone.last_entry_time >= CfgOBReentryCooldownMin() * 60);

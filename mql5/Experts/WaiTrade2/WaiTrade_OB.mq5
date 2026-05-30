@@ -1,4 +1,4 @@
-#property copyright "WaiTrade2"
+﻿#property copyright "WaiTrade2"
 #property version   "98.01"
 #property strict
 
@@ -28,14 +28,14 @@ int          g_monitor_count = 0;
 int          g_htf_monitor_count = 0;
 datetime     g_last_entry_attempt = 0;
 
-// 双zone通道：M3振荡腿独立zone缓存（始终维护，不受趋势模式切换影响）
+// 鍙寊one閫氶亾锛歁3鎸崱鑵跨嫭绔媧one缂撳瓨锛堝缁堢淮鎶わ紝涓嶅彈瓒嬪娍妯″紡鍒囨崲褰卞搷锛?
 OBZone      g_zones_osc[MAX_OB_ZONES];
 EAState     g_state_osc;
 EntryMonitor g_monitors_osc[MAX_MONITORS];
 int          g_monitor_count_osc = 0;
-bool         g_osc_active = false; // 当前tick是否使用振荡通道
+bool         g_osc_active = false; // 褰撳墠tick鏄惁浣跨敤鎸崱閫氶亾
 
-// ── OB动态年龄管理：超龄zone自动标记为expired ────────────────────────
+// 鈹€鈹€ OB鍔ㄦ€佸勾榫勭鐞嗭細瓒呴緞zone鑷姩鏍囪涓篹xpired 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 void ExpireOldZones(OBZone& zones[], int ob_count, int bar_count)
 {
     if(InpMaxOBAgeBarsTF <= 0) return;
@@ -47,7 +47,7 @@ void ExpireOldZones(OBZone& zones[], int ob_count, int bar_count)
     }
 }
 
-// ── 双通道辅助函数：注册活跃OB为监视器 ──────────────────────────────
+// 鈹€鈹€ 鍙岄€氶亾杈呭姪鍑芥暟锛氭敞鍐屾椿璺僌B涓虹洃瑙嗗櫒 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 void RegisterChannelMonitors(OBZone& zones[], EAState& state,
                               EntryMonitor& mons[], int& mon_count,
                               bool new_active_bar, string symbol)
@@ -89,7 +89,7 @@ void RegisterChannelMonitors(OBZone& zones[], EAState& state,
     }
 }
 
-// ── 双通道辅助函数：执行已确认的入场 ────────────────────────────────
+// 鈹€鈹€ 鍙岄€氶亾杈呭姪鍑芥暟锛氭墽琛屽凡纭鐨勫叆鍦?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 void ExecuteChannelConfirmed(OBZone& zones[], EAState& state,
                               EntryMonitor& mons[], int& mon_count,
                               double bid, double ask, string symbol)
@@ -127,19 +127,19 @@ int OnInit()
 
     if(CfgRiskPercent() <= 0 || CfgRiskPercent() > 50)
     {
-        Print("参数错误: RiskPercent=", CfgRiskPercent());
+        Print("鍙傛暟閿欒: RiskPercent=", CfgRiskPercent());
         return INIT_PARAMETERS_INCORRECT;
     }
 
     SymbolSelect(_Symbol, true);
     SyncMonthlyRiskState();
-    Print("WaiTrade2 ", InpVersion, " 已加载 | ", _Symbol, " | Magic=", InpMagicNumber);
+    Print("WaiTrade2 ", InpVersion, " 宸插姞杞?| ", _Symbol, " | Magic=", InpMagicNumber);
     return INIT_SUCCEEDED;
 }
 
 void OnDeinit(const int reason)
 {
-    Print("WaiTrade2 ", InpVersion, " 已卸载 | 原因=", reason);
+    Print("WaiTrade2 ", InpVersion, " 宸插嵏杞?| 鍘熷洜=", reason);
 }
 
 void OnTick()
@@ -147,7 +147,7 @@ void OnTick()
     string symbol = _Symbol;
     ENUM_TIMEFRAMES tf = GetWorkTF();
 
-    // 月初OB zone重置（消除多月状态延续对信号质量的影响）
+    // 鏈堝垵OB zone閲嶇疆锛堟秷闄ゅ鏈堢姸鎬佸欢缁淇″彿璐ㄩ噺鐨勫奖鍝嶏級
     if(InpMonthlyZoneReset)
     {
         static int s_prev_month = 0;
@@ -163,18 +163,18 @@ void OnTick()
             g_monitor_count = 0;
             g_htf_monitor_count = 0;
             g_state.last_entry_bar = 0;
-            // 同步清除振荡通道
+            // 鍚屾娓呴櫎鎸崱閫氶亾
             ZeroMemory(g_zones_osc);
             g_state_osc.ob_count = 0;
             g_monitor_count_osc = 0;
             g_state_osc.last_entry_bar = 0;
-            Print("月初Zone重置 ", dt.year, ".", StringFormat("%02d", dt.mon));
+            Print("鏈堝垵Zone閲嶇疆 ", dt.year, ".", StringFormat("%02d", dt.mon));
         }
         s_prev_month = cur_month;
     }
 
-    // 双通道模式：M3振荡通道独立维护，无切换清除
-    // 单通道模式（兜底）：切换时清除，防止TF不同的OB相互污染
+    // 鍙岄€氶亾妯″紡锛歁3鎸崱閫氶亾鐙珛缁存姢锛屾棤鍒囨崲娓呴櫎
+    // 鍗曢€氶亾妯″紡锛堝厹搴曪級锛氬垏鎹㈡椂娓呴櫎锛岄槻姝F涓嶅悓鐨凮B鐩镐簰姹℃煋
     bool s_dual = InpEnableDualZoneChannel && InpEnableXAUTrendProfile;
     if(InpEnableXAUTrendProfile && !s_dual)
     {
@@ -189,12 +189,12 @@ void OnTick()
             g_monitor_count = 0;
             g_htf_monitor_count = 0;
             s_last_trend_profile = cur_trend;
-            Print("Profile切换zone清除(单通道): ", cur_trend ? "→Trend" : "→FAGE");
+            Print("Profile鍒囨崲zone娓呴櫎(鍗曢€氶亾): ", cur_trend ? "鈫扵rend" : "鈫扚AGE");
         }
     }
 
-    // 1. 加载K线数据
-    // 双通道模式：主通道固定用M1（趋势通道）；另有M3振荡通道独立更新
+    // 1. 鍔犺浇K绾挎暟鎹?
+    // 鍙岄€氶亾妯″紡锛氫富閫氶亾鍥哄畾鐢∕1锛堣秼鍔块€氶亾锛夛紱鍙︽湁M3鎸崱閫氶亾鐙珛鏇存柊
     ENUM_TIMEFRAMES act_tf = s_dual ? (ENUM_TIMEFRAMES)CfgMinutesToTF(InpXAUTrendBarTF) : tf;
     MqlRates rates[];
     int copied = CopyRates(symbol, act_tf, 0, InpBars, rates);
@@ -202,14 +202,14 @@ void OnTick()
         static datetime s_last_copy_fail = 0;
         if(TimeCurrent() - s_last_copy_fail >= 300) {
             s_last_copy_fail = TimeCurrent();
-            Print("CopyRates失败: symbol=", symbol, " tf=", act_tf, " copied=", copied);
+            Print("CopyRates澶辫触: symbol=", symbol, " tf=", act_tf, " copied=", copied);
         }
         return;
     }
 
     g_state.atr_value = CalcATR(rates, copied, InpATRPeriod);
 
-    // 2. 新bar处理（趋势通道 / 单通道主通道）
+    // 2. 鏂癰ar澶勭悊锛堣秼鍔块€氶亾 / 鍗曢€氶亾涓婚€氶亾锛?
     bool new_bar = IsNewBar(symbol, act_tf);
     if(new_bar)
     {
@@ -247,7 +247,7 @@ void OnTick()
         }
     }
 
-    // 双通道：M3振荡通道始终独立更新（new_osc_bar_tick 提升作用域供信号扫描使用）
+    // 鍙岄€氶亾锛歁3鎸崱閫氶亾濮嬬粓鐙珛鏇存柊锛坣ew_osc_bar_tick 鎻愬崌浣滅敤鍩熶緵淇″彿鎵弿浣跨敤锛?
     bool new_osc_bar_tick = false;
     if(s_dual)
     {
@@ -287,7 +287,7 @@ void OnTick()
         }
     }
 
-    // 3. 更新OB状态(每tick) + 选择活跃通道
+    // 3. 鏇存柊OB鐘舵€?姣弔ick) + 閫夋嫨娲昏穬閫氶亾
     g_osc_active = s_dual && !UseXAUTrendProfile();
     double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
     double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
@@ -296,7 +296,7 @@ void OnTick()
         UpdateOBStatus(g_zones_osc, g_state_osc.ob_count, bid, ask, g_state_osc);
     else if(InpEnableHTFPullback && !InpHTFPullbackOnly)
         UpdateOBStatus(g_htf_zones, g_htf_zone_count, bid, ask, g_state);
-    // 4. 扫描入场信号（双通道：振荡用M3 osc通道，趋势用M1主通道）
+    // 4. 鎵弿鍏ュ満淇″彿锛堝弻閫氶亾锛氭尟鑽＄敤M3 osc閫氶亾锛岃秼鍔跨敤M1涓婚€氶亾锛?
     bool new_active_bar = g_osc_active ? new_osc_bar_tick : new_bar;
 
     if(g_osc_active)
@@ -306,13 +306,13 @@ void OnTick()
 
     if(InpEnableEntryEngine)
     {
-        // 注册活跃通道的OB监视器
+        // 娉ㄥ唽娲昏穬閫氶亾鐨凮B鐩戣鍣?
         if(g_osc_active)
             RegisterChannelMonitors(g_zones_osc, g_state_osc, g_monitors_osc, g_monitor_count_osc, new_active_bar, symbol);
         else
             RegisterChannelMonitors(g_zones, g_state, g_monitors, g_monitor_count, new_active_bar, symbol);
 
-        // HTF pullback（仅单通道或趋势通道模式）
+        // HTF pullback锛堜粎鍗曢€氶亾鎴栬秼鍔块€氶亾妯″紡锛?
         if(!g_osc_active && new_bar && InpEnableHTFPullback && !InpHTFPullbackOnly)
         {
             for(int z = 0; z < g_htf_zone_count; z++)
@@ -335,7 +335,7 @@ void OnTick()
             }
         }
 
-        // 5. 执行确认的入场
+        // 5. 鎵ц纭鐨勫叆鍦?
         if(g_osc_active)
             ExecuteChannelConfirmed(g_zones_osc, g_state_osc, g_monitors_osc, g_monitor_count_osc, bid, ask, symbol);
         else
@@ -360,7 +360,7 @@ void OnTick()
     }
     else
     {
-        // 原始模式: 直接入场（使用活跃通道）
+        // 鍘熷妯″紡: 鐩存帴鍏ュ満锛堜娇鐢ㄦ椿璺冮€氶亾锛?
         int sig_count;
         if(g_osc_active)
         {
@@ -382,16 +382,16 @@ void OnTick()
         }
     }
 
-    // 5b. H4趋势追单（独立于OB系统，用于BTC牛市月顺势入场）
+    // 5b. H4瓒嬪娍杩藉崟锛堢嫭绔嬩簬OB绯荤粺锛岀敤浜嶣TC鐗涘競鏈堥『鍔垮叆鍦猴級
     TryH4TrendEntry(symbol, new_bar);
 
-    // 5c. ATR通道均值回归入场（BTC高位振荡月专用）
+    // 5c. ATR閫氶亾鍧囧€煎洖褰掑叆鍦猴紙BTC楂樹綅鎸崱鏈堜笓鐢級
     TryATRChannelEntry(symbol, new_bar);
 
-    // 5d. 动量追踪入场（连续同向H1 K线追单，单向趋势月专用）
+    // 5d. 鍔ㄩ噺杩借釜鍏ュ満锛堣繛缁悓鍚慔1 K绾胯拷鍗曪紝鍗曞悜瓒嬪娍鏈堜笓鐢級
     TryMomentumEntry(symbol, new_bar);
 
-    // 6. 每小时存活日志
+    // 6. 姣忓皬鏃跺瓨娲绘棩蹇?
     {
         static datetime s_last_hb = 0;
         datetime now_t = TimeCurrent();
@@ -409,7 +409,7 @@ void OnTick()
         }
     }
 
-    // 7. 持仓管理
+    // 7. 鎸佷粨绠＄悊
     SyncPositions(g_tracks, g_track_count);
     ManagePositions(g_tracks, g_track_count, g_state);
 }
@@ -475,7 +475,7 @@ bool ExecuteLayeredOrders(const TradeSignal &sig, double base_price)
         req.volume = layer_lot;
         req.type   = (sig.direction > 0) ? ORDER_TYPE_BUY_LIMIT : ORDER_TYPE_SELL_LIMIT;
         req.price  = NormalizeDouble(limit_price, _Digits);
-        req.sl     = sig.sl;
+        req.sl     = BrokerStopFromVirtualSL(sig.sl, req.price, sig.risk_price, sig.direction);
         req.tp     = sig.tp;
         req.magic  = InpMagicNumber;
         req.comment = sig.comment + "_L" + IntegerToString(i+1);
@@ -486,7 +486,7 @@ bool ExecuteLayeredOrders(const TradeSignal &sig, double base_price)
         if(OrderSend(req, res))
         {
             if(res.retcode == TRADE_RETCODE_DONE || res.retcode == TRADE_RETCODE_PLACED)
-                Print("分层挂单L", i+1, ": price=", req.price, " lot=", layer_lot);
+                Print("鍒嗗眰鎸傚崟L", i+1, ": price=", req.price, " lot=", layer_lot);
         }
     }
     return true;
@@ -520,7 +520,7 @@ bool ExecuteMicroEntryOrders(const TradeSignal &sig)
         req.type      = sig.direction > 0 ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
         req.price     = sig.direction > 0 ? SymbolInfoDouble(_Symbol, SYMBOL_ASK)
                                           : SymbolInfoDouble(_Symbol, SYMBOL_BID);
-        req.sl        = sig.sl;
+        req.sl     = BrokerStopFromVirtualSL(sig.sl, req.price, sig.risk_price, sig.direction);
         req.tp        = sig.tp;
         req.magic     = InpMagicNumber;
         req.comment   = sig.comment + "_M" + IntegerToString(i);
@@ -532,7 +532,7 @@ bool ExecuteMicroEntryOrders(const TradeSignal &sig)
             continue;
 
         placed = true;
-        Print("微仓副单成功 ", req.comment, " ticket=", res.order,
+        Print("寰粨鍓崟鎴愬姛 ", req.comment, " ticket=", res.order,
               " price=", res.price, " lot=", micro_lot);
         RecordMonthlyEntry();
         RegisterPosition(res.order, sig.direction, res.price, sig.sl, sig.risk_price,
@@ -555,7 +555,7 @@ bool ExecuteSignal(const TradeSignal &sig)
     return ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, true);
 }
 
-// H4连续强涨追单：N根H4每根涨幅>X%时顺势入场
+// H4杩炵画寮烘定杩藉崟锛歂鏍笻4姣忔牴娑ㄥ箙>X%鏃堕『鍔垮叆鍦?
 void TryH4TrendEntry(string symbol, bool new_m5_bar)
 {
     if(!InpEnableH4Trend || !new_m5_bar) return;
@@ -568,25 +568,25 @@ void TryH4TrendEntry(string symbol, bool new_m5_bar)
     int n = MathMax(InpH4TrendBars + 1, 3);
     if(CopyRates(symbol, PERIOD_H4, 1, n, h4) < n) return;
 
-    // 检查最近 InpH4TrendBars 根已收盘H4 (h4[0]是最旧的，h4[n-1]是最新已收盘)
+    // 妫€鏌ユ渶杩?InpH4TrendBars 鏍瑰凡鏀剁洏H4 (h4[0]鏄渶鏃х殑锛宧4[n-1]鏄渶鏂板凡鏀剁洏)
     for(int i = 0; i < InpH4TrendBars; i++)
     {
-        int idx = n - InpH4TrendBars + i;  // 从最旧到最新
+        int idx = n - InpH4TrendBars + i;  // 浠庢渶鏃у埌鏈€鏂?
         double pct = 0;
         if(h4[idx].open > 0)
             pct = (h4[idx].close - h4[idx].open) / h4[idx].open * 100.0;
-        if(pct < InpH4TrendMinPctPerBar) return;  // 任一根未达标，不追单
+        if(pct < InpH4TrendMinPctPerBar) return;  // 浠讳竴鏍规湭杈炬爣锛屼笉杩藉崟
     }
 
-    // 所有H4均达标，构造追单
-    // SL = 最近 InpH4TrendSLBars 根H4的最低点
+    // 鎵€鏈塇4鍧囪揪鏍囷紝鏋勯€犺拷鍗?
+    // SL = 鏈€杩?InpH4TrendSLBars 鏍笻4鐨勬渶浣庣偣
     double sl_low = h4[n-1].low;
     for(int i = 0; i < (int)InpH4TrendSLBars && i < n; i++)
         sl_low = MathMin(sl_low, h4[n-1-i].low);
 
     double sl = sl_low - g_state.atr_value * InpH4TrendSLBufferATR;
     double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
-    if(sl >= ask) return;  // SL无效
+    if(sl >= ask) return;  // SL鏃犳晥
 
     TradeSignal sig;
     ZeroMemory(sig);
@@ -603,11 +603,11 @@ void TryH4TrendEntry(string symbol, bool new_m5_bar)
     {
         g_state.pos_count++;
         s_h4_cooldown = (int)InpH4TrendCooldownBars;
-        Print("H4TREND入场 sl=", DoubleToString(sl, _Digits), " lot=", InpH4TrendLot);
+        Print("H4TREND鍏ュ満 sl=", DoubleToString(sl, _Digits), " lot=", InpH4TrendLot);
     }
 }
 
-// ATR通道均值回归：价格触碰通道边界时逆向入场
+// ATR閫氶亾鍧囧€煎洖褰掞細浠锋牸瑙︾閫氶亾杈圭晫鏃堕€嗗悜鍏ュ満
 void TryATRChannelEntry(string symbol, bool new_bar)
 {
     if(!InpEnableATRChannel || !new_bar) return;
@@ -622,7 +622,7 @@ void TryATRChannelEntry(string symbol, bool new_bar)
     if(CopyRates(symbol, tf, 1, n + InpATRPeriod + 1, rates) < n + 1) return;
     int cnt = ArraySize(rates);
 
-    // 计算中枢(最近n根K的平均收盘价)和ATR
+    // 璁＄畻涓灑(鏈€杩憂鏍筀鐨勫钩鍧囨敹鐩樹环)鍜孉TR
     double atr = CalcATR(rates, cnt, InpATRPeriod);
     if(atr <= 0) return;
 
@@ -636,7 +636,7 @@ void TryATRChannelEntry(string symbol, bool new_bar)
     double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
     double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
 
-    // 触碰下边界做多，触碰上边界做空
+    // 瑙︾涓嬭竟鐣屽仛澶氾紝瑙︾涓婅竟鐣屽仛绌?
     int direction = 0;
     if(bid <= lower * InpATRChannelEntryBand + upper * (1.0 - InpATRChannelEntryBand))
         direction = OB_BUY;
@@ -644,7 +644,7 @@ void TryATRChannelEntry(string symbol, bool new_bar)
         direction = OB_SELL;
     if(direction == 0) return;
 
-    // 简化入场条件：价格触及通道边界侧
+    // 绠€鍖栧叆鍦烘潯浠讹細浠锋牸瑙﹀強閫氶亾杈圭晫渚?
     double entry_threshold = (direction == OB_BUY) ? lower : upper;
     if(direction == OB_BUY && bid > entry_threshold) return;
     if(direction == OB_SELL && ask < entry_threshold) return;
@@ -668,12 +668,12 @@ void TryATRChannelEntry(string symbol, bool new_bar)
     {
         g_state.pos_count++;
         s_atr_cooldown = InpATRChannelCooldown;
-        Print("ATRCHAN入场 dir=", direction, " mid=", DoubleToString(mid, _Digits),
+        Print("ATRCHAN鍏ュ満 dir=", direction, " mid=", DoubleToString(mid, _Digits),
               " upper=", DoubleToString(upper, _Digits), " lower=", DoubleToString(lower, _Digits));
     }
 }
 
-// 动量追踪：连续N根同向K线后追入
+// 鍔ㄩ噺杩借釜锛氳繛缁璑鏍瑰悓鍚慘绾垮悗杩藉叆
 void TryMomentumEntry(string symbol, bool new_bar)
 {
     if(!InpEnableMomentum || !new_bar) return;
@@ -691,7 +691,7 @@ void TryMomentumEntry(string symbol, bool new_bar)
     double atr = CalcATR(rates, cnt, InpATRPeriod);
     if(atr <= 0) return;
 
-    // 检查最近n根已收盘K线是否同向且每根涨跌幅>=MinPct%
+    // 妫€鏌ユ渶杩憂鏍瑰凡鏀剁洏K绾挎槸鍚﹀悓鍚戜笖姣忔牴娑ㄨ穼骞?=MinPct%
     int direction = 0;
     bool all_up = true, all_dn = true;
     for(int i = cnt - n; i < cnt; i++)
@@ -705,7 +705,7 @@ void TryMomentumEntry(string symbol, bool new_bar)
     else if(all_dn)  direction = OB_SELL;
     if(direction == 0) return;
 
-    // SL = n根起始价外 N*ATR
+    // SL = n鏍硅捣濮嬩环澶?N*ATR
     double sl_base = (direction == OB_BUY)
         ? rates[cnt - n].open - InpMomentumSLATRMult * atr
         : rates[cnt - n].open + InpMomentumSLATRMult * atr;
@@ -730,7 +730,7 @@ void TryMomentumEntry(string symbol, bool new_bar)
     {
         g_state.pos_count++;
         s_mom_cooldown = InpMomentumCooldown;
-        Print("MOM入场 dir=", direction, " n=", n, " pct>=", InpMomentumMinPct, "%");
+        Print("MOM鍏ュ満 dir=", direction, " n=", n, " pct>=", InpMomentumMinPct, "%");
     }
 }
 
@@ -748,7 +748,7 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
     request.type      = sig.direction > 0 ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
     request.price     = sig.direction > 0 ? SymbolInfoDouble(_Symbol, SYMBOL_ASK)
                                           : SymbolInfoDouble(_Symbol, SYMBOL_BID);
-    request.sl        = sig.sl;
+    request.sl        = BrokerStopFromVirtualSL(sig.sl, request.price, sig.risk_price, sig.direction);
     request.tp        = sig.tp;
     request.magic     = InpMagicNumber;
     request.comment   = sig.comment;
@@ -758,13 +758,13 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
 
     if(!OrderSend(request, result))
     {
-        // INVALID_STOPS(10016): SL距离不足, 标记OB已用避免反复重试
+        // INVALID_STOPS(10016): SL璺濈涓嶈冻, 鏍囪OB宸茬敤閬垮厤鍙嶅閲嶈瘯
         if(result.retcode == 10016)
         {
             static int s_invalid_stops_count = 0;
             s_invalid_stops_count++;
             if(s_invalid_stops_count <= 10 || s_invalid_stops_count % 1000 == 0)
-                Print("止损无效(已跳过", s_invalid_stops_count, "次): ", sig.comment);
+                Print("invalid stops skipped count=", s_invalid_stops_count, " comment=", sig.comment);
             if(sig.ob_index >= 0 && sig.ob_index < zone_count)
                 zones[sig.ob_index].used = true;
             return false;
@@ -776,7 +776,7 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
                                               : SymbolInfoDouble(_Symbol, SYMBOL_BID);
             if(!OrderSend(request, result))
             {
-                Print("开仓失败(重试): ", result.comment, " retcode=", result.retcode);
+                Print("寮€浠撳け璐?閲嶈瘯): ", result.comment, " retcode=", result.retcode);
                 MarkEntryAttemptFailed();
                 return false;
             }
@@ -786,7 +786,7 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
             static int s_fail_count = 0;
             s_fail_count++;
             if(s_fail_count <= 10 || s_fail_count % 500 == 0)
-                Print("开仓失败(第", s_fail_count, "次): ", result.comment, " retcode=", result.retcode);
+                Print("open failed count=", s_fail_count, " comment=", result.comment, " retcode=", result.retcode);
             MarkEntryAttemptFailed();
             return false;
         }
@@ -794,7 +794,7 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
 
     if(result.retcode == TRADE_RETCODE_DONE)
     {
-        Print("开仓成功: ", sig.comment, " ticket=", result.order,
+        Print("寮€浠撴垚鍔? ", sig.comment, " ticket=", result.order,
               " price=", result.price, " lot=", sig.lot,
               " bounce_sec=", sig.bounce_seconds,
               " bounce_ob=", DoubleToString(sig.bounce_ob_pct, 3),

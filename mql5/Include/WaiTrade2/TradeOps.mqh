@@ -31,6 +31,18 @@ double GetSpread(string symbol)
    return (double)SymbolInfoInteger(symbol, SYMBOL_SPREAD) * SymbolInfoDouble(symbol, SYMBOL_POINT);
 }
 
+double BrokerStopFromVirtualSL(double virtual_sl, double entry_price, double risk_price, int direction)
+{
+   if(!UseVirtualSLMode())
+      return virtual_sl;
+   double buffer_r = CfgVirtualSLHardBufferR();
+   if(buffer_r <= 0 || risk_price <= 0)
+      return virtual_sl;
+   double buffer = risk_price * buffer_r;
+   double broker_sl = (direction > 0) ? virtual_sl - buffer : virtual_sl + buffer;
+   return NormalizeDouble(broker_sl, (int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS));
+}
+
 bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
 {
    if(!PositionSelectByTicket(ticket)) return false;

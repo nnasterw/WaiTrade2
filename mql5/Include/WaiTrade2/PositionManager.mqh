@@ -1,4 +1,4 @@
-#ifndef __WAITRADE_POSITION_MANAGER_MQH__
+﻿#ifndef __WAITRADE_POSITION_MANAGER_MQH__
 #define __WAITRADE_POSITION_MANAGER_MQH__
 
 #include "Types.mqh"
@@ -105,7 +105,7 @@ bool OpenStrongAddOn(PosTrack &track, const EAState &state,
     request.volume = lot;
     request.type = (track.direction > 0) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
     request.price = order_price;
-    request.sl = sl;
+    request.sl = BrokerStopFromVirtualSL(sl, order_price, risk, track.direction);
     request.tp = 0.0;
     request.magic = InpMagicNumber;
     request.comment = "WT " + InpVersion + " ADD";
@@ -128,7 +128,7 @@ bool OpenStrongAddOn(PosTrack &track, const EAState &state,
         tracks[track_count - 1].strong_addon = true;
     }
     track.addon_count++;
-    Print("强势延续加仓: source=", track.ticket,
+    Print("寮哄娍寤剁画鍔犱粨: source=", track.ticket,
           " addon=", result.order,
           " r=", DoubleToString(current_r, 2),
           " lot=", DoubleToString(lot, 2));
@@ -180,7 +180,7 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
     request.volume = lot;
     request.type = (rev_dir > 0) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
     request.price = order_price;
-    request.sl = sl;
+    request.sl = BrokerStopFromVirtualSL(sl, order_price, risk, rev_dir);
     request.tp = tp;
     request.magic = InpMagicNumber;
     request.comment = "WT " + InpVersion + " REV " + reason;
@@ -206,6 +206,79 @@ double CurrentR(const PosTrack &track)
     if(!PositionSelectByTicket(track.ticket)) return 0;
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
     return PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+}
+
+bool IsSLImprovement(const PosTrack &track, double new_sl)
+{
+    if(!PositionSelectByTicket(track.ticket)) return false;
+    double current_sl = PositionGetDouble(POSITION_SL);
+    double base_sl = UseVirtualSLMode() && track.virtual_sl > 0 ? track.virtual_sl : current_sl;
+    if(base_sl <= 0)
+        base_sl = track.sl_initial;
+    return (track.direction > 0) ? (new_sl > base_sl) : (new_sl < base_sl);
+}
+
+bool ApplyProtectiveSL(PosTrack &track, double new_sl, const string reason, double current_r)
+{
+    if(!PositionSelectByTicket(track.ticket)) return false;
+    if(!IsSLImprovement(track, new_sl)) return true;
+
+    if(UseVirtualSLMode())
+    {
+        double broker_sl = BrokerStopFromVirtualSL(new_sl, track.entry_price, track.risk_price, track.direction);
+        if(!ModifySL(track.ticket, broker_sl))
+            return false;
+        track.virtual_sl = new_sl;
+        track.virtual_sl_reason = reason;
+        track.last_sl_reason = reason + "_virtual";
+        PrintSLDebug(track.last_sl_reason, track, current_r, new_sl);
+        return true;
+    }
+
+    if(!ModifySL(track.ticket, new_sl))
+        return false;
+    track.last_sl_reason = reason;
+    PrintSLDebug(reason, track, current_r, new_sl);
+    return true;
+}
+
+bool CheckVirtualSL(PosTrack &track, const EAState &state)
+{
+    if(!UseVirtualSLMode()) return false;
+    if(track.virtual_sl <= 0) return false;
+    if(state.bar_count <= track.open_bar) return false;
+    if(!PositionSelectByTicket(track.ticket)) return false;
+
+    int bars_needed = CfgVirtualSLConfirmBars();
+    if(bars_needed <= 0) return false;
+    int tf_min = CfgVirtualSLConfirmTF() > 0 ? CfgVirtualSLConfirmTF() : CfgBarTF();
+    ENUM_TIMEFRAMES tf = MinutesToTF(tf_min);
+    MqlRates rates[];
+    int count = CopyRates(_Symbol, tf, 1, bars_needed, rates);
+    if(count < bars_needed)
+        return false;
+
+    double buffer = state.atr_value * CfgVirtualSLCloseBufferATR();
+    for(int i = 0; i < bars_needed; i++)
+    {
+        if(track.direction > 0)
+        {
+            if(rates[i].close > track.virtual_sl - buffer)
+                return false;
+        }
+        else
+        {
+            if(rates[i].close < track.virtual_sl + buffer)
+                return false;
+        }
+    }
+
+    double current_r = CurrentR(track);
+    PrintExitDebug("virtual_sl", track, current_r, state);
+    if(ClosePosition(track.ticket, "virtual_sl"))
+        return true;
+    MarkCloseAttemptFailed(track);
+    return false;
 }
 
 void PrintExitDebug(string reason, const PosTrack &track, double current_r, const EAState &state)
@@ -302,6 +375,9 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
             track_count--;
             continue;
         }
+
+        if(CheckVirtualSL(tracks[i], state))
+            continue;
 
         CheckEarlyLossCut(tracks[i], state, tracks, track_count);
         CheckMFEFailExit(tracks[i], state, tracks, track_count);
@@ -451,11 +527,7 @@ void CheckPartialClose(PosTrack &track, const EAState &state)
             if(InpPartialPostLockR > 0)
             {
                 double new_sl = RToPrice(InpPartialPostLockR, track.entry_price, track.risk_price, track.direction);
-                if(ModifySL(track.ticket, new_sl))
-                {
-                    track.last_sl_reason = "partial_lock";
-                    PrintSLDebug("partial_lock", track, current_r, new_sl);
-                }
+                ApplyProtectiveSL(track, new_sl, "partial_lock", current_r);
             }
             PrintSLDebug("partial", track, current_r, 0);
         }
@@ -482,7 +554,7 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
         if(InpSellBE_Lock > 0) be_lock_r = InpSellBE_Lock;
     }
 
-    // v11: 用入场时锁定的市场状态
+    // v11: 鐢ㄥ叆鍦烘椂閿佸畾鐨勫競鍦虹姸鎬?
     if(CfgEnableStateFilter())
     {
         if(track.entry_market_state == 0 && CfgRangeBE_R() > 0)
@@ -526,11 +598,9 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
         if(ShouldSkipCloseAttempt(track))
             return;
 
-        if(ModifySL(track.ticket, new_sl))
+        if(ApplyProtectiveSL(track, new_sl, "be", current_r))
         {
             track.be_applied = true;
-            track.last_sl_reason = "be";
-            PrintSLDebug("be", track, current_r, new_sl);
         }
         else
             MarkCloseAttemptFailed(track);
@@ -547,8 +617,8 @@ void CheckTrailing(PosTrack &track)
 
     track.peak_profit_r = MathMax(track.peak_profit_r, current_r);
 
-    // 从最高级别向下检查，避免同一tick多次ModifySL
-    // Level 3 升级
+    // 浠庢渶楂樼骇鍒悜涓嬫鏌ワ紝閬垮厤鍚屼竴tick澶氭ModifySL
+    // Level 3 鍗囩骇
     if(InpTrail3TriggerR > 0 && current_r >= InpTrail3TriggerR && track.trail_level < 3)
     {
         double lock_r = InpTrail3LockR > 0 ? InpTrail3LockR : track.peak_profit_r * InpTrail3LockMult;
@@ -556,17 +626,15 @@ void CheckTrailing(PosTrack &track)
         if(ShouldSkipCloseAttempt(track))
             return;
 
-        if(ModifySL(track.ticket, new_sl))
+        if(ApplyProtectiveSL(track, new_sl, "trail3", current_r))
         {
             track.trail_level = 3;
-            track.last_sl_reason = "trail3";
-            PrintSLDebug("trail3", track, current_r, new_sl);
         }
         else
             MarkCloseAttemptFailed(track);
         return;
     }
-    // Level 2 升级
+    // Level 2 鍗囩骇
     else if(InpTrail2TriggerR > 0 && current_r >= InpTrail2TriggerR && track.trail_level < 2)
     {
         double lock_r = InpTrail2LockR > 0 ? InpTrail2LockR : track.peak_profit_r * InpTrail2LockMult;
@@ -574,35 +642,31 @@ void CheckTrailing(PosTrack &track)
         if(ShouldSkipCloseAttempt(track))
             return;
 
-        if(ModifySL(track.ticket, new_sl))
+        if(ApplyProtectiveSL(track, new_sl, "trail2", current_r))
         {
             track.trail_level = 2;
-            track.last_sl_reason = "trail2";
-            PrintSLDebug("trail2", track, current_r, new_sl);
         }
         else
             MarkCloseAttemptFailed(track);
         return;
     }
-    // Level 1 升级
+    // Level 1 鍗囩骇
     else if(InpTrail1TriggerR > 0 && current_r >= InpTrail1TriggerR && track.trail_level < 1)
     {
         double new_sl = RToPrice(InpTrail1LockR, track.entry_price, track.risk_price, track.direction);
         if(ShouldSkipCloseAttempt(track))
             return;
 
-        if(ModifySL(track.ticket, new_sl))
+        if(ApplyProtectiveSL(track, new_sl, "trail1", current_r))
         {
             track.trail_level = 1;
-            track.last_sl_reason = "trail1";
-            PrintSLDebug("trail1", track, current_r, new_sl);
         }
         else
             MarkCloseAttemptFailed(track);
         return;
     }
 
-    // 动态推进: 当前级别的LockMult > 0时，随peak增长持续推进SL
+    // 鍔ㄦ€佹帹杩? 褰撳墠绾у埆鐨凩ockMult > 0鏃讹紝闅弍eak澧為暱鎸佺画鎺ㄨ繘SL
     double lock_mult = 0;
     if(track.trail_level == 3 && InpTrail3LockMult > 0)
         lock_mult = InpTrail3LockMult;
@@ -619,10 +683,8 @@ void CheckTrailing(PosTrack &track)
             if(ShouldSkipCloseAttempt(track))
                 return;
 
-            if(ModifySL(track.ticket, new_sl))
+            if(ApplyProtectiveSL(track, new_sl, "trail_dyn", current_r))
             {
-                track.last_sl_reason = "trail_dyn";
-                PrintSLDebug("trail_dyn", track, current_r, new_sl);
             }
             else
                 MarkCloseAttemptFailed(track);
@@ -679,12 +741,7 @@ void ApplyDTPPostPartialLock(PosTrack &track, double current_r)
     if(ShouldSkipCloseAttempt(track))
         return;
 
-    if(ModifySL(track.ticket, new_sl))
-    {
-        track.last_sl_reason = "dtp_part_lock";
-        PrintSLDebug("dtp_part_lock", track, current_r, new_sl);
-    }
-    else
+    if(!ApplyProtectiveSL(track, new_sl, "dtp_part_lock", current_r))
         MarkCloseAttemptFailed(track);
 }
 
@@ -758,10 +815,10 @@ void CheckDecay(PosTrack &track, const EAState &state)
 {
     if(!CfgEnableDecayExit() && !InpEnableMomentumRegime) return;
 
-    // DTP激活后禁用衰减检测，让大赢单自由跑
+    // DTP婵€娲诲悗绂佺敤琛板噺妫€娴嬶紝璁╁ぇ璧㈠崟鑷敱璺?
     if(track.dtp_active) return;
 
-    // 缓存 M1 rates：同一 bar 内只 CopyRates 一次（bar级模式，tick级检查无意义）
+    // 缂撳瓨 M1 rates锛氬悓涓€ bar 鍐呭彧 CopyRates 涓€娆★紙bar绾фā寮忥紝tick绾ф鏌ユ棤鎰忎箟锛?
     static int    s_decay_bar = 0;
     static MqlRates s_m1_rates[];
     static int    s_m1_count = 0;
@@ -778,7 +835,7 @@ void CheckDecay(PosTrack &track, const EAState &state)
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
     double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
 
-    // 震荡态入场单衰减门槛更低(0.5R)，趋势态用主参数
+    // 闇囪崱鎬佸叆鍦哄崟琛板噺闂ㄦ鏇翠綆(0.5R)锛岃秼鍔挎€佺敤涓诲弬鏁?
     double effective_decay_min = CfgDecayMinR();
     if(track.entry_market_state == 0 && CfgDecayMinR() > 0.5)
         effective_decay_min = 0.5;
@@ -803,7 +860,7 @@ void CheckTimeExit(PosTrack &track, const EAState &state)
 {
     int time_exit_bars = CfgTimeExitBars();
 
-    // v11: 用入场时锁定的市场状态判断超时
+    // v11: 鐢ㄥ叆鍦烘椂閿佸畾鐨勫競鍦虹姸鎬佸垽鏂秴鏃?
     if(CfgEnableStateFilter() && track.entry_market_state == 0 && CfgRangeTimeExit() < 999)
         time_exit_bars = CfgRangeTimeExit();
 
@@ -830,7 +887,7 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
 {
     if(track_count >= MAX_POSITIONS)
     {
-        Print("跟踪数组已满, 无法注册 ticket=", ticket);
+        Print("璺熻釜鏁扮粍宸叉弧, 鏃犳硶娉ㄥ唽 ticket=", ticket);
         return;
     }
 
@@ -840,9 +897,11 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
     t.direction    = direction;
     t.entry_price  = entry;
     t.sl_initial   = sl;
+    t.virtual_sl = sl;
+    t.virtual_sl_reason = "initial";
     t.risk_price   = risk_price;
     t.peak_profit_r = 0;
-    t.open_bar     = 0;  // 由调用者在注册后设置,或直接用state.bar_count
+    t.open_bar     = 0;  // 鐢辫皟鐢ㄨ€呭湪娉ㄥ唽鍚庤缃?鎴栫洿鎺ョ敤state.bar_count
     t.be_applied   = false;
     t.trail_level  = 0;
     t.dtp_active   = false;
