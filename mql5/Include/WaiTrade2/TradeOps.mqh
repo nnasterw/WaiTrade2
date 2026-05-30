@@ -16,9 +16,25 @@ double CalcLotSize(string symbol, double risk_pct, double risk_price)
 
    if(tick_value <= 0 || point <= 0) return min_lot;
 
-   // 固定lot计算基准：余额超过设定值后仍按设定值计算，实现exit-restart效果
-   double eff_balance = (InpFixedLotSizingBalance > 0 && balance > InpFixedLotSizingBalance)
-                        ? InpFixedLotSizingBalance : balance;
+   // 月度lot基准重置：每月月初记录余额，超过InpFixedLotSizingBalance后锁定
+   // 效果：每月从月初余额(最高=设定值)开始计算lot，实现exit-restart
+   double eff_balance = balance;
+   if(InpFixedLotSizingBalance > 0)
+   {
+      static int    s_lot_month_key = -1;
+      static double s_lot_month_balance = 0.0;
+      // 计算当前月份key
+      MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
+      int cur_key = dt.year * 12 + dt.mon;
+      if(cur_key != s_lot_month_key)
+      {
+         s_lot_month_key = cur_key;
+         s_lot_month_balance = balance;  // 记录本月月初实际余额
+      }
+      // 使用月初余额，但不超过上限
+      eff_balance = MathMin(s_lot_month_balance, InpFixedLotSizingBalance);
+      if(eff_balance <= 0) eff_balance = balance;
+   }
    double risk_money = eff_balance * risk_pct / 100.0;
    double risk_points = risk_price / point;
    double lot = risk_money / (risk_points * tick_value);
