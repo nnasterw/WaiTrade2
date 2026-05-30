@@ -84,6 +84,16 @@ defaults: &defaults
   loose_sweep_min_penetration_atr: 0.01
   loose_sweep_min_wick_pct: 30.0
   loose_sweep_max_active_zones: 20
+  enable_ema_trend: false
+  ema_trend_tf: 1440
+  ema_trend_period: 20
+  ema_trend_bars: 3
+  ema_trend_min_slope_pct: 0.1
+  ema_trend_pullback_atr: 1.5
+  ema_trend_sl_atr: 2.0
+  ema_trend_lot: 0.01
+  ema_trend_cooldown: 12
+  ema_trend_max_per_day: 2
   no_ob_start_hour: 23
   no_ob_end_hour: 6
   min_ob_strength: 0.5
@@ -27255,6 +27265,32 @@ v11btc-h4: &v11btc-h4
   htf_net_push_neutral_mult: 0.5
   htf_net_push_counter_mult: 0.1
   magic_number: 204807
+
+# v11btc-ema — BTC EMA趋势追踪策略（覆盖强牛市月Sep24-Dec24类型）
+# 条件：D1 EMA20连续N根上升+收盘在EMA上方，价格回调到EMA区域时BUY
+v11btc-ema: &v11btc-ema
+  <<: *v11_btc_m5_r21
+  version: V11BTC-EMA
+  description: "BTC EMA趋势追踪：D1 EMA20上方连续3根+回调区BUY（覆盖强牛市OB盲区）"
+  enable_ema_trend: true
+  ema_trend_tf: 1440
+  ema_trend_period: 20
+  ema_trend_bars: 3
+  ema_trend_min_slope_pct: 0.05  # 每根D1 EMA最小斜率%（过滤横盘）
+  ema_trend_pullback_atr: 8     # 突破确认回看M5根数（整数部分）
+  ema_trend_sl_atr: 0.3      # SL = 前N根M5最低点 - buffer*ATR
+  ema_trend_lot: 0.0
+  ema_trend_cooldown: 8
+  ema_trend_max_per_day: 3
+  risk_percent: 2.0
+  dtp_trigger_r: 2.0
+  dtp_retrace: 0.20
+  enable_state_filter: false
+  enable_scoring: false
+  enable_liquidity_sweep: false
+  range_breakout_only: false
+  max_concurrent: 3
+  magic_number: 204810
 
 # 鈹€鈹€鈹€ Regime 纭婊炲悗娴嬭瘯绯诲垪 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 # 鐩爣锛歠ilter Jun2024鍋囦俊鍙?$168鈫?527?) + 淇濈暀Nov2024鐪熻秼鍔?$195鈫?574?)

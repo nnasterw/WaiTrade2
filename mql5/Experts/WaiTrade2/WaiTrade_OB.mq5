@@ -390,6 +390,7 @@ void OnTick()
 
     // 5d. 鍔ㄩ噺杩借釜鍏ュ満锛堣繛缁悓鍚慔1 K绾胯拷鍗曪紝鍗曞悜瓒嬪娍鏈堜笓鐢級
     TryMomentumEntry(symbol, new_bar);
+    TryEMATrendEntry(symbol, new_bar);
 
     // 6. 姣忓皬鏃跺瓨娲绘棩蹇?
     {
@@ -826,4 +827,111 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
     }
 
     return false;
+}
+
+
+// EMA趋势追踪入场：BTC强牛市月(价格在D1 EMA上方连续N根)顺势BUY
+// 覆盖OB策略无法盈利的强单向上涨月（Sep24-Dec24类型）
+// EMA趋势确认 + M5高点突破入场：BTC强牛市月（Sep24-Dec24类型）顺势BUY
+// 条件：D1 EMA20连续N根上升+收盘在EMA上方，M5价格突破前N根最高点时追涨
+void TryEMATrendEntry(string symbol, bool new_bar)
+{
+    if(!InpEnableEMATrend || !new_bar) return;
+    if(g_state.pos_count >= CfgMaxConcurrent()) return;
+
+    static int    s_ema_cooldown = 0;
+    static int    s_ema_today_count = 0;
+    static datetime s_ema_last_day = 0;
+
+    if(s_ema_cooldown > 0) { s_ema_cooldown--; return; }
+
+    // 每日计数重置
+    MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
+    datetime today_start = TimeCurrent() - (dt.hour*3600 + dt.min*60 + dt.sec);
+    if(s_ema_last_day != today_start) { s_ema_last_day = today_start; s_ema_today_count = 0; }
+    if(InpEMATrendMaxPerDay > 0 && s_ema_today_count >= InpEMATrendMaxPerDay) return;
+
+    // === D1 EMA条件检查 ===
+    ENUM_TIMEFRAMES d1tf = MinutesToTF(InpEMATrendTF);
+    int period = InpEMATrendPeriod;
+    int d1needed = InpEMATrendBars + period + 2;
+    MqlRates d1[];
+    if(CopyRates(symbol, d1tf, 1, d1needed, d1) < d1needed) return;
+    int d1cnt = ArraySize(d1);
+
+    // 计算EMA
+    double ema[];
+    ArrayResize(ema, d1cnt);
+    double k = 2.0 / (period + 1.0);
+    ema[0] = d1[0].close;
+    for(int i = 1; i < d1cnt; i++) ema[i] = d1[i].close * k + ema[i-1] * (1.0 - k);
+
+    // 条件：最近N根D1收盘在EMA上方 + EMA斜率正
+    int n = InpEMATrendBars;
+    for(int i = d1cnt - n; i < d1cnt; i++)
+    {
+        if(d1[i].close <= ema[i]) return;  // 收盘低于EMA，取消
+        if(i > 0 && ema[i-1] > 0)
+        {
+            double slope = (ema[i] - ema[i-1]) / ema[i-1] * 100.0;
+            if(slope < InpEMATrendMinSlopePct) return;  // 斜率不足
+        }
+    }
+
+    // === M5突破入场：价格突破前N根M5最高点 ===
+    int m5lookback = (int)InpEMATrendPullbackATR;  // 复用参数：突破回看M5根数(整数部分)
+    if(m5lookback < 2) m5lookback = 8;
+    MqlRates m5[];
+    if(CopyRates(symbol, PERIOD_M5, 1, m5lookback + 1, m5) < m5lookback + 1) return;
+    int m5cnt = ArraySize(m5);
+
+    // 前N根M5（不含最新未完成bar）的最高/最低价
+    double recent_high = m5[0].high;
+    double recent_low  = m5[0].low;
+    for(int i = 1; i < m5cnt - 1; i++)  // 跳过最新bar(m5[m5cnt-1])
+    {
+        if(m5[i].high > recent_high) recent_high = m5[i].high;
+        if(m5[i].low  < recent_low)  recent_low  = m5[i].low;
+    }
+
+    double atr = g_state.atr_value;
+    if(atr <= 0) return;
+
+    // 突破条件：当前bar收盘 > 前N根最高点
+    double last_close = m5[m5cnt - 1].close;  // 最新已收盘M5
+    double breakout_level = recent_high + 0.1 * atr;  // 轻微超越防假突破
+    if(last_close <= breakout_level) return;
+
+    // SL = 前N根M5最低点 - buffer
+    double sl = recent_low - InpEMATrendSLATR * atr;
+    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+    if(sl >= ask) return;
+
+    double risk_price = ask - sl;
+    if(risk_price <= 0) return;
+
+    // 仓位：用 risk_percent（lot=0时）或固定手数
+    double lot = (InpEMATrendLot > 0) ? InpEMATrendLot
+                 : CalcLotSize(symbol, InpRiskPercent, risk_price);
+    if(lot <= 0) lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+
+    TradeSignal sig;
+    ZeroMemory(sig);
+    sig.direction  = OB_BUY;
+    sig.sl         = sl;
+    sig.tp         = 0.0;
+    sig.risk_price = risk_price;
+    sig.lot        = lot;
+    sig.pos_mult   = 1.0;
+    sig.ob_index   = -1;
+    sig.comment    = StringFormat("EMABREAK brk=%.0f ema=%.0f", breakout_level, ema[d1cnt-1]);
+
+    if(ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, false))
+    {
+        g_state.pos_count++;
+        s_ema_cooldown = InpEMATrendCooldown;
+        s_ema_today_count++;
+        PrintFormat("EMABREAK入场 brk=%.0f ask=%.0f sl=%.0f lot=%.3f",
+                    breakout_level, ask, sl, lot);
+    }
 }
