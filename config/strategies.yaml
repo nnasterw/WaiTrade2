@@ -161,6 +161,7 @@ defaults: &defaults
   max_lot_size: 0.0
   adaptive_lot_base: 0.0
   adaptive_lot_cap: 0.0
+  fixed_lot_sizing_balance: 0.0
   sweep_pos_mult: 1.0
   range_breakout_pos_mult: 1.0
   htf_pullback_pos_mult: 1.0

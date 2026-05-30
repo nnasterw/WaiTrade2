@@ -16,7 +16,10 @@ double CalcLotSize(string symbol, double risk_pct, double risk_price)
 
    if(tick_value <= 0 || point <= 0) return min_lot;
 
-   double risk_money = balance * risk_pct / 100.0;
+   // 固定lot计算基准：余额超过设定值后仍按设定值计算，实现exit-restart效果
+   double eff_balance = (InpFixedLotSizingBalance > 0 && balance > InpFixedLotSizingBalance)
+                        ? InpFixedLotSizingBalance : balance;
+   double risk_money = eff_balance * risk_pct / 100.0;
    double risk_points = risk_price / point;
    double lot = risk_money / (risk_points * tick_value);
 
