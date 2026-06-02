@@ -171,7 +171,7 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
     if(InpFailureReverseTPR > 0)
         tp = RToPrice(InpFailureReverseTPR, order_price, risk, rev_dir);
     else if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-        tp = RToPrice(CfgEffectiveFixedTPR(), order_price, risk, rev_dir);
+        tp = RToPrice(CfgFixedTPR(), order_price, risk, rev_dir);
 
     MqlTradeRequest request = {};
     MqlTradeResult result = {};

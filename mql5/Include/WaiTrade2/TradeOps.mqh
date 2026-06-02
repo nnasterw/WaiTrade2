@@ -16,12 +16,8 @@ double CalcLotSize(string symbol, double risk_pct, double risk_price)
 
    if(tick_value <= 0 || point <= 0) return min_lot;
 
-   // VSL修复: 仓位计算基于券商实SL距离(含hard_buffer), 而非虚拟SL
-   double adjusted_risk = risk_price;
-   if(UseVirtualSLMode() && CfgVirtualSLHardBufferR() > 0)
-      adjusted_risk = risk_price * (1.0 + CfgVirtualSLHardBufferR());
    double risk_money = balance * risk_pct / 100.0;
-   double risk_points = adjusted_risk / point;
+   double risk_points = risk_price / point;
    double lot = risk_money / (risk_points * tick_value);
 
    lot = MathFloor(lot / lot_step) * lot_step;
@@ -37,7 +33,7 @@ double GetSpread(string symbol)
 
 bool UseVirtualSLMode()
 {
-   return (CfgVirtualSLConfirmBars() > 0 && CfgVirtualSLHardBufferR() > 0);
+   return (CfgVirtualSLConfirmBars() > 0);
 }
 
 double BrokerStopFromVirtualSL(double virtual_sl, double entry_price, double risk_price, int direction)
@@ -47,21 +43,27 @@ double BrokerStopFromVirtualSL(double virtual_sl, double entry_price, double ris
    if(!UseVirtualSLMode() || virtual_sl <= 0 || risk_price <= 0)
       return NormalizeDouble(virtual_sl, digits);
 
-   double hard_buffer = risk_price * CfgVirtualSLHardBufferR();
-   double broker_sl = (direction > 0) ? virtual_sl - hard_buffer
-                                      : virtual_sl + hard_buffer;
+   // VSL soft-stop: no broker SL (or very wide emergency SL)
+   // EA manages exit via CheckVirtualSL with bar-close confirmation
+   // Emergency SL = 3x virtual risk for crash protection only
+   double emergency = risk_price * 3.0;
+   double broker_sl = (direction > 0) ? virtual_sl - emergency
+                                      : virtual_sl + emergency;
    return NormalizeDouble(broker_sl, digits);
 }
 
 bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
 {
+   // VSL soft-stop: broker SL is emergency only, EA manages exit via CheckVirtualSL
+   if(UseVirtualSLMode())
+      return true;
+
    if(!PositionSelectByTicket(ticket)) return false;
 
    double current_sl = PositionGetDouble(POSITION_SL);
    string symbol = PositionGetString(POSITION_SYMBOL);
    int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
    new_sl = NormalizeDouble(new_sl, digits);
-
    // 跳过无效修改: 新SL与当前SL差距小于3个point（减少MT5日志量）
    if(MathAbs(new_sl - current_sl) < SymbolInfoDouble(symbol, SYMBOL_POINT) * 3)
       return true;

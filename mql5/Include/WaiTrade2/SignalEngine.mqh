@@ -1661,7 +1661,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp_est = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
+         tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
       else if(tp_est == 0.0 && CfgEnableStateFilter() && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
@@ -1774,13 +1774,13 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    {
       tp = CalcHTFPullbackTP(zone, entry);
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
    else if(zone.is_liquidity_sweep)
    {
       tp = CalcLiquiditySweepTP(zone, entry);
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
    else if(CfgEnableStateFilter() && state.market_state == 0)
    {
@@ -1793,13 +1793,13 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
             tp = state.target_price;
       }
       if(tp == 0.0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
    else
    {
       // 趋势态: tp=0让DTP接管，除非没有DTP则用固定TP兜底
       if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
 
    signal.entry = entry;
@@ -1941,7 +1941,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp_est = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
+         tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
       else if(tp_est == 0.0 && CfgEnableStateFilter() && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
@@ -2035,7 +2035,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    {
       tp = CalcLiquiditySweepTP(zone, entry);
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
    else if(CfgEnableStateFilter() && state.market_state == 0)
    {
@@ -2047,12 +2047,12 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
             tp = state.target_price;
       }
       if(tp == 0.0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
    else
    {
       if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
+         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
 
    signal.direction = zone.direction;
