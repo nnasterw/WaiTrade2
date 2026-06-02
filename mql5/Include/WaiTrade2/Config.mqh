@@ -103,6 +103,7 @@ input double InpSLBufferATR      = 0.10;     // SL棰濆ATR缂撳啿
 input int    InpVirtualSLConfirmBars = 0;    // 虚拟止损连续收盘确认根数(0=禁用)
 input int    InpVirtualSLConfirmTF = 1;      // 虚拟止损确认周期(分钟)
 input double InpVirtualSLHardBufferR = 0.0;  // 券商硬止损额外放宽R倍数(0=禁用)
+input int    InpVirtualSLBreachSec = 0;         // VSL breach seconds: exit after N seconds sustained break (0=disabled, suggest 3-10)
 input double InpVirtualSLCloseBufferATR = 0.0; // 收盘确认需越过原始SL的ATR缓冲
 input int    InpDefensiveVirtualSLConfirmBars = 0; // Defensive virtual SL confirm bars
 input double InpDefensiveVirtualSLHardBufferR = 0.0; // Defensive hard stop buffer in R
@@ -1107,6 +1108,7 @@ double CfgVirtualSLCloseBufferATR()
    return InpVirtualSLCloseBufferATR;
 }
 double CfgOBHeightTPMult() { return UseBTCProfile() ? InpBTCOBHeightTPMult : InpOBHeightTPMult; }
+int CfgVirtualSLBreachSec() { return InpVirtualSLBreachSec; }
 int CfgTimeExitBars() { return UseBTCProfile() ? InpBTCTimeExitBars : (UseXAUTrendProfile() ? InpXAUTrendTimeExitBars : InpTimeExitBars); }
 int CfgSweepLookbackBars() { return UseBTCProfile() ? InpBTCSweepLookbackBars : InpSweepLookbackBars; }
 double CfgSweepMaxRangeATR() { return UseBTCProfile() ? InpBTCSweepMaxRangeATR : InpSweepMaxRangeATR; }

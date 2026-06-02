@@ -33,7 +33,7 @@ double GetSpread(string symbol)
 
 bool UseVirtualSLMode()
 {
-   return (CfgVirtualSLConfirmBars() > 0);
+   return (CfgVirtualSLConfirmBars() > 0 || CfgVirtualSLBreachSec() > 0);
 }
 
 double BrokerStopFromVirtualSL(double virtual_sl, double entry_price, double risk_price, int direction)

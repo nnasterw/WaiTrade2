@@ -113,6 +113,7 @@ FLAT_MAP = {
     "virtual_sl_confirm_tf": "InpVirtualSLConfirmTF",
     "virtual_sl_hard_buffer_r": "InpVirtualSLHardBufferR",
     "virtual_sl_close_buffer_atr": "InpVirtualSLCloseBufferATR",
+    "virtual_sl_breach_sec": "InpVirtualSLBreachSec",
     "defensive_virtual_sl_confirm_bars": "InpDefensiveVirtualSLConfirmBars",
     "defensive_virtual_sl_hard_buffer_r": "InpDefensiveVirtualSLHardBufferR",
     "defensive_virtual_sl_close_buffer_atr": "InpDefensiveVirtualSLCloseBufferATR",

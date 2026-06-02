@@ -89,6 +89,7 @@ struct PosTrack
     string   last_sl_reason; // 鏈€杩戜竴娆L淇敼鏉ユ簮
     double   virtual_sl;
     string   virtual_sl_reason;
+    datetime virtual_sl_breach_start; // VSL breach timer (0=not breached)
     int      entry_market_state; // 鍏ュ満鏃跺競鍦虹姸鎬?1=bull,-1=bear,0=range)
 };
 

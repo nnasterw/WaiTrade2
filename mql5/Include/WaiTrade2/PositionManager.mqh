@@ -309,6 +309,42 @@ bool ApplyProtectiveSL(PosTrack &track, double new_sl, const string reason, doub
     return true;
 }
 
+bool CheckVirtualSLBreach(PosTrack &track, const EAState &state)
+{
+    int breach_sec = CfgVirtualSLBreachSec();
+    if(breach_sec <= 0) return false;
+    if(track.virtual_sl <= 0) return false;
+    if(!PositionSelectByTicket(track.ticket)) return false;
+
+    double price = (track.direction > 0)
+        ? SymbolInfoDouble(_Symbol, SYMBOL_BID)
+        : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+    bool breached = (track.direction > 0) ? (price <= track.virtual_sl)
+                                          : (price >= track.virtual_sl);
+
+    if(!breached)
+    {
+        track.virtual_sl_breach_start = 0;
+        return false;
+    }
+
+    datetime now = TimeCurrent();
+    if(track.virtual_sl_breach_start == 0)
+        track.virtual_sl_breach_start = now;
+
+    if(now - track.virtual_sl_breach_start < breach_sec)
+        return false;
+
+    if(ShouldSkipCloseAttempt(track))
+        return true;
+    double current_r = CurrentR(track);
+    string reason = "vsl_breach";
+    PrintExitDebug(reason, track, current_r, state);
+    if(!ClosePosition(track.ticket, reason))
+        MarkCloseAttemptFailed(track);
+    return true;
+}
+
 bool CheckVirtualSL(PosTrack &track, const EAState &state)
 {
     if(!UseVirtualSLMode()) return false;
@@ -378,6 +414,8 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
             continue;
         }
 
+        if(CheckVirtualSLBreach(tracks[i], state))
+            continue;
         if(CheckVirtualSL(tracks[i], state))
             continue;
 
@@ -919,6 +957,7 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
     t.last_sl_reason = "";
     t.entry_market_state = 0;
     t.virtual_sl = sl;
+    t.virtual_sl_breach_start = 0;
     t.virtual_sl_reason = "init";
 
     tracks[track_count] = t;
