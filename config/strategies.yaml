@@ -31718,10 +31718,10 @@ v11btc_vsl_pyramid:
   no_mfe_exit_r: -0.25
 
 # === QS-defensive: 质量过滤版 — ZD月配合运营 ===
-v11xau-qs-defensive:
+v11xau-qs3:
   <<: *v11xau-qs
-  version: V11XAU-QS-DEFENSIVE
-  description: "QS质量版: 5重入+5并发+0.22反弹+甜点0.30, ZD月低频率高质量配合运营"
+  version: V11XAU-QS3
+  description: "QS3正式版(原QS-DEFENSIVE): M1 720d $282K/56.7%WR/PF1.41, M1/M5结果完全一致, 防御层天然过滤劣质信号"
   risk_percent: 1.5
   max_pos_mult: 2.0
   max_lot_size: 3.0
