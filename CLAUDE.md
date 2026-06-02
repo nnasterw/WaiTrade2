@@ -99,7 +99,8 @@ V<代数><品种>-<类型><变体>
 ## 工作流
 
 ```text
-config/strategies.yaml -> yaml_to_set.py -> mql5/Presets/*.set
+config/strategies.yaml -> check_strategy_consistency.py（必跑）
+  -> yaml_to_set.py -> mql5/Presets/*.set
   -> mt5_cli_backtest.py / mt5_backtest_win.py
   -> MT5 terminal64.exe /config:
   -> results/backtest/*.txt + digest/trades.csv
@@ -121,7 +122,8 @@ config/strategies.yaml -> yaml_to_set.py -> mql5/Presets/*.set
 
 ## 回测纪律
 
-- **铁律：回测 BarTF 必须匹配 Live BarTF**。回测 `Period=` 由策略 `bar_period_min`/`bar_tf` 自动推导，禁用人工覆盖。
+- **铁律 1：回测前必须先跑策略检查**。每次回测新策略或修改参数后，必须先执行 `python scripts/check_strategy_consistency.py <策略名>`，确认无 ERROR 后方可回测。
+- **铁律 2：回测 BarTF 必须匹配 Live BarTF**。回测 `Period=` 由策略 `bar_period_min`/`bar_tf` 自动推导，禁用人工覆盖。
 - 先用 `backtest_digest.py`、`backtest_ledger.py` 或 `trade_cluster_summary.py` 提炼日志。
 - 关键结果单独复跑，并校验品种、日期、策略版本标记、**BarTF**。
 - macOS MT5 `/config:` 路径必须使用 Windows 反斜杠。
