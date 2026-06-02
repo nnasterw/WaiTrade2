@@ -27308,6 +27308,7 @@ v11xau-zd8-m5:
 
 # v11xau-qs — 趋势腿（等价于 v11xau_r39_trend_lot5）
 v11xau-qs: &v11xau-qs
+  max_counter_risk_atr: 1.5
   <<: *v11xau_r39_trend_lot5
   version: V11XAU-QS
   description: "趋势腿正式版：OB M1 lot5 (2026-06-02加固: 重入限制+诊断日志)"
@@ -29684,6 +29685,7 @@ v11xau-qs-ss-z3:
 # === QS2 — 基线+DTP版 ===
 # 去掉暖机(利润杀手), 仅加DTP防极端回撤
 v11xau-qs2:
+  max_counter_risk_atr: 1.5
   <<: *v11xau-qs
   version: V11XAU-QS2
   description: "QS2基线+DTP: 无暖机(保留$497k复利)+DTP2R防极端回撤+连亏5冷却+金字塔"
@@ -31719,6 +31721,7 @@ v11btc_vsl_pyramid:
 
 # === QS-defensive: 质量过滤版 — ZD月配合运营 ===
 v11xau-qs3:
+  max_counter_risk_atr: 1.5
   <<: *v11xau-qs
   version: V11XAU-QS3
   description: "QS3正式版: M1 720d $282K/56.7%WR/PF1.41. 0.5R/0.4R BE锁是甜点(BE锁14笔贡献+5.2R), VSL会误杀盈利交易(交易-56%利润-58%), 改进方向在入口质量不在出口机制"
@@ -31735,6 +31738,7 @@ v11xau-qs3:
 
 # === QS-ultra: 极限质量版 — 强制月度盈利 ===
 v11xau-qs-ultra:
+  max_counter_risk_atr: 0.0
   <<: *v11xau-qs
   version: V11XAU-QS-ULTRA
   description: "QS极限版: 2重入+3并发+0.28反弹+双确认+强度1.0+早保本0.3R, ZD月保证盈利"
