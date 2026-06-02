@@ -65,7 +65,12 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     defaults = config.get('backtest_defaults', {})
     account = config.get('mt5_account', {})
 
-    period = strategy_cfg.get('period', defaults.get('period', 'M5'))
+    # 优先使用策略的 bar_period_min（匹配 EA InpBarTF），否则用 bar_tf，最后才用 period
+    bar_min = strategy_cfg.get('bar_period_min', strategy_cfg.get('bar_tf'))
+    if bar_min is not None:
+        period = f'M{bar_min}'
+    else:
+        period = strategy_cfg.get('period', defaults.get('period', 'M5'))
     model = strategy_cfg.get('model', defaults.get('model', '1'))
     deposit = strategy_cfg.get('deposit', defaults.get('deposit', 200))
     currency = strategy_cfg.get('currency', defaults.get('currency', 'USD'))

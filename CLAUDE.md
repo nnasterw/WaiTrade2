@@ -73,8 +73,9 @@ config/strategies.yaml -> yaml_to_set.py -> mql5/Presets/*.set
 
 ## 回测纪律
 
+- **铁律：回测 BarTF 必须匹配 Live BarTF**。回测 `Period=` 由策略 `bar_period_min`/`bar_tf` 自动推导，禁用人工覆盖。
 - 先用 `backtest_digest.py`、`backtest_ledger.py` 或 `trade_cluster_summary.py` 提炼日志。
-- 关键结果单独复跑，并校验品种、日期、策略版本标记。
+- 关键结果单独复跑，并校验品种、日期、策略版本标记、**BarTF**。
 - macOS MT5 `/config:` 路径必须使用 Windows 反斜杠。
 - 回测和 Live 的入场价、offset、SL、TP、DTP、timeout、并发、cooldown、去重逻辑必须等效。
 
@@ -82,9 +83,32 @@ config/strategies.yaml -> yaml_to_set.py -> mql5/Presets/*.set
 
 - 新策略写入 `config/strategies.yaml` 并用 MT5 CLI 验证。
 - 重大结论写入 `research/notes/`。
+- **策略迭代规范**：`research/notes/2026-06-02_strategy_iteration_spec.md` — 部署前必读。
 - 不信任 WR > 80% 的异常结果，必须查成交假设、缓存、日志匹配和日期窗口。
 - 不做具体月份过滤作为最终通用策略；月份只能用于诊断。
 - XAU/BTC 分开调参；加密通常需要更大 SL、timeout、BE、DTP 尺度。
+
+### Live 参数安全边界（$200 账户）
+
+| 参数 | 上限 | 原因 |
+|------|:---:|------|
+| `max_lot_size` | 0.1 | $200 账户 0.1 手 XAU ≈ $450 风险 |
+| `max_pos_mult` | 5.0 | 防深度入场 boost 失控 |
+| `max_concurrent` | 5 | 同时持仓不超 5 单 |
+| `max_entries_per_ob` | 5 | 同一 OB 最多 5 次入场 |
+| `ob_reentry_cooldown_min` | ≥3 | 至少 3 分钟冷却 |
+| `cooldown_bars` | ≥1 | 至少 1 根 K 线全局冷却 |
+
+### Live 部署检查清单
+
+- [ ] EA 编译 0 errors 0 warnings
+- [ ] 720 天回测通过（Model 4, Real Ticks）
+- [ ] 回测 `Period=` 匹配策略 `bar_tf`（不等于 Live BarTF = 致命 Bug）
+- [ ] `.set` 文件在 MT5 可访问路径
+- [ ] `startup.ini` 指向正确的 `.set` 文件名
+- [ ] EA 启动后检查日志 `InpVersion` 匹配预期
+- [ ] `InpEnableEntryDebug=true` 已开启
+- [ ] 禁止 Live 热替换策略版本（必须重启 EA）
 
 ## 高危坑
 

@@ -814,6 +814,38 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['impulse_lookback'] == 'InpImpulseLookback'
     assert FLAT_MAP['entry_depth_relax_min_balance'] == 'InpEntryDepthRelaxMinBalance'
     assert FLAT_MAP['atr_period'] == 'InpATRPeriod'
+    assert FLAT_MAP['bounce_close_min_body_pct'] == 'InpBounceCloseMinBodyPct'
+    assert FLAT_MAP['bounce_close_weak_body_pct'] == 'InpBounceCloseWeakBodyPct'
+    assert FLAT_MAP['bounce_close_weak_body_mult'] == 'InpBounceCloseWeakBodyMult'
+    assert FLAT_MAP['virtual_sl_confirm_bars'] == 'InpVirtualSLConfirmBars'
+    assert FLAT_MAP['virtual_sl_confirm_tf'] == 'InpVirtualSLConfirmTF'
+    assert FLAT_MAP['virtual_sl_hard_buffer_r'] == 'InpVirtualSLHardBufferR'
+    assert FLAT_MAP['virtual_sl_close_buffer_atr'] == 'InpVirtualSLCloseBufferATR'
+    assert FLAT_MAP['defensive_confirm_min_price'] == 'InpDefensiveConfirmMinPrice'
+    assert FLAT_MAP['defensive_confirm_max_price'] == 'InpDefensiveConfirmMaxPrice'
+    assert FLAT_MAP['defensive_max_risk_atr'] == 'InpDefensiveMaxRiskATR'
+    assert FLAT_MAP['defensive_bounce_close_min_body_pct'] == 'InpDefensiveBounceCloseMinBodyPct'
+    assert FLAT_MAP['defensive_bounce_close_weak_body_pct'] == 'InpDefensiveBounceCloseWeakBodyPct'
+    assert FLAT_MAP['defensive_bounce_close_weak_body_mult'] == 'InpDefensiveBounceCloseWeakBodyMult'
+    assert FLAT_MAP['defensive_bounce_sweet_min_pct'] == 'InpDefensiveBounceSweetMinPct'
+    assert FLAT_MAP['defensive_bounce_sweet_max_pct'] == 'InpDefensiveBounceSweetMaxPct'
+    assert FLAT_MAP['defensive_outside_bounce_sweet_mult'] == 'InpDefensiveOutsideBounceSweetMult'
+    assert FLAT_MAP['defensive_max_entries_per_ob'] == 'InpDefensiveMaxEntriesPerOB'
+    assert FLAT_MAP['defensive_ob_reentry_cooldown_min'] == 'InpDefensiveOBReentryCooldownMin'
+    assert FLAT_MAP['defensive_shallow_confirm_pos_min'] == 'InpDefensiveShallowConfirmPosMin'
+    assert FLAT_MAP['defensive_shallow_confirm_pos_mult'] == 'InpDefensiveShallowConfirmPosMult'
+    assert FLAT_MAP['runtime_defensive_drawdown_pct'] == 'InpRuntimeDefensiveDrawdownPct'
+    assert FLAT_MAP['runtime_defensive_min_trades'] == 'InpRuntimeDefensiveMinTrades'
+    assert FLAT_MAP['runtime_defensive_max_balance'] == 'InpRuntimeDefensiveMaxBalance'
+    assert FLAT_MAP['runtime_defensive_pos_mult'] == 'InpRuntimeDefensivePosMult'
+    assert FLAT_MAP['monthly_defensive_loss_pct'] == 'InpMonthlyDefensiveLossPct'
+    assert FLAT_MAP['monthly_defensive_until_profit_pct'] == 'InpMonthlyDefensiveUntilProfitPct'
+    assert FLAT_MAP['monthly_defensive_max_month_start_balance'] == 'InpMonthlyDefensiveMaxMonthStartBalance'
+    assert FLAT_MAP['monthly_defensive_min_trades'] == 'InpMonthlyDefensiveMinTrades'
+    assert FLAT_MAP['monthly_defensive_no_entry_hours'] == 'InpMonthlyDefensiveNoEntryHours'
+    assert FLAT_MAP['monthly_defensive_no_buy_hours'] == 'InpMonthlyDefensiveNoBuyHours'
+    assert FLAT_MAP['monthly_defensive_no_sell_hours'] == 'InpMonthlyDefensiveNoSellHours'
+    assert FLAT_MAP['monthly_defensive_pos_mult'] == 'InpMonthlyDefensivePosMult'
     assert FLAT_MAP['fixed_lot_size'] == 'InpFixedLotSize'
     assert FLAT_MAP['enable_pos_mult'] == 'InpEnablePosMult'
     assert FLAT_MAP['max_pos_mult'] == 'InpMaxPosMult'
@@ -907,6 +939,19 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['context_filter1_no_sell_hours'] == 'InpContextFilter1NoSellHours'
     assert FLAT_MAP['context_filter1_min_month_start_balance'] == 'InpContextFilter1MinMonthStartBalance'
     assert FLAT_MAP['context_filter1_max_month_start_balance'] == 'InpContextFilter1MaxMonthStartBalance'
+    assert FLAT_MAP['context_filter1_max_balance'] == 'InpContextFilter1MaxBalance'
+    assert FLAT_MAP['context_filter1_range_tf'] == 'InpContextFilter1RangeTF'
+    assert FLAT_MAP['context_filter1_min_range_atr'] == 'InpContextFilter1MinRangeATR'
+    assert FLAT_MAP['context_filter1_max_net_range'] == 'InpContextFilter1MaxNetRange'
+    assert FLAT_MAP['context_filter1_min_range_pos'] == 'InpContextFilter1MinRangePos'
+    assert FLAT_MAP['context_filter1_max_range_pos'] == 'InpContextFilter1MaxRangePos'
+    assert FLAT_MAP['context_filter1_min_month_range_atr'] == 'InpContextFilter1MinMonthRangeATR'
+    assert FLAT_MAP['context_filter1_min_month_range_pos'] == 'InpContextFilter1MinMonthRangePos'
+    assert FLAT_MAP['context_filter1_min_day'] == 'InpContextFilter1MinDay'
+    assert FLAT_MAP['context_filter1_max_day'] == 'InpContextFilter1MaxDay'
+    assert FLAT_MAP['context_filter1_ma_tf'] == 'InpContextFilter1MATF'
+    assert FLAT_MAP['context_filter1_ma_bars'] == 'InpContextFilter1MABars'
+    assert FLAT_MAP['context_filter1_min_ma_ext_atr'] == 'InpContextFilter1MinMAExtATR'
     assert FLAT_MAP['context_filter1_min_price'] == 'InpContextFilter1MinPrice'
     assert FLAT_MAP['context_filter1_max_price'] == 'InpContextFilter1MaxPrice'
     assert FLAT_MAP['context_filter1_mult'] == 'InpContextFilter1Mult'
@@ -914,6 +959,18 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['context_filter4_no_buy_hours'] == 'InpContextFilter4NoBuyHours'
     assert FLAT_MAP['context_filter4_no_sell_hours'] == 'InpContextFilter4NoSellHours'
     assert FLAT_MAP['context_filter4_min_month_start_balance'] == 'InpContextFilter4MinMonthStartBalance'
+    assert FLAT_MAP['context_filter4_max_balance'] == 'InpContextFilter4MaxBalance'
+    assert FLAT_MAP['context_filter4_range_bars'] == 'InpContextFilter4RangeBars'
+    assert FLAT_MAP['context_filter4_max_net_range'] == 'InpContextFilter4MaxNetRange'
+    assert FLAT_MAP['context_filter4_min_range_pos'] == 'InpContextFilter4MinRangePos'
+    assert FLAT_MAP['context_filter4_max_range_pos'] == 'InpContextFilter4MaxRangePos'
+    assert FLAT_MAP['context_filter4_min_month_range_atr'] == 'InpContextFilter4MinMonthRangeATR'
+    assert FLAT_MAP['context_filter4_min_month_range_pos'] == 'InpContextFilter4MinMonthRangePos'
+    assert FLAT_MAP['context_filter4_min_day'] == 'InpContextFilter4MinDay'
+    assert FLAT_MAP['context_filter4_max_day'] == 'InpContextFilter4MaxDay'
+    assert FLAT_MAP['context_filter4_ma_tf'] == 'InpContextFilter4MATF'
+    assert FLAT_MAP['context_filter4_ma_bars'] == 'InpContextFilter4MABars'
+    assert FLAT_MAP['context_filter4_min_ma_ext_atr'] == 'InpContextFilter4MinMAExtATR'
     assert FLAT_MAP['context_filter4_min_price'] == 'InpContextFilter4MinPrice'
     assert FLAT_MAP['context_filter4_mult'] == 'InpContextFilter4Mult'
     assert FLAT_MAP['context_filter5_months'] == 'InpContextFilter5Months'
@@ -1033,11 +1090,39 @@ def test_context_filter_params_in_set():
         'context_filter1_no_sell_hours': '0,8',
         'context_filter1_min_month_start_balance': 100000.0,
         'context_filter1_max_month_start_balance': 25000.0,
+        'context_filter1_max_balance': 500.0,
+        'context_filter1_range_tf': 240,
+        'context_filter1_range_bars': 12,
+        'context_filter1_min_range_atr': 4.0,
+        'context_filter1_max_net_range': 0.45,
+        'context_filter1_min_range_pos': 0.8,
+        'context_filter1_max_range_pos': 1.2,
+        'context_filter1_min_month_range_atr': 5.0,
+        'context_filter1_min_month_range_pos': 0.7,
+        'context_filter1_min_day': 20,
+        'context_filter1_max_day': 31,
+        'context_filter1_ma_tf': 1440,
+        'context_filter1_ma_bars': 50,
+        'context_filter1_min_ma_ext_atr': 2.5,
         'context_filter1_min_price': 3000.0,
         'context_filter1_max_price': 4500.0,
         'context_filter1_mult': 0.0,
         'context_filter2_months': '3',
         'context_filter2_no_sell_hours': '0,1,8',
+        'context_filter2_max_balance': 750.0,
+        'context_filter2_range_tf': 60,
+        'context_filter2_range_bars': 6,
+        'context_filter2_min_range_atr': 2.5,
+        'context_filter2_max_net_range': 0.6,
+        'context_filter2_min_range_pos': 0.75,
+        'context_filter2_max_range_pos': 1.5,
+        'context_filter2_min_month_range_atr': 4.0,
+        'context_filter2_min_month_range_pos': 0.6,
+        'context_filter2_min_day': 18,
+        'context_filter2_max_day': 28,
+        'context_filter2_ma_tf': 1440,
+        'context_filter2_ma_bars': 20,
+        'context_filter2_min_ma_ext_atr': 1.5,
         'context_filter2_mult': 0.5,
         'context_filter4_months': '10',
         'context_filter4_no_buy_hours': '18,22',
@@ -1069,11 +1154,39 @@ def test_context_filter_params_in_set():
     assert 'InpContextFilter1NoSellHours=0,8' in content
     assert 'InpContextFilter1MinMonthStartBalance=100000.0' in content
     assert 'InpContextFilter1MaxMonthStartBalance=25000.0' in content
+    assert 'InpContextFilter1MaxBalance=500.0' in content
+    assert 'InpContextFilter1RangeTF=240' in content
+    assert 'InpContextFilter1RangeBars=12' in content
+    assert 'InpContextFilter1MinRangeATR=4.0' in content
+    assert 'InpContextFilter1MaxNetRange=0.45' in content
+    assert 'InpContextFilter1MinRangePos=0.8' in content
+    assert 'InpContextFilter1MaxRangePos=1.2' in content
+    assert 'InpContextFilter1MinMonthRangeATR=5.0' in content
+    assert 'InpContextFilter1MinMonthRangePos=0.7' in content
+    assert 'InpContextFilter1MinDay=20' in content
+    assert 'InpContextFilter1MaxDay=31' in content
+    assert 'InpContextFilter1MATF=1440' in content
+    assert 'InpContextFilter1MABars=50' in content
+    assert 'InpContextFilter1MinMAExtATR=2.5' in content
     assert 'InpContextFilter1MinPrice=3000.0' in content
     assert 'InpContextFilter1MaxPrice=4500.0' in content
     assert 'InpContextFilter1Mult=0.0' in content
     assert 'InpContextFilter2Months=3' in content
     assert 'InpContextFilter2NoSellHours=0,1,8' in content
+    assert 'InpContextFilter2MaxBalance=750.0' in content
+    assert 'InpContextFilter2RangeTF=60' in content
+    assert 'InpContextFilter2RangeBars=6' in content
+    assert 'InpContextFilter2MinRangeATR=2.5' in content
+    assert 'InpContextFilter2MaxNetRange=0.6' in content
+    assert 'InpContextFilter2MinRangePos=0.75' in content
+    assert 'InpContextFilter2MaxRangePos=1.5' in content
+    assert 'InpContextFilter2MinMonthRangeATR=4.0' in content
+    assert 'InpContextFilter2MinMonthRangePos=0.6' in content
+    assert 'InpContextFilter2MinDay=18' in content
+    assert 'InpContextFilter2MaxDay=28' in content
+    assert 'InpContextFilter2MATF=1440' in content
+    assert 'InpContextFilter2MABars=20' in content
+    assert 'InpContextFilter2MinMAExtATR=1.5' in content
     assert 'InpContextFilter2Mult=0.5' in content
     assert 'InpContextFilter4Months=10' in content
     assert 'InpContextFilter4NoBuyHours=18,22' in content
@@ -1282,39 +1395,6 @@ def test_v11_layered_params_in_set():
     assert 'InpMicroEntryCount=1' in content
     assert 'InpMicroEntryLotMult=0.03' in content
     assert 'InpMicroEntryMaxLotSize=0.01' in content
-
-
-def test_xau_defensive_params_in_set():
-    assert FLAT_MAP['defensive_confirm_max_balance'] == 'InpDefensiveConfirmMaxBalance'
-    assert FLAT_MAP['defensive_bounce_close_min_body_pct'] == 'InpDefensiveBounceCloseMinBodyPct'
-    assert FLAT_MAP['defensive_max_entries_per_ob'] == 'InpDefensiveMaxEntriesPerOB'
-    assert FLAT_MAP['defensive_virtual_sl_confirm_bars'] == 'InpDefensiveVirtualSLConfirmBars'
-
-    content = strategy_to_set('test', {
-        'version': 'test',
-        'defensive_confirm_max_balance': 250.0,
-        'defensive_confirm_min_price': 4350.0,
-        'defensive_bounce_close_confirm_bars': 1,
-        'defensive_bounce_close_require_body': True,
-        'defensive_bounce_close_min_body_pct': 45.0,
-        'defensive_max_entries_per_ob': 3,
-        'defensive_ob_reentry_cooldown_min': 5,
-        'defensive_shallow_confirm_pos_min': 1.0,
-        'defensive_shallow_confirm_pos_mult': 0.0,
-        'defensive_virtual_sl_confirm_bars': 1,
-        'defensive_virtual_sl_hard_buffer_r': 0.25,
-    })
-    assert 'InpDefensiveConfirmMaxBalance=250.0' in content
-    assert 'InpDefensiveConfirmMinPrice=4350.0' in content
-    assert 'InpDefensiveBounceCloseConfirmBars=1' in content
-    assert 'InpDefensiveBounceCloseRequireBody=true' in content
-    assert 'InpDefensiveBounceCloseMinBodyPct=45.0' in content
-    assert 'InpDefensiveMaxEntriesPerOB=3' in content
-    assert 'InpDefensiveOBReentryCooldownMin=5' in content
-    assert 'InpDefensiveShallowConfirmPosMin=1.0' in content
-    assert 'InpDefensiveShallowConfirmPosMult=0.0' in content
-    assert 'InpDefensiveVirtualSLConfirmBars=1' in content
-    assert 'InpDefensiveVirtualSLHardBufferR=0.25' in content
 
 
 def test_v98a_strategy_set():
@@ -1679,6 +1759,95 @@ def test_cli_parse_agent_log_prefers_matching_new_segment(monkeypatch, tmp_path)
     assert result is not None
     assert result['trades'] == 1
     assert result['final_balance'] == 150.0
+
+
+def _setup_cli_backtest_dirs(tmp_path):
+    """为 generate_ini 测试准备隔离目录"""
+    bt_dir = tmp_path / 'bt'
+    bt_dir.mkdir()
+    mt5_main = tmp_path / 'mt5'
+    mt5_config = mt5_main / 'config'
+    mt5_config.mkdir(parents=True)
+    reports_dir = bt_dir / 'reports'
+    reports_dir.mkdir(parents=True)
+    return bt_dir, mt5_main
+
+
+def test_cli_generate_ini_uses_bar_period_min(monkeypatch, tmp_path):
+    """macOS 回测脚本应优先使用策略 bar_period_min / bar_tf，而非 backtest_defaults.period
+
+    复现审计发现：Live QS 跑 M1，但回测 Period= 被写死为 M5，
+    导致所有回测数据不可信。
+    """
+    ini_dir, mt5_main = _setup_cli_backtest_dirs(tmp_path)
+    monkeypatch.setattr(cli, 'INI_DIR', ini_dir)
+    monkeypatch.setattr(cli, 'MT5_MAIN', str(mt5_main))
+
+    config = {
+        'v11xau-qs': {
+            'bar_period_min': 1,   # M1 — 应被优先使用
+            'version': 'V11XAU-QS',
+        },
+        'backtest_defaults': {
+            'period': 'M5',        # 旧的错误后备值
+            'deposit': 200,
+            'leverage': '2000',
+        },
+        'mt5_account': {},
+    }
+
+    path = cli.generate_ini('v11xau-qs', 'XAUUSDm', '2026.06.01', '2026.06.02', config)
+    content = Path(path).read_text(encoding='utf-8')
+    assert 'Period=M1' in content, f'应使用策略 bar_period_min=1 → M1，但实际内容:{content}'
+    assert 'Period=M5' not in content
+
+
+def test_cli_generate_ini_falls_back_to_bar_tf(monkeypatch, tmp_path):
+    """无 bar_period_min 时应回退到 bar_tf"""
+    ini_dir, mt5_main = _setup_cli_backtest_dirs(tmp_path)
+    monkeypatch.setattr(cli, 'INI_DIR', ini_dir)
+    monkeypatch.setattr(cli, 'MT5_MAIN', str(mt5_main))
+
+    config = {
+        'v11btc-test': {
+            'bar_tf': 5,           # M5 — 后备
+            'version': 'V11BTC',
+        },
+        'backtest_defaults': {
+            'period': 'M1',
+            'deposit': 200,
+            'leverage': '2000',
+        },
+        'mt5_account': {},
+    }
+
+    path = cli.generate_ini('v11btc-test', 'BTCUSDm', '2026.06.01', '2026.06.02', config)
+    content = Path(path).read_text(encoding='utf-8')
+    assert 'Period=M5' in content, f'应使用 bar_tf=5 → M5，但实际内容:{content}'
+
+
+def test_cli_generate_ini_falls_back_to_period_when_no_bar_tf(monkeypatch, tmp_path):
+    """无 bar_period_min 也无 bar_tf 时，用 backtest_defaults.period 作为最终后备"""
+    ini_dir, mt5_main = _setup_cli_backtest_dirs(tmp_path)
+    monkeypatch.setattr(cli, 'INI_DIR', ini_dir)
+    monkeypatch.setattr(cli, 'MT5_MAIN', str(mt5_main))
+
+    config = {
+        'old-strategy': {
+            'period': 'M15',       # 策略级 period
+            'version': 'OLD',
+        },
+        'backtest_defaults': {
+            'period': 'M1',
+            'deposit': 200,
+            'leverage': '2000',
+        },
+        'mt5_account': {},
+    }
+
+    path = cli.generate_ini('old-strategy', 'XAUUSDm', '2026.06.01', '2026.06.02', config)
+    content = Path(path).read_text(encoding='utf-8')
+    assert 'Period=M15' in content, f'应使用策略级 period=M15 作为后备，但实际内容:{content}'
 
 
 def test_cli_parse_agent_log_filters_expected_marker(monkeypatch, tmp_path):
