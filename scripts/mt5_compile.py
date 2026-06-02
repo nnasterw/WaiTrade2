@@ -135,7 +135,7 @@ def sync_to_tester(ea_path: str):
         print(f'  已同步到Tester: {dst.name}')
 
 
-def find_all_eas() -> list[str]:
+def find_all_eas():
     """查找所有EA源文件，返回相对路径列表（不含扩展名）"""
     experts_dir = MQL5_DIR / 'Experts'
     if not experts_dir.exists():

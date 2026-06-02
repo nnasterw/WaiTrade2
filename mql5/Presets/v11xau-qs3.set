@@ -1,4 +1,4 @@
-; V11XAU-QS3 — QS3正式版(原QS-DEFENSIVE): M1 720d $282K/56.7%WR/PF1.41, M1/M5结果完全一致, 防御层天然过滤劣质信号
+; V11XAU-QS3 — QS3 v2: 分级BE(0.5R保本+1.0R锁0.6R)+VSL(1bar收盘确认+0.15R硬缓冲), 解决影线刺破和过早提损
 InpBouncePct=0.22
 InpTimeoutMin=120
 InpMaxEntryOffsetR=1.2
@@ -90,10 +90,10 @@ InpMaxRiskATR=3.0
 InpMaxCounterRiskATR=0.0
 InpConsolidateOB=true
 InpSLBufferATR=0.3
-InpVirtualSLConfirmBars=0
+InpVirtualSLConfirmBars=1
 InpVirtualSLConfirmTF=1
-InpVirtualSLHardBufferR=0.0
-InpVirtualSLCloseBufferATR=0.0
+InpVirtualSLHardBufferR=0.15
+InpVirtualSLCloseBufferATR=0.05
 InpDefensiveVirtualSLConfirmBars=0
 InpDefensiveVirtualSLHardBufferR=0.0
 InpDefensiveVirtualSLCloseBufferATR=0.0
@@ -102,6 +102,8 @@ InpImpulseLookback=3
 InpATRPeriod=14
 InpBreakevenR=0.5
 InpBreakevenLockR=0.4
+InpBreakevenStage2R=1.0
+InpBreakevenStage2LockR=0.6
 InpEarlyLossCutR=0.0
 InpMFEFailMinR=0.5
 InpMFEFailExitR=-0.1

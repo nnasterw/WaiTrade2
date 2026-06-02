@@ -31721,7 +31721,7 @@ v11btc_vsl_pyramid:
 v11xau-qs3:
   <<: *v11xau-qs
   version: V11XAU-QS3
-  description: "QS3正式版(原QS-DEFENSIVE): M1 720d $282K/56.7%WR/PF1.41, M1/M5结果完全一致, 防御层天然过滤劣质信号"
+  description: "QS3 v2: 分级BE(0.5R保本+1.0R锁0.6R)+VSL(1bar收盘确认+0.15R硬缓冲), 解决影线刺破和过早提损"
   risk_percent: 1.5
   max_pos_mult: 2.0
   max_lot_size: 3.0
@@ -31732,6 +31732,14 @@ v11xau-qs3:
   outside_bounce_sweet_mult: 0.4
   min_risk_spread_ratio: 3.0
   magic_number: 204897
+  # === v2: 分级BE - 0.5R保本, 1.0R锁0.6R (解决过早提损) ===
+  breakeven_stage2_r: 1.0
+  breakeven_stage2_lock_r: 0.6
+  # === v2: VSL - 1bar收盘确认 + 0.15R硬缓冲 (解决影线刺破) ===
+  virtual_sl_confirm_bars: 1
+  virtual_sl_hard_buffer_r: 0.15
+  virtual_sl_confirm_tf: 1
+  virtual_sl_close_buffer_atr: 0.05
 
 # === QS-ultra: 极限质量版 — 强制月度盈利 ===
 v11xau-qs-ultra:
