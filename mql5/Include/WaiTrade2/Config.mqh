@@ -1121,6 +1121,12 @@ double CfgBreakevenStage2LockR() { return InpBreakevenStage2LockR; }
 double CfgDTPTriggerR() { return UseBTCProfile() ? InpBTCDTPTriggerR : (UseXAUTrendProfile() ? InpXAUTrendDTPTriggerR : InpDTPTriggerR); }
 double CfgDTPRetrace() { return UseBTCProfile() ? InpBTCDTPRetrace : (UseXAUTrendProfile() ? InpXAUTrendDTPRetrace : InpDTPRetrace); }
 double CfgFixedTPR() { return UseBTCProfile() ? InpBTCFixedTPR : (UseXAUTrendProfile() ? InpXAUTrendFixedTPR : InpFixedTPR); }
+double CfgEffectiveFixedTPR() {
+    double base = CfgFixedTPR();
+    if(UseVirtualSLMode() && CfgVirtualSLHardBufferR() > 0.0)
+        return base + CfgVirtualSLHardBufferR();
+    return base;
+}
 double CfgRiskPercent() { return UseBTCProfile() ? InpBTCRiskPercent : (UseXAUTrendProfile() ? InpXAUTrendRiskPercent : InpRiskPercent); }
 double CfgMaxPosMult() { return UseBTCProfile() ? InpBTCMaxPosMult : (UseXAUTrendProfile() ? InpXAUTrendMaxPosMult : InpMaxPosMult); }
 double CfgMaxLotSize() { return UseBTCProfile() ? InpBTCMaxLotSize : (UseXAUTrendProfile() ? InpXAUTrendMaxLotSize : InpMaxLotSize); }

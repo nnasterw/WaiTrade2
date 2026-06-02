@@ -16,27 +16,12 @@ double CalcLotSize(string symbol, double risk_pct, double risk_price)
 
    if(tick_value <= 0 || point <= 0) return min_lot;
 
-   // 月度lot基准重置：每月月初记录余额，超过InpFixedLotSizingBalance后锁定
-   // 效果：每月从月初余额(最高=设定值)开始计算lot，实现exit-restart
-   double eff_balance = balance;
-   if(InpFixedLotSizingBalance > 0)
-   {
-      static int    s_lot_month_key = -1;
-      static double s_lot_month_balance = 0.0;
-      // 计算当前月份key
-      MqlDateTime dt; TimeToStruct(TimeCurrent(), dt);
-      int cur_key = dt.year * 12 + dt.mon;
-      if(cur_key != s_lot_month_key)
-      {
-         s_lot_month_key = cur_key;
-         s_lot_month_balance = balance;  // 记录本月月初实际余额
-      }
-      // 使用月初余额，但不超过上限
-      eff_balance = MathMin(s_lot_month_balance, InpFixedLotSizingBalance);
-      if(eff_balance <= 0) eff_balance = balance;
-   }
-   double risk_money = eff_balance * risk_pct / 100.0;
-   double risk_points = risk_price / point;
+   // VSL修复: 仓位计算基于券商实SL距离(含hard_buffer), 而非虚拟SL
+   double adjusted_risk = risk_price;
+   if(UseVirtualSLMode() && CfgVirtualSLHardBufferR() > 0)
+      adjusted_risk = risk_price * (1.0 + CfgVirtualSLHardBufferR());
+   double risk_money = balance * risk_pct / 100.0;
+   double risk_points = adjusted_risk / point;
    double lot = risk_money / (risk_points * tick_value);
 
    lot = MathFloor(lot / lot_step) * lot_step;
@@ -50,16 +35,22 @@ double GetSpread(string symbol)
    return (double)SymbolInfoInteger(symbol, SYMBOL_SPREAD) * SymbolInfoDouble(symbol, SYMBOL_POINT);
 }
 
+bool UseVirtualSLMode()
+{
+   return (CfgVirtualSLConfirmBars() > 0 && CfgVirtualSLHardBufferR() > 0);
+}
+
 double BrokerStopFromVirtualSL(double virtual_sl, double entry_price, double risk_price, int direction)
 {
-   if(!UseVirtualSLMode())
-      return virtual_sl;
-   double buffer_r = CfgVirtualSLHardBufferR();
-   if(buffer_r <= 0 || risk_price <= 0)
-      return virtual_sl;
-   double buffer = risk_price * buffer_r;
-   double broker_sl = (direction > 0) ? virtual_sl - buffer : virtual_sl + buffer;
-   return NormalizeDouble(broker_sl, (int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS));
+   string symbol = _Symbol;
+   int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
+   if(!UseVirtualSLMode() || virtual_sl <= 0 || risk_price <= 0)
+      return NormalizeDouble(virtual_sl, digits);
+
+   double hard_buffer = risk_price * CfgVirtualSLHardBufferR();
+   double broker_sl = (direction > 0) ? virtual_sl - hard_buffer
+                                      : virtual_sl + hard_buffer;
+   return NormalizeDouble(broker_sl, digits);
 }
 
 bool ModifySL(ulong ticket, double new_sl, int max_retries=2)

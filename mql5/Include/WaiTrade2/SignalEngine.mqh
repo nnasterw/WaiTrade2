@@ -132,6 +132,8 @@ bool IsMonthAllowed(string csv, int month)
    return (StringLen(csv) == 0 || IsCsvIntListed(csv, month));
 }
 
+bool IsMonthlyDefensiveModeActive();
+
 bool PassNoEntryHours(datetime now)
 {
    MqlDateTime dt;
@@ -139,7 +141,12 @@ bool PassNoEntryHours(datetime now)
 
    if(!IsMonthAllowed(InpEntryMonths, dt.mon))
       return false;
-   return !IsHourBlocked(CfgNoEntryHours(), dt.hour);
+   if(IsHourBlocked(CfgNoEntryHours(), dt.hour))
+      return false;
+   if(IsMonthlyDefensiveModeActive() &&
+      IsHourBlocked(InpMonthlyDefensiveNoEntryHours, dt.hour))
+      return false;
+   return true;
 }
 
 bool PassDirectionEntryHours(int direction, datetime now)
@@ -155,6 +162,15 @@ bool PassDirectionEntryHours(int direction, datetime now)
       return false;
    if(direction == OB_SELL && IsHourBlocked(CfgNoSellHours(), dt.hour))
       return false;
+   if(IsMonthlyDefensiveModeActive())
+   {
+      if(IsHourBlocked(InpMonthlyDefensiveNoEntryHours, dt.hour))
+         return false;
+      if(direction == OB_BUY && IsHourBlocked(InpMonthlyDefensiveNoBuyHours, dt.hour))
+         return false;
+      if(direction == OB_SELL && IsHourBlocked(InpMonthlyDefensiveNoSellHours, dt.hour))
+         return false;
+   }
 
    return true;
 }
@@ -325,6 +341,7 @@ double ApplyOneContextFilterPositionMultiplier(
    string no_sell_hours,
    double min_month_start_balance,
    double max_month_start_balance,
+   double max_balance,
    double min_price,
    double max_price,
    double mult,
@@ -352,6 +369,9 @@ double ApplyOneContextFilterPositionMultiplier(
       if(max_month_start_balance > 0 && g_monthly_start_balance > max_month_start_balance)
          return pos_mult;
    }
+
+   if(max_balance > 0 && AccountInfoDouble(ACCOUNT_BALANCE) > max_balance)
+      return pos_mult;
 
    if(min_price > 0 || max_price > 0)
    {
@@ -388,6 +408,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter1Months(), CfgContextFilter1NoHours(),
       CfgContextFilter1NoBuyHours(), CfgContextFilter1NoSellHours(),
       CfgContextFilter1MinMonthStartBalance(), CfgContextFilter1MaxMonthStartBalance(),
+      CfgContextFilter1MaxBalance(),
       CfgContextFilter1MinPrice(), CfgContextFilter1MaxPrice(),
       CfgContextFilter1Mult(), direction, pos_mult);
    if(pos_mult < 0)
@@ -397,6 +418,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter2Months(), CfgContextFilter2NoHours(),
       CfgContextFilter2NoBuyHours(), CfgContextFilter2NoSellHours(),
       CfgContextFilter2MinMonthStartBalance(), CfgContextFilter2MaxMonthStartBalance(),
+      CfgContextFilter2MaxBalance(),
       CfgContextFilter2MinPrice(), CfgContextFilter2MaxPrice(),
       CfgContextFilter2Mult(), direction, pos_mult);
    if(pos_mult < 0)
@@ -406,6 +428,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter3Months(), CfgContextFilter3NoHours(),
       CfgContextFilter3NoBuyHours(), CfgContextFilter3NoSellHours(),
       CfgContextFilter3MinMonthStartBalance(), CfgContextFilter3MaxMonthStartBalance(),
+      CfgContextFilter3MaxBalance(),
       CfgContextFilter3MinPrice(), CfgContextFilter3MaxPrice(),
       CfgContextFilter3Mult(), direction, pos_mult);
    if(pos_mult < 0)
@@ -415,6 +438,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter4Months(), CfgContextFilter4NoHours(),
       CfgContextFilter4NoBuyHours(), CfgContextFilter4NoSellHours(),
       CfgContextFilter4MinMonthStartBalance(), CfgContextFilter4MaxMonthStartBalance(),
+      CfgContextFilter4MaxBalance(),
       CfgContextFilter4MinPrice(), CfgContextFilter4MaxPrice(),
       CfgContextFilter4Mult(), direction, pos_mult);
    if(pos_mult < 0)
@@ -424,6 +448,7 @@ double ApplyContextFilterPositionMultiplier(int direction, double pos_mult)
       CfgContextFilter5Months(), CfgContextFilter5NoHours(),
       CfgContextFilter5NoBuyHours(), CfgContextFilter5NoSellHours(),
       CfgContextFilter5MinMonthStartBalance(), CfgContextFilter5MaxMonthStartBalance(),
+      CfgContextFilter5MaxBalance(),
       CfgContextFilter5MinPrice(), CfgContextFilter5MaxPrice(),
       CfgContextFilter5Mult(), direction, pos_mult);
 }
@@ -511,6 +536,10 @@ int g_monthly_entry_count = 0;
 bool g_monthly_entry_stopped = false;
 bool g_monthly_loss_stopped = false;
 bool g_monthly_profit_locked = false;
+
+double g_runtime_start_balance = 0.0;
+double g_runtime_peak_balance = 0.0;
+int g_runtime_entry_count = 0;
 
 bool UseSharedMonthlyGuard()
 {
@@ -624,6 +653,115 @@ void RecordMonthlyEntry()
    PrintSharedMonthlyDiag("entry");
 }
 
+void SyncRuntimeRiskState()
+{
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   if(g_runtime_start_balance <= 0.0)
+   {
+      g_runtime_start_balance = balance;
+      g_runtime_peak_balance = balance;
+   }
+   if(balance > g_runtime_peak_balance)
+      g_runtime_peak_balance = balance;
+}
+
+void RecordRuntimeEntry()
+{
+   SyncRuntimeRiskState();
+   g_runtime_entry_count++;
+}
+
+bool IsRuntimeDefensiveModeActive()
+{
+   if(InpRuntimeDefensiveDrawdownPct <= 0.0)
+      return false;
+
+   SyncRuntimeRiskState();
+   if(InpRuntimeDefensiveMinTrades > 0 &&
+      g_runtime_entry_count < InpRuntimeDefensiveMinTrades)
+      return false;
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double risk_balance = MathMin(balance, equity);
+   if(InpRuntimeDefensiveMaxBalance > 0.0 &&
+      risk_balance > InpRuntimeDefensiveMaxBalance)
+      return false;
+   if(g_runtime_peak_balance <= 0.0)
+      return false;
+
+   double stop_balance = g_runtime_peak_balance *
+      (1.0 - InpRuntimeDefensiveDrawdownPct / 100.0);
+   return (risk_balance <= stop_balance);
+}
+
+double ApplyRuntimePositionMultiplier(double pos_mult)
+{
+   if(InpRuntimeDefensivePosMult == 1.0 ||
+      !IsRuntimeDefensiveModeActive())
+      return pos_mult;
+   if(InpRuntimeDefensivePosMult <= 0.0)
+      return -1.0;
+   return pos_mult * InpRuntimeDefensivePosMult;
+}
+
+bool IsMonthlyDefensiveModeActive()
+{
+   if(InpMonthlyDefensiveLossPct <= 0 &&
+      InpMonthlyDefensiveUntilProfitPct <= 0)
+      return false;
+
+   SyncMonthlyRiskState();
+   if(g_monthly_start_balance <= 0)
+      return false;
+   if(InpMonthlyDefensiveMaxMonthStartBalance > 0 &&
+      g_monthly_start_balance > InpMonthlyDefensiveMaxMonthStartBalance)
+      return false;
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double risk_balance = MathMin(balance, equity);
+   bool active = false;
+
+   if(InpMonthlyDefensiveUntilProfitPct > 0)
+   {
+      double required_profit = g_monthly_start_balance *
+         InpMonthlyDefensiveUntilProfitPct / 100.0;
+      if(risk_balance - g_monthly_start_balance < required_profit)
+         active = true;
+   }
+
+   if(!active && InpMonthlyDefensiveLossPct > 0)
+   {
+      if(InpMonthlyDefensiveMinTrades > 0 &&
+         g_monthly_entry_count < InpMonthlyDefensiveMinTrades)
+         return false;
+
+      double defensive_balance = g_monthly_start_balance *
+         (1.0 - InpMonthlyDefensiveLossPct / 100.0);
+      active = (risk_balance <= defensive_balance);
+   }
+
+   double defensive_balance = g_monthly_start_balance *
+      (1.0 - InpMonthlyDefensiveLossPct / 100.0);
+   if(InpSharedMonthlyGuardDebug)
+   {
+      static datetime s_last_month_def_diag = 0;
+      if(TimeCurrent() - s_last_month_def_diag >= 3600 &&
+         g_monthly_entry_count >= InpMonthlyDefensiveMinTrades)
+      {
+         s_last_month_def_diag = TimeCurrent();
+         Print("MONTH_DEF active=", active ? 1 : 0,
+               " version=", InpVersion,
+               " start=", DoubleToString(g_monthly_start_balance, 2),
+               " risk_balance=", DoubleToString(risk_balance, 2),
+               " threshold=", DoubleToString(defensive_balance, 2),
+               " entries=", g_monthly_entry_count);
+      }
+   }
+   return active;
+}
+
 bool CheckMonthlyLossStop(bool lock_stop)
 {
    if(InpMonthlyLossStopPct <= 0)
@@ -681,23 +819,6 @@ bool CheckMonthlyLossStop(bool lock_stop)
          PrintSharedMonthlyDiag("loss_stop");
       }
       return true;
-   }
-
-   // 峰值回撤止损：从月内最高余额回撤超过阈值则停止（适用于lot5放大场景）
-   if(InpMonthlyDrawdownStopPct > 0 && g_monthly_peak_balance > 0)
-   {
-      double dd_stop = g_monthly_peak_balance * (1.0 - InpMonthlyDrawdownStopPct / 100.0);
-      if(risk_balance <= dd_stop)
-      {
-         if(lock_stop)
-         {
-            g_monthly_loss_stopped = true;
-            g_monthly_entry_stopped = true;
-            SaveSharedMonthlyState();
-            PrintSharedMonthlyDiag("drawdown_stop");
-         }
-         return true;
-      }
    }
 
    return false;
@@ -908,7 +1029,9 @@ void LockMonthlyEntriesAfterFilteredBadCluster()
 double ApplyMonthlyPositionMultiplier(double pos_mult)
 {
    if(InpMonthlyNegativePosMult == 1.0 &&
-      (InpMonthlyWarmupProfitPct <= 0 || InpMonthlyWarmupPosMult == 1.0))
+      (InpMonthlyWarmupProfitPct <= 0 || InpMonthlyWarmupPosMult == 1.0) &&
+      ((InpMonthlyDefensiveLossPct <= 0 && InpMonthlyDefensiveUntilProfitPct <= 0) ||
+       InpMonthlyDefensivePosMult == 1.0))
       return pos_mult;
    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
    SyncMonthlyRiskState();
@@ -929,6 +1052,12 @@ double ApplyMonthlyPositionMultiplier(double pos_mult)
    }
    if(balance < g_monthly_start_balance)
       pos_mult *= InpMonthlyNegativePosMult;
+   if(IsMonthlyDefensiveModeActive())
+   {
+      if(InpMonthlyDefensivePosMult <= 0)
+         return -1.0;
+      pos_mult *= InpMonthlyDefensivePosMult;
+   }
    return pos_mult;
 }
 
@@ -1343,38 +1472,13 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
 
    int start = count - bars;
    double net_move = (rates[count - 1].close - rates[start].open) * direction;
-   double base_price = rates[start].open;
-   double net_metric;
-   double threshold;
-   if(InpHTFNetPushMinPct > 0 && base_price > 0)
-   {
-      net_metric = net_move / base_price * 100.0;
-      threshold = InpHTFNetPushMinPct;
-   }
-   else
-   {
-      net_metric = (atr > 0) ? net_move / atr : 0;
-      threshold = CfgHTFNetPushMinATR();
-   }
+   double net_atr = net_move / atr;
    double mult = CfgHTFNetPushNeutralMult();
 
-   if(net_metric >= threshold)
-   {
+   if(net_atr >= CfgHTFNetPushMinATR())
       mult = CfgHTFNetPushAlignedMult();
-      double dir_scale = (direction < 0) ? InpHTFNetPushSellAlignedScale : InpHTFNetPushBuyAlignedScale;
-      mult *= dir_scale;
-   }
-   else if(net_metric <= -threshold)
-   {
+   else if(net_atr <= -CfgHTFNetPushMinATR())
       mult = CfgHTFNetPushCounterMult();
-      double dir_scale = (direction < 0) ? InpHTFNetPushSellCounterScale : InpHTFNetPushBuyCounterScale;
-      mult *= dir_scale;
-   }
-   else
-   {
-      double dir_scale = (direction < 0) ? InpHTFNetPushSellNeutralScale : InpHTFNetPushBuyNeutralScale;
-      mult *= dir_scale;
-   }
 
    if(mult <= 0)
       return -1.0;
@@ -1384,7 +1488,9 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
 bool PassOBReentryCooldown(const OBZone &zone)
 {
    int max_entries = CfgMaxEntriesPerOB();
-   if(max_entries > 0 && zone.entry_count >= max_entries)
+   if(max_entries < 1)
+      max_entries = 1;
+   if(zone.entry_count >= max_entries)
       return false;
 
    if(CfgOBReentryCooldownMin() <= 0 || zone.last_entry_time == 0)
@@ -1555,7 +1661,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
+         tp_est = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
       else if(tp_est == 0.0 && CfgEnableStateFilter() && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
@@ -1598,6 +1704,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    pos_mult = ApplyHTFNetPushPositionMultiplier(signal.direction, pos_mult);
    pos_mult = ApplyBalancePositionMultiplier(pos_mult);
    pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
+   pos_mult = ApplyRuntimePositionMultiplier(pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, signal.deep_entry))
    {
@@ -1655,13 +1762,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    final_lot = MathFloor(final_lot / lot_step) * lot_step;
    if(final_lot < lot_min)
    {
-      if(InpForceMinLot)
-         final_lot = lot_min;
-      else
-      {
-         if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=lot_min final_lot=", final_lot, " min=", lot_min);
-         return false;
-      }
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=lot_min final_lot=", final_lot, " min=", lot_min);
+      return false;
    }
    if(final_lot > lot_max)
       final_lot = lot_max;
@@ -1672,13 +1774,13 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    {
       tp = CalcHTFPullbackTP(zone, entry);
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
    }
    else if(zone.is_liquidity_sweep)
    {
       tp = CalcLiquiditySweepTP(zone, entry);
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
    }
    else if(CfgEnableStateFilter() && state.market_state == 0)
    {
@@ -1691,13 +1793,13 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
             tp = state.target_price;
       }
       if(tp == 0.0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
    }
    else
    {
       // 趋势态: tp=0让DTP接管，除非没有DTP则用固定TP兜底
       if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
+         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, signal.direction);
    }
 
    signal.entry = entry;
@@ -1728,32 +1830,6 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
 int ScanSignals(string symbol, const OBZone &zones[], int zone_count,
                 const EAState &state, TradeSignal &signals[], int max_signals)
 {
-   // H4高波动屏蔽：使用H4时间框架的标准ATR与M5 ATR比较
-   // 当H4 ATR（14周期）> M5 ATR × 阈值 → 市场高波动，停止M5 OB开仓
-   if(InpEnableHTFVolBlock && state.atr_value > 0)
-   {
-      ENUM_TIMEFRAMES htfTF = MinutesToTF(InpHTFVolBlockTF);
-      MqlRates htfRates[];
-      int needed = InpHTFVolBlockPeriod + 2;
-      if(CopyRates(symbol, htfTF, 1, needed, htfRates) >= needed)  // shift=1 跳过未完成bar
-      {
-         int cnt = ArraySize(htfRates);
-         double htf_atr = 0;
-         for(int _i = 1; _i < cnt; _i++)
-         {
-            double tr = htfRates[_i].high - htfRates[_i].low;
-            double tr2 = MathAbs(htfRates[_i].high - htfRates[_i-1].close);
-            double tr3 = MathAbs(htfRates[_i].low  - htfRates[_i-1].close);
-            if(tr2 > tr) tr = tr2;
-            if(tr3 > tr) tr = tr3;
-            htf_atr += tr;
-         }
-         htf_atr /= (cnt - 1);
-         // H4 ATR与M5 ATR的比值：正常市场约4-8x，高波动时>10x
-         if(htf_atr > InpHTFVolBlockATRMult * state.atr_value)
-            return 0;  // 高波动期，暂停M5 OB新开仓
-      }
-   }
    int count = 0;
    int best_idx = -1;
    double best_strength = 0;
@@ -1823,17 +1899,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
 
    double sl = 0;
    if(zone.direction == OB_BUY)
-   {
-      // 引线锚点：ob_bottom存储OB K线完整低点（含下引线），比实体底更低更真实
-      double sl_base = (zone.ob_bottom > 0 && zone.ob_bottom < zone.low) ? zone.ob_bottom : zone.low;
-      sl = sl_base - state.atr_value * CfgSLBufferATR();
-   }
+      sl = zone.low - state.atr_value * CfgSLBufferATR();
    else
-   {
-      // 引线锚点：ob_top存储OB K线完整高点（含上引线），比实体顶更高更真实
-      double sl_base = (zone.ob_top > 0 && zone.ob_top > zone.high) ? zone.ob_top : zone.high;
-      sl = sl_base + state.atr_value * CfgSLBufferATR();
-   }
+      sl = zone.high + state.atr_value * CfgSLBufferATR();
 
    double entry = (zone.direction == OB_BUY) ? ask : bid;
    double risk_price = MathAbs(entry - sl);
@@ -1873,7 +1941,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       if(tp_est == 0.0)
          tp_est = CalcOBHeightTP(zone, entry);
       if(tp_est == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp_est = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
+         tp_est = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
       else if(tp_est == 0.0 && CfgEnableStateFilter() && state.market_state == 0 && state.target_price > 0)
          tp_est = state.target_price;
       else if(tp_est == 0.0)
@@ -1914,6 +1982,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    pos_mult = ApplyHTFNetPushPositionMultiplier(zone.direction, pos_mult);
    pos_mult = ApplyBalancePositionMultiplier(pos_mult);
    pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
+   pos_mult = ApplyRuntimePositionMultiplier(pos_mult);
    pos_mult = ApplyPositionMultiplierCap(pos_mult);
    if(!PassContinuationAgeFilter(zone, state, deep_entry))
       return false;
@@ -1966,7 +2035,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    {
       tp = CalcLiquiditySweepTP(zone, entry);
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
+         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
    }
    else if(CfgEnableStateFilter() && state.market_state == 0)
    {
@@ -1978,12 +2047,12 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
             tp = state.target_price;
       }
       if(tp == 0.0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
+         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
    }
    else
    {
       if(CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
-         tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
+         tp = RToPrice(CfgEffectiveFixedTPR(), entry, risk_price, zone.direction);
    }
 
    signal.direction = zone.direction;
