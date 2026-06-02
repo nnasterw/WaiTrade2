@@ -324,6 +324,9 @@ bool CheckVirtualSLBreach(PosTrack &track, const EAState &state)
 
     if(!breached)
     {
+        // Price recovered: breach was a wick → mark as VSL survivor
+        if(track.virtual_sl_breach_start > 0)
+            track.survived_vsl_breach = true;
         track.virtual_sl_breach_start = 0;
         return false;
     }
@@ -623,6 +626,13 @@ void CheckBreakeven(PosTrack &track, const EAState &state)
             be_r = InpContextBER;
             be_lock_r = InpContextBELockR;
         }
+    }
+
+    // VSL active: 5s timer is the protection, delay BE to let winners run
+    if(CfgVirtualSLBreachSec() > 0)
+    {
+        be_r = 1.0;
+        be_lock_r = 0.6;
     }
 
     if(be_r <= 0) return;
@@ -958,6 +968,7 @@ void RegisterPosition(ulong ticket, int direction, double entry, double sl, doub
     t.entry_market_state = 0;
     t.virtual_sl = sl;
     t.virtual_sl_breach_start = 0;
+    t.survived_vsl_breach = false;
     t.virtual_sl_reason = "init";
 
     tracks[track_count] = t;
