@@ -39,6 +39,11 @@ python3 scripts/trade_cluster_summary.py --csv results/backtest/xxx.trades.csv -
 
 # 测试
 python3 -m pytest tests/ -q
+
+# 策略一致性检查
+python3 scripts/check_strategy_consistency.py                  # 全量检查
+python3 scripts/check_strategy_consistency.py v11xau-qs       # 指定策略
+python3 scripts/check_strategy_consistency.py --brief          # 精简输出
 ```
 
 依赖：`pip install pyyaml pytest`。
