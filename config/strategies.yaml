@@ -31719,17 +31719,19 @@ v11btc_vsl_pyramid:
   no_mfe_min_peak_r: 0.1
   no_mfe_exit_r: -0.25
 
-# === QS-defensive: 质量过滤版 — ZD月配合运营 ===
+# === QS3: 高质量入场过滤, 不限制交易量 ===
 v11xau-qs3:
   max_counter_risk_atr: 1.5
   <<: *v11xau-qs
   version: V11XAU-QS3
-  description: "QS3正式版: M1 720d $282K/56.7%WR/PF1.41. 0.5R/0.4R BE锁是甜点(BE锁14笔贡献+5.2R), VSL会误杀盈利交易(交易-56%利润-58%), 改进方向在入口质量不在出口机制"
+  description: "QS3正式版: 720d无保护$313K(56.9%WR/PF1.43/8127笔). 高质量入场(bounce0.22+sweet0.30+spread3.0)天然过滤劣质信号, 无需限制交易量"
   risk_percent: 1.5
-  max_pos_mult: 2.0
+  max_pos_mult: 5.0
   max_lot_size: 3.0
-  max_concurrent: 5
-  max_entries_per_ob: 5
+  max_concurrent: 14
+  max_entries_per_ob: 20
+  ob_reentry_cooldown_min: 0
+  cooldown_bars: 0
   bounce_pct: 0.22
   bounce_sweet_min_pct: 0.30
   outside_bounce_sweet_mult: 0.4

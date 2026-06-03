@@ -1,4 +1,4 @@
-; V11XAU-QS3 — QS3正式版: M1 720d $282K/56.7%WR/PF1.41. 0.5R/0.4R BE锁是甜点(BE锁14笔贡献+5.2R), VSL会误杀盈利交易(交易-56%利润-58%), 改进方向在入口质量不在出口机制
+; V11XAU-QS3 — QS3正式版: 720d无保护$313K(56.9%WR/PF1.43/8127笔). 高质量入场(bounce0.22+sweet0.30+spread3.0)天然过滤劣质信号, 无需限制交易量
 InpBouncePct=0.22
 InpTimeoutMin=120
 InpMaxEntryOffsetR=1.2
@@ -135,7 +135,7 @@ InpTimeDecayTP=false
 InpRiskPercent=1.5
 InpFixedLotSize=0.0
 InpEnablePosMult=true
-InpMaxPosMult=2.0
+InpMaxPosMult=5.0
 InpMaxLotSize=3.0
 InpSweepPosMult=1.0
 InpRangeBreakoutPosMult=1.0
@@ -217,9 +217,9 @@ InpMonthlyProfitTargetStop2Months=
 InpSharedMonthlyGuard=false
 InpSharedMonthlyGuardKey=
 InpSharedMonthlyGuardDebug=false
-InpMaxConcurrent=5
+InpMaxConcurrent=14
 InpFreeRunMinR=5.0
-InpCooldownBars=1
+InpCooldownBars=0
 InpEntryMonths=
 InpHighBalanceNoEntryMonths=
 InpHighBalanceNoEntryMinMonthStartBalance=0.0
@@ -409,8 +409,8 @@ InpStrongAddOnLotMult=0.5
 InpStrongAddOnRiskMult=0.5
 InpStrongAddOnMinSpreadRatio=5.0
 InpCloseRetryCooldownSec=0
-InpMaxEntriesPerOB=5
-InpOBReentryCooldownMin=3
+InpMaxEntriesPerOB=20
+InpOBReentryCooldownMin=0
 InpReentryPosMult=1.0
 InpContinuationPosMult=1.0
 InpFilterContAgeMinBars=0
