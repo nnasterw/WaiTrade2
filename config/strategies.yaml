@@ -31738,38 +31738,28 @@ v11xau-qs3:
   min_risk_spread_ratio: 3.0
   magic_number: 204897
 
-# === QS4: 精品版 — 极低频率+极高质量 ===
+# === QS4: DTP版 — QS3入场 + 动态止盈让赢家跑 ===
 v11xau-qs4:
   <<: *v11xau-qs
   version: V11XAU-QS4
-  description: "QS4精品版: QS3高质量入场+极致过滤, 目标WR>65% PF>1.8 日3-5笔"
+  description: "QS4 DTP版: QS3高质量入场+动态止盈, 关闭固定TP让DTP接管, 赢家跑到3-5R而非固定在1.5R"
   risk_percent: 1.0
-  max_pos_mult: 3.0
-  max_lot_size: 1.0
-  max_concurrent: 6
-  max_entries_per_ob: 5
-  ob_reentry_cooldown_min: 3
-  cooldown_bars: 1
-  # 入场质量(QS3级别+动量过滤)
+  max_pos_mult: 5.0
+  max_lot_size: 3.0
+  max_concurrent: 14
+  max_entries_per_ob: 20
+  ob_reentry_cooldown_min: 0
+  cooldown_bars: 0
+  # QS3入场质量
   bounce_pct: 0.22
   bounce_sweet_min_pct: 0.30
-  bounce_sweet_max_pct: 0.40
-  outside_bounce_sweet_mult: 0.35
-  min_ob_body_pct: 55.0
-  min_ob_strength: 0.6
-  min_risk_spread_ratio: 3.5
-  # 动量过滤(核心差异化)
-  enable_entry_momentum_filter: true
-  entry_momentum_tf: 1
-  entry_block_counter_strong: true
-  # HTF对齐(顺势优先)
-  enable_htf_net_push_filter: true
-  htf_net_push_tf: 60
-  htf_net_push_bars: 3
-  htf_net_push_min_atr: 0.45
-  htf_net_push_aligned_mult: 1.15
-  htf_net_push_neutral_mult: 0.5
-  htf_net_push_counter_mult: 0.0
+  outside_bounce_sweet_mult: 0.4
+  min_risk_spread_ratio: 3.0
+  # DTP接管(关闭固定TP)
+  fixed_tp_r: 0.0
+  dtp_trigger_r: 1.5
+  dtp_retrace: 0.25
+  adaptive_dtp: true
   magic_number: 205000
 
 # === QS-ultra: 极限质量版 — 强制月度盈利 ===
