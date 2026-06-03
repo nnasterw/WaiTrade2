@@ -109,14 +109,14 @@ Report={report_name}
 
 
 def kill_mt5():
-    subprocess.run(
-        ['taskkill', '/F', '/IM', 'terminal64.exe'],
-        capture_output=True,
+    """只杀主MT5目录下的进程, 不碰portable终端"""
+    cmd = (
+        "Get-Process -Name terminal64,metatester64 -ErrorAction SilentlyContinue | "
+        "Where-Object { $_.Path -and $_.Path.StartsWith(47C:\Program Files\MetaTrader 547, "
+        "[System.StringComparison]::OrdinalIgnoreCase) } | "
+        "Stop-Process -Force"
     )
-    subprocess.run(
-        ['taskkill', '/F', '/IM', 'metatester64.exe'],
-        capture_output=True,
-    )
+    subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True)
     time.sleep(3)
 
 
