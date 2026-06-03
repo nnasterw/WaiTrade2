@@ -31721,10 +31721,9 @@ v11btc_vsl_pyramid:
 
 # === QS3: 高质量入场过滤, 不限制交易量 ===
 v11xau-qs3:
-  max_counter_risk_atr: 1.5
   <<: *v11xau-qs
   version: V11XAU-QS3
-  description: "QS3正式版: 720d无保护$313K(56.9%WR/PF1.43/8127笔). 高质量入场(bounce0.22+sweet0.30+spread3.0)天然过滤劣质信号, 无需限制交易量"
+  description: "QS3正式版+DTP: 720d 393K(58.6%WR/PF1.72/7897笔). 动态止盈让赢家跑3-5R, 高质量入场天然过滤"
   risk_percent: 1.5
   max_pos_mult: 5.0
   max_lot_size: 3.0
@@ -31736,31 +31735,12 @@ v11xau-qs3:
   bounce_sweet_min_pct: 0.30
   outside_bounce_sweet_mult: 0.4
   min_risk_spread_ratio: 3.0
-  magic_number: 204897
-
-# === QS4: DTP版 — QS3入场 + 动态止盈让赢家跑 ===
-v11xau-qs4:
-  <<: *v11xau-qs
-  version: V11XAU-QS4
-  description: "QS4 DTP版: QS3高质量入场+动态止盈, 关闭固定TP让DTP接管, 赢家跑到3-5R而非固定在1.5R"
-  risk_percent: 1.0
-  max_pos_mult: 5.0
-  max_lot_size: 3.0
-  max_concurrent: 14
-  max_entries_per_ob: 20
-  ob_reentry_cooldown_min: 0
-  cooldown_bars: 0
-  # QS3入场质量
-  bounce_pct: 0.22
-  bounce_sweet_min_pct: 0.30
-  outside_bounce_sweet_mult: 0.4
-  min_risk_spread_ratio: 3.0
-  # DTP接管(关闭固定TP)
+  # DTP动态止盈: 关闭固定TP, 赢家跑3-5R
   fixed_tp_r: 0.0
   dtp_trigger_r: 1.5
   dtp_retrace: 0.25
   adaptive_dtp: true
-  magic_number: 205000
+  magic_number: 204897
 
 # === QS-ultra: 极限质量版 — 强制月度盈利 ===
 v11xau-qs-ultra:

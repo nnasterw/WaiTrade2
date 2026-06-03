@@ -1,4 +1,4 @@
-; V11XAU-QS3 — QS3正式版: 720d无保护$313K(56.9%WR/PF1.43/8127笔). 高质量入场(bounce0.22+sweet0.30+spread3.0)天然过滤劣质信号, 无需限制交易量
+; V11XAU-QS3 — QS3正式版+DTP: 720d 393K(58.6%WR/PF1.72/7897笔). 动态止盈让赢家跑3-5R, 高质量入场天然过滤
 InpBouncePct=0.22
 InpTimeoutMin=120
 InpMaxEntryOffsetR=1.2
@@ -118,8 +118,8 @@ InpFailureReverseRiskMult=1.0
 InpFailureReverseLotMult=1.0
 InpFailureReverseTPR=0.0
 InpFailureReverseAllowChain=false
-InpDTPTriggerR=0.0
-InpDTPRetrace=0.2
+InpDTPTriggerR=1.5
+InpDTPRetrace=0.25
 InpAdaptiveDTP=true
 InpDTPStage2TriggerR=0.0
 InpDTPStage2Retrace=0.0
@@ -504,7 +504,7 @@ InpStrongMinBodyGrowth=1.0
 InpStrongWeakReverseBodyPct=25.0
 InpStrongMaxPullbackPct=35.0
 InpStrongDTPRetraceMult=1.5
-InpFixedTPR=1.5
+InpFixedTPR=0.0
 InpOBHeightTPMult=1.5
 InpLayeredEntryCount=0
 InpLayeredSpacingPct=0.33
