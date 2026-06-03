@@ -862,8 +862,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
 
             OBZone zone = {};
             zone.high = rates[i].open;   // Gap1: bearish candle的open是实体高点
-            zone.low = rates[i].close;   // Gap1: bearish candle的close是实体低点（区间匹配用）
-            zone.ob_bottom = rates[i].low; // 引线低点（SL锚点）：含下引线的真实支撑位
+            zone.low = rates[i].close;   // Gap1: bearish candle的close是实体低点
             zone.mid = (zone.high + zone.low) / 2.0;
             zone.direction = OB_BUY;
             zone.created = rates[i].time;
@@ -939,9 +938,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
                continue;
 
             OBZone zone = {};
-            zone.high = rates[i].close;  // Gap1: bullish candle的close是实体高点（区间匹配用）
+            zone.high = rates[i].close;  // Gap1: bullish candle的close是实体高点
             zone.low = rates[i].open;    // Gap1: bullish candle的open是实体低点
-            zone.ob_top = rates[i].high; // 引线高点（SL锚点）：含上引线的真实阻力位
             zone.mid = (zone.high + zone.low) / 2.0;
             zone.direction = OB_SELL;
             zone.created = rates[i].time;

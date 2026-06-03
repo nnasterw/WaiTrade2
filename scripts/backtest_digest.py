@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 """回测报告提炼脚本：聚合摘要 + Agent 日志逐单归因。"""
 
 import argparse
@@ -29,7 +31,7 @@ CSV_COLUMNS = [
     'ticket', 'time', 'date', 'hour', 'symbol', 'dir', 'comment', 'signal_type', 'lot', 'pos_mult',
     'entry', 'initial_sl', 'tp', 'exit', 'reason', 'exit_signal', 'risk', 'r',
     'duration_min', 'mods', 'max_lock_r', 'bounce_sec', 'bounce_ob', 'confirm_pos',
-    'touch', 'confirm', 'close_time', 'stage', 'ob_age', 'touch_count', 'entry_count', 'strength', 'score', 'ds',
+    'touch', 'confirm', 'touch_count', 'entry_count', 'close_time', 'stage', 'ob_age', 'strength', 'score', 'ds',
     'fresh', 'cont', 'h1', 'deep', 'htf', 'risk_atr', 'spread_risk', 'peak_r',
     'raw_peak_r', 'dtp_peak_r', 'giveback_r', 'bars_held', 'last_sl', 'be', 'trail',
     'partial', 'dtp_partial', 'rev', 'addon', 'pnl_proxy',

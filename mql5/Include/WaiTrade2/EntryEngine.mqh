@@ -1,4 +1,4 @@
-﻿#ifndef __WAITRADE_ENTRY_ENGINE_MQH__
+#ifndef __WAITRADE_ENTRY_ENGINE_MQH__
 #define __WAITRADE_ENTRY_ENGINE_MQH__
 
 #include "Config.mqh"
@@ -128,27 +128,38 @@ bool PassBounceCloseConfirm(EntryMonitor &monitor)
             break;
 
         bool pass = false;
-        double range = rates[i].high - rates[i].low;
-        double body_pct = (range > 0) ? MathAbs(rates[i].close - rates[i].open) / range * 100.0 : 0.0;
         if(monitor.direction == OB_BUY)
         {
             pass = (rates[i].close > monitor.ob_top + buffer);
             if(pass && CfgBounceCloseRequireBody())
                 pass = (rates[i].close > rates[i].open);
+            double range = rates[i].high - rates[i].low;
+            double body_pct = (range > 0) ? MathAbs(rates[i].close - rates[i].open) / range * 100.0 : 0.0;
+            if(pass && CfgBounceCloseMinBodyPct() > 0)
+            {
+                pass = (body_pct >= CfgBounceCloseMinBodyPct());
+            }
+            if(pass)
+                monitor.confirm_body_pct = body_pct;
         }
         else
         {
             pass = (rates[i].close < monitor.ob_bottom - buffer);
             if(pass && CfgBounceCloseRequireBody())
                 pass = (rates[i].close < rates[i].open);
+            double range = rates[i].high - rates[i].low;
+            double body_pct = (range > 0) ? MathAbs(rates[i].close - rates[i].open) / range * 100.0 : 0.0;
+            if(pass && CfgBounceCloseMinBodyPct() > 0)
+            {
+                pass = (body_pct >= CfgBounceCloseMinBodyPct());
+            }
+            if(pass)
+                monitor.confirm_body_pct = body_pct;
         }
 
-        if(pass && CfgBounceCloseMinBodyPct() > 0)
-            pass = (body_pct >= CfgBounceCloseMinBodyPct());
         if(!pass)
             return false;
 
-        monitor.confirm_body_pct = body_pct;
         confirmed++;
     }
 
@@ -210,7 +221,7 @@ void BuildEntrySignalFromMonitor(const EntryMonitor &monitor, double price,
 void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
                      EntryMonitor &monitors[], int &mon_count)
 {
-    // 鍘婚噸锛氬悓涓€ ob_index 涓嶉噸澶嶆坊鍔?
+    // 去重：同一 ob_index 不重复添加
     for(int i = 0; i < mon_count; i++)
     {
         if(monitors[i].active && monitors[i].ob_index == sig.ob_index)
@@ -242,7 +253,7 @@ void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
     ZeroMemory(m);
     m.ob_index     = sig.ob_index;
     m.direction    = sig.direction;
-    // 鍏ュ満鍙傝€冪敤OB杈圭紭锛堣Е鍙婁綅锛夛紝涓嶇敤mid
+    // 入场参考用OB边缘（触及位），不用mid
     m.entry_price  = (sig.direction == OB_BUY) ? zone.high : zone.low;
     m.sl           = sig.sl;
     m.ob_top       = zone.high;
@@ -291,7 +302,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
         if(IsDeepTouched(monitors[i], price))
             monitors[i].deep_entry = true;
 
-        // PHASE_WAITING_TOUCH: 绛変环鏍艰Е鍙奜B娣卞害闃堝€?鈫?璁板綍touch 鈫?杩涘叆bounce绛夊緟
+        // PHASE_WAITING_TOUCH: 等价格触及OB深度阈值 → 记录touch → 进入bounce等待
         if(monitors[i].phase == PHASE_WAITING_TOUCH)
         {
             bool touched = false;
@@ -307,18 +318,18 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 monitors[i].touch_count++;
                 if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " phase=", monitors[i].phase, " status=TOUCHED count=", monitors[i].touch_count, " price=", price);
 
-                // 浜屾帹涓嶇牬: 闇€瑕佺浜屾瑙﹀強鎵嶈繘鍏ounce纭
+                // 二推不破: 需要第二次触及才进入bounce确认
                 if(CfgRequireDoubleTch() && monitors[i].touch_count < 2)
                 {
                     monitors[i].phase = PHASE_WAITING_DOUBLE;
                     continue;
                 }
 
-                // 瑙﹀強纭锛岃繘鍏ounce绛夊緟闃舵
+                // 触及确认，进入bounce等待阶段
                 monitors[i].phase = PHASE_WAITING_BOUNCE;
             }
         }
-        // PHASE_WAITING_BOUNCE: tick绾ounce纭 鈥?浠锋牸浠嶰B鍙嶅脊杈惧埌闃堝€兼墠鍏ュ満
+        // PHASE_WAITING_BOUNCE: tick级bounce确认 — 价格从OB反弹达到阈值才入场
         else if(monitors[i].phase == PHASE_WAITING_BOUNCE)
         {
             if(monitors[i].direction == OB_BUY && price < monitors[i].touch_price)
@@ -327,10 +338,10 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 monitors[i].touch_price = price;
 
             bool confirmed = false;
-            // buy: 浠锋牸浠庣湡瀹炴渶娣辫Е鐐瑰悜涓婂脊鍑?ob_height 脳 InpBouncePct
+            // buy: 价格从真实最深触点向上弹出 ob_height × InpBouncePct
             if(monitors[i].direction == OB_BUY && price - monitors[i].touch_price >= threshold)
                 confirmed = true;
-            // sell: 浠锋牸浠庣湡瀹炴渶娣辫Е鐐瑰悜涓嬪脊鍑?ob_height 脳 InpBouncePct
+            // sell: 价格从真实最深触点向下弹出 ob_height × InpBouncePct
             if(monitors[i].direction == OB_SELL && monitors[i].touch_price - price >= threshold)
                 confirmed = true;
 
@@ -350,7 +361,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                     continue;
                 }
 
-                // offset guard: 纭浠峰亸绂籩ntry杩囪繙鍒欐斁寮?
+                // offset guard: 确认价偏离entry过远则放弃
                 double offset_r = MathAbs(price - entry) / risk;
                 if(offset_r > CfgMaxEntryOffsetR())
                 {
@@ -383,14 +394,14 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 }
             }
 
-            // bounce瓒呮椂: 30 bars鏈‘璁ゅ垯杩囨湡
+            // bounce超时: 30 bars未确认则过期
             if((int)(now - monitors[i].touch_time) > 30 * CfgBarTF() * 60)
             {
                 monitors[i].phase = PHASE_EXPIRED;
                 monitors[i].active = false;
             }
         }
-        // PHASE_WAITING_PULLBACK: bounce纭鍚庣瓑鐭洖韪╁埌鎶樿繑浠凤紝鏈洖韪╁垯鏀惧純
+        // PHASE_WAITING_PULLBACK: bounce确认后等短回踩到折返价，未回踩则放弃
         else if(monitors[i].phase == PHASE_WAITING_PULLBACK)
         {
             bool entered = false;
@@ -420,10 +431,10 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 monitors[i].active = false;
             }
         }
-        // PHASE_WAITING_DOUBLE: 绛夌浜屾瑙﹀強(浜屾帹涓嶇牬)
+        // PHASE_WAITING_DOUBLE: 等第二次触及(二推不破)
         else if(monitors[i].phase == PHASE_WAITING_DOUBLE)
         {
-            // 妫€鏌ョ浜屾瑙﹀強
+            // 检查第二次触及
             bool touched2 = false;
             double touch2_level = CfgEntryDepthFilter() ? depth_level :
                                   ((monitors[i].direction == OB_BUY) ? monitors[i].ob_top : monitors[i].ob_bottom);
@@ -435,14 +446,14 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                 monitors[i].touch_count++;
                 if(monitors[i].touch_count >= 2)
                 {
-                    // 绗簩娆¤Е鍙婄‘璁わ紝杩涘叆bounce绛夊緟
+                    // 第二次触及确认，进入bounce等待
                     monitors[i].touch_price = price;
                     monitors[i].touch_time = now;
                     monitors[i].phase = PHASE_WAITING_BOUNCE;
                 }
             }
 
-            // 浜屾帹绐楀彛瓒呮椂
+            // 二推窗口超时
             if((int)(now - monitors[i].touch_time) > InpDoubleTchWindowMin * 60)
             {
                 monitors[i].active = false;
@@ -451,7 +462,7 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
         }
     }
 
-    // 鍘嬬缉锛氭竻鐞嗛潪娲昏穬 monitors
+    // 压缩：清理非活跃 monitors
     int write = 0;
     for(int i = 0; i < mon_count; i++)
     {
