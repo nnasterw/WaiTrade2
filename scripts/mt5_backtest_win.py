@@ -65,8 +65,6 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     leverage = strategy_cfg.get('leverage', defaults.get('leverage', '1:2000'))
     expert = strategy_cfg.get('expert', defaults.get('expert', r'WaiTrade2\WaiTrade_OB'))
 
-    login = account.get('login', '')
-    server = account.get('server', '')
     proxy_enable = account.get('proxy_enable', 1)
     proxy_type = account.get('proxy_type', 0)
     proxy_address = account.get('proxy_address', '127.0.0.1:7897')
@@ -81,8 +79,7 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
 
     ini_content = f"""; WaiTrade2 {strategy_name} / {symbol} 回测
 [Common]
-Login={login}
-Server={server}
+; 回测不登录Live账号, 避免踢掉线上终端
 ProxyEnable={proxy_enable}
 ProxyType={proxy_type}
 ProxyAddress={proxy_address}
