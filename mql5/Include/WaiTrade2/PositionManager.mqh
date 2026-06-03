@@ -3,7 +3,8 @@
 
 #include "Types.mqh"
 #include "Config.mqh"
-#include "Utils.mqh"
+#include "MathUtils.mqh"
+#include "TradeOps.mqh"
 #include "MarketState.mqh"
 #include "DecayDetector.mqh"
 

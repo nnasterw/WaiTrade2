@@ -770,54 +770,17 @@ bool CfgCsvIntListed(string csv, int value)
    return false;
 }
 
-ENUM_TIMEFRAMES CfgMinutesToTF(int minutes)
-{
-   switch(minutes)
-   {
-      case 1:   return PERIOD_M1;
-      case 2:   return PERIOD_M2;
-      case 3:   return PERIOD_M3;
-      case 4:   return PERIOD_M4;
-      case 5:   return PERIOD_M5;
-      case 6:   return PERIOD_M6;
-      case 10:  return PERIOD_M10;
-      case 12:  return PERIOD_M12;
-      case 15:  return PERIOD_M15;
-      case 20:  return PERIOD_M20;
-      case 30:  return PERIOD_M30;
-      case 60:  return PERIOD_H1;
-      case 240: return PERIOD_H4;
-      default:  return PERIOD_M15;
-   }
-}
-
-double CfgCalcATRLocal(const MqlRates &rates[], int count, int period)
-{
-   if(count < period + 1)
-      return 0.0;
-   double sum = 0.0;
-   for(int i = count - period; i < count; i++)
-   {
-      double tr = rates[i].high - rates[i].low;
-      double tr2 = MathAbs(rates[i].high - rates[i - 1].close);
-      double tr3 = MathAbs(rates[i].low - rates[i - 1].close);
-      if(tr2 > tr) tr = tr2;
-      if(tr3 > tr) tr = tr3;
-      sum += tr;
-   }
-   return sum / period;
-}
 
 bool CalcXAUTrendStats(int tf_minutes, int bars, double &net_atr, double &range_atr)
 {
    bars = MathMax(bars, 1);
    int need = bars + InpATRPeriod + 1;
    MqlRates rates[];
-   int count = CopyRates(_Symbol, CfgMinutesToTF(tf_minutes), 1, need, rates);
+   int count = CopyRates(_Symbol, MinutesToTF(tf_minutes), 1, need, rates);
    if(count < bars + 1)
       return false;
 
-   double atr = CfgCalcATRLocal(rates, count, InpATRPeriod);
+   double atr = CalcATR(rates, count, InpATRPeriod);
    if(atr <= 0)
       return false;
 

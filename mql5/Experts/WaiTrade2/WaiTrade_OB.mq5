@@ -4,7 +4,8 @@
 
 #include <WaiTrade2/Config.mqh>
 #include <WaiTrade2/Types.mqh>
-#include <WaiTrade2/Utils.mqh>
+#include <WaiTrade2/MathUtils.mqh>
+#include <WaiTrade2/TradeOps.mqh>
 #include <WaiTrade2/MarketState.mqh>
 #include <WaiTrade2/ScoreEngine.mqh>
 #include <WaiTrade2/DecayDetector.mqh>

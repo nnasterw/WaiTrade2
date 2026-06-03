@@ -3,7 +3,8 @@
 
 #include "Types.mqh"
 #include "Config.mqh"
-#include "Utils.mqh"
+#include "MathUtils.mqh"
+#include "TradeOps.mqh"
 
 bool IsImpulse(const MqlRates &rates[], int count, int start_idx, int direction, double atr)
 {
