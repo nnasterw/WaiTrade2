@@ -841,8 +841,54 @@ double CfgAdaptiveDeepEntryBoost()
 double CfgAdaptiveMaxPosMult()
 {
    double base = CfgMaxPosMult();
+   // 自适应噪音防守态衰减
    if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefBoostMult > 0.0 && base > 1.0)
-      return 1.0 + (base - 1.0) * InpAdaptiveNoiseDefBoostMult;
+      base = 1.0 + (base - 1.0) * InpAdaptiveNoiseDefBoostMult;
+   // ATR低波体制衰减(前向检测,不依赖交易结果)
+   if(IsATRLowVolRegime() && InpATRRegimeLowMaxPosMult > 0.0 && InpATRRegimeLowMaxPosMult < base)
+      base = InpATRRegimeLowMaxPosMult;
+   return base;
+}
+
+// ATR体制检测: 基于市场微观结构的前向检测(不依赖交易结果)
+// 比较当前ATR与历史平均ATR, 检测低波动体制
+bool IsATRLowVolRegime()
+{
+   if(InpATRRegimePeriod <= 0)
+      return false;
+
+   int atr_handle = iATR(_Symbol, PERIOD_CURRENT, InpATRPeriod);
+   if(atr_handle == INVALID_HANDLE)
+      return false;
+
+   // 当前ATR(最近1根bar)
+   double atr_current[1];
+   if(CopyBuffer(atr_handle, 0, 0, 1, atr_current) <= 0 || atr_current[0] <= 0)
+      return false;
+
+   // 历史平均ATR(过去InpATRRegimePeriod根bar的均值)
+   double atr_hist[];
+   int copied = CopyBuffer(atr_handle, 0, 1, InpATRRegimePeriod, atr_hist);
+   if(copied < InpATRRegimePeriod / 2)  // 至少一半数据可用
+      return false;
+
+   double atr_sum = 0.0;
+   for(int i = 0; i < copied; i++)
+      atr_sum += atr_hist[i];
+   double atr_avg = atr_sum / copied;
+   if(atr_avg <= 0)
+      return false;
+
+   double ratio = atr_current[0] / atr_avg;
+   return (ratio < InpATRRegimeLowThreshold);
+}
+
+// ATR自适应DTP触发: 低波体制降低DTP触发(更容易止盈)
+double CfgATRDTPTriggerR()
+{
+   double base = CfgDTPTriggerR();
+   if(IsATRLowVolRegime() && InpATRRegimeLowDTPTriggerR > 0.0)
+      return InpATRRegimeLowDTPTriggerR;
    return base;
 }
 

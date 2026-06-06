@@ -59,6 +59,11 @@ FLAT_MAP = {
     "adaptive_noise_def_max_range_atr": "InpAdaptiveNoiseDefMaxRangeATR",
     "adaptive_noise_recovery_pct": "InpAdaptiveNoiseRecoveryPct",
     "adaptive_noise_def_boost_mult": "InpAdaptiveNoiseDefBoostMult",
+    # ATR体制检测
+    "atr_regime_period": "InpATRRegimePeriod",
+    "atr_regime_low_threshold": "InpATRRegimeLowThreshold",
+    "atr_regime_low_max_pos_mult": "InpATRRegimeLowMaxPosMult",
+    "atr_regime_low_dtp_trigger_r": "InpATRRegimeLowDTPTriggerR",
     "enable_confirm_pullback": "InpEnableConfirmPullback",
     "confirm_pullback_pct": "InpConfirmPullbackPct",
     "confirm_pullback_wait_sec": "InpConfirmPullbackWaitSec",

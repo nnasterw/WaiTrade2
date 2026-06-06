@@ -44,6 +44,10 @@ defaults: &defaults
   adaptive_noise_def_max_range_atr: 0.10
   adaptive_noise_recovery_pct: 1.0
   adaptive_noise_def_boost_mult: 0.6
+  atr_regime_period: 0
+  atr_regime_low_threshold: 0.7
+  atr_regime_low_max_pos_mult: 1.0
+  atr_regime_low_dtp_trigger_r: 0.0
   enable_confirm_pullback: false
   confirm_pullback_pct: 0.50
   confirm_pullback_wait_sec: 30

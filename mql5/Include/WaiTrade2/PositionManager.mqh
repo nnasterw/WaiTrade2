@@ -805,6 +805,9 @@ void CheckDTP(PosTrack &track, const EAState &state)
         dtp_trigger_r = InpSellDTPTriggerR;
     if(track.htf_target && InpHTFDTPTriggerR > 0)
         dtp_trigger_r = InpHTFDTPTriggerR;
+    // ATR低波体制: 降低DTP触发(更容易止盈, 解决2605跑不到1.5R的问题)
+    if(InpATRRegimeLowDTPTriggerR > 0.0 && IsATRLowVolRegime())
+        dtp_trigger_r = InpATRRegimeLowDTPTriggerR;
     if(dtp_trigger_r <= 0) return;
     if(!PositionSelectByTicket(track.ticket)) return;
 
