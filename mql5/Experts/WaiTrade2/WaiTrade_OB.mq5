@@ -95,6 +95,9 @@ void ExecuteChannelConfirmed(OBZone& zones[], EAState& state,
                               double bid, double ask, string symbol)
 {
     TradeSignal confirmed[10];
+    // 双扫确认门控: EntryEngine路径也受此过滤
+    if(!PassDoubleSweepConfirm(zones, state.ob_count, state.bar_count))
+        return;
     SetMitigationContext(state.market_state);  // Mitigation Entry: 传入当前market_state上下文
     int conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), mons, mon_count, confirmed, 10);
     for(int i = 0; i < conf_count; i++)
@@ -344,18 +347,22 @@ void OnTick()
 
         if(!g_osc_active && InpEnableHTFPullback && !InpHTFPullbackOnly)
         {
-            TradeSignal htf_confirmed[10];
-            SetMitigationContext(g_state.market_state);  // Mitigation Entry: 上下文
-            int htf_conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), g_htf_monitors, g_htf_monitor_count, htf_confirmed, 10);
-            for(int i = 0; i < htf_conf_count; i++)
+            // 双扫确认门控: HTF EntryEngine路径
+            if(PassDoubleSweepConfirm(g_htf_zones, g_htf_zone_count, g_state.bar_count))
             {
-                if(g_state.pos_count >= CfgMaxConcurrent()) break;
-                if(htf_confirmed[i].ob_index < 0 || htf_confirmed[i].ob_index >= g_htf_zone_count) continue;
-                if(!FinalizeEntryEngineSignal(symbol, g_htf_zones[htf_confirmed[i].ob_index], g_state, htf_confirmed[i])) continue;
-                if(ExecuteSignalFromZone(htf_confirmed[i], g_htf_zones, g_htf_zone_count, false))
+                TradeSignal htf_confirmed[10];
+                SetMitigationContext(g_state.market_state);  // Mitigation Entry: 上下文
+                int htf_conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), g_htf_monitors, g_htf_monitor_count, htf_confirmed, 10);
+                for(int i = 0; i < htf_conf_count; i++)
                 {
-                    g_state.last_entry_bar = g_state.bar_count;
-                    g_state.pos_count++;
+                    if(g_state.pos_count >= CfgMaxConcurrent()) break;
+                    if(htf_confirmed[i].ob_index < 0 || htf_confirmed[i].ob_index >= g_htf_zone_count) continue;
+                    if(!FinalizeEntryEngineSignal(symbol, g_htf_zones[htf_confirmed[i].ob_index], g_state, htf_confirmed[i])) continue;
+                    if(ExecuteSignalFromZone(htf_confirmed[i], g_htf_zones, g_htf_zone_count, false))
+                    {
+                        g_state.last_entry_bar = g_state.bar_count;
+                        g_state.pos_count++;
+                    }
                 }
             }
         }

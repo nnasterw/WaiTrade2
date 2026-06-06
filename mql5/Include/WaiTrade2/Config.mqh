@@ -85,6 +85,10 @@ input int    InpMitigationEntryMaxBars = 10;     // 等价格回归OB的最大ba
 input bool   InpMitigationEntryOnlyRange = true; // 仅在震荡市(market_state=0)启用Mitigation,趋势市保留原Bounce
 input bool   InpMitigationEntryOnlyDefensive = true; // 仅在自适应防守态(权益回撤)启用Mitigation,正常态保留Bounce
 input string InpMitigationEntrySignalTypes = "sweep"; // 启用的信号类型(all/sweep/ob/range/htfpb)
+// --- 双扫确认: 要求双方向LP都被扫荡后才允许入场(SMC路径B) ---
+input bool   InpEnableDoubleSweepConfirm = false;   // 启用双扫确认(上下LP都被扫后才入场)
+input int    InpDoubleSweepWindowBars = 20;         // 双扫确认窗口bars(价格需在此窗口内扫过两侧LP)
+input bool   InpDoubleSweepOnlyDefensive = true;    // 仅在防守态启用(趋势月不受影响)
 // --- ATR体制检测: 基于市场微观结构的前向检测(全部opt-in) ---
 input int    InpATRRegimePeriod        = 0;    // 历史ATR基准bars(0=禁用,建议100=~1.5h M1)
 input double InpATRRegimeLowThreshold  = 0.7;  // 当前ATR/历史ATR<此值→低波防守
@@ -1267,6 +1271,10 @@ int  CfgMitigationEntryMaxBars() { return InpMitigationEntryMaxBars; }
 bool CfgMitigationEntryOnlyRange() { return InpMitigationEntryOnlyRange; }
 bool CfgMitigationEntryOnlyDefensive() { return InpMitigationEntryOnlyDefensive; }
 string CfgMitigationEntrySignalTypes() { return InpMitigationEntrySignalTypes; }
+// --- 双扫确认 accessors ---
+bool CfgEnableDoubleSweepConfirm() { return InpEnableDoubleSweepConfirm; }
+int  CfgDoubleSweepWindowBars() { return InpDoubleSweepWindowBars; }
+bool CfgDoubleSweepOnlyDefensive() { return InpDoubleSweepOnlyDefensive; }
 string CfgContextFilter1Months()  {
    if(UseXAUTrendProfile() && StringLen(InpXAUTrendContextFilter1Months) > 0)  return InpXAUTrendContextFilter1Months;
    return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Months : InpContextFilter1Months;

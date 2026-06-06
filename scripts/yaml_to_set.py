@@ -66,6 +66,10 @@ FLAT_MAP = {
     "mitigation_entry_only_range": "InpMitigationEntryOnlyRange",
     "mitigation_entry_only_defensive": "InpMitigationEntryOnlyDefensive",
     "mitigation_entry_signal_types": "InpMitigationEntrySignalTypes",
+    # 双扫确认 (SMC路径B)
+    "enable_double_sweep_confirm": "InpEnableDoubleSweepConfirm",
+    "double_sweep_window_bars": "InpDoubleSweepWindowBars",
+    "double_sweep_only_defensive": "InpDoubleSweepOnlyDefensive",
     # ATR体制检测
     "atr_regime_period": "InpATRRegimePeriod",
     "atr_regime_low_threshold": "InpATRRegimeLowThreshold",

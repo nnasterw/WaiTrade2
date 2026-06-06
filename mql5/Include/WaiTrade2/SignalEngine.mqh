@@ -1694,6 +1694,47 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
    return pos_mult * mult;
 }
 
+// ── 双扫确认 (SMC路径B): 要求双方向LP都被扫荡后才允许入场 ──────────────
+// 核心概念: 窄幅震荡市中, 价格需分别扫过区间上下限(双扫)后才形成真正的方向
+// 只做双扫确认后的入场, 过滤区间中段的单向扫荡陷阱
+bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count)
+{
+   if(!CfgEnableDoubleSweepConfirm())
+      return true;  // 功能未启用, 放行
+
+   // 防守态过滤: 仅在权益回撤时启用(趋势月不受影响)
+   if(CfgDoubleSweepOnlyDefensive() && !IsAdaptiveNoiseGateDefensive())
+      return true;  // 非防守态, 放行
+
+   int window_bars = CfgDoubleSweepWindowBars();
+   if(window_bars <= 0)
+      return true;
+
+   int cutoff_bar = bar_count - window_bars;
+   bool has_buy_sweep = false;   // 上方LP被扫(产生了sell方向的sweep OB)
+   bool has_sell_sweep = false;  // 下方LP被扫(产生了buy方向的sweep OB)
+
+   for(int i = 0; i < zone_count; i++)
+   {
+      if(!zones[i].is_liquidity_sweep) continue;
+      if(zones[i].created_bar < cutoff_bar) continue;  // 过期
+      if(zones[i].expired) continue;
+
+      // sweep OB方向与扫荡方向相反: OB_BUY=下方LP被扫, OB_SELL=上方LP被扫
+      if(zones[i].direction == OB_BUY)
+         has_sell_sweep = true;   // buy方向sweep OB = 下方sell-stop被扫荡
+      else
+         has_buy_sweep = true;    // sell方向sweep OB = 上方buy-stop被扫荡
+   }
+
+   bool passed = (has_buy_sweep && has_sell_sweep);
+   if(!passed && InpEnableEntryDebug)
+      Print("DOUBLE_SWEEP skip: buy_sweep=", has_buy_sweep ? 1 : 0,
+            " sell_sweep=", has_sell_sweep ? 1 : 0,
+            " window=", window_bars, " bars");
+   return passed;
+}
+
 bool PassOBReentryCooldown(const OBZone &zone)
 {
    int max_entries = CfgMaxEntriesPerOB();
@@ -2044,6 +2085,10 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
 int ScanSignals(string symbol, const OBZone &zones[], int zone_count,
                 const EAState &state, TradeSignal &signals[], int max_signals)
 {
+   // 双扫确认门控: 要求在窗口内双方向LP都被扫荡
+   if(!PassDoubleSweepConfirm(zones, zone_count, state.bar_count))
+      return 0;
+
    int count = 0;
    int best_idx = -1;
    double best_strength = 0;

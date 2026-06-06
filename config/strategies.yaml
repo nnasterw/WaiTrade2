@@ -50,6 +50,10 @@ defaults: &defaults
   mitigation_entry_only_range: true
   mitigation_entry_only_defensive: true
   mitigation_entry_signal_types: "sweep"
+  # 双扫确认 (SMC路径B)
+  enable_double_sweep_confirm: false
+  double_sweep_window_bars: 20
+  double_sweep_only_defensive: true
   atr_regime_period: 0
   atr_regime_low_threshold: 0.7
   atr_regime_low_max_pos_mult: 1.0
