@@ -85,6 +85,82 @@ bool PassSpreadRatio(double risk_distance, double spread)
    return true;
 }
 
+// Tick噪音门控: 检查入场前tick方向一致性, 过滤高噪音环境
+// 使用Cfg访问器 → 支持自适应切换(权益回撤时自动收紧)
+bool PassTickNoiseGate(int direction, string symbol)
+{
+   if(!InpEnableTickNoiseGate)
+      return true;
+
+   double min_ratio  = CfgTickNoiseGateMinDirRatio();
+   double max_range  = CfgTickNoiseGateMaxRangeATR();
+
+   MqlTick ticks[];
+   int count = CopyTicks(symbol, ticks, COPY_TICKS_ALL, 0, InpTickNoiseGateLookback);
+   if(count < InpTickNoiseGateLookback / 2)
+      return true;  // 数据不足,放行
+
+   // 统计tick方向
+   int up_ticks = 0, down_ticks = 0;
+   double prev_mid = 0;
+   double tick_high = 0, tick_low = DBL_MAX;
+   bool   has_ref = false;
+
+   for(int i = 0; i < count; i++)
+   {
+      double mid = (ticks[i].bid + ticks[i].ask) / 2.0;
+      if(mid > tick_high) tick_high = mid;
+      if(mid < tick_low)  tick_low  = mid;
+
+      if(has_ref)
+      {
+         if(mid > prev_mid)      up_ticks++;
+         else if(mid < prev_mid) down_ticks++;
+      }
+      prev_mid = mid;
+      has_ref = true;
+   }
+
+   int total = up_ticks + down_ticks;
+   if(total < 5)
+      return true;  // 方向性tick不足,放行
+
+   double dir_ratio = (direction > 0) ?
+      (double)up_ticks   / (double)total :
+      (double)down_ticks / (double)total;
+
+   if(dir_ratio < min_ratio)
+   {
+      if(InpEnableEntryDebug)
+         Print("TICK_NOISE z=skip dir_ratio=", DoubleToString(dir_ratio, 2),
+               " min=", DoubleToString(min_ratio, 2),
+               " total_ticks=", total);
+      return false;
+   }
+
+   // 振幅检查: tick波动/ATR过大 → 噪音环境
+   if(max_range > 0 && tick_low < DBL_MAX)
+   {
+      double atr_arr[1];
+      double atr_val = 0;
+      if(CopyBuffer(iATR(symbol, PERIOD_CURRENT, InpATRPeriod), 0, 0, 1, atr_arr) > 0)
+         atr_val = atr_arr[0];
+      if(atr_val > 0)
+      {
+         double range_ratio = (tick_high - tick_low) / atr_val;
+         if(range_ratio > max_range)
+         {
+            if(InpEnableEntryDebug)
+               Print("TICK_NOISE z=skip range_ratio=", DoubleToString(range_ratio, 3),
+                     " max=", DoubleToString(max_range, 3));
+            return false;
+         }
+      }
+   }
+
+   return true;
+}
+
 bool PassMinRisk(double final_lot, double risk_price, string symbol)
 {
    if(InpMinAbsRiskUSD <= 0)
@@ -704,6 +780,46 @@ double ApplyRuntimePositionMultiplier(double pos_mult)
    if(InpRuntimeDefensivePosMult <= 0.0)
       return -1.0;
    return pos_mult * InpRuntimeDefensivePosMult;
+}
+
+// --- 自适应噪音门控: 权益回撤时自动切换到更严格的噪音参数 ---
+bool IsAdaptiveNoiseGateDefensive()
+{
+   if(InpAdaptiveNoiseDrawdownPct <= 0.0)
+      return false;
+   if(!InpEnableTickNoiseGate)
+      return false;
+
+   SyncRuntimeRiskState();
+   if(g_runtime_peak_balance <= 0.0)
+      return false;
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double equity  = AccountInfoDouble(ACCOUNT_EQUITY);
+   double risk_balance = MathMin(balance, equity);
+
+   // 回撤超过drawdownPct%触发防守; 恢复至recoveryPct%以内退出防守
+   double enter_threshold = g_runtime_peak_balance *
+      (1.0 - InpAdaptiveNoiseDrawdownPct / 100.0);
+   double exit_threshold  = g_runtime_peak_balance *
+      (1.0 - InpAdaptiveNoiseRecoveryPct / 100.0);
+
+   // 无状态检查: 每tick独立判断, 回撤超过阈值立即防守, 恢复立即退出
+   return (risk_balance <= enter_threshold);
+}
+
+double CfgTickNoiseGateMinDirRatio()
+{
+   if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefMinDirRatio > 0.0)
+      return InpAdaptiveNoiseDefMinDirRatio;
+   return InpTickNoiseGateMinDirRatio;
+}
+
+double CfgTickNoiseGateMaxRangeATR()
+{
+   if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefMaxRangeATR > 0.0)
+      return InpAdaptiveNoiseDefMaxRangeATR;
+   return InpTickNoiseGateMaxRangeATR;
 }
 
 bool IsMonthlyDefensiveModeActive()
@@ -1618,6 +1734,10 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       return false;
    }
 
+   // Gap: Tick噪音门控 (使用Cfg访问器→自适应切换)
+   if(!PassTickNoiseGate(signal.direction, symbol))
+      return false;
+
    // EntryEngine确认后用真实可成交价重新过8-Gap，避免监控阶段和执行阶段口径漂移。
    double min_strength = GetDirectionMinStrength(signal.direction);
    if(min_strength > 0 && zone.strength < min_strength)
@@ -1914,6 +2034,10 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       return false;
 
    if(!PassSpreadRatio(risk_price, spread))
+      return false;
+
+   // Gap: Tick噪音门控 (使用Cfg访问器→自适应切换)
+   if(!PassTickNoiseGate(zone.direction, symbol))
       return false;
 
    // Gap5: 信号质量门槛

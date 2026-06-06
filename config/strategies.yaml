@@ -39,6 +39,10 @@ defaults: &defaults
   runtime_defensive_min_trades: 0
   runtime_defensive_max_balance: 0.0
   runtime_defensive_pos_mult: 1.0
+  adaptive_noise_drawdown_pct: 0.0
+  adaptive_noise_def_min_dir_ratio: 0.45
+  adaptive_noise_def_max_range_atr: 0.10
+  adaptive_noise_recovery_pct: 1.0
   enable_confirm_pullback: false
   confirm_pullback_pct: 0.50
   confirm_pullback_wait_sec: 30

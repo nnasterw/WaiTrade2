@@ -53,6 +53,11 @@ FLAT_MAP = {
     "runtime_defensive_min_trades": "InpRuntimeDefensiveMinTrades",
     "runtime_defensive_max_balance": "InpRuntimeDefensiveMaxBalance",
     "runtime_defensive_pos_mult": "InpRuntimeDefensivePosMult",
+    # 自适应噪音门控
+    "adaptive_noise_drawdown_pct": "InpAdaptiveNoiseDrawdownPct",
+    "adaptive_noise_def_min_dir_ratio": "InpAdaptiveNoiseDefMinDirRatio",
+    "adaptive_noise_def_max_range_atr": "InpAdaptiveNoiseDefMaxRangeATR",
+    "adaptive_noise_recovery_pct": "InpAdaptiveNoiseRecoveryPct",
     "enable_confirm_pullback": "InpEnableConfirmPullback",
     "confirm_pullback_pct": "InpConfirmPullbackPct",
     "confirm_pullback_wait_sec": "InpConfirmPullbackWaitSec",
