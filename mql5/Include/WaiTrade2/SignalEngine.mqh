@@ -397,11 +397,22 @@ double GetDirectionMinStrength(int direction)
 
 double ApplyDirectionPosMult(int direction, double pos_mult)
 {
+   double mult = 1.0;
    if(direction == OB_BUY)
-      return pos_mult * InpBuyPosMult;
-   if(direction == OB_SELL)
-      return pos_mult * InpSellPosMult;
-   return pos_mult;
+      mult = InpBuyPosMult;
+   else if(direction == OB_SELL)
+      mult = InpSellPosMult;
+
+   // 防守态方向仓位衰减: 解决某方向系统性亏损(如2603卖单WR=32%亏$115)
+   if(IsAdaptiveNoiseGateDefensive())
+   {
+      if(direction == OB_BUY && InpAdaptiveNoiseDefBuyMult > 0.0 && InpAdaptiveNoiseDefBuyMult != 1.0)
+         mult *= InpAdaptiveNoiseDefBuyMult;
+      else if(direction == OB_SELL && InpAdaptiveNoiseDefSellMult > 0.0 && InpAdaptiveNoiseDefSellMult != 1.0)
+         mult *= InpAdaptiveNoiseDefSellMult;
+   }
+
+   return pos_mult * mult;
 }
 
 double ApplyHourPositionMultiplier(double pos_mult)
