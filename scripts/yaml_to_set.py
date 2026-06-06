@@ -58,6 +58,7 @@ FLAT_MAP = {
     "adaptive_noise_def_min_dir_ratio": "InpAdaptiveNoiseDefMinDirRatio",
     "adaptive_noise_def_max_range_atr": "InpAdaptiveNoiseDefMaxRangeATR",
     "adaptive_noise_recovery_pct": "InpAdaptiveNoiseRecoveryPct",
+    "adaptive_noise_def_boost_mult": "InpAdaptiveNoiseDefBoostMult",
     "enable_confirm_pullback": "InpEnableConfirmPullback",
     "confirm_pullback_pct": "InpConfirmPullbackPct",
     "confirm_pullback_wait_sec": "InpConfirmPullbackWaitSec",

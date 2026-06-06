@@ -337,8 +337,9 @@ void PrintEntryDebug(const string stage, const OBZone &zone, const EAState &stat
 
 double ApplyPositionMultiplierCap(double pos_mult)
 {
-   if(CfgMaxPosMult() > 0 && pos_mult > CfgMaxPosMult())
-      return CfgMaxPosMult();
+   double cap = CfgAdaptiveMaxPosMult();
+   if(cap > 0 && pos_mult > cap)
+      return cap;
    return pos_mult;
 }
 
@@ -820,6 +821,29 @@ double CfgTickNoiseGateMaxRangeATR()
    if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefMaxRangeATR > 0.0)
       return InpAdaptiveNoiseDefMaxRangeATR;
    return InpTickNoiseGateMaxRangeATR;
+}
+
+// 自适应仓位乘数: 防守态衰减boost和MaxPosMult
+double CfgAdaptiveBoostIn1HOB()
+{
+   double base = CfgBoostIn1HOB();
+   if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefBoostMult > 0.0 && base > 1.0)
+      return 1.0 + (base - 1.0) * InpAdaptiveNoiseDefBoostMult;
+   return base;
+}
+double CfgAdaptiveDeepEntryBoost()
+{
+   double base = InpDeepEntryBoost;
+   if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefBoostMult > 0.0 && base > 1.0)
+      return 1.0 + (base - 1.0) * InpAdaptiveNoiseDefBoostMult;
+   return base;
+}
+double CfgAdaptiveMaxPosMult()
+{
+   double base = CfgMaxPosMult();
+   if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefBoostMult > 0.0 && base > 1.0)
+      return 1.0 + (base - 1.0) * InpAdaptiveNoiseDefBoostMult;
+   return base;
 }
 
 bool IsMonthlyDefensiveModeActive()
@@ -1806,8 +1830,9 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    {
       pos_mult = InpEnablePosMult ? CalcPositionMultiplier(zone) : 1.0;
    }
-   if(signal.deep_entry && InpDeepEntryBoost > 1.0)
-      pos_mult *= InpDeepEntryBoost;
+   double adaptive_deep_boost = CfgAdaptiveDeepEntryBoost();
+   if(signal.deep_entry && adaptive_deep_boost > 1.0)
+      pos_mult *= adaptive_deep_boost;
    pos_mult = ApplySignalTypePositionMultiplier(zone, pos_mult);
    pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
@@ -2214,7 +2239,7 @@ double CalcPositionMultiplier(const OBZone &zone)
    double base = zone.strength;
    double fresh_mult = zone.is_fresh ? 1.5 : 1.0;
    double cont_mult = zone.is_continuation ? 1.3 : 1.0;
-   double boost_1h = zone.is_1h_aligned ? CfgBoostIn1HOB() : 1.0;
+   double boost_1h = zone.is_1h_aligned ? CfgAdaptiveBoostIn1HOB() : 1.0;
    double ds = InpDSWeight ? zone.ds_weight : 1.0;
 
    return base * fresh_mult * cont_mult * boost_1h * ds;
