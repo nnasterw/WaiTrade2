@@ -4,8 +4,7 @@
 
 #include <WaiTrade2/Config.mqh>
 #include <WaiTrade2/Types.mqh>
-#include <WaiTrade2/MathUtils.mqh>
-#include <WaiTrade2/TradeOps.mqh>
+#include <WaiTrade2/Utils.mqh>
 #include <WaiTrade2/MarketState.mqh>
 #include <WaiTrade2/ScoreEngine.mqh>
 #include <WaiTrade2/DecayDetector.mqh>
@@ -96,6 +95,7 @@ void ExecuteChannelConfirmed(OBZone& zones[], EAState& state,
                               double bid, double ask, string symbol)
 {
     TradeSignal confirmed[10];
+    SetMitigationContext(state.market_state);  // Mitigation Entry: 传入当前market_state上下文
     int conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), mons, mon_count, confirmed, 10);
     for(int i = 0; i < conf_count; i++)
     {
@@ -345,6 +345,7 @@ void OnTick()
         if(!g_osc_active && InpEnableHTFPullback && !InpHTFPullbackOnly)
         {
             TradeSignal htf_confirmed[10];
+            SetMitigationContext(g_state.market_state);  // Mitigation Entry: 上下文
             int htf_conf_count = UpdateEntryMonitors(bid, ask, TimeCurrent(), g_htf_monitors, g_htf_monitor_count, htf_confirmed, 10);
             for(int i = 0; i < htf_conf_count; i++)
             {

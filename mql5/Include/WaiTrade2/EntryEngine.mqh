@@ -9,12 +9,21 @@
 
 #define MAX_MONITORS 20
 
+// Mitigation Entry 模块级状态: UpdateEntryMonitors调用前设置
+int g_mitigation_market_state = 0;
+
+void SetMitigationContext(int market_state)
+{
+   g_mitigation_market_state = market_state;
+}
+
 enum ENUM_ENTRY_PHASE
 {
     PHASE_WAITING_TOUCH,
     PHASE_WAITING_BOUNCE,
     PHASE_WAITING_PULLBACK,
     PHASE_WAITING_DOUBLE,
+    PHASE_WAITING_MITIGATION,  // Mitigation: 等价格回归OB消解(震荡市替代Bounce Entry)
     PHASE_CONFIRMED,
     PHASE_EXPIRED,
     PHASE_ENTERED
@@ -43,6 +52,12 @@ struct EntryMonitor
     bool             active;
     bool             is_loose_sweep;
     bool             is_htf_pullback;
+    // Mitigation Entry: 震荡市替代Bounce Entry
+    bool             enable_mitigation;     // 本监视器使用Mitigation模式
+    datetime         mitigation_bounce_time; // Bounce确认(价格离开OB)的时间,用于超时检测
+    double           mitigation_bounce_price;// Bounce确认时价格位置
+    bool             mitigation_departed;   // 价格已显著离开OB区域(防止tick振荡误触发)
+    double           mitigation_far_price;  // Mitigation等待期间的最远价格(用于追踪离开)
 };
 
 double ClampEntryDepthPct()
@@ -218,6 +233,56 @@ void BuildEntrySignalFromMonitor(const EntryMonitor &monitor, double price,
     out_signal.comment    = "EntryEngine";
 }
 
+// ── Mitigation Entry 辅助函数 ───────────────────────────────────────────────
+// 检查指定zone类型是否匹配配置的Mitigation信号类型
+bool IsMitigationSignalType(const OBZone &zone)
+{
+   if(!CfgEnableMitigationEntry())
+      return false;
+
+   string types = CfgMitigationEntrySignalTypes();
+   if(types == "" || types == "all")
+      return true;
+
+   string types_lower = types;
+   StringToLower(types_lower);
+
+   if(StringFind(types_lower, "sweep") >= 0 && zone.is_liquidity_sweep)
+      return true;
+   if(StringFind(types_lower, "ob") >= 0 && !zone.is_liquidity_sweep && !zone.is_range_breakout && !zone.is_htf_pullback)
+      return true;
+   if(StringFind(types_lower, "range") >= 0 && zone.is_range_breakout)
+      return true;
+   if(StringFind(types_lower, "htfpb") >= 0 && zone.is_htf_pullback)
+      return true;
+
+   return false;
+}
+
+// 检查当前是否应使用Mitigation模式(在Bounce确认时刻调用,可结合实时market_state/防守态)
+bool ShouldUseMitigationNow(const EntryMonitor &monitor, int market_state)
+{
+   if(!monitor.enable_mitigation)
+      return false;
+
+   // 自适应防守态过滤: 仅在权益回撤>阈值时启用(趋势月不受影响)
+   // 这是主要激活条件——已验证IsAdaptiveNoiseGateDefensive在震荡市中准确触发
+   if(CfgMitigationEntryOnlyDefensive())
+   {
+      if(!IsAdaptiveNoiseGateDefensive())
+         return false;
+   }
+
+   // 震荡市过滤: 仅在market_state==0时启用(辅助条件,需StateFilter配置正确)
+   if(CfgMitigationEntryOnlyRange())
+   {
+      if(!CfgEnableStateFilter() || market_state != 0)
+         return false;
+   }
+
+   return true;
+}
+
 void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
                      EntryMonitor &monitors[], int &mon_count)
 {
@@ -264,9 +329,14 @@ void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
     m.expire_time  = TimeCurrent() + CfgTimeoutMin() * 60;
     m.touch_count  = 0;
     m.deep_entry   = false;
-    m.active       = true;
+    m.active       = true;
     m.is_loose_sweep = zone.is_loose_sweep;
     m.is_htf_pullback = zone.is_htf_pullback;
+    m.enable_mitigation = IsMitigationSignalType(zone);
+    m.mitigation_bounce_time = 0;
+    m.mitigation_bounce_price = 0;
+    m.mitigation_departed = false;
+    m.mitigation_far_price = 0;
 
     monitors[mon_count] = m;
     mon_count++;
@@ -371,6 +441,19 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
                     continue;
                 }
 
+                // Mitigation Entry: 震荡市不立即入场, 等价格回归OB消解后再入场
+                // 需在offset guard之后、confirm_price设定之前判断
+                if(ShouldUseMitigationNow(monitors[i], g_mitigation_market_state))
+                {
+                    monitors[i].mitigation_bounce_time = now;
+                    monitors[i].mitigation_bounce_price = price;
+                    monitors[i].mitigation_departed = false;
+                    monitors[i].mitigation_far_price = price;  // 初始化为bounce价,追踪最远价格
+                    monitors[i].phase = PHASE_WAITING_MITIGATION;
+                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=MITIGATION_WAIT bounce_price=", price, " touch=", monitors[i].touch_price);
+                    continue;
+                }
+
                 monitors[i].confirm_price = price;
                 monitors[i].confirm_time = now;
 
@@ -427,6 +510,90 @@ int UpdateEntryMonitors(double bid, double ask, datetime now,
             if(IsConfirmPullbackAdverseBreak(monitors[i], price, ob_height) ||
                (int)(now - monitors[i].confirm_time) > InpConfirmPullbackWaitSec)
             {
+                monitors[i].phase = PHASE_EXPIRED;
+                monitors[i].active = false;
+            }
+        }
+        // PHASE_WAITING_MITIGATION: Bounce确认后不立即入场, 等价格先离开OB区域再回归(消解)
+        // SMC核心: 震荡市中Bounce是陷阱方向, 真正方向在价格扫荡完成、离开OB后回归时确认
+        // 双阶段: (1)追踪价格离开OB → (2)价格回归OB → 入场
+        else if(monitors[i].phase == PHASE_WAITING_MITIGATION)
+        {
+            double ob_height = monitors[i].ob_top - monitors[i].ob_bottom;
+            if(ob_height <= 0) ob_height = risk * 2;
+            // 离开阈值: bounce_threshold的1.5倍, 确保价格真正离开而非tick振荡
+            double departure_threshold = ob_height * CfgBouncePct() * 1.5;
+            double mitigation_level = (monitors[i].direction == OB_BUY) ?
+                monitors[i].ob_top : monitors[i].ob_bottom;
+
+            // 阶段1: 追踪价格是否已显著离开OB
+            if(!monitors[i].mitigation_departed)
+            {
+                // 追踪从bounce位置到当前的最远价格
+                if(monitors[i].direction == OB_BUY)
+                {
+                    if(price > monitors[i].mitigation_far_price)
+                        monitors[i].mitigation_far_price = price;  // buy方向: 价格向上离开
+                    // 价格从bounce点向上移动超过离开阈值 → 已离开
+                    if(monitors[i].mitigation_far_price - monitors[i].mitigation_bounce_price >= departure_threshold)
+                    {
+                        monitors[i].mitigation_departed = true;
+                        if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=MITIGATION_DEPARTED far=", monitors[i].mitigation_far_price, " bounce=", monitors[i].mitigation_bounce_price);
+                    }
+                }
+                else
+                {
+                    if(price < monitors[i].mitigation_far_price)
+                        monitors[i].mitigation_far_price = price;  // sell方向: 价格向下离开
+                    // 价格从bounce点向下移动超过离开阈值 → 已离开
+                    if(monitors[i].mitigation_bounce_price - monitors[i].mitigation_far_price >= departure_threshold)
+                    {
+                        monitors[i].mitigation_departed = true;
+                        if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=MITIGATION_DEPARTED far=", monitors[i].mitigation_far_price, " bounce=", monitors[i].mitigation_bounce_price);
+                    }
+                }
+            }
+
+            // 阶段2: 价格已离开 → 等回归OB区域 → 消解入场
+            if(monitors[i].mitigation_departed)
+            {
+                bool mitigated = false;
+                if(monitors[i].direction == OB_BUY && price <= mitigation_level)
+                    mitigated = true;
+                if(monitors[i].direction == OB_SELL && price >= mitigation_level)
+                    mitigated = true;
+
+                if(mitigated)
+                {
+                    // offset guard: 确认价偏离entry过远则放弃
+                    double offset_r = MathAbs(price - entry) / risk;
+                    if(offset_r > CfgMaxEntryOffsetR())
+                    {
+                        if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=MITIGATION_BLOCKED offset_r=", offset_r, " max=", CfgMaxEntryOffsetR());
+                        monitors[i].phase = PHASE_EXPIRED;
+                        monitors[i].active = false;
+                        continue;
+                    }
+
+                    // 价格回归OB → 消解确认入场
+                    monitors[i].confirm_price = price;
+                    monitors[i].confirm_time = now;
+                    monitors[i].phase = PHASE_ENTERED;
+                    monitors[i].active = false;
+                    if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=MITIGATION_ENTERED price=", price, " far=", monitors[i].mitigation_far_price, " departed=1");
+                    if(out_count < max_out)
+                    {
+                        BuildEntrySignalFromMonitor(monitors[i], price, out_signals[out_count]);
+                        out_count++;
+                    }
+                }
+            }
+
+            // 超时: 价格在N bars内未完成离开+回归 → 过期
+            if(monitors[i].mitigation_bounce_time > 0 &&
+               (int)(now - monitors[i].mitigation_bounce_time) > CfgMitigationEntryMaxBars() * CfgBarTF() * 60)
+            {
+                if(InpEnableEntryDebug) Print("MON_DIAG ob=", monitors[i].ob_index, " dir=", monitors[i].direction, " status=MITIGATION_EXPIRED departed=", monitors[i].mitigation_departed ? 1 : 0);
                 monitors[i].phase = PHASE_EXPIRED;
                 monitors[i].active = false;
             }

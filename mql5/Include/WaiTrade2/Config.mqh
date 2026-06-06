@@ -79,6 +79,12 @@ input double InpAdaptiveNoiseDefBuyMult  = 1.0;   // 防守态买单仓位乘数
 input double InpAdaptiveNoiseDefSellMult = 1.0;   // 防守态卖单仓位乘数(1=不调整,建议0.5)
 input int    InpAdaptiveNoiseDefOBReentryCd = 0;    // 防守态同OB重入冷卻(分钟,0=禁用,建议5-10)
 input double InpAdaptiveNoiseDefNeutralMult = 1.0; // 防守态Neutral趋势仓位乘数(1=不调整,0=拦截无趋势交易,建议0.0)
+// --- Mitigation Entry: 震荡市等价格回归OB消解后再入场(P0 SMC改进) ---
+input bool   InpEnableMitigationEntry = false;    // 启用Mitigation Entry(震荡市替代Bounce Entry,先扫荡完成→等价格回归OB消解→入场)
+input int    InpMitigationEntryMaxBars = 10;     // 等价格回归OB的最大bars数(超时过期,建议5-15)
+input bool   InpMitigationEntryOnlyRange = true; // 仅在震荡市(market_state=0)启用Mitigation,趋势市保留原Bounce
+input bool   InpMitigationEntryOnlyDefensive = true; // 仅在自适应防守态(权益回撤)启用Mitigation,正常态保留Bounce
+input string InpMitigationEntrySignalTypes = "sweep"; // 启用的信号类型(all/sweep/ob/range/htfpb)
 // --- ATR体制检测: 基于市场微观结构的前向检测(全部opt-in) ---
 input int    InpATRRegimePeriod        = 0;    // 历史ATR基准bars(0=禁用,建议100=~1.5h M1)
 input double InpATRRegimeLowThreshold  = 0.7;  // 当前ATR/历史ATR<此值→低波防守
@@ -1255,6 +1261,12 @@ double CfgShallowConfirmPosMult()
 double CfgDTPPostPartialLockR() { return UseBTCProfile() ? InpBTCDTPPostPartialLockR : InpDTPPostPartialLockR; }
 double CfgDTPPostPartialRetrace() { return UseBTCProfile() ? InpBTCDTPPostPartialRetrace : InpDTPPostPartialRetrace; }
 bool CfgDTPResetPeakAfterPartial() { return UseBTCProfile() ? InpBTCDTPResetPeakAfterPartial : InpDTPResetPeakAfterPartial; }
+// --- Mitigation Entry accessors ---
+bool CfgEnableMitigationEntry() { return InpEnableMitigationEntry; }
+int  CfgMitigationEntryMaxBars() { return InpMitigationEntryMaxBars; }
+bool CfgMitigationEntryOnlyRange() { return InpMitigationEntryOnlyRange; }
+bool CfgMitigationEntryOnlyDefensive() { return InpMitigationEntryOnlyDefensive; }
+string CfgMitigationEntrySignalTypes() { return InpMitigationEntrySignalTypes; }
 string CfgContextFilter1Months()  {
    if(UseXAUTrendProfile() && StringLen(InpXAUTrendContextFilter1Months) > 0)  return InpXAUTrendContextFilter1Months;
    return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Months : InpContextFilter1Months;

@@ -60,6 +60,12 @@ FLAT_MAP = {
     "adaptive_noise_recovery_pct": "InpAdaptiveNoiseRecoveryPct",
     "adaptive_noise_def_boost_mult": "InpAdaptiveNoiseDefBoostMult",
     "adaptive_noise_def_cooldown_bars": "InpAdaptiveNoiseDefCooldownBars",
+    # Mitigation Entry (SMC P0改进: 震荡市替代Bounce Entry)
+    "enable_mitigation_entry": "InpEnableMitigationEntry",
+    "mitigation_entry_max_bars": "InpMitigationEntryMaxBars",
+    "mitigation_entry_only_range": "InpMitigationEntryOnlyRange",
+    "mitigation_entry_only_defensive": "InpMitigationEntryOnlyDefensive",
+    "mitigation_entry_signal_types": "InpMitigationEntrySignalTypes",
     # ATR体制检测
     "atr_regime_period": "InpATRRegimePeriod",
     "atr_regime_low_threshold": "InpATRRegimeLowThreshold",
