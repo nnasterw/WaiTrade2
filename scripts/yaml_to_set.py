@@ -59,6 +59,7 @@ FLAT_MAP = {
     "adaptive_noise_def_max_range_atr": "InpAdaptiveNoiseDefMaxRangeATR",
     "adaptive_noise_recovery_pct": "InpAdaptiveNoiseRecoveryPct",
     "adaptive_noise_def_boost_mult": "InpAdaptiveNoiseDefBoostMult",
+    "adaptive_noise_def_cooldown_bars": "InpAdaptiveNoiseDefCooldownBars",
     # ATR体制检测
     "atr_regime_period": "InpATRRegimePeriod",
     "atr_regime_low_threshold": "InpATRRegimeLowThreshold",

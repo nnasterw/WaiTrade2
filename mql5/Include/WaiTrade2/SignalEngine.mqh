@@ -2293,9 +2293,14 @@ double CalcPositionMultiplier(const OBZone &zone)
 
 bool IsInCooldown(const EAState &state)
 {
-   if(CfgCooldownBars() <= 0)
+   int bars = CfgCooldownBars();
+   // 防守态: 若配置了防守冷卻且当前处于防守, 使用防守冷卻值
+   if(bars <= 0 && InpAdaptiveNoiseDefCooldownBars > 0 && IsAdaptiveNoiseGateDefensive())
+      bars = InpAdaptiveNoiseDefCooldownBars;
+
+   if(bars <= 0)
       return false;
-   return (state.bar_count - state.last_entry_bar) < CfgCooldownBars();
+   return (state.bar_count - state.last_entry_bar) < bars;
 }
 
 #endif

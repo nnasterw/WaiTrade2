@@ -74,6 +74,7 @@ input double InpAdaptiveNoiseDefMinDirRatio = 0.45; // 防守态tick方向一致
 input double InpAdaptiveNoiseDefMaxRangeATR = 0.10; // 防守态最大tick振幅/ATR(严, >此值拒绝)
 input double InpAdaptiveNoiseRecoveryPct  = 1.0;  // 恢复到峰值该%内退出防守(0=不恢复, 建议1.0)
 input double InpAdaptiveNoiseDefBoostMult = 0.6; // 防守态仓位乘数衰减(1=不衰减,0=全平仓,建议0.5-0.7)
+input int    InpAdaptiveNoiseDefCooldownBars = 0;   // 防守态全局冷卻bars(0=禁用,建议20-30)
 // --- ATR体制检测: 基于市场微观结构的前向检测(全部opt-in) ---
 input int    InpATRRegimePeriod        = 0;    // 历史ATR基准bars(0=禁用,建议100=~1.5h M1)
 input double InpATRRegimeLowThreshold  = 0.7;  // 当前ATR/历史ATR<此值→低波防守
