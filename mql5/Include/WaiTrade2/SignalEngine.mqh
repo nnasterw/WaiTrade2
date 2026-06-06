@@ -337,6 +337,11 @@ void PrintEntryDebug(const string stage, const OBZone &zone, const EAState &stat
 
 double ApplyPositionMultiplierCap(double pos_mult)
 {
+   // 防守态全局仓位衰减(在所有乘数链末端, cap之前)
+   // 解决信号强度评分在震荡市系统性高估: 2605 x1.4占19%交易/51%亏损
+   if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefBoostMult > 0.0)
+      pos_mult *= InpAdaptiveNoiseDefBoostMult;
+
    double cap = CfgAdaptiveMaxPosMult();
    if(cap > 0 && pos_mult > cap)
       return cap;
