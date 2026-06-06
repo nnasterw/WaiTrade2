@@ -1682,6 +1682,12 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
       mult = CfgHTFNetPushAlignedMult();
    else if(net_atr <= -CfgHTFNetPushMinATR())
       mult = CfgHTFNetPushCounterMult();
+   else
+   {
+      // 自适应防守: Neutral(无趋势震荡市)拦截。正常态保留(趋势市回调盈利)
+      if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefNeutralMult < 1.0)
+         mult = InpAdaptiveNoiseDefNeutralMult;
+   }
 
    if(mult <= 0)
       return -1.0;
