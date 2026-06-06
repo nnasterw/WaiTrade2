@@ -13,7 +13,8 @@ WaiTrade2 是 Windows MT5 量化工具链：参数化 OB/SMC EA、MT5 CLI 回测
 7. 不 revert 用户或他人改动；不提交大数据文件。
 8. **回测前必须先跑策略检查**：`python scripts/check_strategy_consistency.py <策略名>`，无 ERROR 才可回测。
 9. **回测 BarTF 必须匹配 Live BarTF**：`Period=` 由策略 `bar_period_min`/`bar_tf` 自动推导，禁用人工覆盖。
-10. **Live 必须开启 `InpEnableEntryDebug=true`**；出场诊断仅调试时临时开。
+10. **编译后必须部署.ex5到MT5数据目录**：`metaeditor64.exe` 输出.ex5到项目目录，但 `terminal64.exe` 回测从 `%APPDATA%/MetaQuotes/Terminal/.../MQL5/Experts/` 加载。编译后必须 `cp project/ex5 → MT5_DATA/ex5`，否则回测用的是旧版！（2026-06-07血训：11轮220+次回测因未部署.ex5而全部测试旧代码）
+11. **Live 必须开启 `InpEnableEntryDebug=true`**；出场诊断仅调试时临时开。
 11. **禁止 Live 热替换策略版本**（共享 OB 缓存 → 行为不可预测）；换版本必须重启 EA。
 12. **部署后必须验证 EA 日志**：确认 `InpVersion` 匹配、无 `.set` 加载错误、`Magic` 唯一。
 13. 重大发现/事故必须更新策略迭代规范：`research/notes/2026-06-02_strategy_iteration_spec.md`。
