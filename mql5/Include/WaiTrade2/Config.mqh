@@ -77,6 +77,7 @@ input double InpAdaptiveNoiseDefBoostMult = 0.6; // 防守态仓位乘数衰减(
 input int    InpAdaptiveNoiseDefCooldownBars = 0;   // 防守态全局冷卻bars(0=禁用,建议20-30)
 input double InpAdaptiveNoiseDefBuyMult  = 1.0;   // 防守态买单仓位乘数(1=不调整,建议0.5)
 input double InpAdaptiveNoiseDefSellMult = 1.0;   // 防守态卖单仓位乘数(1=不调整,建议0.5)
+input int    InpAdaptiveNoiseDefOBReentryCd = 0;    // 防守态同OB重入冷卻(分钟,0=禁用,建议5-10)
 // --- ATR体制检测: 基于市场微观结构的前向检测(全部opt-in) ---
 input int    InpATRRegimePeriod        = 0;    // 历史ATR基准bars(0=禁用,建议100=~1.5h M1)
 input double InpATRRegimeLowThreshold  = 0.7;  // 当前ATR/历史ATR<此值→低波防守
@@ -1161,6 +1162,9 @@ int CfgMaxEntriesPerOB()
 }
 int CfgOBReentryCooldownMin()
 {
+   // 自适应噪音门控防守态: 打断OB震荡重入连亏链(2603发现17连亏)
+   if(!UseBTCProfile() && IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefOBReentryCd > 0)
+      return InpAdaptiveNoiseDefOBReentryCd;
    if(!UseBTCProfile() && IsDefensiveConfirmActive() && InpDefensiveOBReentryCooldownMin > 0)
       return InpDefensiveOBReentryCooldownMin;
    return UseBTCProfile() ? InpBTCOBReentryCooldownMin : (UseXAUTrendProfile() ? InpXAUTrendOBReentryCooldownMin : InpOBReentryCooldownMin);
