@@ -89,6 +89,7 @@ input string InpMitigationEntrySignalTypes = "sweep"; // 启用的信号类型(a
 input bool   InpEnableDoubleSweepConfirm = false;   // 启用双扫确认(上下LP都被扫后才入场)
 input int    InpDoubleSweepWindowBars = 20;         // 双扫确认窗口bars(价格需在此窗口内扫过两侧LP)
 input bool   InpDoubleSweepOnlyDefensive = true;    // 仅在防守态启用(趋势月不受影响)
+input bool   InpDoubleSweepBlockSweepEntry = false; // 双扫确认后禁用Sweep OB入场(仅保留普通OB)
 // --- ATR体制检测: 基于市场微观结构的前向检测(全部opt-in) ---
 input int    InpATRRegimePeriod        = 0;    // 历史ATR基准bars(0=禁用,建议100=~1.5h M1)
 input double InpATRRegimeLowThreshold  = 0.7;  // 当前ATR/历史ATR<此值→低波防守
@@ -1275,6 +1276,7 @@ string CfgMitigationEntrySignalTypes() { return InpMitigationEntrySignalTypes; }
 bool CfgEnableDoubleSweepConfirm() { return InpEnableDoubleSweepConfirm; }
 int  CfgDoubleSweepWindowBars() { return InpDoubleSweepWindowBars; }
 bool CfgDoubleSweepOnlyDefensive() { return InpDoubleSweepOnlyDefensive; }
+bool CfgDoubleSweepBlockSweepEntry() { return InpDoubleSweepBlockSweepEntry; }
 string CfgContextFilter1Months()  {
    if(UseXAUTrendProfile() && StringLen(InpXAUTrendContextFilter1Months) > 0)  return InpXAUTrendContextFilter1Months;
    return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Months : InpContextFilter1Months;

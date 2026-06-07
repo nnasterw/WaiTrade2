@@ -1735,6 +1735,29 @@ bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count
    return passed;
 }
 
+// ── 双扫确认辅助: 当双扫+BlockSweepEntry启用时, 拒绝Sweep OB入场 ──────
+// 逻辑: 双扫确认要求Sweep OB存在(探测双方向扫荡), 但Sweep OB信号质量低于普通OB
+// 在震荡市中, 双扫完成后只允许普通OB入场, 过滤低质量Sweep信号
+bool PassDoubleSweepSignalFilter(const OBZone &zone)
+{
+   if(!CfgEnableDoubleSweepConfirm() || !CfgDoubleSweepBlockSweepEntry())
+      return true;  // 功能未启用, 放行
+
+   // 仅在防守态时过滤(非防守态允许所有信号)
+   if(CfgDoubleSweepOnlyDefensive() && !IsAdaptiveNoiseGateDefensive())
+      return true;
+
+   // 拦截Sweep OB入场(保留普通OB、Range Breakout、HTF Pullback)
+   if(zone.is_liquidity_sweep)
+   {
+      if(InpEnableEntryDebug)
+         Print("DOUBLE_SWEEP filter: block SWP entry ob=", zone.direction);
+      return false;
+   }
+
+   return true;
+}
+
 bool PassOBReentryCooldown(const OBZone &zone)
 {
    int max_entries = CfgMaxEntriesPerOB();
@@ -1822,6 +1845,12 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(!PassOBReentryCooldown(zone))
    {
       if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=cooldown");
+      return false;
+   }
+
+   if(!PassDoubleSweepSignalFilter(zone))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=double_sweep_signal_filter");
       return false;
    }
 
@@ -2131,6 +2160,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       return false;
 
    if(!PassOBReentryCooldown(zone))
+      return false;
+
+   if(!PassDoubleSweepSignalFilter(zone))
       return false;
 
    if(!PassDirectionEntryHours(zone.direction, TimeCurrent()))

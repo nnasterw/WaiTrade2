@@ -54,6 +54,7 @@ defaults: &defaults
   enable_double_sweep_confirm: false
   double_sweep_window_bars: 20
   double_sweep_only_defensive: true
+  double_sweep_block_sweep_entry: false
   atr_regime_period: 0
   atr_regime_low_threshold: 0.7
   atr_regime_low_max_pos_mult: 1.0

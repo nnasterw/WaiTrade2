@@ -70,6 +70,7 @@ FLAT_MAP = {
     "enable_double_sweep_confirm": "InpEnableDoubleSweepConfirm",
     "double_sweep_window_bars": "InpDoubleSweepWindowBars",
     "double_sweep_only_defensive": "InpDoubleSweepOnlyDefensive",
+    "double_sweep_block_sweep_entry": "InpDoubleSweepBlockSweepEntry",
     # ATR体制检测
     "atr_regime_period": "InpATRRegimePeriod",
     "atr_regime_low_threshold": "InpATRRegimeLowThreshold",
