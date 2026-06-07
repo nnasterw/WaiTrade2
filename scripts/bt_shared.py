@@ -41,11 +41,10 @@ MT5_CLASSES = ['MetaQuotes::MetaTrader::5.00', '#32770']
 
 
 def kill_mt5():
-    # Kill both installed and portable terminal processes
+    # Only kill metatester64 (tester agent), NOT terminal64 (live connection).
+    # Killing terminal64 disconnects Exness, breaking Model 4 backtests.
     subprocess.run(["powershell", "-NoProfile", "-Command",
-        "Get-Process -Name terminal64,metatester64 -ErrorAction SilentlyContinue | "
-        "Where-Object { $_.Path -and ($_.Path.StartsWith('C:\\Program Files\\MetaTrader 5') -or "
-        "$_.Path.StartsWith('D:\\Code\\codexProject\\WaiTrade2')) } | "
+        "Get-Process -Name metatester64 -ErrorAction SilentlyContinue | "
         "Stop-Process -Force"], capture_output=True)
     time.sleep(4)
 
