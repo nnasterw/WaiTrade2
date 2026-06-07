@@ -53,6 +53,9 @@ QS3 v1 是已验证的 720d 最优配置（$282,617），改动 BE 或启用 VSL
 ## 常用命令
 
 ```bash
+# 编译 + 自动部署到D:盘 + 项目目录
+python scripts/compile_and_deploy.py
+
 # 生成 .set
 python scripts/yaml_to_set.py v11xau-qs3 -o mql5/Presets/v11xau-qs3.set
 python scripts/yaml_to_set.py --all
@@ -61,14 +64,13 @@ python scripts/yaml_to_set.py --all
 python scripts/check_strategy_consistency.py v11xau-qs3
 python scripts/check_strategy_consistency.py --brief
 
-# MT5 回测 — D: 盘便携终端（推荐, 节省C:盘空间）
-export MT5_HOME="D:/Code/codexProject/WaiTrade2/temp/mt5_portable_bt"
-python scripts/bt_shared.py  # 自动使用D:盘便携终端
-# 或直接运行测试脚本(bt_shared.py已支持$MT5_HOME)
+# MT5 回测 — D:盘便携终端（推荐, 所有数据在D:）
+export MT5_HOME="D:/Code/codexProject/WaiTrade2/temp/mt5_portable_xau"
 python scripts/mt5_backtest_win.py --strategy v11xau-qs3 --symbol XAUUSDm --days 30
-
-# MT5 回测 — C: 盘已安装终端(传统方式)
 python scripts/mt5_backtest_win.py --strategy v11xau-qs3 --symbol XAUUSDm --from 2024.06.08 --to 2026.06.01
+
+# MT5 回测 — C:盘已安装终端（兜底, 需Exness在线）
+python scripts/mt5_backtest_win.py --strategy v11xau-qs3 --symbol XAUUSDm --days 30
 
 # MT5 回测（macOS Wine）
 python scripts/mt5_cli_backtest.py --background --brief --strategy v11xau-qs3 --symbol XAUUSDm --days 30
@@ -93,10 +95,11 @@ python -m pytest tests/ -q --ignore=tests/test_token_efficient_outputs.py
 - 策略检查：`scripts/check_strategy_consistency.py`
 - 迭代规范：`research/notes/2026-06-02_strategy_iteration_spec.md`
 - VSL 诊断：`research/notes/2026-06-02_vsl_diagnosis_journal.md`
-- **D:盘便携回测终端**：`temp/mt5_portable_bt/`（含 1.1GB tick数据）
-  - 设置 `$MT5_HOME` 环境变量后自动路由
+- **D:盘便携回测终端**：`temp/mt5_portable_xau/`（1.4G, 含完整tick数据+会话缓存）
+  - 设置 `$MT5_HOME` 后自动路由
   - `bt_shared.py` 支持 `$MT5_HOME`/`$MT5_DATA` 环境变量
-  - 同步 MQL5：`cp mql5/Experts/WaiTrade2/*.ex5 temp/mt5_portable_bt/MQL5/Experts/WaiTrade2/`
+  - 编译部署：`python scripts/compile_and_deploy.py`
+  - **注意**：需要 Exness 在线连接才能跑 Model 4 回测；断开时 fallback 到 Model 0
 - **D:盘 Live 终端**：`temp/mt5_portable_v11a/`（BTC）、`temp/mt5_portable_xau_zd_qs/`（XAU）
 
 ## 工作流
