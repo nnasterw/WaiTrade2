@@ -808,6 +808,10 @@ void CheckDTP(PosTrack &track, const EAState &state)
     // ATR低波体制: 降低DTP触发(更容易止盈, 解决2605跑不到1.5R的问题)
     if(InpATRRegimeLowDTPTriggerR > 0.0 && IsATRLowVolRegime())
         dtp_trigger_r = InpATRRegimeLowDTPTriggerR;
+    // 双扫防守态: 降低DTP触发匹配窄幅区间(H5假说验证)
+    if(CfgDoubleSweepDTPTriggerR() > 0.0 && CfgEnableDoubleSweepConfirm()
+       && IsAdaptiveNoiseGateDefensive())
+        dtp_trigger_r = CfgDoubleSweepDTPTriggerR();
     if(dtp_trigger_r <= 0) return;
     if(!PositionSelectByTicket(track.ticket)) return;
 
