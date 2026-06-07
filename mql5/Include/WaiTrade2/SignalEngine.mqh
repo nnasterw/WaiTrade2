@@ -342,6 +342,14 @@ double ApplyPositionMultiplierCap(double pos_mult)
    if(IsAdaptiveNoiseGateDefensive() && InpAdaptiveNoiseDefBoostMult > 0.0)
       pos_mult *= InpAdaptiveNoiseDefBoostMult;
 
+   // 双扫体制自适应: 震荡区间降低仓位(双重条件: 体制检测+防守态)
+   // 仅在双扫确认震荡区间 AND 权益回撤>阈值时衰减, 趋势月双扫回调不受影响
+   if(CfgDoubleSweepRegimePosMult() > 0.0 && CfgDoubleSweepRegimePosMult() < 1.0
+      && IsDoubleSweepRegime() && IsAdaptiveNoiseGateDefensive())
+   {
+      pos_mult *= CfgDoubleSweepRegimePosMult();
+   }
+
    double cap = CfgAdaptiveMaxPosMult();
    if(cap > 0 && pos_mult > cap)
       return cap;
@@ -1694,21 +1702,46 @@ double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
    return pos_mult * mult;
 }
 
+// ── 双扫确认体制检测: 持久化状态供其他模块查询 ──────────────────────
+// 双扫确认天然是市场体制检测器: 双方向LP被扫=震荡区间, 单方向=趋势
+// 注意: 即使CfgDoubleSweepOnlyDefensive()=true, 体制检测仍运行(仅入场过滤受防守态限制)
+static bool   g_double_sweep_regime_active = false;
+static datetime g_double_sweep_regime_time = 0;
+
+bool IsDoubleSweepRegime()
+{
+   if(!CfgEnableDoubleSweepConfirm())
+      return false;
+   // 体制状态在 CfgDoubleSweepWindowBars 内有效
+   if(g_double_sweep_regime_time == 0)
+      return false;
+   int max_age_sec = CfgDoubleSweepWindowBars() * CfgBarTF() * 60;
+   if((int)(TimeCurrent() - g_double_sweep_regime_time) > max_age_sec)
+      return false;
+   return g_double_sweep_regime_active;
+}
+
 // ── 双扫确认 (SMC路径B): 要求双方向LP都被扫荡后才允许入场 ──────────────
 // 核心概念: 窄幅震荡市中, 价格需分别扫过区间上下限(双扫)后才形成真正的方向
 // 只做双扫确认后的入场, 过滤区间中段的单向扫荡陷阱
 bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count)
 {
    if(!CfgEnableDoubleSweepConfirm())
+   {
+      g_double_sweep_regime_active = false;
       return true;  // 功能未启用, 放行
+   }
 
-   // 防守态过滤: 仅在权益回撤时启用(趋势月不受影响)
-   if(CfgDoubleSweepOnlyDefensive() && !IsAdaptiveNoiseGateDefensive())
-      return true;  // 非防守态, 放行
+   // 防守态过滤: 仅在权益回撤时启用入场过滤(趋势月不受影响)
+   // 但体制检测始终运行(IsDoubleSweepRegime不依赖防守态)
+   bool only_defensive = CfgDoubleSweepOnlyDefensive() && !IsAdaptiveNoiseGateDefensive();
 
    int window_bars = CfgDoubleSweepWindowBars();
    if(window_bars <= 0)
+   {
+      g_double_sweep_regime_active = false;
       return true;
+   }
 
    int cutoff_bar = bar_count - window_bars;
    bool has_buy_sweep = false;   // 上方LP被扫(产生了sell方向的sweep OB)
@@ -1728,6 +1761,15 @@ bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count
    }
 
    bool passed = (has_buy_sweep && has_sell_sweep);
+
+   // 更新持久化体制状态(供IsDoubleSweepRegime查询)
+   g_double_sweep_regime_active = passed;
+   g_double_sweep_regime_time = TimeCurrent();
+
+   // 入场过滤: 仅在非仅防守态或防守态激活时施加
+   if(only_defensive)
+      return true;  // 防守态要求但未触发 → 放行(趋势月)
+
    if(!passed && InpEnableEntryDebug)
       Print("DOUBLE_SWEEP skip: buy_sweep=", has_buy_sweep ? 1 : 0,
             " sell_sweep=", has_sell_sweep ? 1 : 0,
