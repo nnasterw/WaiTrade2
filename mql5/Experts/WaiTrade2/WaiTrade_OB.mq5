@@ -347,8 +347,8 @@ void OnTick()
 
         if(!g_osc_active && InpEnableHTFPullback && !InpHTFPullbackOnly)
         {
-            // 双扫确认门控: HTF EntryEngine路径
-            if(PassDoubleSweepConfirm(g_htf_zones, g_htf_zone_count, g_state.bar_count))
+            // 双扫确认门控: HTF EntryEngine路径(不更新体制状态,防覆盖主通道)
+            if(PassDoubleSweepConfirm(g_htf_zones, g_htf_zone_count, g_state.bar_count, false))
             {
                 TradeSignal htf_confirmed[10];
                 SetMitigationContext(g_state.market_state);  // Mitigation Entry: 上下文

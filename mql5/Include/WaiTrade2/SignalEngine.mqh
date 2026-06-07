@@ -1724,11 +1724,12 @@ bool IsDoubleSweepRegime()
 // ── 双扫确认 (SMC路径B): 要求双方向LP都被扫荡后才允许入场 ──────────────
 // 核心概念: 窄幅震荡市中, 价格需分别扫过区间上下限(双扫)后才形成真正的方向
 // 只做双扫确认后的入场, 过滤区间中段的单向扫荡陷阱
-bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count)
+// update_regime: false=跳过持久化体制状态更新(HTF路径不应覆盖主通道状态)
+bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count, bool update_regime=true)
 {
    if(!CfgEnableDoubleSweepConfirm())
    {
-      g_double_sweep_regime_active = false;
+      if(update_regime) g_double_sweep_regime_active = false;
       return true;  // 功能未启用, 放行
    }
 
@@ -1739,7 +1740,7 @@ bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count
    int window_bars = CfgDoubleSweepWindowBars();
    if(window_bars <= 0)
    {
-      g_double_sweep_regime_active = false;
+      if(update_regime) g_double_sweep_regime_active = false;
       return true;
    }
 
@@ -1763,8 +1764,12 @@ bool PassDoubleSweepConfirm(const OBZone &zones[], int zone_count, int bar_count
    bool passed = (has_buy_sweep && has_sell_sweep);
 
    // 更新持久化体制状态(供IsDoubleSweepRegime查询)
-   g_double_sweep_regime_active = passed;
-   g_double_sweep_regime_time = TimeCurrent();
+   // HTF路径(update_regime=false)不应覆盖主通道状态
+   if(update_regime)
+   {
+      g_double_sweep_regime_active = passed;
+      g_double_sweep_regime_time = TimeCurrent();
+   }
 
    // 入场过滤: 仅在非仅防守态或防守态激活时施加
    if(only_defensive)
