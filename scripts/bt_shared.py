@@ -1,12 +1,33 @@
 """Shared utilities: silent MT5 backtest runner.
 1ms sync polling catches MT5 window by class name, hides <1 frame (<16ms).
-Background thread continues at 100ms/1s. No ctypes callbacks."""
+Background thread continues at 100ms/1s. No ctypes callbacks.
+
+Data directory selection (priority):
+  $MT5_HOME → portable terminal at that path (self-contained)
+  $MT5_DATA → explicit data directory override
+  default   → installed terminal at C:\Program Files + %APPDATA%"""
 import os, subprocess, time, re, shutil, ctypes, threading
 from pathlib import Path
 
-MT5_HOME = Path(r'C:\Program Files\MetaTrader 5')
-MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
-MT5_DATA = Path(os.path.expandvars(r'%APPDATA%\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075'))
+# 便携版终端优先(通过环境变量)
+_MT5_HOME_ENV = os.environ.get('MT5_HOME', '')
+_MT5_DATA_ENV = os.environ.get('MT5_DATA', '')
+
+if _MT5_HOME_ENV:
+    # 便携模式: 所有数据在终端目录内部
+    MT5_HOME = Path(_MT5_HOME_ENV)
+    MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
+    MT5_DATA = MT5_HOME
+elif _MT5_DATA_ENV:
+    # 仅数据目录覆盖(使用已安装终端)
+    MT5_HOME = Path(r'C:\Program Files\MetaTrader 5')
+    MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
+    MT5_DATA = Path(_MT5_DATA_ENV)
+else:
+    # 默认: 已安装终端 + %APPDATA%
+    MT5_HOME = Path(r'C:\Program Files\MetaTrader 5')
+    MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
+    MT5_DATA = Path(os.path.expandvars(r'%APPDATA%\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075'))
 PROJECT = Path(__file__).resolve().parent.parent
 PRESETS = PROJECT / 'mql5' / 'Presets'
 MT5_PROFILES = MT5_DATA / 'MQL5' / 'Profiles' / 'Tester'
@@ -20,9 +41,11 @@ MT5_CLASSES = ['MetaQuotes::MetaTrader::5.00', '#32770']
 
 
 def kill_mt5():
+    # Kill both installed and portable terminal processes
     subprocess.run(["powershell", "-NoProfile", "-Command",
         "Get-Process -Name terminal64,metatester64 -ErrorAction SilentlyContinue | "
-        "Where-Object { $_.Path -and $_.Path.StartsWith('C:\\Program Files\\MetaTrader 5') } | "
+        "Where-Object { $_.Path -and ($_.Path.StartsWith('C:\\Program Files\\MetaTrader 5') -or "
+        "$_.Path.StartsWith('D:\\Code\\codexProject\\WaiTrade2')) } | "
         "Stop-Process -Force"], capture_output=True)
     time.sleep(4)
 
@@ -54,9 +77,11 @@ def run_backtest_hidden(ini_path):
     """Launch backtest. Main thread 1ms polls for 3s (catches initial windows),
     background thread continues at 100ms/1s (catches late-created windows).
     CRITICAL: does NOT break on first find — MT5 creates 3+ windows sequentially."""
-    proc = subprocess.Popen(
-        [MT5_TERMINAL, f'/config:{ini_path}'],
-        creationflags=subprocess.CREATE_NO_WINDOW)
+    cmd = [MT5_TERMINAL]
+    if _MT5_HOME_ENV:  # 便携模式需显式/portable
+        cmd.append('/portable')
+    cmd.append(f'/config:{ini_path}')
+    proc = subprocess.Popen(cmd, creationflags=subprocess.CREATE_NO_WINDOW)
 
     # Phase 1: Main thread, 1ms polling for 3 seconds.
     # Keeps polling even after finding windows — MT5 creates them sequentially.
@@ -94,13 +119,19 @@ def run_bt_silent(name, set_name, date_from, date_to, ini_dir=None, deposit=DEPO
     proc = run_backtest_hidden(str(ini_path))
     t0 = time.time()
     while True:
-        if proc.poll() is not None:
-            break
+        # 检查报告已生成(主要完成信号)
         if htm.exists() and htm.stat().st_size > 1000:
-            proc.kill()
+            time.sleep(0.5)  # 等待文件写入完成
+            # 杀掉残留进程(metatester64可能仍在运行)
+            kill_mt5()
             break
+        # 父进程(terminal64)退出但报告未生成 → 继续等待子进程(metatester64)
+        if proc.poll() is not None:
+            # 等待额外60秒给metatester64完成
+            if time.time() - t0 > 120:
+                break
         if time.time() - t0 > 600:
-            proc.kill()
+            kill_mt5()
             return None
         time.sleep(2)
 
