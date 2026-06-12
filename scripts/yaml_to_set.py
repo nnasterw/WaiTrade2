@@ -73,6 +73,23 @@ FLAT_MAP = {
     "double_sweep_block_sweep_entry": "InpDoubleSweepBlockSweepEntry",
     "double_sweep_dtp_trigger_r": "InpDoubleSweepDTPTriggerR",
     "double_sweep_regime_pos_mult": "InpDoubleSweepRegimePosMult",
+    # FVG (公允价值缺口)
+    "enable_fvg": "InpEnableFVG",
+    "fvg_lookback_bars": "InpFVGLookbackBars",
+    "fvg_min_gap_atr": "InpFVGMinGapATR",
+    "fvg_max_gap_atr": "InpFVGMaxGapATR",
+    "fvg_max_age_bars": "InpFVGMaxAgeBars",
+    "fvg_timeout_min": "InpFVGTimeoutMin",
+    "fvg_require_range_boundary": "InpFVGRequireRangeBoundary",
+    "fvg_enable_fade_entry": "InpFVGEnableFadeEntry",
+    "fvg_fade_min_risk_spread_ratio": "InpFVGFadeMinRiskSpreadRatio",
+    "fvg_fade_max_entry_offset_r": "InpFVGFadeMaxEntryOffsetR",
+    "fvg_fade_pos_mult": "InpFVGFadePosMult",
+    "fvg_fade_max_lot_size": "InpFVGFadeMaxLotSize",
+    "fvg_fade_tp_mult": "InpFVGFadeTPMult",
+    "fvg_no_entry_hours": "InpFVGNoEntryHours",
+    "fvg_require_confirm_candle": "InpFVGRequireConfirmCandle",
+    "fvg_require_h1_aligned": "InpFVGRequireH1Aligned",
     # ATR体制检测
     "atr_regime_period": "InpATRRegimePeriod",
     "atr_regime_low_threshold": "InpATRRegimeLowThreshold",
@@ -113,6 +130,26 @@ FLAT_MAP = {
     "htf_pullback_zone_atr": "InpHTFPullbackZoneATR",
     "htf_pullback_offset_atr": "InpHTFPullbackOffsetATR",
     "htf_pullback_tp_mult": "InpHTFPullbackTPMult",
+    # HTF Range Fade: 大周期震荡区间高抛低吸
+    "enable_range_fade": "InpEnableRangeFade",
+    "range_tf": "InpRangeTF",
+    "range_lookback": "InpRangeLookback",
+    "range_min_bars": "InpRangeMinBars",
+    "range_min_width_atr": "InpRangeMinWidthATR",
+    "range_max_width_atr": "InpRangeMaxWidthATR",
+    "range_boundary_tolerance_atr": "InpRangeBoundaryToleranceATR",
+    "range_swing_strength": "InpRangeSwingStrength",
+    "range_min_touches": "InpRangeMinTouches",
+    "range_min_containment": "InpRangeMinContainment",
+    "range_entry_zone_atr": "InpRangeEntryZoneATR",
+    "range_sl_buffer_atr": "InpRangeSLBufferATR",
+    "range_tp_target": "InpRangeTPTarget",
+    "range_pos_mult": "InpRangePosMult",
+    "range_max_lot": "InpRangeMaxLot",
+    "range_update_bars": "InpRangeUpdateBars",
+    "range_require_sweep": "InpRangeRequireSweep",
+    "range_require_fvg": "InpRangeRequireFVG",
+    "range_no_mid_trades": "InpRangeNoMidTrades",
     "enable_liquidity_sweep": "InpEnableLiquiditySweep",
     "liquidity_sweep_only": "InpLiquiditySweepOnly",
     "sweep_lookback_bars": "InpSweepLookbackBars",
@@ -706,6 +743,90 @@ FLAT_MAP = {
     "htf_dtp_post_partial_retrace": "InpHTFDTPPostPartialRetrace",
     "enable_exit_debug": "InpEnableExitDebug",
     "enable_entry_debug": "InpEnableEntryDebug",
+    # === WaiTrade3 SMC 扩展参数 ===
+    # P0: 市场结构跟踪
+    "enable_structure_tracker": "InpEnableStructureTracker",
+    "structure_lookback_bars": "InpStructureLookbackBars",
+    "structure_pivot_bars": "InpStructurePivotBars",
+    "structure_trend_tf": "InpStructureTrendTF",
+    "structure_trend_lookback": "InpStructureTrendLookback",
+    "structure_min_pivot_strength": "InpStructureMinPivotStrength",
+    "structure_require_close": "InpStructureRequireClose",
+    "structure_log_bos": "InpStructureLogBOS",
+    "structure_block_counter_trend": "InpStructureBlockCounterTrend",
+    "structure_block_min_strength": "InpStructureBlockMinStrength",
+    "structure_trend_tf": "InpStructureTrendTF",
+    "structure_trend_lookback": "InpStructureTrendLookback",
+    "structure_trend_stable_bars": "InpStructureTrendStableBars",
+    # 趋势自适应出场 (替代二元拦截)
+    "enable_trend_adaptive_exit": "InpEnableTrendAdaptiveExit",
+    "trend_strength_threshold": "InpTrendStrengthThreshold",
+    "counter_trend_sl_mult": "InpCounterTrendSLMult",
+    "counter_trend_tp_mode": "InpCounterTrendTPMode",
+    # P0: OB多周期堆叠
+    "enable_ob_stacking": "InpEnableOBStacking",
+    # P0: SL使用H1 ATR
+    "sl_use_h1_atr": "InpSLUseH1ATR",
+    # P0: 多周期OB加权
+    "enable_multi_tf_ob": "InpEnableMultiTFOB",
+    "mtf_h4_weight": "InpMTFH4Weight",
+    "mtf_h1_weight": "InpMTFH1Weight",
+    "mtf_m15_weight": "InpMTFM15Weight",
+    "mtf_m5_weight": "InpMTFM5Weight",
+    "mtf_m1_weight": "InpMTFM1Weight",
+    "mtf_ob_sl_buffer_atr": "InpMTFOBSLBufferATR",
+    "mtf_confluence_bonus": "InpMTFConfluenceBonus",
+    "mtf_ob_max_age_bars": "InpMTFOBMaxAgeBars",
+    "mtf_max_ob_per_tf": "InpMTFMaxOBPerTF",
+    "mtf_max_weight": "InpMTFMaxWeight",
+    "mtf_block_counter_trend": "InpMTFBlockCounterTrend",
+    "edge_bounce_only": "InpEdgeBounceOnly",
+    "ob_freshness_filter": "InpOBFreshnessFilter",
+    "ob_max_mitigations": "InpOBMaxMitigations",
+    "bos_retest_entry": "InpBOSRetestEntry",
+    "bos_retest_sl_buffer": "InpBOSRetestSLBuffer",
+    "bos_retest_tolerance": "InpBOSRetestTolerance",
+    "bos_retest_max_bars": "InpBOSRetestMaxBars",
+    "bos_retest_weight": "InpBOSRetestWeight",
+    # P1: H4自适应重入控制
+    "enable_h4_adaptive": "InpEnableH4Adaptive",
+    "h4_trend_max_entries_per_ob": "InpH4TrendMaxEntriesPerOB",
+    "h4_trend_reentry_cooldown_min": "InpH4TrendReentryCooldownMin",
+    "h4_trend_cooldown_bars": "InpH4TrendCooldownBars",
+    "h4_chop_max_entries_per_ob": "InpH4ChopMaxEntriesPerOB",
+    "h4_chop_reentry_cooldown_min": "InpH4ChopReentryCooldownMin",
+    "h4_chop_cooldown_bars": "InpH4ChopCooldownBars",
+    # P0: 流动性池
+    "enable_liquidity_pool": "InpEnableLiquidityPool",
+    "lp_pool_lookback_bars": "InpLPPoolLookbackBars",
+    "lp_swing_high_similarity_pct": "InpLPSwingHighSimilarityPct",
+    "lp_min_sweep_distance_points": "InpLPMinSweepDistancePoints",
+    "lp_sweep_entry_boost": "InpLPSweepEntryBoost",
+    "lp_sweep_boost_only": "InpLPSweepBoostOnly",
+    "lp_min_range_atr": "InpLPMinRangeATR",
+    "lp_log_detection": "InpLPLogDetection",
+    # P1: 折扣/溢价区
+    "enable_discount_premium": "InpEnableDiscountPremium",
+    "discount_max_ratio": "InpDiscountMaxRatio",
+    "premium_min_ratio": "InpPremiumMinRatio",
+    "dp_htf_period": "InpDPHTFPeriod",
+    "dp_lookback_bars": "InpDPLookbackBars",
+    "dp_entry_mult": "InpDPEntryMult",
+    # P1: OB评分
+    "enable_ob_scoring": "InpEnableOBScoring",
+    "ob_score_min_pass": "InpOBScoreMinPass",
+    "ob_score_trend_weight": "InpOBScoreTrendWeight",
+    "ob_score_displacement_weight": "InpOBScoreDisplacementWeight",
+    "ob_score_liquidity_weight": "InpOBScoreLiquidityWeight",
+    "ob_score_mitigation_weight": "InpOBScoreMitigationWeight",
+    "ob_score_discount_weight": "InpOBScoreDiscountWeight",
+    "ob_score_log_low": "InpOBScoreLogLow",
+    # P2: 结构轨迹止损
+    "enable_structure_trail": "InpEnableStructureTrail",
+    "struct_trail_trigger_r": "InpStructTrailTriggerR",
+    "struct_trail_buffer_atr": "InpStructTrailBufferATR",
+    "struct_trail_lookback": "InpStructTrailLookback",
+    "struct_trail_only_dtp_free": "InpStructTrailOnlyDTPFree",
 }
 
 # trail_levels 映射: (层级索引, 子key) → INP名称
@@ -782,7 +903,9 @@ def main():
     parser.add_argument("--all", action="store_true", help="转换所有策略")
     parser.add_argument("--output", "-o", type=Path, help="输出文件路径（单策略模式）")
     parser.add_argument("--output-dir", type=Path, help="输出目录（--all模式）")
-    parser.add_argument("--config", type=Path, default=DEFAULT_YAML, help="YAML配置路径")
+    parser.add_argument("--config", type=Path, help="YAML配置路径(默认 strategies.yaml, --v3 时默认 strategies_v3.yaml)")
+    parser.add_argument("--v3", action="store_true", help="生成 WaiTrade3 .set (默认加载 config/strategies_v3.yaml, 输出到 Presets/v3/)")
+    parser.add_argument("--base", type=str, help="v3模式: 指定v2基础策略(从strategies.yaml继承参数)")
     args = parser.parse_args()
 
     if not args.strategy and not args.all:
@@ -790,12 +913,20 @@ def main():
     if args.strategy and args.all:
         parser.error("--all 不能与策略名称同时使用")
 
+    # --v3 时自动切换默认配置路径
+    if args.config is None:
+        if args.v3:
+            args.config = SCRIPT_DIR.parent / "config" / "strategies_v3.yaml"
+        else:
+            args.config = DEFAULT_YAML
+
+
     strategies = load_strategies(args.config)
 
     if args.all:
         # 批量模式 — 跳过非策略key
         non_strategy_keys = NON_STRATEGY_KEYS
-        output_dir = args.output_dir or (SCRIPT_DIR.parent / "mql5" / "Presets")
+        output_dir = args.output_dir or (SCRIPT_DIR.parent / "mql5" / "Presets" / ("v3" if args.v3 else ""))
         count = 0
         for name, cfg in strategies.items():
             if name in non_strategy_keys:
@@ -813,7 +944,21 @@ def main():
         if name not in strategies:
             print(f"错误: 策略 '{name}' 不存在。可用: {', '.join(strategies.keys())}", file=sys.stderr)
             sys.exit(1)
+
         cfg = strategies[name]
+
+        # v3 --base 合并: 先加载v2基础策略参数，再用v3策略覆盖
+        if args.v3 and args.base:
+            base_strategies = load_strategies(DEFAULT_YAML)
+            if args.base not in base_strategies:
+                print(f"错误: 基础策略 '{args.base}' 不存在于 {DEFAULT_YAML}", file=sys.stderr)
+                sys.exit(1)
+            base_cfg = dict(base_strategies[args.base])
+            base_cfg.update(cfg)  # v3 覆盖 v2 同名参数
+            cfg = base_cfg
+            # 版本名: v3策略名_基础策略名
+            cfg['version'] = f"{cfg.get('version', name)}_{args.base}"
+
         content = strategy_to_set(name, cfg)
         if args.output:
             write_set(content, args.output)

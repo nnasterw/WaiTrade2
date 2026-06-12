@@ -7,7 +7,7 @@ WaiTrade2 是 Windows MT5 量化工具链：参数化 OB/SMC EA、MT5 CLI 回测
 1. 全程中文交流；代码注释和 git 提交信息也尽量中文。
 2. 所有 SMC/ICT 策略概念统一用中文表示（订单块=OB、流动性扫损=sweep、结构突破等）。
 3. "回测"只指 MT5 Strategy Tester CLI（`terminal64.exe /config:`）；Python 只能称为模拟。
-4. 默认初始资金 `$200`；MT5 可信标准是 **Model 4 / Real Ticks**。Model 0 = 幻觉。
+4. 默认初始资金 `$350`（Exness 标准微型账户 277656700）；杠杆 `1:1000`；XAUUSDm 0.01手≈$1.00/美元价格移动。MT5 可信标准是 **Model 4 / Real Ticks**。Model 0 = 幻觉。
 5. 回测命令优先 `--background --brief`；禁止整份读取原始 Agent 日志。
 6. 默认只推送 WaiTrade2：`git@github.com:nnasterw/WaiTrade2.git`。
 7. 不 revert 用户或他人改动；不提交大数据文件。
@@ -18,6 +18,11 @@ WaiTrade2 是 Windows MT5 量化工具链：参数化 OB/SMC EA、MT5 CLI 回测
 11. **禁止 Live 热替换策略版本**（共享 OB 缓存 → 行为不可预测）；换版本必须重启 EA。
 12. **部署后必须验证 EA 日志**：确认 `InpVersion` 匹配、无 `.set` 加载错误、`Magic` 唯一。
 13. 重大发现/事故必须更新策略迭代规范：`research/notes/2026-06-02_strategy_iteration_spec.md`。
+14. **排查铁律：日志先行，根因后策**：(a) 任何故障首先定位到**具体报错行**（terminal64 日志在 `logs/` 和 `Tester/Agent-*/logs/`；UTF-16 LE 编码），不能只看脚本输出的"失败"摘要就猜原因；(b) 理解报错含义后再推理根因，不能跳过根因直接跳到替代方案（2026-06-10 血训：IPC dispatcher 日志第一行就写了答案，却绕去装 Wine 折腾 2 小时）；(c) Windows 问题优先用 Windows 思维（权限/服务/注册表），不要一上来就 Wine/Linux。
+15. **所有改动必须基于 v3，禁止改动 v2**：WaiTrade3 是活跃开发平台，v2 已冻结。新增功能/改进/优化只进 `Include/WaiTrade3/` 和 `Experts/WaiTrade3/`。v2 的 `.mqh` 只读引用（`#include <WaiTrade2/xxx.mqh>`），绝不修改 v2 源文件。新参数只加在 `ConfigSMC.mqh`。`.set` 生成优先用 `--v3 --base` 合并流程。
+16. **实验知识库铁律**：所有探索过的路线、参数、回测结果必须记录到 `research/notes/2026-06-10_v3_experiment_knowledge_base.md`，避免重复踩坑。每条记录包含：方案名称、机制简述、2505/2605 PnL、核心结论。
+17. **v3 参数默认值铁律**：`ConfigSMC.mqh` 中所有新增 `input` 的默认值必须为 `false`/`0`/`0.0`（禁用状态）。这是 v3 向后兼容 v2 `.set` 的基础——v2 `.set` 不包含 v3 参数，EA 会使用源码默认值。任何默认 `true` 的参数都会在加载 v2 `.set` 时被意外激活，破坏 v2 行为。**血训**：4 个默认 `true` 参数导致 BD07/RegimeBoth/PathB 在 v3 EA 上零交易。（2026-06-11）
+18. **BD08 结构止损架构分离原则**：PosTrack.use_structure_sl=true 的持仓由 EA 层 M15 结构管理 SL，PositionManager 跳过 DTP/Trail；两条路径互不干扰。新出口机制必须先做好架构分离，不能和 DTP 共存。（2026-06-12 血训：结构止损+DTP 互杀，70 轮迭代中 20+ 轮浪费在此）
 
 ## 项目结构
 
@@ -125,16 +130,65 @@ strategies.yaml → check_strategy_consistency.py（必跑）
 
 每个 `.set` 必须显式写入所有 input；`InpBarTF` 用数字：`1=M1, 5=M5, 60=H1`。
 
-## Live 参数安全边界（$200 账户）
+## Live 参数安全边界（$350 账户, 1:1000 杠杆）
 
 | 参数 | 上限 | 原因 |
 |------|:---:|------|
-| `max_lot_size` | 0.1 | $200 账户 0.1 手 XAU ≈ $450 风险 |
+| `max_lot_size` | 0.1 | $350 账户 0.1 手 XAU ≈ $450 风险 |
 | `max_pos_mult` | 5.0 | 防深度入场 boost 失控 |
 | `max_concurrent` | 5 | 同时持仓不超 5 单 |
 | `max_entries_per_ob` | 5 | 同一 OB 最多 5 次入场 |
 | `ob_reentry_cooldown_min` | ≥3 | 至少 3 分钟冷却 |
 | `cooldown_bars` | ≥1 | 至少 1 根 K 线全局冷却 |
+
+## 账户规格
+
+| 项目 | 值 |
+|------|-----|
+| 经纪商 | Exness-MT5Trial5 |
+| 账号 | 277656700 |
+| 默认初始资金 | **$350** |
+| 杠杆 | **1:1000** |
+| XAUUSDm 0.01手 | ≈$1.00/美元价格移动 |
+| 最小手数 | 0.01 |
+| 1.5%风险/笔 | $5.25 |
+
+### 盈亏速算
+
+| 价格波幅 | 0.01手盈亏 | 0.05手盈亏 | 0.10手盈亏 |
+|:---:|:---:|:---:|:---:|
+| $1 | $1.00 | $5.00 | $10.00 |
+| $10 | $10.00 | $50.00 | $100.00 |
+| $50 | $50.00 | $250.00 | $500.00 |
+
+## BD08 策略（2605震荡熊市特化）
+
+**架构**：BD07 scalping + H4方向锁 + BOS Retest + M15结构止损。详见 `docs/strategy_bd08_20260612.md`。
+
+| 周期 | BD08 Net PnL | BD08 PF | BD07 Net PnL | 说明 |
+|------|-----:|-----:|-----:|------|
+| **2605 30d** | **+$282** | 2.35 | -$33 | H4锁+M15结构止损 |
+| 2505 30d | $2,003 | 2.37 | $115,907 | 趋势市被H4锁限制(设计取舍) |
+
+### BD08 核心机制
+
+1. **H4方向锁**：H4=BULL→只做空，H4=BEAR→只做多（-87% 2605亏损）
+2. **BOS Retest**：H1结构突破→回踩→入场（绕过双扫门控）
+3. **M15结构止损**：M15摆动点+2.0ATR缓冲→动态SL（取代DTP，PosTrack架构分离）
+4. **v2改动最小化**：Types.mqh (+1 field) + PositionManager.mqh (+2 lines) + EntryEngine.mqh (+1 field)
+
+### BD08 回测
+
+```bash
+# BD08 策略检查
+python scripts/check_strategy_consistency.py v11xau-bd08 --v3
+
+# BD08 2605 回测
+python scripts/mt5_backtest_win.py --strategy v11xau-bd08 --v3 --symbol XAUUSDm --from 2026.05.01 --to 2026.06.01
+
+# BD08 .set 生成
+python scripts/yaml_to_set.py v11xau-bd08 --v3 -o mql5/Presets/v11xau-bd08.set
+```
 
 ## Live 部署检查清单
 
@@ -165,6 +219,7 @@ strategies.yaml → check_strategy_consistency.py（必跑）
 - **不同版本热替换**：共享 OB 缓存 + 不同参数 → 必须重启。
 - **多实例 terminal64.exe**：同一 exe 只能一个 /portable 实例。
 - **代码未编译进 .ex5 就测试**——所有"结果"都是幻觉。必须确认 .ex5 包含新函数。
+- **Win11 26200 + MT5 5836 IPC Bug**：普通权限下 IPC dispatcher 无法启动 → 回测直接失败。必须以 Admin 运行 terminal64.exe。`mt5_backtest_win.py` 已自动检测并提权（通过 PowerShell Start-Process -Verb RunAs）。
 - BTC 百分比限价容差失真 → 用 spread 相关绝对容差。
 - Model 0 幻觉严重；Real Ticks 才可信。
 - M1 小 risk 易被 spread 杀死；BE 太近被 tick 噪音秒扫。

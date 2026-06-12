@@ -324,10 +324,33 @@ def backtest_main(description, run_fn, args=None):
     parser.add_argument('--timeout', type=int, default=300, help='每个品种的超时秒数（默认300）')
     parser.add_argument('--deposit', type=float, help='覆盖初始资金')
     parser.add_argument('--model', help='覆盖 MT5 Strategy Tester Model；4=Real ticks')
+    parser.add_argument('--v3', action='store_true', help='使用 WaiTrade3 (SMC 增强版)')
 
     parsed = parser.parse_args(args)
 
-    config = load_config()
+    # 加载配置：--v3 时合并加载 v2 + v3 yaml
+    config = load_config(CONFIG_PATH)
+
+    if parsed.v3:
+        v3_path = ROOT / 'config' / 'strategies_v3.yaml'
+        if v3_path.exists():
+            v3_config = load_config(v3_path)
+            for name, cfg in v3_config.items():
+                if name in NON_STRATEGY_KEYS or not isinstance(cfg, dict):
+                    continue
+                # v3 专属策略或覆盖 v2 同名的策略
+                base = None
+                if name in config and isinstance(config[name], dict):
+                    base = config[name]  # 用 v2 同名策略作 base
+                elif '_base' in cfg and cfg['_base'] in config:
+                    base = config[cfg['_base']]  # 用 _base 指定的 v2 策略
+                if base is not None:
+                    merged = dict(base)
+                else:
+                    merged = dict(config.get('defaults', {}))
+                merged.update(cfg)
+                config[name] = merged
+            config[name] = merged
 
     strategy_arg = parsed.strategy or parsed.strategies
     strategy_names = resolve_strategies(config, strategy_arg)
@@ -339,6 +362,23 @@ def backtest_main(description, run_fn, args=None):
     if parsed.model is not None:
         for name in strategy_names:
             config[name]['model'] = parsed.model
+
+    if parsed.v3:
+        # 加载 v3 YAML 获取 SMC 参数默认值
+        v3_yaml_path = ROOT / 'config' / 'strategies_v3.yaml'
+        v3_config = {}
+        if v3_yaml_path.exists():
+            with open(v3_yaml_path, 'r', encoding='utf-8') as f:
+                v3_config = yaml.safe_load(f) or {}
+        v3_defaults = v3_config.get('defaults', {}) if isinstance(v3_config, dict) else {}
+
+        for name in strategy_names:
+            if name in config and isinstance(config[name], dict):
+                config[name]['expert'] = r'WaiTrade3\WaiTrade_OB_SMC'
+                # 合并 v3 默认值（仅添加 v3 参数，覆盖同名参数）
+                for k, v in v3_defaults.items():
+                    if k not in config[name]:
+                        config[name][k] = v
 
     symbol_arg = parsed.symbol or parsed.symbols
     symbols = resolve_symbols(config, symbol_arg)

@@ -93,6 +93,24 @@ input bool   InpDoubleSweepOnlyDefensive = true;    // 仅在防守态启用(趋
 input bool   InpDoubleSweepBlockSweepEntry = false; // 双扫确认后禁用Sweep OB入场(仅保留普通OB)
 input double InpDoubleSweepDTPTriggerR = 0.0;       // 双扫防守态DTP触发R(0=用正常值, 建议0.5匹配窄幅区间)
 input double InpDoubleSweepRegimePosMult = 1.0;     // 双扫体制仓位乘数(<1=震荡区间降仓位, 1=不调整, 建议0.6)
+// --- FVG (公允价值缺口): SMC三要素第三原语, 震荡市fade信号核心 ---
+input bool   InpEnableFVG = false;              // 启用FVG检测(公允价值缺口, 震荡市替代信号源)
+input int    InpFVGLookbackBars = 30;           // FVG扫描回溯bars(3=仅检测最新, 建议20-50)
+input double InpFVGMinGapATR = 0.08;            // 最小FVG缺口/ATR(过滤微缺口, 建议0.05-0.15)
+input double InpFVGMaxGapATR = 0.80;            // 最大FVG缺口/ATR(过滤极端缺口, 0=不限制)
+input int    InpFVGMaxAgeBars = 60;             // FVG最大存活bars(超过自动过期, 0=用全局InpBars)
+input int    InpFVGTimeoutMin = 180;            // FVG时间过期(分钟, 0=不限制)
+input bool   InpFVGRequireRangeBoundary = true; // 仅震荡区间边界附近的FVG有效(过滤趋势中途FVG)
+input bool   InpFVGEnableFadeEntry = false;     // 启用FVG fade入场(震荡市FVG回补后反向入场)
+input double InpFVGFadeMinRiskSpreadRatio = 3.0;// FVG fade入场最小risk/spread比
+input double InpFVGFadeMaxEntryOffsetR = 1.2;   // FVG fade入场最大偏移R
+input double InpFVGFadePosMult = 0.5;           // FVG fade仓位乘数(相对正常仓位, 建议0.3-0.7)
+input double InpFVGFadeMaxLotSize = 0.02;       // FVG fade最大手数(小资金保守, 建议0.01-0.03)
+input double InpFVGFadeTPMult = 1.0;            // FVG fade TP=区间高度倍数(0=DTP接管)
+input string InpFVGNoEntryHours = "5,6,7";     // FVG专属禁入时段UTC CSV(空=不限制, 建议5,6,7避开伦敦开盘噪音)
+input bool   InpFVGRequireConfirmCandle = false; // FVG回补后需要同向确认K线(类似EntryEngine的Bounce确认)
+input bool   InpFVGRequireH1Aligned = false;    // FVG入场必须与H1 OB方向对齐(趋势市=同向, 震荡市=fade顺H1)
+input bool   InpEnableHTFDirectionGate = false; // HTF方向门控: 直接拦截强逆势入场(不经过仓位乘数, 零代码改动仅.set)
 // --- ATR体制检测: 基于市场微观结构的前向检测(全部opt-in) ---
 input int    InpATRRegimePeriod        = 0;    // 历史ATR基准bars(0=禁用,建议100=~1.5h M1)
 input double InpATRRegimeLowThreshold  = 0.7;  // 当前ATR/历史ATR<此值→低波防守
@@ -476,6 +494,26 @@ input double InpHTFPullbackMinATR = 0.80;  // HTF鍑€鎺ㄨ繘闃堝€?ATR鍊
 input double InpHTFPullbackZoneATR = 0.35; // 鍥炶俯鍖洪珮搴?ATR鍊嶆暟)
 input double InpHTFPullbackOffsetATR = 0.10; // 鎺ㄨ繘鏀剁洏浠峰埌鍥炶俯鍖鸿繎绔亸绉?ATR鍊嶆暟)
 input double InpHTFPullbackTPMult = 1.0;   // TP=HTF鍥炶俯鍖洪珮搴﹀€嶆暟(0=DTP)
+// ── HTF Range Fade: 大周期震荡区间高抛低吸 ──────────────────────────
+input bool   InpEnableRangeFade = false;        // 启用震荡区间高抛低吸(HTF区间+LTF入场)
+input int    InpRangeTF = 240;                  // 区间检测周期(分钟,H4=240,D1=1440)
+input int    InpRangeLookback = 120;            // 区间回溯bar数(H4 40天)
+input int    InpRangeMinBars = 24;              // 最小区间形成bar数
+input double InpRangeMinWidthATR = 1.5;         // 最小区间宽度(ATR)
+input double InpRangeMaxWidthATR = 5.0;         // 最大区间宽度(ATR,过宽=趋势)
+input double InpRangeBoundaryToleranceATR = 0.15; // 边界容忍度(ATR,用于swing聚类)
+input int    InpRangeSwingStrength = 3;         // swing确认强度(H4用3=12bar确认)
+input int    InpRangeMinTouches = 2;            // 边界最少测试次数
+input double InpRangeMinContainment = 0.75;     // 价格在区间内最低比例
+input double InpRangeEntryZoneATR = 0.30;       // 入场区域(距边界多少ATR触发fade)
+input double InpRangeSLBufferATR = 0.50;        // 区间外SL缓冲(ATR)
+input int    InpRangeTPTarget = 1;              // TP目标(0=对侧边界,1=中轴)
+input double InpRangePosMult = 0.5;             // 区间入场仓位乘数(0=禁用)
+input double InpRangeMaxLot = 0.02;             // 区间入场最大手数
+input int    InpRangeUpdateBars = 1;            // 区间更新频率(每N根HTF bar)
+input bool   InpRangeRequireSweep = true;       // 边界需有sweep才入场
+input bool   InpRangeRequireFVG = false;        // 额外要求FVG确认
+input bool   InpRangeNoMidTrades = true;        // 区间中部不交易
 input double InpBuyMinStrength   = 0.0;      // 鍋氬鏈€浣嶰B寮哄害瑕嗙洊(0=鐢ㄤ富鍙傛暟)
 input double InpSellMinStrength  = 0.0;      // 鍋氱┖鏈€浣嶰B寮哄害瑕嗙洊(0=鐢ㄤ富鍙傛暟)
 input double InpBuyPosMult       = 1.0;      // 鍋氬浠撲綅涔樻暟瑕嗙洊
@@ -1282,6 +1320,44 @@ bool CfgDoubleSweepOnlyDefensive() { return InpDoubleSweepOnlyDefensive; }
 bool CfgDoubleSweepBlockSweepEntry() { return InpDoubleSweepBlockSweepEntry; }
 double CfgDoubleSweepDTPTriggerR() { return InpDoubleSweepDTPTriggerR; }
 double CfgDoubleSweepRegimePosMult() { return InpDoubleSweepRegimePosMult; }
+// --- FVG accessors ---
+bool   CfgEnableFVG()              { return InpEnableFVG; }
+int    CfgFVGLookbackBars()        { return InpFVGLookbackBars; }
+double CfgFVGMinGapATR()           { return InpFVGMinGapATR; }
+double CfgFVGMaxGapATR()           { return InpFVGMaxGapATR; }
+int    CfgFVGMaxAgeBars()          { return InpFVGMaxAgeBars; }
+int    CfgFVGTimeoutMin()          { return InpFVGTimeoutMin; }
+bool   CfgFVGRequireRangeBoundary(){ return InpFVGRequireRangeBoundary; }
+bool   CfgFVGEnableFadeEntry()     { return InpFVGEnableFadeEntry; }
+double CfgFVGFadeMinRiskSpreadRatio() { return InpFVGFadeMinRiskSpreadRatio; }
+double CfgFVGFadeMaxEntryOffsetR() { return InpFVGFadeMaxEntryOffsetR; }
+double CfgFVGFadePosMult()         { return InpFVGFadePosMult; }
+double CfgFVGFadeMaxLotSize()      { return InpFVGFadeMaxLotSize; }
+double CfgFVGFadeTPMult()          { return InpFVGFadeTPMult; }
+string CfgFVGNoEntryHours()        { return InpFVGNoEntryHours; }
+bool   CfgFVGRequireConfirmCandle(){ return InpFVGRequireConfirmCandle; }
+bool   CfgFVGRequireH1Aligned()    { return InpFVGRequireH1Aligned; }
+bool   CfgEnableHTFDirectionGate() { return InpEnableHTFDirectionGate; }
+// --- HTF Range Fade accessors ---
+bool   CfgEnableRangeFade()             { return InpEnableRangeFade; }
+int    CfgRangeTF()                     { return InpRangeTF; }
+int    CfgRangeLookback()               { return InpRangeLookback; }
+int    CfgRangeMinBars()                { return InpRangeMinBars; }
+double CfgRangeMinWidthATR()            { return InpRangeMinWidthATR; }
+double CfgRangeMaxWidthATR()            { return InpRangeMaxWidthATR; }
+double CfgRangeBoundaryToleranceATR()   { return InpRangeBoundaryToleranceATR; }
+int    CfgRangeSwingStrength()          { return InpRangeSwingStrength; }
+int    CfgRangeMinTouches()             { return InpRangeMinTouches; }
+double CfgRangeMinContainment()         { return InpRangeMinContainment; }
+double CfgRangeEntryZoneATR()           { return InpRangeEntryZoneATR; }
+double CfgRangeSLBufferATR()            { return InpRangeSLBufferATR; }
+int    CfgRangeTPTarget()              { return InpRangeTPTarget; }
+double CfgRangePosMult()               { return InpRangePosMult; }
+double CfgRangeMaxLot()                { return InpRangeMaxLot; }
+int    CfgRangeUpdateBars()             { return InpRangeUpdateBars; }
+bool   CfgRangeRequireSweep()           { return InpRangeRequireSweep; }
+bool   CfgRangeRequireFVG()             { return InpRangeRequireFVG; }
+bool   CfgRangeNoMidTrades()            { return InpRangeNoMidTrades; }
 string CfgContextFilter1Months()  {
    if(UseXAUTrendProfile() && StringLen(InpXAUTrendContextFilter1Months) > 0)  return InpXAUTrendContextFilter1Months;
    return UseXAUFageAltProfile() ? InpXAUAltContextFilter1Months : InpContextFilter1Months;

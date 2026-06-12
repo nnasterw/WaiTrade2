@@ -24,14 +24,14 @@ elif _MT5_DATA_ENV:
     MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
     MT5_DATA = Path(_MT5_DATA_ENV)
 else:
-    # 默认: 已安装终端 + %APPDATA%
-    MT5_HOME = Path(r'C:\Program Files\MetaTrader 5')
+    # 默认: D:盘已安装终端 + %APPDATA%
+    MT5_HOME = Path(r'D:\Software\MT5')
     MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
-    MT5_DATA = Path(os.path.expandvars(r'%APPDATA%\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075'))
+    MT5_DATA = Path(os.path.expandvars(r'%APPDATA%\MetaQuotes\Terminal\5659F6C1EEA45C06FF05EE7ED7BADE39'))
 PROJECT = Path(__file__).resolve().parent.parent
 PRESETS = PROJECT / 'mql5' / 'Presets'
 MT5_PROFILES = MT5_DATA / 'MQL5' / 'Profiles' / 'Tester'
-DEPOSIT = 200
+DEPOSIT = 350
 SYMBOL = 'XAUUSDm'
 
 _user32 = ctypes.WinDLL('user32', use_last_error=True)
@@ -50,17 +50,8 @@ def kill_mt5():
 
 
 def _hide_all():
-    """Enumerate ALL MT5 windows (all classes, all siblings) and hide each.
-    Returns count of windows found."""
-    count = 0
-    for cls in MT5_CLASSES:
-        hwnd = _user32.FindWindowW(cls, None)
-        while hwnd:
-            _user32.ShowWindow(hwnd, SW_HIDE)
-            _user32.SetWindowPos(hwnd, 0, -10000, -10000, 0, 0, 0x0001 | 0x0004)
-            count += 1
-            hwnd = _user32.FindWindowExW(0, hwnd, cls, None)
-    return count
+    """用于测试——调试期间不隐藏窗口，避免干扰用户终端"""
+    return 0
 
 
 def _poller(proc):
@@ -94,7 +85,7 @@ def run_backtest_hidden(ini_path):
     return proc
 
 
-def run_bt_silent(name, set_name, date_from, date_to, ini_dir=None, deposit=DEPOSIT):
+def run_bt_silent(name, set_name, date_from, date_to, ini_dir=None, deposit=DEPOSIT, timeout=600):
     """Run single backtest silently. Returns parsed dict or None."""
     if ini_dir is None:
         ini_dir = MT5_DATA / 'Tester'
@@ -107,7 +98,7 @@ def run_bt_silent(name, set_name, date_from, date_to, ini_dir=None, deposit=DEPO
         f"Symbol={SYMBOL}\nPeriod=M1\nModel=4\n"
         "Optimization=0\n"
         f"FromDate={date_from}\nToDate={date_to}\n"
-        f"Deposit={deposit}\nCurrency=USD\nLeverage=2000\n"
+        f"Deposit={deposit}\nCurrency=USD\nLeverage=1000\n"
         "ExecutionMode=0\nShutdownTerminal=1\n"
         f"Report={name}\n", encoding='utf-8')
 
@@ -129,10 +120,16 @@ def run_bt_silent(name, set_name, date_from, date_to, ini_dir=None, deposit=DEPO
             # 等待额外60秒给metatester64完成
             if time.time() - t0 > 120:
                 break
-        if time.time() - t0 > 600:
+        if time.time() - t0 > timeout:
             kill_mt5()
+            # 不杀terminal64 (可能用户正在用GUI终端，杀掉会断Exness)
             return None
         time.sleep(2)
+
+    # 自动清理Agent缓存(单次回测可产生300MB~1.5GB日志)
+    agent_dir = MT5_DATA / 'Tester' / 'Agent-127.0.0.1-3000'
+    if agent_dir.exists():
+        shutil.rmtree(agent_dir, ignore_errors=True)
 
     if htm.exists() and htm.stat().st_size > 1000:
         return parse_report(htm)

@@ -37,6 +37,11 @@ struct OBZone
     double   range_height;    // 闇囪崱鍖洪棿楂樺害锛岀敤浜庨噺搴︾洰鏍?
     double   ob_top;          // OB妫€娴嬪師濮嬮《閮?瀹炰綋杈圭晫)
     double   ob_bottom;       // OB妫€娴嬪師濮嬪簳閮?瀹炰綋杈圭晫)
+    // FVG (公允价值缺口) — SMC三要素第三原语
+    bool     is_fvg;            // FVG失衡区信号
+    bool     fvg_filled;        // 价格已回补缺口
+    datetime fvg_formed_time;   // FVG形成时间
+    double   fvg_mitigation_price; // FVG 50%消解位(入场参考)
 };
 
 struct TradeSignal
@@ -91,7 +96,8 @@ struct PosTrack
     string   virtual_sl_reason;
     datetime virtual_sl_breach_start; // VSL breach timer (0=not breached)
     bool     survived_vsl_breach;       // VSL saved this trade from a wick stop
-    int      entry_market_state; // 鍏ュ満鏃跺競鍦虹姸鎬?1=bull,-1=bear,0=range)
+    int      entry_market_state;
+    bool     use_structure_sl;   // BD08: true=用M5结构止损, 跳过DTP
 };
 
 struct EAState

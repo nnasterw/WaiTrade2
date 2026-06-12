@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """MT5 Strategy Tester 回测管理器 — Windows 原生版本"""
 
+import ctypes
 import os
 import subprocess
 import sys
@@ -108,16 +109,22 @@ Report={report_name}
     return ini_path
 
 
+def is_admin():
+    """检查当前进程是否以管理员权限运行（Win11 26200 + MT5 5836 必须Admin才能启动IPC dispatcher）"""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    except Exception:
+        return False
+
+
 def kill_mt5():
-    """只杀主MT5目录下的进程, 不碰portable终端"""
+    """杀掉正在运行的 terminal64/metatester64 进程（不限路径, 回测前清理）"""
     cmd = (
         "Get-Process -Name terminal64,metatester64 -ErrorAction SilentlyContinue | "
-        "Where-Object { $_.Path -and $_.Path.StartsWith(47C:\Program Files\MetaTrader 547, "
-        "[System.StringComparison]::OrdinalIgnoreCase) } | "
         "Stop-Process -Force"
     )
     subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True)
-    time.sleep(3)
+    time.sleep(2)
 
 
 def clear_tester_cache():
@@ -134,21 +141,52 @@ def run_mt5(timeout_sec=300):
 
     ini_path = INI_DIR / 'backtest.ini'
     config_arg = f'/config:{ini_path}'
+    start_time = time.time()
 
-    cmd = [MT5_TERMINAL, config_arg]
+    if not is_admin():
+        # Win11 26200 + MT5 5836: 非Admin下IPC dispatcher无法启动
+        # 通过PowerShell Start-Process -Verb RunAs 提权运行
+        print(f'  启动 MT5 回测 (Admin提权, 超时 {timeout_sec}s, 可能需要点UAC确认)...')
+        print(f'  [提示] 也可用管理员终端运行本脚本以跳过UAC弹窗', flush=True)
 
+        ps_args = f'/config:{ini_path}'
+        ps_cmd = (
+            f'$p = Start-Process -FilePath "{MT5_TERMINAL}" '
+            f'-ArgumentList \'{ps_args}\' '
+            f'-Wait -PassThru -WindowStyle Minimized -Verb RunAs; '
+            f'exit $p.ExitCode'
+        )
+
+        proc = subprocess.Popen(
+            ['powershell', '-NoProfile', '-Command', ps_cmd],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+
+        try:
+            stdout, stderr = proc.communicate(timeout=timeout_sec + 30)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            print(f'\n  [超时] MT5 运行超过 {timeout_sec}s，已终止')
+            return False
+
+        elapsed = time.time() - start_time
+        print(f'  MT5 已退出 (Admin提权, 耗时 {elapsed:.0f}s, 返回码 {proc.returncode})')
+        return proc.returncode == 0
+
+    # 已是Admin：直接运行
     print(f'  启动 MT5 回测 (超时 {timeout_sec}s)...', end='', flush=True)
 
     proc = subprocess.Popen(
-        cmd,
+        [MT5_TERMINAL, config_arg],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
     )
-
-    start = time.time()
     while proc.poll() is None:
-        elapsed = time.time() - start
+        elapsed = time.time() - start_time
         if elapsed > timeout_sec:
             proc.kill()
             print(f'\n  [超时] MT5 运行超过 {timeout_sec}s，已终止')
@@ -157,7 +195,7 @@ def run_mt5(timeout_sec=300):
             print('.', end='', flush=True)
         time.sleep(2)
 
-    elapsed = time.time() - start
+    elapsed = time.time() - start_time
     print(f'\n  MT5 已退出 (耗时 {elapsed:.0f}s, 返回码 {proc.returncode})')
     return proc.returncode == 0
 

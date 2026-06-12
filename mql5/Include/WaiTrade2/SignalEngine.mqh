@@ -8,6 +8,208 @@
 #include "MarketState.mqh"
 #include "ScoreEngine.mqh"
 #include "DecayDetector.mqh"
+#include "RangeDetector.mqh"
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FVG入场专用函数: 处理公允价值缺口的入场逻辑
+//   震荡市(State=0): FVG回补=消解确认, 反向(fade)入场 — 核心用途
+//   趋势市(State≠0): FVG回补=方向确认, 跟随入场 — 辅助用途
+//
+// FVG与普通OB的关键差异:
+//   1. FVG间隙天然大于OB → 不适用MaxRiskATR限制
+//   2. FVG回补后价格快速穿越 → 位置检查用宽缓冲(4x gap_half)
+//   3. 小账户($200) FVG间隙大→计算lot<min → 强制min lot
+// ═══════════════════════════════════════════════════════════════════════════
+bool CheckFVGEntry(string symbol, const OBZone &zone, int zone_idx,
+                   const EAState &state, TradeSignal &signal)
+{
+   if(!CfgFVGEnableFadeEntry())
+      return false;
+   if(!zone.is_fvg || !zone.fvg_filled)
+      return false;
+   if(zone.expired || zone.used)
+      return false;
+
+   // ── FVG专属时段过滤 ──────────────────────────────────
+   if(StringLen(CfgFVGNoEntryHours()) > 0)
+   {
+      MqlDateTime dt_fvg;
+      TimeToStruct(TimeCurrent(), dt_fvg);
+      if(IsHourBlocked(CfgFVGNoEntryHours(), dt_fvg.hour))
+         return false;
+   }
+
+   // ── 市场上下文 + H1趋势对齐 ──────────────────────────
+   bool is_range = (CfgEnableStateFilter() && state.market_state == 0);
+   if(CfgFVGRequireRangeBoundary() && !is_range)
+      return false;
+
+   int h1_dir = CfgFVGRequireH1Aligned() ? Detect1HOBDirection(symbol) : 0;
+
+   int trade_dir;
+   if(is_range)
+   {
+      // 震荡市: Fade入场(反向)
+      trade_dir = -zone.direction;
+      // H1强趋势时拒绝逆势fade(仅当InpFVGRequireH1Aligned=true)
+      if(h1_dir != 0 && h1_dir != trade_dir)
+         return false;
+   }
+   else
+   {
+      // 趋势市: Follow入场 — 必须与H1方向一致(仅当InpFVGRequireH1Aligned=true)
+      if(h1_dir != 0 && h1_dir != zone.direction)
+         return false;
+      trade_dir = zone.direction;
+   }
+
+   double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
+   double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+   double spread = GetSpread(symbol);
+
+   double gap_mid = zone.mid;
+   double gap_half = (zone.high - zone.low) / 2.0;
+   if(gap_half <= 0) return false;
+
+   // 位置检查: 价格不得偏离FVG回补区域太远(4x gap_half缓冲, 适应快速穿越)
+   if(trade_dir == OB_BUY)
+   {
+      if(ask > zone.high + gap_half * 4.0)
+         return false;
+   }
+   else
+   {
+      if(bid < zone.low - gap_half * 4.0)
+         return false;
+   }
+
+   // ── 确认蜡烛: 最近收盘K线必须与入场方向一致 ──────────
+   if(CfgFVGRequireConfirmCandle())
+   {
+      MqlRates recent[2];
+      if(CopyRates(symbol, PERIOD_CURRENT, 0, 2, recent) >= 2)
+      {
+         bool candle_ok = false;
+         if(trade_dir == OB_BUY)
+            candle_ok = (recent[1].close > recent[1].open);  // 阳线确认
+         else
+            candle_ok = (recent[1].close < recent[1].open);  // 阴线确认
+         if(!candle_ok)
+            return false;
+      }
+   }
+
+   // ── SL: FVG对侧边界 + ATR缓冲 ─────────────────────────
+   double sl;
+   double entry = (trade_dir == OB_BUY) ? ask : bid;
+   if(trade_dir == OB_BUY)
+   {
+      sl = zone.low - state.atr_value * CfgSLBufferATR();
+      if(InpMinSLSpreadMult > 0 && spread > 0)
+         sl = MathMin(sl, entry - spread * InpMinSLSpreadMult);
+   }
+   else
+   {
+      sl = zone.high + state.atr_value * CfgSLBufferATR();
+      if(InpMinSLSpreadMult > 0 && spread > 0)
+         sl = MathMax(sl, entry + spread * InpMinSLSpreadMult);
+   }
+
+   double risk_price = MathAbs(entry - sl);
+   if(risk_price <= 0) return false;
+
+   // ── 风险质量 ──────────────────────────────────────────
+   if(!PassSpreadRatio(risk_price, spread))
+      return false;
+   if(CfgFVGFadeMinRiskSpreadRatio() > 0 && spread > 0 &&
+      risk_price / spread < CfgFVGFadeMinRiskSpreadRatio())
+      return false;
+   // 跳过MaxRiskATR: FVG间隙天然大于普通OB
+
+   // ── 偏移检查 ──────────────────────────────────────────
+   double offset_r = MathAbs(entry - gap_mid) / risk_price;
+   if(offset_r > CfgFVGFadeMaxEntryOffsetR())
+      return false;
+
+   // ── TP: 区间对侧swing点 或 gap高度R倍数 ────────────────
+   double tp = 0.0;
+   if(CfgFVGFadeTPMult() > 0)
+   {
+      if(is_range && state.target_price > 0)
+         tp = state.target_price;
+      else
+         tp = entry + trade_dir * (zone.high - zone.low) * CfgFVGFadeTPMult();
+   }
+
+   // ── 仓位控制 ──────────────────────────────────────────
+   double pos_mult = CfgFVGFadePosMult();
+   if(zone.strength >= 3.0) pos_mult *= 1.3;
+   else if(zone.strength < 1.5) pos_mult *= 0.7;
+
+   pos_mult = ApplyDirectionPosMult(trade_dir, pos_mult);
+   pos_mult = ApplyHourPositionMultiplier(pos_mult);
+   pos_mult = ApplyBalancePositionMultiplier(pos_mult);
+   pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
+   pos_mult = ApplyRuntimePositionMultiplier(pos_mult);
+   pos_mult = ApplyPositionMultiplierCap(pos_mult);
+   if(pos_mult < 0) return false;
+
+   double final_lot = CalcEntryLot(symbol, CfgRiskPercent(), risk_price, pos_mult);
+   final_lot = ApplyLotCap(final_lot);
+   if(CfgFVGFadeMaxLotSize() > 0 && final_lot > CfgFVGFadeMaxLotSize())
+      final_lot = CfgFVGFadeMaxLotSize();
+   if(!PassMinRisk(final_lot, risk_price, symbol))
+      return false;
+
+   // ── 保证金检查 ────────────────────────────────────────
+   double margin_required = 0;
+   ENUM_ORDER_TYPE order_type = (trade_dir == OB_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+   if(!OrderCalcMargin(order_type, symbol, final_lot, entry, margin_required))
+      return false;
+   double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+   if(margin_required > free_margin)
+   {
+      if(free_margin <= 0) return false;
+      final_lot = final_lot * (free_margin / margin_required) * 0.95;
+      final_lot = ApplyLotCap(final_lot);
+      if(CfgFVGFadeMaxLotSize() > 0 && final_lot > CfgFVGFadeMaxLotSize())
+         final_lot = CfgFVGFadeMaxLotSize();
+   }
+
+   double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+   double lot_max = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+   double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+   if(lot_step <= 0) return false;
+   final_lot = MathFloor(final_lot / lot_step) * lot_step;
+   // 小账户($200): FVG间隙大→risk_price大→计算lot常跌破min, 强制min lot
+   if(final_lot < lot_min) final_lot = lot_min;
+   if(final_lot > lot_max) return false;
+
+   // ── 填充信号 ──────────────────────────────────────────
+   signal.direction = trade_dir;
+   signal.entry = entry;
+   signal.sl = sl;
+   signal.tp = tp;
+   signal.risk_price = risk_price;
+   signal.lot = final_lot;
+   signal.pos_mult = pos_mult;
+   signal.ob_index = zone_idx;
+   signal.deep_entry = false;
+   signal.touch_price = entry;
+   signal.confirm_price = entry;
+   signal.bounce_seconds = 0;
+   signal.bounce_ob_pct = 0.0;
+   signal.confirm_ob_pos = 0.0;
+   signal.htf_target = false;
+   signal.htf_partial_r = 0;
+   signal.htf_partial_pct = 0;
+   signal.comment = "WT " + InpVersion + " " + (trade_dir > 0 ? "B" : "S") +
+                    " FVG" +
+                    (is_range ? " Fade" : " Follow") +
+                    " x" + DoubleToString(pos_mult, 1);
+
+   return true;
+}
 
 double CalcOBHeightTP(const OBZone &zone, double entry)
 {
@@ -1663,6 +1865,38 @@ double ApplyOBContextPositionMultiplier(const OBZone &zone, double pos_mult)
    return pos_mult * InpLowBalanceOBBadHourMult;
 }
 
+// ── HTF方向门控: 直接拦截强逆势入场(不经过仓位乘数链) ──────────
+bool PassHTFDirectionGate(int direction)
+{
+   if(!CfgEnableHTFDirectionGate())
+      return true;
+   if(!CfgEnableHTFNetPushFilter() || CfgHTFNetPushMinATR() <= 0)
+      return true;  // HTF过滤器未启用 → 放行
+
+   int bars = MathMax(CfgHTFNetPushBars(), 1);
+   int need = bars + InpATRPeriod + 1;
+   ENUM_TIMEFRAMES tf = MinutesToTF(CfgHTFNetPushTF());
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 1, need, rates);
+   if(count < bars + 1)
+      return true;
+
+   double atr = CalcATR(rates, count, InpATRPeriod);
+   if(atr <= 0)
+      return true;
+
+   int start = count - bars;
+   double net_move = (rates[count - 1].close - rates[start].open) * direction;
+   double net_atr = net_move / atr;
+
+   // 强逆势(反向超过阈值) → 拦截
+   if(net_atr <= -CfgHTFNetPushMinATR())
+      return false;
+
+   return true;
+}
+
 double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
 {
    if(!CfgEnableHTFNetPushFilter() || CfgHTFNetPushMinATR() <= 0)
@@ -1895,6 +2129,10 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       return false;
    }
 
+   // FVG区通过EntryEngine确认后, 路由到FVG专属入场逻辑
+   if(zone.is_fvg)
+      return CheckFVGEntry(symbol, zone, signal.ob_index, state, signal);
+
    if(!PassDoubleSweepSignalFilter(zone))
    {
       if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=double_sweep_signal_filter");
@@ -1914,6 +2152,53 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    {
       if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=momentum");
       return false;
+   }
+
+   // HTF方向门控: 强逆势直接拦截
+   if(!PassHTFDirectionGate(signal.direction))
+      return false;
+
+   // ── HTF Range Fade: 大周期震荡高抛低吸 ──
+   bool range_fade_active = false;
+   ENUM_RANGE_POSITION range_pos = NO_RANGE;
+   HTFRange active_range;
+
+   if(CfgEnableRangeFade())
+   {
+      active_range = GetHTFRange(symbol);
+      if(active_range.valid)
+      {
+         double current_price = (signal.direction == OB_BUY) ?
+            SymbolInfoDouble(symbol, SYMBOL_ASK) : SymbolInfoDouble(symbol, SYMBOL_BID);
+         range_pos = GetRangePosition(active_range, current_price);
+
+         // 区间中部不交易(可选)
+         if(CfgRangeNoMidTrades() && range_pos == RANGE_MIDDLE)
+         {
+            if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
+               " dir=", signal.direction, " skip=range_mid");
+            return false;
+         }
+
+         // 突破中观望
+         if(range_pos == RANGE_BREAKING)
+         {
+            if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
+               " dir=", signal.direction, " skip=range_breaking");
+            return false;
+         }
+
+         // 方向反转: 上沿做空(高抛), 下沿做多(低吸)
+         int faded = GetRangeFadeDirection(active_range, range_pos, signal.direction);
+         if(faded != signal.direction)
+         {
+            if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
+               " dir=", signal.direction, " range_fade_reverse to ", faded,
+               " pos=", RangePositionToString(range_pos));
+            signal.direction = faded;
+            range_fade_active = true;
+         }
+      }
    }
 
    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
@@ -2110,6 +2395,22 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    else if(zone.is_liquidity_sweep)
    {
       tp = CalcLiquiditySweepTP(zone, entry);
+      // ★ Swing Capture: swing目标比sweep TP更远时优先用swing, 并跳过DTP
+      if(CfgEnableStateFilter() && state.target_price > 0)
+      {
+         if((signal.direction == OB_BUY && state.target_price > entry) ||
+            (signal.direction == OB_SELL && state.target_price < entry))
+         {
+            double swing_dist = MathAbs(state.target_price - entry);
+            double sweep_dist = (tp > 0) ? MathAbs(tp - entry) : 0;
+            if(swing_dist > sweep_dist)
+            {
+               tp = state.target_price;
+               signal.htf_target = true;   // 跳过DTP截断
+               signal.htf_partial_r = 0;   // 不部分平仓
+            }
+         }
+      }
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
          tp = RToPrice(CfgFixedTPR(), entry, risk_price, signal.direction);
    }
@@ -2142,6 +2443,41 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    signal.htf_partial_r = 0;
    signal.htf_partial_pct = 0;
    ApplyHTFTarget(symbol, entry, risk_price, signal);
+
+   // ── HTF Range Fade TP/SL覆盖 ──
+   if(range_fade_active)
+   {
+      // 区间TP: 覆盖原TP（对侧边界或中轴）
+      double range_tp = CalcRangeTP(active_range, range_pos, entry, signal.direction);
+      if(range_tp > 0)
+         signal.tp = range_tp;
+
+      // 区间SL: 重新计算（边界外0.5ATR）
+      double range_sl = CalcRangeSL(active_range, range_pos, signal.direction,
+                                     state.atr_value);
+      if(range_sl > 0)
+      {
+         signal.sl = range_sl;
+         signal.risk_price = MathAbs(entry - range_sl);
+      }
+
+      // 区间仓位乘数
+      if(CfgRangePosMult() > 0 && CfgRangePosMult() != 1.0)
+      {
+         signal.lot = NormalizeDouble(signal.lot * CfgRangePosMult(), 2);
+         signal.pos_mult *= CfgRangePosMult();
+      }
+
+      // 区间最大手数限制
+      if(CfgRangeMaxLot() > 0 && signal.lot > CfgRangeMaxLot())
+         signal.lot = CfgRangeMaxLot();
+
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
+         " range_tp=", signal.tp, " range_sl=", signal.sl,
+         " pos=", RangePositionToString(range_pos),
+         " confidence=", DoubleToString(active_range.confidence, 2));
+   }
+
    PrintEntryDebug("entry_engine", zone, state, signal, entry, risk_price, spread, pos_mult,
                    CfgEnableScoring() ? CalcSignalScore(zone, state, state.market_state,
                                                       MathAbs(bid - entry), risk_price,
@@ -2152,6 +2488,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
                     (zone.is_htf_pullback ? " HTFPB" : "") +
                     (IsLooseSweepZone(zone) ? " LSWP" : "") +
                     (zone.is_liquidity_sweep ? " SWP" : "") +
+                    (range_fade_active ? (" RG" + RangePositionToString(range_pos)) : "") +
                     " x" + DoubleToString(pos_mult, 1);
 
    if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " status=PASS lot=", final_lot, " entry=", entry, " sl=", signal.sl);
@@ -2221,9 +2558,49 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    if(!PassEntryMomentumFilter(zone.direction))
       return false;
 
+   // HTF方向门控: 强逆势直接拦截
+   if(!PassHTFDirectionGate(zone.direction))
+      return false;
+
+   // ── HTF Range Fade: 大周期震荡高抛低吸 ──
+   bool range_fade_active2 = false;
+   ENUM_RANGE_POSITION range_pos2 = NO_RANGE;
+   int trade_direction = zone.direction;  // 默认用OB方向
+
+   if(CfgEnableRangeFade())
+   {
+      HTFRange rng = GetHTFRange(symbol);
+      if(rng.valid)
+      {
+         double cur_price = (zone.direction == OB_BUY) ?
+            SymbolInfoDouble(symbol, SYMBOL_ASK) : SymbolInfoDouble(symbol, SYMBOL_BID);
+         range_pos2 = GetRangePosition(rng, cur_price);
+
+         // 区间中部不交易
+         if(CfgRangeNoMidTrades() && range_pos2 == RANGE_MIDDLE)
+            return false;
+
+         // 突破中观望
+         if(range_pos2 == RANGE_BREAKING)
+            return false;
+
+         // 方向反转
+         int faded = GetRangeFadeDirection(rng, range_pos2, zone.direction);
+         if(faded != zone.direction)
+         {
+            trade_direction = faded;
+            range_fade_active2 = true;
+         }
+      }
+   }
+
    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
    double spread = GetSpread(symbol);
+
+   // FVG专属入场路径: 公允价值缺口回补后的交易逻辑
+   if(zone.is_fvg)
+      return CheckFVGEntry(symbol, zone, zone_idx, state, signal);
 
    if(!IsZoneTouched(zone, bid, ask))
       return false;
@@ -2236,12 +2613,20 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       return false;
 
    double sl = 0;
-   if(zone.direction == OB_BUY)
-      sl = zone.low - state.atr_value * CfgSLBufferATR();
-   else
-      sl = zone.high + state.atr_value * CfgSLBufferATR();
+   if(range_fade_active2)
+   {
+      // 区间fade: SL在区间边界外
+      sl = CalcRangeSL(GetHTFRange(symbol), range_pos2, trade_direction, state.atr_value);
+   }
+   if(sl <= 0)
+   {
+      if(zone.direction == OB_BUY)
+         sl = zone.low - state.atr_value * CfgSLBufferATR();
+      else
+         sl = zone.high + state.atr_value * CfgSLBufferATR();
+   }
 
-   double entry = (zone.direction == OB_BUY) ? ask : bid;
+   double entry = (trade_direction == OB_BUY) ? ask : bid;
    double risk_price = MathAbs(entry - sl);
 
    if(risk_price <= 0)
@@ -2376,6 +2761,21 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    else if(zone.is_liquidity_sweep)
    {
       tp = CalcLiquiditySweepTP(zone, entry);
+      // ★ Swing Capture: swing目标比sweep TP更远时优先用swing, 并跳过DTP
+      if(CfgEnableStateFilter() && state.target_price > 0)
+      {
+         if((signal.direction == OB_BUY && state.target_price > entry) ||
+            (signal.direction == OB_SELL && state.target_price < entry))
+         {
+            double swing_dist = MathAbs(state.target_price - entry);
+            double sweep_dist = (tp > 0) ? MathAbs(tp - entry) : 0;
+            if(swing_dist > sweep_dist)
+            {
+               tp = state.target_price;
+               signal.htf_target = true;
+            }
+         }
+      }
       if(tp == 0.0 && CfgDTPTriggerR() <= 0 && CfgFixedTPR() > 0)
          tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
@@ -2397,7 +2797,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
          tp = RToPrice(CfgFixedTPR(), entry, risk_price, zone.direction);
    }
 
-   signal.direction = zone.direction;
+   signal.direction = trade_direction;
    signal.entry = entry;
    signal.sl = sl;
    signal.tp = tp;
@@ -2415,12 +2815,29 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    signal.htf_partial_r = 0;
    signal.htf_partial_pct = 0;
    ApplyHTFTarget(symbol, entry, risk_price, signal);
+
+   // ── Range Fade TP/SL覆盖 (直接入场路径) ──
+   if(range_fade_active2)
+   {
+      HTFRange rng2 = GetHTFRange(symbol);
+      double range_tp = CalcRangeTP(rng2, range_pos2, entry, trade_direction);
+      if(range_tp > 0) signal.tp = range_tp;
+      if(CfgRangePosMult() > 0 && CfgRangePosMult() != 1.0)
+      {
+         signal.lot = NormalizeDouble(signal.lot * CfgRangePosMult(), 2);
+         signal.pos_mult *= CfgRangePosMult();
+      }
+      if(CfgRangeMaxLot() > 0 && signal.lot > CfgRangeMaxLot())
+         signal.lot = CfgRangeMaxLot();
+   }
+
    PrintEntryDebug("direct", zone, state, signal, entry, risk_price, spread, pos_mult, score);
-   signal.comment = "WT " + InpVersion + " " + (zone.direction > 0 ? "B" : "S") +
+   signal.comment = "WT " + InpVersion + " " + (trade_direction > 0 ? "B" : "S") +
                     (zone.is_range_breakout ? " RB" : "") +
                     (zone.is_htf_pullback ? " HTFPB" : "") +
                     (IsLooseSweepZone(zone) ? " LSWP" : "") +
                     (zone.is_liquidity_sweep ? " SWP" : "") +
+                    (range_fade_active2 ? (" RG" + RangePositionToString(range_pos2)) : "") +
                     " x" + DoubleToString(pos_mult, 1);
 
    return true;

@@ -1,0 +1,203 @@
+# WaiTrade3 策略定义 — SMC 增强版
+# 设计: v3 = v2 超集, 新增 SMC 参数默认 off
+# 使用: python scripts/yaml_to_set.py --v3 <策略名> --base <v2基础策略>
+
+defaults: &defaults
+  # === P0: 结构跟踪（趋势方向识别）===
+  enable_structure_tracker: false
+  structure_lookback_bars: 30
+  structure_pivot_bars: 5
+  structure_trend_tf: 60            # 趋势计算周期(H1=60, 比M15稳定10倍)
+  structure_trend_lookback: 80
+  structure_trend_stable_bars: 2    # 趋势连续确认后才拦截(防单bar抖动)
+  structure_min_pivot_strength: 0
+  structure_require_close: true
+  structure_log_bos: false
+  structure_block_counter_trend: false  # 已弃用: 由趋势自适应出场替代
+  structure_block_min_strength: 0.0
+  # 趋势自适应出场: 弱趋势逆势=紧SL+SwingTP
+  enable_trend_adaptive_exit: false
+  trend_strength_threshold: 4.0   # stable_bars<4=弱趋势(收紧), >=4=强趋势(保留v2)
+  counter_trend_sl_mult: 0.40
+  counter_trend_tp_mode: 1
+
+  # === P0: 流动性池 ===
+  enable_liquidity_pool: false
+  lp_pool_lookback_bars: 20
+  lp_swing_high_similarity_pct: 0.2
+  lp_min_sweep_distance_points: 10
+  lp_sweep_entry_boost: 1.2
+  lp_sweep_boost_only: true
+  lp_min_range_atr: 0.3
+  lp_log_detection: false
+
+  # === P1: 折扣/溢价区 ===
+  enable_discount_premium: false
+  discount_max_ratio: 0.50
+  premium_min_ratio: 0.50
+  dp_htf_period: 60
+  dp_lookback_bars: 48
+  dp_entry_mult: 1.0
+
+  # === P1: OB评分 ===
+  enable_ob_scoring: false
+  ob_score_min_pass: 60
+  ob_score_trend_weight: 30.0
+  ob_score_displacement_weight: 25.0
+  ob_score_liquidity_weight: 20.0
+  ob_score_mitigation_weight: 15.0
+  ob_score_discount_weight: 10.0
+  ob_score_log_low: false
+
+  # === P2: 结构轨迹止损 ===
+  enable_structure_trail: false
+  struct_trail_trigger_r: 1.0
+  struct_trail_buffer_atr: 0.2
+  struct_trail_lookback: 10
+  struct_trail_only_dtp_free: false
+
+  # === P0: OB多周期堆叠 ===
+  enable_ob_stacking: false
+
+  # === P1: H4 自适应重入控制 (趋势市宽松 vs 震荡市限制) ===
+  # 配合v2宽SL (sl_buffer_atr=0.4)使用, v2重入参数设宽松(H4趋势时使用)
+  # H4=BULL/BEAR → 趋势市宽松(保留v2重入) | H4=CHOP/UNKNOWN → 震荡市限制重入
+  enable_h4_adaptive: false
+
+  # === P0: SL 使用 H1 ATR (修复M1_ATR=$1.6→SL=$0.65的致命尺度错误) ===
+  sl_use_h1_atr: false               # XAU必须开启! H1_ATR≈$20 → SL≈$8
+
+  # === P0: OB边缘入场 (仅上沿Sell/下沿Buy, 过滤区间中部噪声) ===
+  edge_bounce_only: false            # 仅OB区边缘30%内允许入场
+  h4_trend_max_entries_per_ob: 20
+  h4_trend_reentry_cooldown_min: 0
+  h4_trend_cooldown_bars: 0
+  h4_chop_max_entries_per_ob: 2
+  h4_chop_reentry_cooldown_min: 30
+  h4_chop_cooldown_bars: 3
+
+# ═══════════════════════════════════════════════════
+# v3 测试策略
+# ═══════════════════════════════════════════════════
+
+# 最小验证: 仅H1趋势门控，H1趋势=买入做多+卖出做空
+v3-test: &v3-test
+  <<: *defaults
+  version: V3-TEST
+  description: "OB质量入场过滤: 震荡市逆势需高质量OB,趋势市不干预"
+  enable_structure_tracker: true
+  structure_log_bos: true
+  enable_trend_adaptive_exit: true
+  enable_ob_scoring: true
+  ob_score_min_pass: 30   # 仅过滤最差20%OB(高分=趋势结构清晰,低分=弱震荡)
+
+# 完整SMC: P0+P1全开
+v3-full:
+  <<: *v3-test
+  version: V3-FULL
+  description: "完整SMC: H1趋势门控+流动性池+折扣过滤+OB评分"
+  enable_liquidity_pool: true
+  enable_discount_premium: true
+  enable_ob_scoring: true
+
+# P0核心: 结构+流动性，不加P1过滤
+v3-p0:
+  <<: *v3-test
+  version: V3-P0
+  description: "P0核心: H1趋势门控+流动性池，不加评分/折扣过滤"
+  enable_liquidity_pool: true
+
+# H4自适应: 趋势市保留v2重入(20次/0冷却), 震荡市限制重入(2次/30min冷却/3bar全局)
+# 配合v2宽SL (sl_buffer_atr=0.4), 预计2505不退化+2605盈利
+v3-h4:
+  <<: *v3-test
+  version: V3-H4
+  description: "H4自适应: 趋势宽/震荡严重入 + 宽SL(0.4ATR)"
+  sl_buffer_atr: 0.6              # 适度放宽SL (0.6×M1_ATR≈$1.0, 原0.3太紧被秒杀)
+  sl_use_h1_atr: false            # 保持M1 ATR (策略本质是scalper)
+  breakeven_r: 0.6                # 适度提高BE触发 (0.6R, 原0.5R)
+  breakeven_lock_r: 0.8           # BE锁提高到0.8R (原0.4R太紧, 截胡DTP)
+  time_exit_bars: 40              # 延长时限 (40min, 原20min太短)
+  enable_structure_tracker: true
+  structure_log_bos: true
+  enable_h4_adaptive: true
+  enable_trend_adaptive_exit: true
+  enable_ob_scoring: true
+  ob_score_min_pass: 30
+
+# Swing模式: 宽SL($8-10) + 无BE锁 + 无时间强平 + 强OB过滤(60分)
+# 目标: 抓$20-60的OB大波段, 配合H4自适应防震荡自毁
+v3-swing:
+  <<: *v3-test
+  version: V3-SWING
+  description: "Swing: SL=$8 + 无BE/TimeExit + OB≥60分 + H4自适应"
+  sl_buffer_atr: 5.0              # SL≈$8 (5×M1_ATR≈$1.6) 给OB区足够呼吸空间
+  sl_use_h1_atr: false
+  breakeven_r: 3.0                # 实质关闭BE (需$24才触发, DTP优先)
+  breakeven_lock_r: 2.0           # 实质关闭BE锁
+  time_exit_bars: 0               # 关闭时间强平, 让DTP追踪结构
+  enable_structure_tracker: true
+  structure_log_bos: false
+  enable_h4_adaptive: true
+  enable_trend_adaptive_exit: true
+  enable_ob_scoring: true
+  ob_score_min_pass: 60           # 只做最强OB (过滤60%噪音)
+
+# 多周期OB加权: H4/H1 swing→OB zone + M1 scalper保持
+# H4 OB weight=4 SL=$15-25 | H1 weight=2 SL=$8-15 | M1 weight=1 SL=$1-3
+v3-mtf:
+  <<: *v3-test
+  version: V3-MTF
+  description: "多周期加权OB: H4/H1宽SL+M1 scalper共存"
+  sl_buffer_atr: 0.6              # M1 scalper参数保持
+  sl_use_h1_atr: false
+  breakeven_r: 0.6
+  breakeven_lock_r: 0.8
+  time_exit_bars: 120             # P2: 延长持仓(趋势市DTP自然退出, 震荡市给突破时间)
+  enable_structure_tracker: true
+  structure_log_bos: false
+  enable_h4_adaptive: true
+  enable_trend_adaptive_exit: true
+  enable_ob_scoring: false         # OB评分过滤关闭(Bug修复后证实无益, 最优结果无需此过滤)
+  ob_score_min_pass: 30
+  # H4自适应参数 (收紧CHOP期限)
+  h4_trend_max_entries_per_ob: 20
+  h4_trend_reentry_cooldown_min: 0
+  h4_trend_cooldown_bars: 0
+  h4_chop_max_entries_per_ob: 3     # CHOP放宽(1→3, 恢复交易量)
+  h4_chop_reentry_cooldown_min: 15  # CHOP冷却缩短(60→15min)
+  h4_chop_cooldown_bars: 2          # CHOP全局冷却(5→2bars)
+  # MTF参数
+  enable_multi_tf_ob: true
+  mtf_h4_weight: 4.0
+  mtf_h1_weight: 2.0
+  mtf_ob_sl_buffer_atr: 0.5       # SL=0.5×该TF的ATR (v2最优值)
+  mtf_confluence_bonus: 1.5       # 多周期共振加分
+  mtf_ob_max_age_bars: 240        # 4小时寿命
+  mtf_max_ob_per_tf: 3
+  mtf_max_weight: 3.0             # 权重上限 (v2最优值)
+  mtf_block_counter_trend: true   # P1: H4趋势强制对齐
+  edge_bounce_only: false          # P0: 边缘入场已证伪(交易减半,2505-$2,360)
+  ob_freshness_filter: true        # OB新鲜度: 反复缓解OB→跳过(4580教训)
+  ob_max_mitigations: 2            # 最多缓解2次后不再交易
+  bos_retest_entry: true           # BOS突破回踩入场(结构突破→回踩→M1 OB确认)
+  bos_retest_sl_buffer: 0.5       # BOS回踩SL缓冲(ATR)
+  bos_retest_tolerance: 0.3       # BOS回踩容差(ATR)
+  bos_retest_max_bars: 480        # BOS回踩最大等待(8小时)
+  bos_retest_weight: 1.5          # BOS回踩仓位加权
+
+# BD08 = BD07 + BOS Retest (纯增量, 所有BD07参数不变)
+# 验证: 2605 -$12.46→-$9.16 (+26%), 2505 $70,088→$76,486 (+9%)
+v11xau-bd08:
+  <<: *defaults
+  version: V11XAU-BD08
+  description: "BD08 = BD07 + BOS Retest纯增量, 双扫绕过, BD07 scalping参数全保留"
+  # v3-only additive (BOS Retest + bypass double-sweep gate)
+  bos_retest_entry: true           # BOS突破回踩入场(纯增量)
+  bos_retest_sl_buffer: 0.5        # BOS回踩SL缓冲(H1 ATR宽SL)
+  bos_retest_tolerance: 0.3        # BOS回踩容差(ATR倍数)
+  bos_retest_max_bars: 480         # BOS回踩最大等待M1 bars(8小时)
+  bos_retest_weight: 1.5           # BOS回踩仓位加权(×InpMTFH1Weight)
+  structure_pivot_bars: 3          # H1 swing检测枢轴bars
+  structure_log_bos: false         # 关闭BOS日志(生产环境)
+  enable_h4_adaptive: false        # H4自适应关闭(已验证伤2505)

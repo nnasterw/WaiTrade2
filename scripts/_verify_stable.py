@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Single-day backtest verification on D: portable terminal."""
 import sys, os
-os.environ['MT5_HOME'] = 'D:/Code/codexProject/WaiTrade2/temp/mt5_portable_bt'
+os.environ['MT5_HOME'] = 'D:/Code/codexProject/WaiTrade2/temp/mt5_portable_xau'
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 from bt_shared import *
 

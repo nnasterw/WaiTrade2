@@ -5,6 +5,7 @@
 #include "Config.mqh"
 #include "MathUtils.mqh"
 #include "TradeOps.mqh"
+#include "FVGDetector.mqh"
 
 bool IsImpulse(const MqlRates &rates[], int count, int start_idx, int direction, double atr)
 {
@@ -230,21 +231,26 @@ void UpdateOBStatus(OBZone &zones[], int &zone_count, double bid, double ask, co
       }
 
       int bars_alive = state.bar_count - zones[i].created_bar;
-      if(bars_alive > InpBars)
+      // FVG区使用独立的过期机制(UpdateFVGStatus), 不受通用过期控制
+      if(!zones[i].is_fvg && bars_alive > InpBars)
       {
          zones[i].expired = true;
          continue;
       }
 
-      long minutes_alive = (long)(now - zones[i].created) / 60;
-      // Gap6: 动态TTL — 高strength OB活更久, 低strength快过期
-      int ttl_minutes = CfgTimeoutMin();
-      if(zones[i].strength >= 2.0) ttl_minutes = (int)(CfgTimeoutMin() * 1.5);
-      else if(zones[i].strength < 1.0) ttl_minutes = (int)(CfgTimeoutMin() * 0.5);
-      if(minutes_alive > ttl_minutes)
+      // FVG区使用独立的过期时间, 不受通用TTL控制
+      if(!zones[i].is_fvg)
       {
-         zones[i].expired = true;
-         continue;
+         long minutes_alive = (long)(now - zones[i].created) / 60;
+         // Gap6: 动态TTL — 高strength OB活更久, 低strength快过期
+         int ttl_minutes = CfgTimeoutMin();
+         if(zones[i].strength >= 2.0) ttl_minutes = (int)(CfgTimeoutMin() * 1.5);
+         else if(zones[i].strength < 1.0) ttl_minutes = (int)(CfgTimeoutMin() * 0.5);
+         if(minutes_alive > ttl_minutes)
+         {
+            zones[i].expired = true;
+            continue;
+         }
       }
 
       bool touched = false;
@@ -287,6 +293,7 @@ void ConsolidateOBs(OBZone &zones[], int &zone_count)
          if(zones[i].is_range_breakout || zones[j].is_range_breakout) continue;
          if(zones[i].is_liquidity_sweep || zones[j].is_liquidity_sweep) continue;
          if(zones[i].is_htf_pullback || zones[j].is_htf_pullback) continue;
+         if(zones[i].is_fvg || zones[j].is_fvg) continue;  // ★ FVG保护: 防止被OB合并吞噬
 
          bool overlap = (zones[i].low <= zones[j].high && zones[i].high >= zones[j].low);
          if(!overlap) continue;
@@ -795,6 +802,8 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       return;
    }
    DetectLiquiditySweeps(rates, count, zones, zone_count, state, atr, spread);
+   if(CfgEnableFVG())
+      DetectFVGs(rates, count, zones, zone_count, state, atr, spread);
    if(CfgLiquiditySweepOnly())
       return;
    if(InpRangeBreakoutOnly)

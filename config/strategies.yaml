@@ -57,6 +57,22 @@ defaults: &defaults
   double_sweep_block_sweep_entry: false
   double_sweep_dtp_trigger_r: 0.0
   double_sweep_regime_pos_mult: 1.0
+  # FVG (公允价值缺口) — 震荡市fade信号源
+  enable_fvg: false
+  fvg_lookback_bars: 30
+  fvg_min_gap_atr: 0.08
+  fvg_max_gap_atr: 0.80
+  fvg_max_age_bars: 60
+  fvg_timeout_min: 180
+  fvg_require_range_boundary: true
+  fvg_enable_fade_entry: false
+  fvg_fade_min_risk_spread_ratio: 3.0
+  fvg_fade_max_entry_offset_r: 1.2
+  fvg_fade_pos_mult: 0.5
+  fvg_fade_max_lot_size: 0.02
+  fvg_fade_tp_mult: 1.0
+  fvg_no_entry_hours: "5,6,7"
+  fvg_require_confirm_candle: false
   atr_regime_period: 0
   atr_regime_low_threshold: 0.7
   atr_regime_low_max_pos_mult: 1.0
@@ -96,6 +112,26 @@ defaults: &defaults
   htf_pullback_zone_atr: 0.35
   htf_pullback_offset_atr: 0.10
   htf_pullback_tp_mult: 1.0
+  # HTF Range Fade defaults
+  enable_range_fade: false
+  range_tf: 240
+  range_lookback: 120
+  range_min_bars: 24
+  range_min_width_atr: 1.5
+  range_max_width_atr: 5.0
+  range_boundary_tolerance_atr: 0.15
+  range_swing_strength: 3
+  range_min_touches: 2
+  range_min_containment: 0.75
+  range_entry_zone_atr: 0.30
+  range_sl_buffer_atr: 0.50
+  range_tp_target: 1
+  range_pos_mult: 0.5
+  range_max_lot: 0.02
+  range_update_bars: 1
+  range_require_sweep: true
+  range_require_fvg: false
+  range_no_mid_trades: true
   enable_liquidity_sweep: false
   liquidity_sweep_only: false
   sweep_lookback_bars: 12

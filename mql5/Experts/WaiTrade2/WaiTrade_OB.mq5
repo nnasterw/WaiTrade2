@@ -57,6 +57,7 @@ void RegisterChannelMonitors(OBZone& zones[], EAState& state,
     for(int z = 0; z < state.ob_count; z++)
     {
         if(zones[z].expired || zones[z].used) continue;
+        // FVG区现已接入EntryEngine Bounce确认管道
         if(!PassOBReentryCooldown(zones[z])) continue;
         if(CfgEnableStateFilter() && state.market_state != 0
            && state.market_state != zones[z].direction) continue;
@@ -296,8 +297,12 @@ void OnTick()
     double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
     double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
     UpdateOBStatus(g_zones, g_state.ob_count, bid, ask, g_state);
+    UpdateFVGStatus(g_zones, g_state.ob_count, bid, ask, g_state);
     if(s_dual)
+    {
         UpdateOBStatus(g_zones_osc, g_state_osc.ob_count, bid, ask, g_state_osc);
+        UpdateFVGStatus(g_zones_osc, g_state_osc.ob_count, bid, ask, g_state_osc);
+    }
     else if(InpEnableHTFPullback && !InpHTFPullbackOnly)
         UpdateOBStatus(g_htf_zones, g_htf_zone_count, bid, ask, g_state);
     // 4. 扫描入场信号（双通道：振荡用M3 osc通道，趋势用M1主通道）

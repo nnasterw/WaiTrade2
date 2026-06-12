@@ -52,6 +52,7 @@ struct EntryMonitor
     bool             active;
     bool             is_loose_sweep;
     bool             is_htf_pullback;
+    bool             is_bos_retest;    // BOS Retest信号(H1结构突破回踩, 跳过双扫/月亏门控)
     // Mitigation Entry: 震荡市替代Bounce Entry
     bool             enable_mitigation;     // 本监视器使用Mitigation模式
     datetime         mitigation_bounce_time; // Bounce确认(价格离开OB)的时间,用于超时检测

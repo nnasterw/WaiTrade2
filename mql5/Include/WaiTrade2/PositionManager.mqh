@@ -429,6 +429,8 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
         CheckPartialClose(tracks[i], state);
         CheckBreakeven(tracks[i], state);
         OpenStrongAddOn(tracks[i], state, tracks, track_count);
+        // BD08: 结构止损持仓→跳过DTP/Trail, 由EA层M5结构管理
+        if(tracks[i].use_structure_sl) continue;
         if(!(tracks[i].htf_target && InpHTFSkipTrail))
             CheckTrailing(tracks[i]);
         if(!(tracks[i].htf_target && InpHTFSkipDTP))
