@@ -38285,6 +38285,39 @@ v11-btc1-trend31:
   btc_dtp_retrace: 0.18
   magic_number: 205931
 
+v11-btc1-trend32:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND32
+  description: 'trend29 + BTC profile enabled (cap 0.13 in both BTC max_lot and balance_tier)'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  btc_max_lot_size: 0.13
+  btc_max_pos_mult: 50.0
+  btc_risk_percent: 2.5
+  btc_max_concurrent: 3
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  magic_number: 205932
+
+v11-btc1-trend33:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND33
+  description: 'trend29 with higher balance_tier threshold (5000 -> 8000) to allow more winners at high balance'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 8000.0
+  balance_tier1_max_lot_size: 0.13
+  magic_number: 205933
+
+v11-btc1-trend34:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND34
+  description: 'trend29 with cap 0.14 (between 0.13/best and 0.15)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  magic_number: 205934
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01
