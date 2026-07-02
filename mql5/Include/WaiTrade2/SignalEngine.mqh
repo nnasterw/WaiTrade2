@@ -10,6 +10,11 @@
 #include "DecayDetector.mqh"
 #include "RangeDetector.mqh"
 
+bool PassFailureReentryConfirm(int direction, bool is_sweep, double pos_mult,
+                               int entry_family, double entry_price);
+bool PassPostWinCooldown(int direction, int entry_family);
+double ApplyPostWinCooldownLotCap(double lot, int direction, int entry_family);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // FVG入场专用函数: 处理公允价值缺口的入场逻辑
 //   震荡市(State=0): FVG回补=消解确认, 反向(fade)入场 — 核心用途
@@ -40,6 +45,149 @@ bool CheckFVGEntry(string symbol, const OBZone &zone, int zone_idx,
    }
 
    // ── 市场上下文 + H1趋势对齐 ──────────────────────────
+   double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
+   double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+   double spread = GetSpread(symbol);
+   double gap_size = zone.high - zone.low;
+   if(gap_size <= 0) return false;
+
+   bool fvg_mit_mode = (CfgFVGFadeMaxEntryOffsetR() < 0);
+   if(fvg_mit_mode)
+   {
+      if(state.atr_value > 0 && gap_size < state.atr_value * CfgFVGMinGapATR())
+         return false;
+
+      double fill_pct = 0.50;
+      double mitigation_price = zone.mid;
+      if(zone.direction == OB_BUY)
+         mitigation_price = zone.high - gap_size * fill_pct;
+      else
+         mitigation_price = zone.low + gap_size * fill_pct;
+
+      if(zone.direction == OB_BUY)
+      {
+         if(bid > mitigation_price)
+            return false;
+      }
+      else
+      {
+         if(ask < mitigation_price)
+            return false;
+      }
+
+      bool use_fade = (CfgFVGFadeMaxEntryOffsetR() <= -2.0);
+      int trade_dir = use_fade ? -zone.direction : zone.direction;
+      if(CfgFVGRequireH1Aligned())
+      {
+         int h1_dir = Detect1HOBDirection(symbol);
+         if(h1_dir != 0 && h1_dir != trade_dir)
+            return false;
+      }
+
+      double entry = (trade_dir == OB_BUY) ? ask : bid;
+      if(CfgFVGRequireConfirmCandle())
+      {
+         MqlRates recent[2];
+         if(CopyRates(symbol, PERIOD_CURRENT, 0, 2, recent) >= 2)
+         {
+            bool candle_ok = (trade_dir == OB_BUY)
+               ? (recent[1].close > recent[1].open && recent[1].close >= mitigation_price)
+               : (recent[1].close < recent[1].open && recent[1].close <= mitigation_price);
+            if(!candle_ok)
+               return false;
+         }
+      }
+
+      double sl;
+      if(trade_dir == OB_BUY)
+      {
+         sl = zone.low - state.atr_value * CfgSLBufferATR();
+         if(InpMinSLSpreadMult > 0 && spread > 0)
+            sl = MathMin(sl, entry - spread * InpMinSLSpreadMult);
+      }
+      else
+      {
+         sl = zone.high + state.atr_value * CfgSLBufferATR();
+         if(InpMinSLSpreadMult > 0 && spread > 0)
+            sl = MathMax(sl, entry + spread * InpMinSLSpreadMult);
+      }
+
+      double risk_price = MathAbs(entry - sl);
+      if(risk_price <= 0) return false;
+      if(!PassSpreadRatio(risk_price, spread))
+         return false;
+      if(CfgFVGFadeMinRiskSpreadRatio() > 0 && spread > 0 &&
+         risk_price / spread < CfgFVGFadeMinRiskSpreadRatio())
+         return false;
+
+      double tp = 0.0;
+      if(CfgFVGFadeTPMult() > 0)
+         tp = entry + trade_dir * gap_size * CfgFVGFadeTPMult();
+
+      double pos_mult = CfgFVGFadePosMult();
+      if(zone.strength >= 3.0) pos_mult *= 1.2;
+      else if(zone.strength < 1.5) pos_mult *= 0.8;
+      pos_mult = ApplyDirectionPosMult(trade_dir, pos_mult);
+      pos_mult = ApplyHourPositionMultiplier(pos_mult);
+      pos_mult = ApplyBalancePositionMultiplier(pos_mult);
+      pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
+      pos_mult = ApplyRuntimePositionMultiplier(pos_mult);
+      pos_mult = ApplyPositionMultiplierCap(pos_mult);
+      if(pos_mult < 0) return false;
+
+      double final_lot = CalcEntryLot(symbol, CfgRiskPercent(), risk_price, pos_mult);
+      final_lot = ApplyLotCap(final_lot);
+      if(CfgFVGFadeMaxLotSize() > 0 && final_lot > CfgFVGFadeMaxLotSize())
+         final_lot = CfgFVGFadeMaxLotSize();
+      if(!PassMinRisk(final_lot, risk_price, symbol))
+         return false;
+
+      double margin_required = 0;
+      ENUM_ORDER_TYPE order_type = (trade_dir == OB_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+      if(!OrderCalcMargin(order_type, symbol, final_lot, entry, margin_required))
+         return false;
+      double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+      if(margin_required > free_margin)
+      {
+         if(free_margin <= 0) return false;
+         final_lot = final_lot * (free_margin / margin_required) * 0.95;
+         final_lot = ApplyLotCap(final_lot);
+         if(CfgFVGFadeMaxLotSize() > 0 && final_lot > CfgFVGFadeMaxLotSize())
+            final_lot = CfgFVGFadeMaxLotSize();
+      }
+
+      double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+      double lot_max = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+      double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+      if(lot_step <= 0) return false;
+      final_lot = MathFloor(final_lot / lot_step) * lot_step;
+      if(final_lot < lot_min) final_lot = lot_min;
+      if(final_lot > lot_max) return false;
+
+      signal.direction = trade_dir;
+      signal.entry = entry;
+      signal.sl = sl;
+      signal.tp = tp;
+      signal.risk_price = risk_price;
+      signal.lot = final_lot;
+      signal.pos_mult = pos_mult;
+      signal.ob_index = zone_idx;
+      signal.deep_entry = false;
+      signal.touch_price = entry;
+      signal.confirm_price = entry;
+      signal.bounce_seconds = 0;
+      signal.bounce_ob_pct = 0.0;
+      signal.confirm_ob_pos = 0.0;
+      signal.htf_target = false;
+      signal.htf_partial_r = 0;
+      signal.htf_partial_pct = 0;
+      signal.comment = "WT " + InpVersion + " " + (trade_dir > 0 ? "B" : "S") +
+                       " FVG MIT" +
+                       (use_fade ? " Fade" : " Follow") +
+                       " x" + DoubleToString(pos_mult, 1);
+      return true;
+   }
+
    bool is_range = (CfgEnableStateFilter() && state.market_state == 0);
    if(CfgFVGRequireRangeBoundary() && !is_range)
       return false;
@@ -63,12 +211,8 @@ bool CheckFVGEntry(string symbol, const OBZone &zone, int zone_idx,
       trade_dir = zone.direction;
    }
 
-   double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
-   double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
-   double spread = GetSpread(symbol);
-
    double gap_mid = zone.mid;
-   double gap_half = (zone.high - zone.low) / 2.0;
+   double gap_half = gap_size / 2.0;
    if(gap_half <= 0) return false;
 
    // 位置检查: 价格不得偏离FVG回补区域太远(4x gap_half缓冲, 适应快速穿越)
@@ -479,6 +623,562 @@ bool PassEntryMomentumFilter(int direction)
    return true;
 }
 
+bool PassEntryHTFShapeFilter(int direction, double entry_price)
+{
+   if(!InpEnableEntryHTFShapeFilter)
+      return true;
+   if(InpEntryHTFMaxSameBody <= 0.0 && InpEntryHTFMaxRangePos <= 0.0)
+      return true;
+
+   int bars = MathMax(1, InpEntryHTFShapeBars);
+   int need = MathMax(bars, 1);
+   ENUM_TIMEFRAMES tf = MinutesToTF(InpEntryHTFShapeTF > 0 ? InpEntryHTFShapeTF : CfgBarTF());
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 1, need, rates);
+   if(count < 1)
+      return true;
+
+   if(InpEntryHTFMaxSameBody > 0.0)
+   {
+      double same_body = (rates[0].close - rates[0].open) * direction;
+      if(same_body > InpEntryHTFMaxSameBody)
+         return false;
+   }
+
+   if(InpEntryHTFMaxRangePos > 0.0 && count >= bars)
+   {
+      double high = rates[0].high;
+      double low = rates[0].low;
+      for(int i = 1; i < count; i++)
+      {
+         high = MathMax(high, rates[i].high);
+         low = MathMin(low, rates[i].low);
+      }
+      double range = high - low;
+      if(range > 0.0)
+      {
+         double pos = (direction == OB_BUY) ? (entry_price - low) / range
+                                            : (high - entry_price) / range;
+         if(pos > InpEntryHTFMaxRangePos)
+            return false;
+      }
+   }
+
+   return true;
+}
+
+bool PassEntryExhaustionFilter(int direction)
+{
+   if(!InpEnableEntryExhaustionFilter)
+      return true;
+   if(InpEntryExhaustionMaxNet <= 0.0)
+      return true;
+
+   int bars = MathMax(1, InpEntryExhaustionBars);
+   ENUM_TIMEFRAMES tf = MinutesToTF(InpEntryExhaustionTF > 0 ? InpEntryExhaustionTF : CfgBarTF());
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 1, bars, rates);
+   if(count < bars)
+      return true;
+
+   double net = rates[0].close - rates[count - 1].open;
+   double dir_net = net * direction;
+   return (dir_net <= InpEntryExhaustionMaxNet);
+}
+
+bool PassEntryContextWindow(int tf_min, int bars_in, double min_net, double max_net, double min_eff)
+{
+   int bars = MathMax(1, bars_in);
+   ENUM_TIMEFRAMES tf = MinutesToTF(tf_min > 0 ? tf_min : CfgBarTF());
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 1, bars, rates);
+   if(count < bars)
+      return true;
+
+   double high = rates[0].high;
+   double low = rates[0].low;
+   for(int i = 1; i < count; i++)
+   {
+      high = MathMax(high, rates[i].high);
+      low = MathMin(low, rates[i].low);
+   }
+
+   double net = rates[0].close - rates[count - 1].open;
+   if(net < min_net || net > max_net)
+      return false;
+
+   if(min_eff > 0.0)
+   {
+      double range = high - low;
+      if(range <= 0.0)
+         return true;
+      double eff = MathAbs(net) / range;
+      if(eff < min_eff)
+         return false;
+   }
+
+   return true;
+}
+
+bool PassEntryContextFilter()
+{
+   if(!InpEnableEntryContextFilter)
+      return true;
+
+   if(!PassEntryContextWindow(InpEntryContextTF, InpEntryContextBars,
+                              InpEntryContextMinNet, InpEntryContextMaxNet,
+                              InpEntryContextMinEfficiency))
+      return false;
+
+   if(InpEntryContextTF2 > 0)
+   {
+      if(!PassEntryContextWindow(InpEntryContextTF2, InpEntryContextBars2,
+                                 InpEntryContextMinNet2, InpEntryContextMaxNet2,
+                                 InpEntryContextMinEfficiency2))
+         return false;
+   }
+
+   return true;
+}
+
+bool PassEntryDirContextWindow(int direction, int tf_min, int bars_in, double min_net, double max_net)
+{
+   int bars = MathMax(1, bars_in);
+   ENUM_TIMEFRAMES tf = MinutesToTF(tf_min > 0 ? tf_min : CfgBarTF());
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 1, bars, rates);
+   if(count < bars)
+      return true;
+
+   double net = rates[0].close - rates[count - 1].open;
+   double dir_net = net * direction;
+   return (dir_net >= min_net && dir_net <= max_net);
+}
+
+bool PassEntryDirContextFilter(int direction)
+{
+   if(!InpEnableEntryDirContextFilter)
+      return true;
+   if(direction == OB_BUY && !InpEntryDirContextApplyBuy)
+      return true;
+   if(direction == OB_SELL && !InpEntryDirContextApplySell)
+      return true;
+
+   if(!PassEntryDirContextWindow(direction, InpEntryDirContextTF, InpEntryDirContextBars,
+                                 InpEntryDirContextMinNet, InpEntryDirContextMaxNet))
+      return false;
+
+   if(InpEntryDirContextTF2 > 0)
+   {
+      if(!PassEntryDirContextWindow(direction, InpEntryDirContextTF2, InpEntryDirContextBars2,
+                                    InpEntryDirContextMinNet2, InpEntryDirContextMaxNet2))
+         return false;
+   }
+
+   return true;
+}
+
+int EntryFamilyFromZone(const OBZone &zone, const TradeSignal &signal)
+{
+   if(StringFind(signal.comment, "MBOS") >= 0) return ENTRY_FAMILY_MBOS;
+   if(StringFind(signal.comment, "BOS") >= 0) return ENTRY_FAMILY_BOS;
+   if(StringFind(signal.comment, "SDFLIP") >= 0) return ENTRY_FAMILY_SDFLIP;
+   if(zone.is_bos_retest) return ENTRY_FAMILY_BOS;
+   if(zone.is_fvg) return ENTRY_FAMILY_FVG;
+   if(zone.is_htf_pullback) return ENTRY_FAMILY_HTFPB;
+   if(zone.is_range_breakout) return ENTRY_FAMILY_MTF;
+   if(zone.is_liquidity_sweep) return ENTRY_FAMILY_SWP;
+   return ENTRY_FAMILY_OB;
+}
+
+bool IsEntryStructureFamilyAllowed(int family)
+{
+   if(StringLen(InpEntryStructureConfirmFamilies) == 0)
+      return true;
+   string filter = InpEntryStructureConfirmFamilies;
+   StringToUpper(filter);
+   string fam = "OB";
+   if(family == ENTRY_FAMILY_SWP) fam = "SWP";
+   else if(family == ENTRY_FAMILY_BOS) fam = "BOS";
+   else if(family == ENTRY_FAMILY_MBOS) fam = "MBOS";
+   else if(family == ENTRY_FAMILY_SDFLIP) fam = "SDFLIP";
+   else if(family == ENTRY_FAMILY_HTFPB) fam = "HTFPB";
+   else if(family == ENTRY_FAMILY_FVG) fam = "FVG";
+   else if(family == ENTRY_FAMILY_MTF) fam = "MTF";
+   StringToUpper(fam);
+   return (StringFind("," + filter + ",", "," + fam + ",") >= 0);
+}
+
+bool IsFamilyAllowedByCsv(string filter, int family)
+{
+   if(StringLen(filter) == 0)
+      return true;
+   StringToUpper(filter);
+   string fam = "OB";
+   if(family == ENTRY_FAMILY_SWP) fam = "SWP";
+   else if(family == ENTRY_FAMILY_BOS) fam = "BOS";
+   else if(family == ENTRY_FAMILY_MBOS) fam = "MBOS";
+   else if(family == ENTRY_FAMILY_SDFLIP) fam = "SDFLIP";
+   else if(family == ENTRY_FAMILY_HTFPB) fam = "HTFPB";
+   else if(family == ENTRY_FAMILY_FVG) fam = "FVG";
+   else if(family == ENTRY_FAMILY_MTF) fam = "MTF";
+   StringToUpper(fam);
+   return (StringFind("," + filter + ",", "," + fam + ",") >= 0);
+}
+
+bool IsDirectionAllowedByCsv(string filter, int direction)
+{
+   if(StringLen(filter) == 0)
+      return true;
+   StringToLower(filter);
+   if(direction == OB_BUY)
+      return (StringFind(filter, "buy") >= 0);
+   if(direction == OB_SELL)
+      return (StringFind(filter, "sell") >= 0);
+   return true;
+}
+
+double DirectionalNetBodyATR_SE(const MqlRates &rates[], int count, int direction, int lookback, double atr)
+{
+   if(atr <= 0 || count < lookback + 2)
+      return 0.0;
+   double net = 0.0;
+   int used = MathMin(lookback, count - 1);
+   for(int i = 1; i <= used; i++)
+      net += (rates[i].close - rates[i].open) * direction;
+   return net / atr;
+}
+
+bool HasEntryStrongReverseCandle(const MqlRates &rates[], int count, int direction,
+                                 int lookback, double atr)
+{
+   if(atr <= 0 || count < lookback + 2)
+      return false;
+   int used = MathMin(lookback, count - 1);
+   for(int i = 1; i <= used; i++)
+   {
+      double reverse_body = (rates[i].open - rates[i].close) * direction;
+      if(reverse_body >= atr * InpEntryStructureReverseBodyATR)
+         return true;
+   }
+   return false;
+}
+
+bool HasRecentHTFSweepRejectSE(string symbol, int direction)
+{
+   if(!CfgRangeHTFRejectContextOnly())
+      return false;
+
+   int tf_min = MathMax(CfgRangeMinBars(), 5);
+   ENUM_TIMEFRAMES tf = CfgMinutesToTF(tf_min);
+   MqlRates rates[96];
+   int copied = CopyRates(symbol, tf, 0, 96, rates);
+   if(copied < InpATRPeriod + 12)
+      return false;
+
+   double atr = CalcATR(rates, copied, InpATRPeriod);
+   if(atr <= 0.0)
+      return false;
+
+   int recent = MathMin(4, copied - 8);
+   int lookback = MathMin(MathMax(CfgRangeLookback(), 24), copied - 2);
+   for(int b = 1; b <= recent; b++)
+   {
+      double prior_low = rates[b + 1].low;
+      double prior_high = rates[b + 1].high;
+      for(int i = b + 2; i <= lookback; i++)
+      {
+         prior_low = MathMin(prior_low, rates[i].low);
+         prior_high = MathMax(prior_high, rates[i].high);
+      }
+
+      double bar_range = rates[b].high - rates[b].low;
+      if(bar_range <= 0.0 || bar_range < atr * MathMax(CfgRangeMinWidthATR(), 0.60))
+         continue;
+      double body = MathAbs(rates[b].close - rates[b].open);
+      double lower_wick = MathMin(rates[b].open, rates[b].close) - rates[b].low;
+      double upper_wick = rates[b].high - MathMax(rates[b].open, rates[b].close);
+      double close_pos = (rates[b].close - rates[b].low) / bar_range;
+      double penetration = atr * MathMax(CfgRangeBoundaryToleranceATR(), 0.05);
+
+      if(direction == OB_BUY)
+      {
+         bool swept_low = rates[b].low < prior_low - penetration;
+         bool rejected = rates[b].close > prior_low &&
+                         lower_wick >= MathMax(body * 1.20, atr * 0.35) &&
+                         close_pos >= 0.55;
+         if(swept_low && rejected)
+            return true;
+      }
+      else
+      {
+         bool swept_high = rates[b].high > prior_high + penetration;
+         bool rejected = rates[b].close < prior_high &&
+                         upper_wick >= MathMax(body * 1.20, atr * 0.35) &&
+                         close_pos <= 0.45;
+         if(swept_high && rejected)
+            return true;
+      }
+   }
+   return false;
+}
+
+bool HasEntryStructureBreak(const MqlRates &rates[], int count, int direction, double atr)
+{
+   if(atr <= 0 || count < 8)
+      return false;
+
+   double buffer = atr * MathMax(InpEntryStructureBreakBufferATR, 0.0);
+   double last_close = rates[1].close;
+   double swing_high = 0.0;
+   double swing_low = 999999.0;
+   int pivot = MathMax(1, MathMin(InpEntryStructurePivotBars, 4));
+   int limit = MathMin(count - pivot, MathMax(pivot + 2, InpEntryStructureLookbackBars));
+
+   for(int i = pivot + 1; i < limit; i++)
+   {
+      if(swing_high <= 0.0 && IsSwingHigh(rates, i, pivot, count))
+         swing_high = rates[i].high;
+      if(swing_low >= 999999.0 && IsSwingLow(rates, i, pivot, count))
+         swing_low = rates[i].low;
+      if(swing_high > 0.0 && swing_low < 999999.0)
+         break;
+   }
+
+   if(swing_high <= 0.0)
+   {
+      for(int i = 2; i < MathMin(count, 12); i++)
+         swing_high = MathMax(swing_high, rates[i].high);
+   }
+   if(swing_low >= 999999.0)
+   {
+      for(int i = 2; i < MathMin(count, 12); i++)
+         swing_low = MathMin(swing_low, rates[i].low);
+   }
+
+   if(direction == OB_BUY)
+      return (swing_high > 0.0 && last_close > swing_high + buffer);
+   return (swing_low < 999999.0 && last_close < swing_low - buffer);
+}
+
+bool HasSWPContinuationReverseBreak(const MqlRates &rates[], int count, int direction, double atr)
+{
+   if(atr <= 0 || count < 8)
+      return false;
+   double buffer = atr * MathMax(InpSWPContinuationBreakBufferATR, 0.0);
+   double last_close = rates[1].close;
+   double swing_high = 0.0;
+   double swing_low = 999999.0;
+   int limit = MathMin(count - 2, 18);
+
+   for(int i = 2; i < limit; i++)
+   {
+      if(swing_high <= 0.0 && IsSwingHigh(rates, i, 1, count))
+         swing_high = rates[i].high;
+      if(swing_low >= 999999.0 && IsSwingLow(rates, i, 1, count))
+         swing_low = rates[i].low;
+   }
+   if(swing_high <= 0.0)
+   {
+      for(int i = 2; i < MathMin(count, 12); i++)
+         swing_high = MathMax(swing_high, rates[i].high);
+   }
+   if(swing_low >= 999999.0)
+   {
+      for(int i = 2; i < MathMin(count, 12); i++)
+         swing_low = MathMin(swing_low, rates[i].low);
+   }
+
+   if(direction == OB_BUY)
+      return (swing_low < 999999.0 && last_close < swing_low - buffer);
+   return (swing_high > 0.0 && last_close > swing_high + buffer);
+}
+
+bool HasSWPContinuationStrongReverseCandle(const MqlRates &rates[], int count, int direction,
+                                           int lookback, double atr)
+{
+   if(atr <= 0 || count < lookback + 2)
+      return false;
+   int used = MathMin(lookback, count - 1);
+   for(int i = 1; i <= used; i++)
+   {
+      double reverse_body = (rates[i].open - rates[i].close) * direction;
+      if(reverse_body >= atr * InpSWPContinuationReverseBodyATR)
+         return true;
+   }
+   return false;
+}
+
+double SWPContinuationConfirmMultiplier(const OBZone &zone, const TradeSignal &signal)
+{
+   if(!InpEnableSWPContinuationConfirm)
+      return 1.0;
+   if(!zone.is_liquidity_sweep && !IsLooseSweepZone(zone))
+      return 1.0;
+
+   ENUM_TIMEFRAMES tf = MinutesToTF(InpSWPContinuationTF > 0 ?
+                                    InpSWPContinuationTF : CfgBarTF());
+   int lookback = MathMax(1, InpSWPContinuationBars);
+   int need = MathMax(lookback + InpATRPeriod + 6, 24);
+   MqlRates rates[80];
+   int count = CopyRates(_Symbol, tf, 0, MathMin(need, 80), rates);
+   if(count < lookback + 2)
+      return InpSWPContinuationFailMult;
+
+   double atr = CalcATR(rates, count, InpATRPeriod);
+   if(atr <= 0.0)
+      return InpSWPContinuationFailMult;
+
+   if(HasSWPContinuationReverseBreak(rates, count, signal.direction, atr))
+      return InpSWPContinuationFailMult;
+   if(HasSWPContinuationStrongReverseCandle(rates, count, signal.direction, lookback, atr))
+      return InpSWPContinuationFailMult;
+
+   double net = DirectionalNetBodyATR_SE(rates, count, signal.direction, lookback, atr);
+   if(net >= InpSWPContinuationMinNetATR ||
+      CheckStrongMomentum(_Symbol, signal.direction, rates, count))
+      return 1.0;
+   return InpSWPContinuationFailMult;
+}
+
+bool HasConditionalOBTrendReleaseReverseBreak(const MqlRates &rates[], int count,
+                                              int direction, double atr)
+{
+   if(atr <= 0 || count < 8)
+      return false;
+   double buffer = atr * MathMax(InpConditionalOBTrendReleaseBreakBufferATR, 0.0);
+   double last_close = rates[1].close;
+   double swing_high = 0.0;
+   double swing_low = 999999.0;
+   int limit = MathMin(count - 2, 18);
+
+   for(int i = 2; i < limit; i++)
+   {
+      if(swing_high <= 0.0 && IsSwingHigh(rates, i, 1, count))
+         swing_high = rates[i].high;
+      if(swing_low >= 999999.0 && IsSwingLow(rates, i, 1, count))
+         swing_low = rates[i].low;
+   }
+   if(swing_high <= 0.0)
+   {
+      for(int i = 2; i < MathMin(count, 12); i++)
+         swing_high = MathMax(swing_high, rates[i].high);
+   }
+   if(swing_low >= 999999.0)
+   {
+      for(int i = 2; i < MathMin(count, 12); i++)
+         swing_low = MathMin(swing_low, rates[i].low);
+   }
+
+   if(direction == OB_BUY)
+      return (swing_low < 999999.0 && last_close < swing_low - buffer);
+   return (swing_high > 0.0 && last_close > swing_high + buffer);
+}
+
+bool HasConditionalOBTrendReleaseStrongReverseCandle(const MqlRates &rates[], int count,
+                                                     int direction, int lookback,
+                                                     double atr)
+{
+   if(atr <= 0 || count < lookback + 2)
+      return false;
+   int used = MathMin(lookback, count - 1);
+   for(int i = 1; i <= used; i++)
+   {
+      double reverse_body = (rates[i].open - rates[i].close) * direction;
+      if(reverse_body >= atr * InpConditionalOBTrendReleaseReverseBodyATR)
+         return true;
+   }
+   return false;
+}
+
+bool HasConditionalOBTrendReleaseOnTF(const TradeSignal &signal, ENUM_TIMEFRAMES tf,
+                                      int lookback)
+{
+   MqlRates rates[80];
+   int need = MathMin(MathMax(lookback + InpATRPeriod + 6, 24), 80);
+   int count = CopyRates(_Symbol, tf, 0, need, rates);
+   if(count < lookback + 2)
+      return false;
+
+   double atr = CalcATR(rates, count, InpATRPeriod);
+   if(atr <= 0.0)
+      return false;
+
+   if(HasConditionalOBTrendReleaseReverseBreak(rates, count, signal.direction, atr))
+      return false;
+   if(HasConditionalOBTrendReleaseStrongReverseCandle(rates, count, signal.direction,
+                                                      lookback, atr))
+      return false;
+   if(CheckMomentumWeakness(_Symbol, signal.direction, rates, count))
+      return false;
+
+   double net = DirectionalNetBodyATR_SE(rates, count, signal.direction, lookback, atr);
+   return (net >= InpConditionalOBTrendReleaseMinNetATR ||
+           CheckStrongMomentum(_Symbol, signal.direction, rates, count));
+}
+
+bool ShouldApplyConditionalOBTrendRelease(const OBZone &zone, const TradeSignal &signal)
+{
+   if(!InpConditionalOBTrendRelease)
+      return false;
+   int family = EntryFamilyFromZone(zone, signal);
+   if(!IsFamilyAllowedByCsv(InpConditionalOBTrendReleaseFamilies, family))
+      return false;
+   int lookback = MathMax(2, InpConditionalOBTrendReleaseLookbackBars);
+   bool tf1 = HasConditionalOBTrendReleaseOnTF(
+      signal,
+      MinutesToTF(InpConditionalOBTrendReleaseTF1 > 0 ? InpConditionalOBTrendReleaseTF1 : CfgBarTF()),
+      lookback);
+   bool tf2 = false;
+   if(InpConditionalOBTrendReleaseTF2 > 0)
+      tf2 = HasConditionalOBTrendReleaseOnTF(
+         signal,
+         MinutesToTF(InpConditionalOBTrendReleaseTF2),
+         lookback);
+   return (tf1 || tf2);
+}
+
+bool PassEntryStructureConfirm(const OBZone &zone, const TradeSignal &signal)
+{
+   if(!InpEnableEntryStructureConfirm)
+      return true;
+
+   int family = EntryFamilyFromZone(zone, signal);
+   if(!IsEntryStructureFamilyAllowed(family))
+      return true;
+   if(family == ENTRY_FAMILY_OB &&
+      StringLen(InpEntryStructureConfirmOBDirections) > 0 &&
+      !IsDirectionAllowedByCsv(InpEntryStructureConfirmOBDirections, signal.direction))
+      return true;
+
+   ENUM_TIMEFRAMES tf = MinutesToTF(InpEntryStructureConfirmTF > 0 ?
+                                    InpEntryStructureConfirmTF : CfgBarTF());
+   int lookback = MathMax(2, InpEntryStructureNetBars);
+   int need = MathMax(MathMax(InpEntryStructureLookbackBars + 8, lookback + 8), 20);
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 0, need, rates);
+   if(count < lookback + 8)
+      return true;
+
+   double atr = CalcATR(rates, count, 14);
+   if(atr <= 0)
+      return true;
+
+   if(HasEntryStrongReverseCandle(rates, count, signal.direction, lookback, atr))
+      return false;
+   if(InpEntryStructureRequireBreak &&
+      !HasEntryStructureBreak(rates, count, signal.direction, atr))
+      return false;
+
+   double net = DirectionalNetBodyATR_SE(rates, count, signal.direction, lookback, atr);
+   return (net >= InpEntryStructureMinNetATR ||
+           CheckStrongMomentum(_Symbol, signal.direction, rates, count));
+}
+
 void ApplyHTFTarget(string symbol, double entry, double risk_price, TradeSignal &signal)
 {
    if(!InpEnableHTFTarget)
@@ -565,6 +1265,30 @@ double ApplyLotCap(double lot)
    return lot;
 }
 
+bool IsHighPosMultCapDirectionSelected(int direction)
+{
+   if(StringLen(InpHighPosMultCapDirections) <= 0)
+      return true;
+   string filter = InpHighPosMultCapDirections;
+   StringToLower(filter);
+   if(direction == OB_BUY)
+      return (StringFind(filter, "buy") >= 0);
+   if(direction == OB_SELL)
+      return (StringFind(filter, "sell") >= 0);
+   return true;
+}
+
+double ApplyHighPosMultLotCap(double lot, double pos_mult, int direction)
+{
+   if(InpHighPosMultCapThreshold <= 0.0 || InpHighPosMultMaxLotSize <= 0.0)
+      return lot;
+   if(!IsHighPosMultCapDirectionSelected(direction))
+      return lot;
+   if(pos_mult >= InpHighPosMultCapThreshold && lot > InpHighPosMultMaxLotSize)
+      return InpHighPosMultMaxLotSize;
+   return lot;
+}
+
 bool IsLooseSweepZone(const OBZone &zone)
 {
    return zone.is_liquidity_sweep && zone.is_loose_sweep;
@@ -580,6 +1304,8 @@ double ApplySignalTypeLotCap(const OBZone &zone, double lot)
    }
    if(zone.is_htf_pullback && InpHTFPullbackMaxLotSize > 0 && lot > InpHTFPullbackMaxLotSize)
       return InpHTFPullbackMaxLotSize;
+   if(zone.is_bos_retest && InpHTFBOSRetestMaxLotSize > 0 && lot > InpHTFBOSRetestMaxLotSize)
+      return InpHTFBOSRetestMaxLotSize;
    if(zone.is_liquidity_sweep && CfgSweepMaxLotSize() > 0 && lot > CfgSweepMaxLotSize())
       return CfgSweepMaxLotSize();
    if(zone.is_range_breakout && InpRangeBreakoutMaxLotSize > 0 && lot > InpRangeBreakoutMaxLotSize)
@@ -816,11 +1542,21 @@ double ApplySignalTypePositionMultiplier(const OBZone &zone, double pos_mult)
    if(IsLooseSweepZone(zone))
       pos_mult *= InpLooseSweepPosMult;
    else if(zone.is_liquidity_sweep)
+   {
+      if(zone.is_1h_aligned && InpSweepH1AlignedMult != 1.0)
+      {
+         if(InpSweepH1AlignedMult <= 0)
+            return -1.0;
+         pos_mult *= InpSweepH1AlignedMult;
+      }
       pos_mult *= CfgSweepPosMult();
+   }
    if(zone.is_range_breakout)
       pos_mult *= InpRangeBreakoutPosMult;
    if(zone.is_htf_pullback)
       pos_mult *= InpHTFPullbackPosMult;
+   if(zone.is_bos_retest)
+      pos_mult *= InpHTFBOSRetestWeight;
    return pos_mult;
 }
 
@@ -1262,7 +1998,7 @@ bool IsMonthlyProfitTargetStopSlotEnabled(
 
 bool IsMonthlyProfitTargetStopEnabled()
 {
-   if(UseBTCProfile())
+   if(UseBTCProfile() && !InpBTCAllowMonthlyProfitTargetStop)
       return false;
 
    return (
@@ -1283,7 +2019,7 @@ bool IsMonthlyProfitTargetStopEnabled()
 
 double MonthlyProfitTargetStopPct()
 {
-   if(UseBTCProfile())
+   if(UseBTCProfile() && !InpBTCAllowMonthlyProfitTargetStop)
       return 0.0;
 
    if(IsMonthlyProfitTargetStopSlotEnabled(
@@ -1397,6 +2133,14 @@ bool PassMonthlyEntryGuard()
    if(g_monthly_start_balance <= 0)
       return true;
 
+   if(InpMonthlyMaxEntries > 0 && g_monthly_entry_count >= InpMonthlyMaxEntries)
+   {
+      g_monthly_entry_stopped = true;
+      SaveSharedMonthlyState();
+      PrintSharedMonthlyDiag("max_entries_stop");
+      return false;
+   }
+
    if(g_monthly_entry_stopped)
    {
       static datetime s_last_shared_block_diag = 0;
@@ -1474,8 +2218,18 @@ double ApplyMonthlyPositionMultiplier(double pos_mult)
    return pos_mult;
 }
 
-double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double risk_price, double pos_mult)
+double ApplyEntryQualityPositionMultiplier(const OBZone &zone, const TradeSignal &signal, double risk_price, double pos_mult)
 {
+   int entry_family = EntryFamilyFromZone(zone, signal);
+
+   if(InpEarlyBounceSecMax > 0 && InpEarlyBounceMult != 1.0 &&
+      signal.bounce_seconds <= InpEarlyBounceSecMax)
+   {
+      if(InpEarlyBounceMult <= 0)
+         return -1.0;
+      pos_mult *= InpEarlyBounceMult;
+   }
+
    if(CfgLateBounceSec() > 0 && CfgLateBounceMult() != 1.0 &&
       signal.bounce_seconds > CfgLateBounceSec())
       pos_mult *= CfgLateBounceMult();
@@ -1493,6 +2247,34 @@ double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double ris
             return -1.0;
          pos_mult *= outside_bounce_sweet_mult;
       }
+   }
+
+   if(InpBadBounceMaxPct > InpBadBounceMinPct &&
+      InpBadBounceMult != 1.0 &&
+      IsFamilyAllowedByCsv(InpBadBounceSignalTypes, entry_family) &&
+      signal.bounce_ob_pct >= InpBadBounceMinPct &&
+      signal.bounce_ob_pct <= InpBadBounceMaxPct)
+   {
+      bool apply_bad_bounce = true;
+      if(StringLen(InpBadBouncePosMultDirections) > 0)
+      {
+         string filter = InpBadBouncePosMultDirections;
+         StringToLower(filter);
+         if(signal.direction == OB_BUY)
+            apply_bad_bounce = (StringFind(filter, "buy") >= 0);
+         else if(signal.direction == OB_SELL)
+            apply_bad_bounce = (StringFind(filter, "sell") >= 0);
+      }
+      if(apply_bad_bounce &&
+         InpBadBounceMaxEntryPosMult > 0.0 &&
+         pos_mult > InpBadBounceMaxEntryPosMult)
+         apply_bad_bounce = false;
+
+      if(!apply_bad_bounce)
+         return pos_mult;
+      if(InpBadBounceMult <= 0)
+         return -1.0;
+      pos_mult *= InpBadBounceMult;
    }
 
    if(CfgBounceCloseWeakBodyPct() > 0 && CfgBounceCloseWeakBodyMult() != 1.0 &&
@@ -1514,9 +2296,61 @@ double ApplyEntryQualityPositionMultiplier(const TradeSignal &signal, double ris
    if(CfgShallowConfirmPosMin() > -999.0 && CfgShallowConfirmPosMult() != 1.0 &&
       signal.confirm_ob_pos > CfgShallowConfirmPosMin())
    {
+      bool apply_shallow = true;
+      if(StringLen(InpShallowConfirmSignalTypes) > 0 &&
+         !IsFamilyAllowedByCsv(InpShallowConfirmSignalTypes, entry_family))
+         apply_shallow = false;
+      if(StringLen(InpShallowConfirmDirections) > 0)
+      {
+         string filter = InpShallowConfirmDirections;
+         StringToLower(filter);
+         if(signal.direction == OB_BUY)
+            apply_shallow = apply_shallow && (StringFind(filter, "buy") >= 0);
+         else if(signal.direction == OB_SELL)
+            apply_shallow = apply_shallow && (StringFind(filter, "sell") >= 0);
+      }
+      if(apply_shallow &&
+         InpShallowConfirmMaxEntryPosMult > 0.0 &&
+         pos_mult > InpShallowConfirmMaxEntryPosMult)
+         apply_shallow = false;
+      if(!apply_shallow)
+         return pos_mult;
       if(CfgShallowConfirmPosMult() <= 0)
          return -1.0;
       pos_mult *= CfgShallowConfirmPosMult();
+   }
+
+   if(CfgDeepFastConfirmPosMax() < 999.0 &&
+      CfgDeepFastConfirmSecMax() > 0 &&
+      CfgDeepFastConfirmMult() != 1.0 &&
+      signal.confirm_ob_pos <= CfgDeepFastConfirmPosMax() &&
+      signal.bounce_seconds <= CfgDeepFastConfirmSecMax())
+   {
+      bool apply_deep_fast = true;
+      if(CfgDeepFastConfirmBounceMaxPct() > CfgDeepFastConfirmBounceMinPct())
+      {
+         if(signal.bounce_ob_pct < CfgDeepFastConfirmBounceMinPct() ||
+            signal.bounce_ob_pct > CfgDeepFastConfirmBounceMaxPct())
+            apply_deep_fast = false;
+      }
+      if(StringLen(InpDeepFastConfirmSignalTypes) > 0 &&
+         !IsFamilyAllowedByCsv(InpDeepFastConfirmSignalTypes, entry_family))
+         apply_deep_fast = false;
+      if(StringLen(InpDeepFastConfirmDirections) > 0)
+      {
+         string filter = InpDeepFastConfirmDirections;
+         StringToLower(filter);
+         if(signal.direction == OB_BUY)
+            apply_deep_fast = apply_deep_fast && (StringFind(filter, "buy") >= 0);
+         else if(signal.direction == OB_SELL)
+            apply_deep_fast = apply_deep_fast && (StringFind(filter, "sell") >= 0);
+      }
+      if(apply_deep_fast)
+      {
+         if(CfgDeepFastConfirmMult() <= 0)
+            return -1.0;
+         pos_mult *= CfgDeepFastConfirmMult();
+      }
    }
 
    return pos_mult;
@@ -1731,6 +2565,12 @@ double ApplySweepContextPositionMultiplier(const OBZone &zone, const EAState &st
          return -1.0;
       pos_mult *= InpSweepLowBalanceMult;
    }
+   if(InpSweepOnlyMonthlyNegative)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance <= 0 || balance >= g_monthly_start_balance)
+         return -1.0;
+   }
    if(InpSweepMonthlyNegativeMult != 1.0)
    {
       SyncMonthlyRiskState();
@@ -1762,6 +2602,15 @@ double ApplySweepContextPositionMultiplier(const OBZone &zone, const EAState &st
       if(InpSweepEarlyBounceMult <= 0)
          return -1.0;
       pos_mult *= InpSweepEarlyBounceMult;
+   }
+
+   if(InpSweepLateBounceSecMin > 0 &&
+      InpSweepLateBounceMult != 1.0 &&
+      signal.bounce_seconds >= InpSweepLateBounceSecMin)
+   {
+      if(InpSweepLateBounceMult <= 0)
+         return -1.0;
+      pos_mult *= InpSweepLateBounceMult;
    }
 
    if(InpSweepBadRiskMax > InpSweepBadRiskMin &&
@@ -1837,6 +2686,52 @@ double ApplyOBContextPositionMultiplier(const OBZone &zone, double pos_mult)
       pos_mult *= InpOBPosMult;
    }
 
+   if(!zone.is_1h_aligned && InpOBNoH1PosMult != 1.0)
+   {
+      if(InpOBNoH1PosMult <= 0)
+         return -1.0;
+      pos_mult *= InpOBNoH1PosMult;
+   }
+
+   if(InpOBMonthlyWarmupProfitPct > 0 ||
+      InpOBMonthlyProfitCapPct > 0 ||
+      InpOBMonthlyNegativePosMult != 1.0)
+   {
+      double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance > 0 &&
+         (InpOBMonthlyMultMaxStartBalance <= 0 ||
+          g_monthly_start_balance <= InpOBMonthlyMultMaxStartBalance))
+      {
+         if(InpOBMonthlyWarmupProfitPct > 0 && InpOBMonthlyWarmupPosMult != 1.0)
+         {
+            double required_profit = g_monthly_start_balance * InpOBMonthlyWarmupProfitPct / 100.0;
+            if(balance - g_monthly_start_balance < required_profit)
+            {
+               if(InpOBMonthlyWarmupPosMult <= 0)
+                  return -1.0;
+               pos_mult *= InpOBMonthlyWarmupPosMult;
+            }
+         }
+         if(InpOBMonthlyProfitCapPct > 0 && InpOBMonthlyProfitCapMult != 1.0)
+         {
+            double cap_profit = g_monthly_start_balance * InpOBMonthlyProfitCapPct / 100.0;
+            if(balance - g_monthly_start_balance >= cap_profit)
+            {
+               if(InpOBMonthlyProfitCapMult <= 0)
+                  return -1.0;
+               pos_mult *= InpOBMonthlyProfitCapMult;
+            }
+         }
+         if(balance < g_monthly_start_balance && InpOBMonthlyNegativePosMult != 1.0)
+         {
+            if(InpOBMonthlyNegativePosMult <= 0)
+               return -1.0;
+            pos_mult *= InpOBMonthlyNegativePosMult;
+         }
+      }
+   }
+
    if(InpOBBadHours != "" && InpOBBadHourMult != 1.0 &&
       IsHourBlocked(InpOBBadHours, dt.hour))
    {
@@ -1895,6 +2790,30 @@ bool PassHTFDirectionGate(int direction)
       return false;
 
    return true;
+}
+
+bool HasHTFCounterNetPush(int direction)
+{
+   if(!CfgEnableHTFNetPushFilter() || CfgHTFNetPushMinATR() <= 0)
+      return false;
+
+   int bars = MathMax(CfgHTFNetPushBars(), 1);
+   int need = bars + InpATRPeriod + 1;
+   ENUM_TIMEFRAMES tf = MinutesToTF(CfgHTFNetPushTF());
+
+   MqlRates rates[];
+   int count = CopyRates(_Symbol, tf, 1, need, rates);
+   if(count < bars + 1)
+      return false;
+
+   double atr = CalcATR(rates, count, InpATRPeriod);
+   if(atr <= 0)
+      return false;
+
+   int start = count - bars;
+   double net_move = (rates[count - 1].close - rates[start].open) * direction;
+   double net_atr = net_move / atr;
+   return net_atr <= -CfgHTFNetPushMinATR();
 }
 
 double ApplyHTFNetPushPositionMultiplier(int direction, double pos_mult)
@@ -2104,6 +3023,262 @@ double ApplyBuyNoH1PositionFilter(const OBZone &zone, int direction, double pos_
    return pos_mult * InpFilterBuyNoH1PosMult;
 }
 
+double ApplyBuyContNoH1AgeFilter(const OBZone &zone, const EAState &state,
+                                 int direction, double risk_price, double spread,
+                                 double pos_mult)
+{
+   if(InpBuyContNoH1AgeMinBars <= 0 || InpBuyContNoH1AgeMult == 1.0)
+      return pos_mult;
+   if(direction != OB_BUY || !zone.is_continuation || zone.is_1h_aligned)
+      return pos_mult;
+
+   int age = state.bar_count - zone.created_bar;
+   if(age < InpBuyContNoH1AgeMinBars)
+      return pos_mult;
+
+   if(InpBuyContNoH1SpreadRiskMax > 0)
+   {
+      if(risk_price <= 0)
+         return pos_mult;
+      double spread_risk = spread / risk_price;
+      if(spread_risk >= InpBuyContNoH1SpreadRiskMax)
+         return pos_mult;
+   }
+
+   if(InpBuyContNoH1AgeMult <= 0)
+      return -1.0;
+   return pos_mult * InpBuyContNoH1AgeMult;
+}
+
+double ApplySweepHighPosMultFilter(const OBZone &zone, double pos_mult)
+{
+   if(!zone.is_liquidity_sweep || InpSweepHighPosMultMin <= 0 || pos_mult < InpSweepHighPosMultMin)
+      return pos_mult;
+   if(InpSweepHighPosMultMult <= 0)
+      return -1.0;
+   return pos_mult * InpSweepHighPosMultMult;
+}
+
+double ApplyAlignedNoContinuationFilter(const OBZone &zone, double risk_price, double spread, double pos_mult)
+{
+   if(InpAlignedNoContSpreadRiskMax <= 0 || InpAlignedNoContMult == 1.0)
+      return pos_mult;
+   if(!zone.is_1h_aligned || zone.is_continuation)
+      return pos_mult;
+   if(risk_price <= 0)
+      return pos_mult;
+   double spread_risk = spread / risk_price;
+   if(spread_risk >= InpAlignedNoContSpreadRiskMax)
+      return pos_mult;
+   if(InpAlignedNoContMult <= 0)
+      return -1.0;
+   return pos_mult * InpAlignedNoContMult;
+}
+
+double ApplySellSpreadRiskFilter(const OBZone &zone, int direction, double risk_price, double spread, double pos_mult)
+{
+   if(InpSellSpreadRiskMax <= InpSellSpreadRiskMin || InpSellSpreadRiskMult == 1.0)
+      return pos_mult;
+   if(direction != OB_SELL || risk_price <= 0)
+      return pos_mult;
+   if(InpSellSpreadRiskOBOnly &&
+      (zone.is_liquidity_sweep || zone.is_range_breakout || zone.is_htf_pullback))
+      return pos_mult;
+   if(InpSellSpreadRiskUntilProfitPct > 0)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance > 0)
+      {
+         double required_profit = g_monthly_start_balance * InpSellSpreadRiskUntilProfitPct / 100.0;
+         double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+         if(balance - g_monthly_start_balance >= required_profit)
+            return pos_mult;
+      }
+   }
+   double spread_risk = spread / risk_price;
+   if(spread_risk < InpSellSpreadRiskMin || spread_risk >= InpSellSpreadRiskMax)
+      return pos_mult;
+   if(InpSellSpreadRiskMult <= 0)
+      return -1.0;
+   return pos_mult * InpSellSpreadRiskMult;
+}
+
+double ApplySmallRiskATRFilter(const OBZone &zone, const EAState &state,
+                               double risk_price, double pos_mult)
+{
+   if(InpSmallRiskATRMax <= 0 || InpSmallRiskATRMult == 1.0)
+      return pos_mult;
+   if(risk_price <= 0 || state.atr_value <= 0)
+      return pos_mult;
+   if(InpSmallRiskATREntryCountMax > 0 && zone.entry_count >= InpSmallRiskATREntryCountMax)
+      return pos_mult;
+   int age = state.bar_count - zone.created_bar;
+   if(InpSmallRiskATRAgeMaxBars > 0 && age >= InpSmallRiskATRAgeMaxBars)
+      return pos_mult;
+   double risk_atr = risk_price / state.atr_value;
+   if(risk_atr >= InpSmallRiskATRMax)
+      return pos_mult;
+   if(InpSmallRiskATRMult <= 0)
+      return -1.0;
+   return pos_mult * InpSmallRiskATRMult;
+}
+
+double ApplyRiskATRBandPositionFilter(const OBZone &zone, const EAState &state,
+                                      double risk_price, double spread, double pos_mult)
+{
+   if(risk_price <= 0 || state.atr_value <= 0)
+      return pos_mult;
+
+   double risk_atr = risk_price / state.atr_value;
+   double spread_risk = spread / risk_price;
+   int age = state.bar_count - zone.created_bar;
+
+   if(InpRiskATRBandBadMax > 0 && InpRiskATRBandBadMult != 1.0 && risk_atr < InpRiskATRBandBadMax)
+   {
+      bool bad_match = true;
+      if(InpRiskATRBandBadSpreadRiskMax > 0 && spread_risk >= InpRiskATRBandBadSpreadRiskMax)
+         bad_match = false;
+      if(InpRiskATRBandBadAgeMinBars > 0 && age < InpRiskATRBandBadAgeMinBars)
+         bad_match = false;
+      if(InpRiskATRBandBadTouchMin > 0 && zone.touch_count < InpRiskATRBandBadTouchMin)
+         bad_match = false;
+      if(InpRiskATRBandBadRequireCounterPush && !HasHTFCounterNetPush(zone.direction))
+         bad_match = false;
+      if(bad_match)
+      {
+         if(InpRiskATRBandBadMult <= 0)
+            return -1.0;
+         pos_mult *= InpRiskATRBandBadMult;
+      }
+   }
+
+   if(InpRiskATRBandGoodMin > 0 && InpRiskATRBandGoodMult != 1.0 && risk_atr >= InpRiskATRBandGoodMin)
+   {
+      if(InpRiskATRBandGoodTouchMin <= 0 || zone.touch_count >= InpRiskATRBandGoodTouchMin)
+      {
+         if(InpRiskATRBandGoodMult <= 0)
+            return -1.0;
+         pos_mult *= InpRiskATRBandGoodMult;
+      }
+   }
+
+   return pos_mult;
+}
+
+double ApplyOldHighScoreOBFilter(const OBZone &zone, const EAState &state,
+                                 int score, double pos_mult)
+{
+   if(InpOldHighScoreOBAgeMinBars <= 0 || InpOldHighScoreOBScoreMin <= 0 || InpOldHighScoreOBMult == 1.0)
+      return pos_mult;
+   if(score < InpOldHighScoreOBScoreMin)
+      return pos_mult;
+
+   int age = state.bar_count - zone.created_bar;
+   if(age < InpOldHighScoreOBAgeMinBars)
+      return pos_mult;
+
+   if(InpOldHighScoreOBMult <= 0)
+      return -1.0;
+   return pos_mult * InpOldHighScoreOBMult;
+}
+
+double ApplyOldPosMultOBFilter(const OBZone &zone, const EAState &state, double pos_mult)
+{
+   if(InpOldPosMultOBAgeMinBars <= 0 || InpOldPosMultOBPosMin <= 0 || InpOldPosMultOBMult == 1.0)
+      return pos_mult;
+   if(pos_mult < InpOldPosMultOBPosMin)
+      return pos_mult;
+
+   int age = state.bar_count - zone.created_bar;
+   if(age < InpOldPosMultOBAgeMinBars)
+      return pos_mult;
+
+   if(InpOldPosMultOBMult <= 0)
+      return -1.0;
+   return pos_mult * InpOldPosMultOBMult;
+}
+
+double ApplyDeepConfirmLowSpreadFilter(const TradeSignal &signal, double risk_price,
+                                       double spread, double pos_mult)
+{
+   if(InpDeepConfirmLowSpreadConfirmMax == 0.0 || InpDeepConfirmLowSpreadRiskMax <= 0 ||
+      InpDeepConfirmLowSpreadMult == 1.0)
+      return pos_mult;
+   if(signal.confirm_ob_pos >= InpDeepConfirmLowSpreadConfirmMax)
+      return pos_mult;
+   if(risk_price <= 0)
+      return pos_mult;
+
+   double spread_risk = spread / risk_price;
+   if(spread_risk >= InpDeepConfirmLowSpreadRiskMax)
+      return pos_mult;
+
+   if(InpDeepConfirmLowSpreadMult <= 0)
+      return -1.0;
+   return pos_mult * InpDeepConfirmLowSpreadMult;
+}
+
+bool IsOBMinPosMultDirectionSelected(int direction)
+{
+   if(StringLen(InpOBMinPosMultDirections) <= 0)
+      return true;
+   string filter = InpOBMinPosMultDirections;
+   StringReplace(filter, " ", "");
+   StringToUpper(filter);
+   string needle = (direction == OB_BUY) ? ",BUY," : ",SELL,";
+   string haystack = "," + filter + ",";
+   return (StringFind(haystack, needle) >= 0);
+}
+
+bool IsOBHighPosBoostDirectionSelected(int direction)
+{
+   if(StringLen(InpOBHighPosBoostDirections) <= 0)
+      return true;
+   string filter = InpOBHighPosBoostDirections;
+   StringReplace(filter, " ", "");
+   StringToUpper(filter);
+   string needle = (direction == OB_BUY) ? ",BUY," : ",SELL,";
+   string haystack = "," + filter + ",";
+   return (StringFind(haystack, needle) >= 0);
+}
+
+double ApplyOBMinPosMultFilter(const OBZone &zone, int direction, double pos_mult)
+{
+   if(InpOBMinPosMult <= 0.0)
+      return pos_mult;
+   if(zone.is_liquidity_sweep || IsLooseSweepZone(zone) ||
+      zone.is_range_breakout || zone.is_htf_pullback || zone.is_fvg || zone.is_bos_retest)
+      return pos_mult;
+   if(!IsOBMinPosMultDirectionSelected(direction))
+      return pos_mult;
+   if(InpOBMinPosMultOnlyMonthlyNonNegative)
+   {
+      SyncMonthlyRiskState();
+      if(g_monthly_start_balance > 0 &&
+         AccountInfoDouble(ACCOUNT_BALANCE) < g_monthly_start_balance)
+         return pos_mult;
+   }
+   if(pos_mult > 0.0 && pos_mult < InpOBMinPosMult)
+      return -1.0;
+   return pos_mult;
+}
+
+double ApplyOBHighPosBoostFilter(const OBZone &zone, int direction, double pos_mult)
+{
+   if(InpOBHighPosBoostMin <= 0.0 || InpOBHighPosBoostMult == 1.0)
+      return pos_mult;
+   if(zone.is_liquidity_sweep || IsLooseSweepZone(zone) ||
+      zone.is_range_breakout || zone.is_htf_pullback || zone.is_fvg || zone.is_bos_retest)
+      return pos_mult;
+   if(!IsOBHighPosBoostDirectionSelected(direction))
+      return pos_mult;
+   if(pos_mult <= 0.0 || pos_mult < InpOBHighPosBoostMin)
+      return pos_mult;
+   if(InpOBHighPosBoostMult <= 0.0)
+      return -1.0;
+   return pos_mult * InpOBHighPosBoostMult;
+}
+
 double CalcEntryLot(string symbol, double risk_pct, double risk_price, double pos_mult)
 {
    double base_lot;
@@ -2111,7 +3286,11 @@ double CalcEntryLot(string symbol, double risk_pct, double risk_price, double po
       base_lot = InpFixedLotSize;
    else
       base_lot = CalcLotSize(symbol, risk_pct, risk_price);
-   return base_lot * pos_mult;
+   double lot = base_lot * pos_mult;
+   if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
+      lot = CfgMaxLotSize();
+   lot = ApplyBalanceTierLotCap(lot);
+   return lot;
 }
 
 bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState &state,
@@ -2163,7 +3342,12 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    ENUM_RANGE_POSITION range_pos = NO_RANGE;
    HTFRange active_range;
 
-   if(CfgEnableRangeFade())
+   bool range_filter_applies = CfgEnableRangeFade() &&
+      !CfgRangeDTPStrictQualityOnly() &&
+      !CfgRangeHTFOBReactionOnly() &&
+      !CfgRangeHTFRejectContextOnly();
+
+   if(range_filter_applies)
    {
       active_range = GetHTFRange(symbol);
       if(active_range.valid)
@@ -2175,29 +3359,60 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
          // 区间中部不交易(可选)
          if(CfgRangeNoMidTrades() && range_pos == RANGE_MIDDLE)
          {
+            if(CfgRangeMaxWidthATR() < 0.0 && MathAbs(CfgRangeMaxWidthATR()) < 20.0)
+            {
+               range_pos = NO_RANGE;
+            }
+            else
+            {
             if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
                " dir=", signal.direction, " skip=range_mid");
             return false;
+            }
          }
 
          // 突破中观望
          if(range_pos == RANGE_BREAKING)
          {
+            if(CfgRangeDirectionGateOnly())
+            {
+               range_pos = NO_RANGE;
+            }
+            else if(CfgRangeMaxWidthATR() < 0.0 && MathAbs(CfgRangeMaxWidthATR()) < 20.0)
+            {
+               range_pos = NO_RANGE;
+            }
+            else
+            {
             if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
                " dir=", signal.direction, " skip=range_breaking");
             return false;
+            }
          }
 
          // 方向反转: 上沿做空(高抛), 下沿做多(低吸)
          int faded = GetRangeFadeDirection(active_range, range_pos, signal.direction);
          if(faded != signal.direction)
          {
+            if(CfgRangeConfirmSignalOnly() || CfgRangeDirectionGateOnly())
+            {
+               if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
+                  " dir=", signal.direction, " skip=range_confirm_dir",
+                  " pos=", RangePositionToString(range_pos));
+               return false;
+            }
             if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
                " dir=", signal.direction, " range_fade_reverse to ", faded,
                " pos=", RangePositionToString(range_pos));
             signal.direction = faded;
             range_fade_active = true;
          }
+         else if((CfgRangeApplyAlignedSignal() || CfgRangeConfirmSignalOnly()) &&
+                 (range_pos == RANGE_NEAR_TOP || range_pos == RANGE_NEAR_BOTTOM))
+         {
+            range_fade_active = true;
+         }
+
       }
    }
 
@@ -2206,11 +3421,78 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    double spread = GetSpread(symbol);
 
    double entry = (signal.direction == OB_BUY) ? ask : bid;
+   if(!PassEntryHTFShapeFilter(signal.direction, entry))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=entry_htf_shape");
+      return false;
+   }
+   if(!PassEntryExhaustionFilter(signal.direction))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=entry_exhaustion");
+      return false;
+   }
+   if(!PassEntryContextFilter())
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=entry_context");
+      return false;
+   }
+   if(!PassEntryDirContextFilter(signal.direction))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=entry_dir_context");
+      return false;
+   }
+
    double risk_price = MathAbs(entry - signal.sl);
    if(risk_price <= 0)
    {
       if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=risk_price_zero");
       return false;
+   }
+
+   bool htf_reject_wide_risk = false;
+   double htf_reject_sl = 0.0;
+   if(CfgRangeHTFRejectContextOnly())
+   {
+      bool family_ok = zone.is_liquidity_sweep || IsLooseSweepZone(zone) ||
+         (!zone.is_fvg && !zone.is_range_breakout && !zone.is_htf_pullback);
+      HTFRange reject_range = GetHTFRange(symbol);
+      if(family_ok && reject_range.valid)
+      {
+         ENUM_RANGE_POSITION reject_pos = GetRangePosition(reject_range, entry);
+         bool side_ok = (signal.direction == OB_BUY && reject_pos == RANGE_NEAR_BOTTOM) ||
+                        (signal.direction == OB_SELL && reject_pos == RANGE_NEAR_TOP);
+         if(side_ok)
+         {
+            double candidate_sl = CalcRangeSL(reject_range, reject_pos, signal.direction,
+                                             MathMax(state.atr_value, reject_range.width_price * 0.03));
+            double candidate_risk = MathAbs(entry - candidate_sl);
+            double max_wide_risk = (state.atr_1h > 0.0)
+               ? state.atr_1h * MathMax(CfgRangeSLBufferATR(), 1.0)
+               : state.atr_value * 10.0;
+            if(candidate_sl > 0.0 && candidate_risk > risk_price && candidate_risk <= max_wide_risk)
+            {
+               signal.sl = candidate_sl;
+               risk_price = candidate_risk;
+               htf_reject_sl = candidate_sl;
+               htf_reject_wide_risk = true;
+            }
+         }
+      }
+      if(family_ok && !htf_reject_wide_risk && HasRecentHTFSweepRejectSE(symbol, signal.direction))
+      {
+         double wide_risk = MathMax(risk_price * MathMax(CfgRangeSLBufferATR(), 1.8),
+                                    state.atr_value * MathMax(CfgRangeEntryZoneATR(), 0.8));
+         double max_wide_risk = (state.atr_1h > 0.0)
+            ? state.atr_1h * MathMax(CfgRangeSLBufferATR(), 1.0)
+            : state.atr_value * 10.0;
+         if(wide_risk > risk_price && wide_risk <= max_wide_risk)
+         {
+            signal.sl = (signal.direction == OB_BUY) ? entry - wide_risk : entry + wide_risk;
+            risk_price = wide_risk;
+            htf_reject_sl = signal.sl;
+            htf_reject_wide_risk = true;
+         }
+      }
    }
 
    double confirm_entry = signal.entry;
@@ -2267,6 +3549,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    }
 
    double pos_mult = signal.pos_mult;
+   int score = -1;
    if(CfgEnableScoring())
    {
       double proximity_distance = MathAbs(bid - entry);
@@ -2282,8 +3565,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       else if(tp_est == 0.0)
          tp_est = RToPrice(2.0, entry, risk_price, signal.direction);
       double target_distance = MathAbs(tp_est - entry);
-      int score = CalcSignalScore(zone, state, state.market_state,
-                                  proximity_distance, risk_price, target_distance);
+      score = CalcSignalScore(zone, state, state.market_state,
+                              proximity_distance, risk_price, target_distance);
       if(CfgMinScore() > 0 && score < CfgMinScore())
       {
          if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=score score=", score, " min=", CfgMinScore());
@@ -2307,7 +3590,7 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    pos_mult = ApplyDirectionPosMult(signal.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
    pos_mult = ApplyContextFilterPositionMultiplier(signal.direction, pos_mult);
-   pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyEntryQualityPositionMultiplier(zone, signal, risk_price, pos_mult);
    pos_mult = ApplyBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
    pos_mult = ApplyStartupBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
    pos_mult = ApplySweepContextPositionMultiplier(zone, state, signal, risk_price, pos_mult);
@@ -2318,6 +3601,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    if(pos_mult < 0)
       return false;
    pos_mult = ApplyHTFNetPushPositionMultiplier(signal.direction, pos_mult);
+   if(htf_reject_wide_risk && CfgRangePosMult() > 0.0)
+      pos_mult *= CfgRangePosMult();
    pos_mult = ApplyBalancePositionMultiplier(pos_mult);
    pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
    pos_mult = ApplyRuntimePositionMultiplier(pos_mult);
@@ -2333,10 +3618,105 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=buy_no_h1 pos_mult=", pos_mult);
       return false;
    }
+   pos_mult = ApplyBuyContNoH1AgeFilter(zone, state, signal.direction, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=buy_cont_no_h1_age");
+      return false;
+   }
+   pos_mult = ApplySweepHighPosMultFilter(zone, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=sweep_high_pos_mult");
+      return false;
+   }
+   pos_mult = ApplyAlignedNoContinuationFilter(zone, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=aligned_no_cont");
+      return false;
+   }
+   pos_mult = ApplySellSpreadRiskFilter(zone, signal.direction, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=sell_spread_risk");
+      return false;
+   }
+   pos_mult = ApplySmallRiskATRFilter(zone, state, risk_price, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=small_risk_atr");
+      return false;
+   }
+   pos_mult = ApplyRiskATRBandPositionFilter(zone, state, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=risk_atr_band");
+      return false;
+   }
+   pos_mult = ApplyOldHighScoreOBFilter(zone, state, score, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=old_high_score_ob");
+      return false;
+   }
+   pos_mult = ApplyOldPosMultOBFilter(zone, state, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=old_pos_mult_ob");
+      return false;
+   }
+   pos_mult = ApplyDeepConfirmLowSpreadFilter(signal, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=deep_confirm_low_spread");
+      return false;
+   }
+   pos_mult = ApplyOBMinPosMultFilter(zone, signal.direction, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=ob_min_pos_mult");
+      return false;
+   }
+   pos_mult = ApplyOBHighPosBoostFilter(zone, signal.direction, pos_mult);
+   if(pos_mult < 0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=ob_high_pos_boost");
+      return false;
+   }
+   signal.pos_mult = pos_mult;
+   if(!PassEntryStructureConfirm(zone, signal))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=entry_structure");
+      return false;
+   }
+   int failure_family = EntryFamilyFromZone(zone, signal);
+   signal.entry_family = failure_family;
+   if(InpPostWinCooldownBlockEntries && !PassPostWinCooldown(signal.direction, failure_family))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=post_win_cooldown");
+      return false;
+   }
+   if(!PassFailureReentryConfirm(signal.direction, zone.is_liquidity_sweep || IsLooseSweepZone(zone),
+                                 pos_mult, failure_family, entry))
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=failure_reentry");
+      return false;
+   }
+   double swp_cont_mult = SWPContinuationConfirmMultiplier(zone, signal);
+   if(swp_cont_mult <= 0.0)
+   {
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index, " dir=", signal.direction, " skip=swp_continuation");
+      return false;
+   }
+   pos_mult *= swp_cont_mult;
+   signal.pos_mult = pos_mult;
 
    double final_lot = CalcEntryLot(symbol, CfgRiskPercent(), risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
    final_lot = ApplySignalTypeLotCap(zone, final_lot);
+   final_lot = ApplyHighPosMultLotCap(final_lot, pos_mult, signal.direction);
+   final_lot = ApplyPostWinCooldownLotCap(final_lot, signal.direction, failure_family);
    final_lot = ApplyBalanceLotCap(final_lot);
    if(!PassMinRisk(final_lot, risk_price, symbol))
    {
@@ -2363,6 +3743,8 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
       final_lot = final_lot * (free_margin / margin_required) * 0.95;
       final_lot = ApplyLotCap(final_lot);
       final_lot = ApplySignalTypeLotCap(zone, final_lot);
+      final_lot = ApplyHighPosMultLotCap(final_lot, pos_mult, signal.direction);
+      final_lot = ApplyPostWinCooldownLotCap(final_lot, signal.direction, failure_family);
       final_lot = ApplyBalanceLotCap(final_lot);
    }
 
@@ -2439,10 +3821,14 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    signal.lot = NormalizeDouble(final_lot, 2);
    signal.pos_mult = pos_mult;
    signal.tp = tp;
-   signal.htf_target = false;
+   signal.htf_target = htf_reject_wide_risk;
    signal.htf_partial_r = 0;
    signal.htf_partial_pct = 0;
-   ApplyHTFTarget(symbol, entry, risk_price, signal);
+   if(htf_reject_wide_risk)
+      signal.tp = 0.0;
+   else
+      ApplyHTFTarget(symbol, entry, risk_price, signal);
+   signal.trend_release = false;
 
    // ── HTF Range Fade TP/SL覆盖 ──
    if(range_fade_active)
@@ -2478,6 +3864,15 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
          " confidence=", DoubleToString(active_range.confidence, 2));
    }
 
+   if(htf_reject_wide_risk)
+   {
+      if(CfgRangeMaxLot() > 0 && signal.lot > CfgRangeMaxLot())
+         signal.lot = CfgRangeMaxLot();
+      if(InpEnableEntryDebug) Print("FINAL_DIAG z=", signal.ob_index,
+         " htf_reject_wide_sl=", DoubleToString(htf_reject_sl, _Digits),
+         " risk=", DoubleToString(signal.risk_price, _Digits));
+   }
+
    PrintEntryDebug("entry_engine", zone, state, signal, entry, risk_price, spread, pos_mult,
                    CfgEnableScoring() ? CalcSignalScore(zone, state, state.market_state,
                                                       MathAbs(bid - entry), risk_price,
@@ -2486,8 +3881,10 @@ bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState 
    signal.comment = "WT " + InpVersion + " " + (signal.direction > 0 ? "B" : "S") +
                     (zone.is_range_breakout ? " RB" : "") +
                     (zone.is_htf_pullback ? " HTFPB" : "") +
+                    (zone.is_bos_retest ? " BOS" : "") +
                     (IsLooseSweepZone(zone) ? " LSWP" : "") +
                     (zone.is_liquidity_sweep ? " SWP" : "") +
+                    (htf_reject_wide_risk ? " HTRJ" : "") +
                     (range_fade_active ? (" RG" + RangePositionToString(range_pos)) : "") +
                     " x" + DoubleToString(pos_mult, 1);
 
@@ -2567,7 +3964,12 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    ENUM_RANGE_POSITION range_pos2 = NO_RANGE;
    int trade_direction = zone.direction;  // 默认用OB方向
 
-   if(CfgEnableRangeFade())
+   bool range_filter_applies2 = CfgEnableRangeFade() &&
+      !CfgRangeDTPStrictQualityOnly() &&
+      !CfgRangeHTFOBReactionOnly() &&
+      !CfgRangeHTFRejectContextOnly();
+
+   if(range_filter_applies2)
    {
       HTFRange rng = GetHTFRange(symbol);
       if(rng.valid)
@@ -2578,19 +3980,39 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
 
          // 区间中部不交易
          if(CfgRangeNoMidTrades() && range_pos2 == RANGE_MIDDLE)
+         {
+            if(CfgRangeMaxWidthATR() < 0.0 && MathAbs(CfgRangeMaxWidthATR()) < 20.0)
+               range_pos2 = NO_RANGE;
+            else
             return false;
+         }
 
          // 突破中观望
          if(range_pos2 == RANGE_BREAKING)
+         {
+            if(CfgRangeDirectionGateOnly())
+               range_pos2 = NO_RANGE;
+            else if(CfgRangeMaxWidthATR() < 0.0 && MathAbs(CfgRangeMaxWidthATR()) < 20.0)
+               range_pos2 = NO_RANGE;
+            else
             return false;
+         }
 
          // 方向反转
          int faded = GetRangeFadeDirection(rng, range_pos2, zone.direction);
          if(faded != zone.direction)
          {
+            if(CfgRangeConfirmSignalOnly() || CfgRangeDirectionGateOnly())
+               return false;
             trade_direction = faded;
             range_fade_active2 = true;
          }
+         else if((CfgRangeApplyAlignedSignal() || CfgRangeConfirmSignalOnly()) &&
+                 (range_pos2 == RANGE_NEAR_TOP || range_pos2 == RANGE_NEAR_BOTTOM))
+         {
+            range_fade_active2 = true;
+         }
+
       }
    }
 
@@ -2603,6 +4025,16 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       return CheckFVGEntry(symbol, zone, zone_idx, state, signal);
 
    if(!IsZoneTouched(zone, bid, ask))
+      return false;
+
+   double entry_probe = (trade_direction == OB_BUY) ? ask : bid;
+   if(!PassEntryHTFShapeFilter(trade_direction, entry_probe))
+      return false;
+   if(!PassEntryExhaustionFilter(trade_direction))
+      return false;
+   if(!PassEntryContextFilter())
+      return false;
+   if(!PassEntryDirContextFilter(trade_direction))
       return false;
 
    if(!zone.is_range_breakout && !PassDoubleTouchFilter(zone))
@@ -2696,7 +4128,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    pos_mult = ApplyDirectionPosMult(zone.direction, pos_mult);
    pos_mult = ApplyHourPositionMultiplier(pos_mult);
    pos_mult = ApplyContextFilterPositionMultiplier(zone.direction, pos_mult);
-   pos_mult = ApplyEntryQualityPositionMultiplier(signal, risk_price, pos_mult);
+   pos_mult = ApplyEntryQualityPositionMultiplier(zone, signal, risk_price, pos_mult);
    pos_mult = ApplyBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
    pos_mult = ApplyStartupBadClusterPositionMultiplier(zone, signal, risk_price, pos_mult);
    pos_mult = ApplySweepContextPositionMultiplier(zone, state, signal, risk_price, pos_mult);
@@ -2716,9 +4148,55 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    pos_mult = ApplyBuyNoH1PositionFilter(zone, zone.direction, pos_mult);
    if(pos_mult < 0)
       return false;
+   pos_mult = ApplyBuyContNoH1AgeFilter(zone, state, zone.direction, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplySweepHighPosMultFilter(zone, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplyAlignedNoContinuationFilter(zone, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplySellSpreadRiskFilter(zone, zone.direction, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplySmallRiskATRFilter(zone, state, risk_price, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplyRiskATRBandPositionFilter(zone, state, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplyOldHighScoreOBFilter(zone, state, score, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplyOldPosMultOBFilter(zone, state, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplyDeepConfirmLowSpreadFilter(signal, risk_price, spread, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplyOBMinPosMultFilter(zone, zone.direction, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   pos_mult = ApplyOBHighPosBoostFilter(zone, zone.direction, pos_mult);
+   if(pos_mult < 0)
+      return false;
+   signal.pos_mult = pos_mult;
+   if(!PassEntryStructureConfirm(zone, signal))
+      return false;
+   int failure_family2 = EntryFamilyFromZone(zone, signal);
+   signal.entry_family = failure_family2;
+   if(InpPostWinCooldownBlockEntries && !PassPostWinCooldown(trade_direction, failure_family2))
+      return false;
+   if(!PassFailureReentryConfirm(trade_direction, zone.is_liquidity_sweep || IsLooseSweepZone(zone),
+                                 pos_mult, failure_family2, entry))
+      return false;
+
    double final_lot = CalcEntryLot(symbol, CfgRiskPercent(), risk_price, pos_mult);
    final_lot = ApplyLotCap(final_lot);
    final_lot = ApplySignalTypeLotCap(zone, final_lot);
+   final_lot = ApplyHighPosMultLotCap(final_lot, pos_mult, trade_direction);
+   final_lot = ApplyPostWinCooldownLotCap(final_lot, trade_direction, failure_family2);
    final_lot = ApplyBalanceLotCap(final_lot);
 
    if(!PassMinRisk(final_lot, risk_price, symbol))
@@ -2737,6 +4215,8 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
       final_lot = final_lot * (free_margin / margin_required) * 0.95;
       final_lot = ApplyLotCap(final_lot);
       final_lot = ApplySignalTypeLotCap(zone, final_lot);
+      final_lot = ApplyHighPosMultLotCap(final_lot, pos_mult, trade_direction);
+      final_lot = ApplyPostWinCooldownLotCap(final_lot, trade_direction, failure_family2);
       final_lot = ApplyBalanceLotCap(final_lot);
       double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
       double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
@@ -2814,7 +4294,9 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    signal.htf_target = false;
    signal.htf_partial_r = 0;
    signal.htf_partial_pct = 0;
+   signal.entry_family = failure_family2;
    ApplyHTFTarget(symbol, entry, risk_price, signal);
+    signal.trend_release = false;
 
    // ── Range Fade TP/SL覆盖 (直接入场路径) ──
    if(range_fade_active2)
@@ -2835,6 +4317,7 @@ bool CheckEntryConditions(string symbol, const OBZone &zone, int zone_idx,
    signal.comment = "WT " + InpVersion + " " + (trade_direction > 0 ? "B" : "S") +
                     (zone.is_range_breakout ? " RB" : "") +
                     (zone.is_htf_pullback ? " HTFPB" : "") +
+                    (zone.is_bos_retest ? " BOS" : "") +
                     (IsLooseSweepZone(zone) ? " LSWP" : "") +
                     (zone.is_liquidity_sweep ? " SWP" : "") +
                     (range_fade_active2 ? (" RG" + RangePositionToString(range_pos2)) : "") +

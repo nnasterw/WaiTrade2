@@ -256,3 +256,74 @@
 3. **BTC profile 的 `btc_max_concurrent=8` 默认值允许 8 单同时持仓**。高余额阶段合理，低余额阶段应降到 2-3。
 4. **qual232 仍是当前最佳 BTC 主线**（WFYS 80.17），趋势01-05 探索均未超越。
 5. **宽 SL 不是 BTC 的问题，DTP/BE 才是**。qual232 已经把 SL/BE/DTP 调到接近最优。
+
+## 代码层改造：balance-tier lot cap (2026-07-02 18:xx)
+
+### 动机
+
+trend02-12 单变量调参全部卡在 75 分以下。trends06/07 (硬限 lot) 与 trend08/11/12 (改 pos_mult / bad_bounce / entry_depth) 都不奏效。
+深入诊断发现：trend02 的 2.69 手大亏来自**初始入场路径** (`CalcEntryLot` in SignalEngine.mqh:3282)，
+该路径**没有**应用 `CfgMaxLotSize()` 与任何 tier cap，导致 BTC profile 默认 `btc_max_lot_size=9.0` + 高 `pos_mult` 直接生成 2.69 手单笔。
+
+### 实施（默认 opt-in 关闭）
+
+1. **Config.mqh**: 新增 3 个 EA input
+   - `InpEnableBalanceTierLotCap` (bool, default false) // 启用余额阶梯仓位上限(opt-in默认关闭)
+   - `InpBalanceTier1Threshold` (double, default 5000) // 阶梯1余额阈值
+   - `InpBalanceTier1MaxLotSize` (double, default 1.0)   // 阶梯1仓位上限
+
+2. **PositionManager.mqh**: 新增 `ApplyBalanceTierLotCap()` 函数，在 `OpenStrongAddOn` + `OpenFailureReverse` 两个补仓路径的 `CfgMaxLotSize` 之后插入。
+
+3. **SignalEngine.mqh** (关键修复): 在 `CalcEntryLot()` 末尾同步应用 `CfgMaxLotSize` + `ApplyBalanceTierLotCap`。
+   - 这是**初始入场路径**，之前 cap 完全缺失。
+   - 修复后 trend14 验证：2026-01 的 2.69 手 → 1.0 手 (从 -$429 → -$159)
+
+4. **scripts/yaml_to_set.py**: FLAT_MAP 新增 3 个 entry。
+
+5. **MQL5 编译验证**: `python scripts/mt5_compile_win.py` → 0 errors / 0 warnings。
+
+### trend13-16 测试结果
+
+| 版本 | 阈值 | 上限 | 余额 | 笔数 | WR | PF | WFYS | 备注 |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| trend13 | 3000 | 0.5 | $9,545 | 194 | 42.3% | 1.89 | 74.75 | 阈值太低，cap 几乎不生效 |
+| trend14 (旧) | 10000 | 1.0 | $8,608 | 197 | 42.6% | 1.65 | **75.41** | 旧版：cap 未应用到初始入场路径 |
+| trend14 (新) | 10000 | 1.0 | $6,758 | 201 | 42.3% | 1.61 | **73.65** | **新版：cap 修到初始入场** |
+| trend15 | 15000 | 1.5 | $8,162 | 211 | 44.1% | 1.63 | 72.55 | 较高上限，更接近 trend06 |
+| trend16 | 20000 | 1.0 | $6,758 | 201 | 42.3% | 1.61 | 73.65 | 阈值=20000 在 720d 内基本等同 10000 (余额始终 < 20K) |
+
+### 诊断与结论
+
+1. **代码层 cap 确实生效**：trend14 修复后，2026-01 的 2.69 手 → 1.0 手，单笔损失从 -$429 → -$159。
+2. **但 WFYS 提升有限 (74.75 → 75.41 → 73.65)**：因为 2026-01 的大亏月是**结构性**的（多笔亏损叠加），不只 2.69 手。
+3. **趋势结论：BTC $200 账户的"高利润"与"WFYS 24月稳定"结构性互斥**
+   - 高仓位路径（trend02-style 49x 收益）→ 大仓位 24月 退化
+   - 低仓位路径（qual232-style 84x 收益）→ 0 大亏月，WFYS 80+
+   - 简单 cap 切到中间区间只让两个方向都折中，无法突破 85
+
+### 最终候选
+
+| 候选 | WFYS | 描述 |
+|---|---:|---|
+| **qual232** | 80.17 | 当前最佳，无 BTC profile，靠 max_lot=1.6 + 一致性 SL/BE/DTP |
+| trend02 | 74.73 | BTC profile 默认，49x 收益，4 大亏月 |
+| trend14 (新) | 73.65 | BTC profile + 余额阶梯 cap (1.0 @ <10K) |
+| trend15 | 72.55 | 较高 cap (1.5 @ <15K) |
+
+**WFYS 85+ 仍未达成**。进一步突破需更深层结构改造 (多 tier cap + 双向 OB/SWP 分离过滤)，
+超出当前 session 单变量迭代范围。
+
+### 交付物（跨 session 可重用）
+
+- **代码层基础设施**：3 个 opt-in EA input + `ApplyBalanceTierLotCap` 函数 + SignalEngine 初始入场 cap 修复
+- **配置层**：12 个 trend01-16 .set 文件覆盖 BTC profile 与 balance tier 各种组合
+- **经验文档**：本节 + 原 trend01-12 表格，便于后续 session 接力
+
+### 待办（跨 session，未在本 session 完成）
+
+- [ ] 多 tier 余额阶梯 (tier1/tier2/tier3 三段)
+- [ ] 按信号族 (OB/SWP/BOS) 分别 cap (结构性 cap 而非余额 cap)
+- [ ] 复跑完整 24 月独立月测试（每次 9-10 分钟 × 24 = 4 小时）
+- [ ] 用真 24 月 CSV (而非 720d 推算) 验证 WFYS
+- [ ] 修复 WaiTrade3\WaiTrade_OB_SMC.mq5 102 编译错误（让 smc01 完整栈可用）
+

@@ -38074,6 +38074,50 @@ v11-btc1-trend12:
   entry_depth_pct: 0.5
   magic_number: 205912
 
+v11-btc1-trend13:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND13
+  description: 'trend02 + opt-in balance-tier lot cap (balance<3000 cap to 0.5, balance>=3000 unrestricted)'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 3000.0
+  balance_tier1_max_lot_size: 0.5
+  magic_number: 205913
+
+v11-btc1-trend14:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND14
+  description: 'trend13 with higher threshold (10000) to cover 2.69-lot trade balance'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 10000.0
+  balance_tier1_max_lot_size: 1.0
+  magic_number: 205914
+
+v11-btc1-trend15:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND15
+  description: 'trend14 with less aggressive cap (threshold=15000, lot=1.5)'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 15000.0
+  balance_tier1_max_lot_size: 1.5
+  magic_number: 205915
+
+v11-btc1-trend16:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND16
+  description: 'trend02 + balance_tier (threshold=20000 lot=1.0) - very selective cap on high balance'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 20000.0
+  balance_tier1_max_lot_size: 1.0
+  magic_number: 205916
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01
