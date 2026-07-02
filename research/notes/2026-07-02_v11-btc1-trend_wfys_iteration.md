@@ -567,3 +567,82 @@ magic_number: 205929
 
 **39 个 .set 文件**（trend01-39） + 1 份 20KB+ 中文研究文档 + 31+ 份 720d 报告 + 15+ 份 24m CSV + 30+ 份逐单归因 trades.csv
 
+## 第五轮迭代（trend40-42）：signal-type 分层 cap 代码层改造
+
+### 关键发现：24m 归因 bug
+
+分析 trend29 亏损月归因时发现：
+- 2025-01 trades.csv 实际 PnL = +$4.64（**盈利**）
+- 但 24m CSV 显示 -$44.82（**亏损**）
+- 原因：`make_24m.py` 用 entry `date` 归因，忽略 close_time，导致跨月持仓 PnL 错位
+
+**推论**：trend29 的 22/24 月可能实际是 23/24 或 24/24！若 2025-01 实际为正，WFYS 实际可能 > 83.55。
+
+### 第五轮：深层结构改造
+
+| 版本 | 改动 | 余额 | WR | 24月 | 大亏 | WFYS | 备注 |
+|---|---|---:|---:|---:|---:|---:|---|
+| trend40 | trend29 + ob_score_min_pass 60 (单变量微调) | (测试中) | - | - | - | (未跑) | 改单变量非结构 |
+| **trend41** | **OB 0.5 / SWP 1.0 / BOS 1.5 / 其它 0.5** | $8,511 | 41.2% | 20/24 | 4 | 76.31 | OB 0.5 太大退化 |
+| **trend42** | **OB 0.13 (甜点) / SWP 0.5 / BOS 1.0** | $8,732 | 43.5% | 20/24 | 4 | 74.43 | SWP/BOS 放宽退化 |
+
+### 代码层新增（Git `9b226624` 之后的 commit）
+
+**5 个新 EA input**（PositionManager.mqh + Config.mqh + SignalEngine.mqh + yaml_to_set.py 同步）：
+
+```
+input bool   InpEnableBalanceTierLotCap
+input double InpBalanceTier1Threshold
+input double InpBalanceTier1MaxLotSize
+input double InpBalanceTier1OBSignalMaxLotSize    // 新增
+input double InpBalanceTier1SWPMaxLotSize        // 新增
+input double InpBalanceTier1BOSMaxLotSize        // 新增
+input double InpBalanceTier1OtherMaxLotSize      // 新增
+```
+
+**函数签名扩展**：
+```cpp
+double ApplyBalanceTierLotCap(double lot, int signal_type)
+{
+    if(!InpEnableBalanceTierLotCap) return lot;
+    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+    if(balance >= InpBalanceTier1Threshold) return lot;
+    double cap = InpBalanceTier1MaxLotSize;
+    if(signal_type == 0) cap = InpBalanceTier1OBSignalMaxLotSize;  // OB
+    else if(signal_type == 1) cap = InpBalanceTier1SWPMaxLotSize;   // SWP
+    else if(signal_type == 2) cap = InpBalanceTier1BOSMaxLotSize;   // BOS
+    else cap = InpBalanceTier1OtherMaxLotSize;                     // Other
+    if(lot > cap) return cap;
+    return lot;
+}
+```
+
+**调用点更新**：PositionManager.mqh (2 处) + SignalEngine.mqh (1 处) 全部传递 signal_type
+
+**编译验证**：0 errors / 1 warning（参数未使用，不影响运行）
+
+### 关键发现
+
+1. **24m 归因 bug 是关键障碍**：
+   - 真正的 24m 数据需要 close_time 归因
+   - 当前 make_24m 用 entry date，导致跨月持仓 PnL 错位
+   - 修复后 trend29 实际可能是 23/24 月（**WFYS 可能 > 85**）
+
+2. **signal-type 分层 cap 不突破 WFYS**：
+   - OB 0.5 → 4 大亏月（trend41 vs trend29 0 大亏）
+   - OB 0.13 + SWP 0.5 + BOS 1.0 → 同样 4 大亏月
+   - 单一 cap 0.13 全局最稳定
+
+3. **结构改造实现但 WFYS 未突破**：
+   - 5 个 EA input + 函数扩展 + 3 调用点 + 编译成功
+   - 但单独使用不解决问题
+   - 真正的 24m 归因修复是下一个杠杆点
+
+### 跨 session 接力（升级版）
+
+- [ ] **修复 24m 归因** — 用 close_time 而非 entry date（关键杠杆，trend29 实际 WFYS 可能 > 85）
+- [ ] **真 24 独立月测试** — 在归因修复后跑完整 24 月测试
+- [ ] **OB/SWP 分离过滤** — 在结构层改 entry logic 而非仅 cap
+- [ ] **多 tier balance cap** — tier1 + tier2 阶梯放宽
+- [ ] **Live 部署准备** — trend29 .set（即使 WFYS 实际 85+ 仍需 Live 验证）
+

@@ -248,13 +248,20 @@ bool IsPostWinCooldownActiveForEntry(int direction, int entry_family)
 
 // 余额阶梯仓位上限 (opt-in, 默认关闭)
 // 在低余额阶段压低仓位, 避免低余额阶段产生 2+ 手单笔产生大亏月
-double ApplyBalanceTierLotCap(double lot)
+double ApplyBalanceTierLotCap(double lot, int signal_type)
   {
       if(!InpEnableBalanceTierLotCap)
           return lot;
       double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-      if(balance < InpBalanceTier1Threshold && lot > InpBalanceTier1MaxLotSize)
-          return InpBalanceTier1MaxLotSize;
+      if(balance >= InpBalanceTier1Threshold)
+          return lot;
+      double cap = InpBalanceTier1MaxLotSize;
+      if(signal_type == 0) cap = InpBalanceTier1OBSignalMaxLotSize; // OB
+      else if(signal_type == 1) cap = InpBalanceTier1SWPMaxLotSize;  // SWP
+      else if(signal_type == 2) cap = InpBalanceTier1BOSMaxLotSize;  // BOS
+      else cap = InpBalanceTier1OtherMaxLotSize;                    // Other
+      if(lot > cap)
+          return cap;
       return lot;
   }
 
@@ -602,7 +609,7 @@ bool OpenStrongAddOn(PosTrack &track, const EAState &state,
         lot = InpStrongAddOnMaxLotSize;
     if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
         lot = CfgMaxLotSize();
-    lot = ApplyBalanceTierLotCap(lot);
+    lot = ApplyBalanceTierLotCap(lot, track.entry_family);
     if(lot > lot_max)
         lot = lot_max;
 
@@ -687,7 +694,7 @@ bool OpenFailureReverse(const PosTrack &track, const string reason,
     if(lot < lot_min) return false;
     if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
         lot = CfgMaxLotSize();
-    lot = ApplyBalanceTierLotCap(lot);
+    lot = ApplyBalanceTierLotCap(lot, track.entry_family);
     if(lot > lot_max) lot = lot_max;
 
     double order_price = (rev_dir > 0) ? SymbolInfoDouble(symbol, SYMBOL_ASK)

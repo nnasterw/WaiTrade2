@@ -3289,7 +3289,7 @@ double CalcEntryLot(string symbol, double risk_pct, double risk_price, double po
    double lot = base_lot * pos_mult;
    if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
       lot = CfgMaxLotSize();
-   lot = ApplyBalanceTierLotCap(lot);
+   lot = ApplyBalanceTierLotCap(lot, pos_mult);
    return lot;
 }
 
