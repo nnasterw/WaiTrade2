@@ -38349,6 +38349,25 @@ v11-btc1-trend37:
   entry_htf_max_range_pos: 0.7
   magic_number: 205937
 
+v11-btc1-trend38:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND38
+  description: 'trend29 with cap 0.135 (fine-tune between 0.13 and 0.14)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.135
+  magic_number: 205938
+
+v11-btc1-trend39:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND39
+  description: 'trend29 with reduced OB boost (1.5 -> 1.0) - try to lower 2 loss months'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  ob_high_pos_boost_mult: 1.0
+  magic_number: 205939
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01
