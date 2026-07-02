@@ -38118,6 +38118,173 @@ v11-btc1-trend16:
   balance_tier1_max_lot_size: 1.0
   magic_number: 205916
 
+v11-btc1-trend17:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND17
+  description: 'trend02 + delayed DTP (6.0R) + late BE (2.0R) + balance_tier cap 1.0 to lift >3R'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  btc_dtp_trigger_r: 6.0
+  btc_dtp_retrace: 0.18
+  btc_breakeven_r: 2.0
+  btc_breakeven_lock_r: 0.50
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 10000.0
+  balance_tier1_max_lot_size: 1.0
+  magic_number: 205917
+
+v11-btc1-trend18:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND18
+  description: 'trend17 + even later DTP (8.0R) + later BE (2.5R) to lift >3R further'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  btc_dtp_trigger_r: 8.0
+  btc_dtp_retrace: 0.15
+  btc_breakeven_r: 2.5
+  btc_breakeven_lock_r: 0.50
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 10000.0
+  balance_tier1_max_lot_size: 1.0
+  magic_number: 205918
+
+v11-btc1-trend19:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND19
+  description: 'trend17 + balance_tier cap 1.5 (larger winners allowed)'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  btc_dtp_trigger_r: 6.0
+  btc_dtp_retrace: 0.18
+  btc_breakeven_r: 2.0
+  btc_breakeven_lock_r: 0.50
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 10000.0
+  balance_tier1_max_lot_size: 1.5
+  magic_number: 205919
+
+v11-btc1-trend20:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND20
+  description: 'trend19 + cap 2.0 + DTP 7.0R'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  btc_dtp_trigger_r: 7.0
+  btc_dtp_retrace: 0.18
+  btc_breakeven_r: 2.0
+  btc_breakeven_lock_r: 0.50
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 10000.0
+  balance_tier1_max_lot_size: 2.0
+  magic_number: 205920
+
+v11-btc1-trend21:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND21
+  description: 'trend19 + tighter DTP retrace (0.12) to lock winners'
+  enable_btc_profile: true
+  btc_profile_symbol: 'BTC'
+  btc_dtp_trigger_r: 6.0
+  btc_dtp_retrace: 0.12
+  btc_breakeven_r: 2.0
+  btc_breakeven_lock_r: 0.50
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 10000.0
+  balance_tier1_max_lot_size: 1.5
+  magic_number: 205921
+
+v11-btc1-trend22:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND22
+  description: 'qual232 (no BTC profile) + balance_tier cap 0.5 (no BTC profile high defaults)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.5
+  magic_number: 205922
+
+v11-btc1-trend23:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND23
+  description: 'qual232 + balance_tier cap 0.8 (sweet spot between 0.5/trend22 and 1.0)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.8
+  magic_number: 205923
+
+v11-btc1-trend24:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND24
+  description: 'qual232 + balance_tier cap 0.3 (tighter than trend22 0.5)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.3
+  magic_number: 205924
+
+v11-btc1-trend25:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND25
+  description: 'qual232 + balance_tier cap 0.2 (tighter than trend24 0.3)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.2
+  magic_number: 205925
+
+v11-btc1-trend26:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND26
+  description: 'qual232 + balance_tier cap 0.15 (push to eliminate big losing months)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.15
+  magic_number: 205926
+
+v11-btc1-trend27:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND27
+  description: 'qual232 + balance_tier cap 0.10 (push to eliminate last big losing month)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.10
+  magic_number: 205927
+
+v11-btc1-trend28:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND28
+  description: 'qual232 + balance_tier cap 0.18 (between trend25 0.2 and trend27 0.10)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.18
+  magic_number: 205928
+
+v11-btc1-trend29:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND29
+  description: 'qual232 + balance_tier cap 0.13 (between 0.10/trend27 and 0.15/trend26)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  magic_number: 205929
+
+v11-btc1-trend30:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND30
+  description: 'qual232 + balance_tier cap 0.12 (push toward WFYS 85)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.12
+  magic_number: 205930
+
+v11-btc1-trend31:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND31
+  description: 'trend29 + delayed DTP (btc_dtp 6.0R) to push WFYS higher'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  btc_dtp_trigger_r: 6.0
+  btc_dtp_retrace: 0.18
+  magic_number: 205931
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01
