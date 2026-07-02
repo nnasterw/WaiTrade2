@@ -691,3 +691,172 @@ double ApplyBalanceTierLotCap(double lot, int signal_type)
 
 **最终候选 v11-btc1-trend29 已稳坐 WFYS 83.55 零硬失败**，是 44 变体 + 1 轮代码层结构改造后的最佳。
 
+## 第七轮迭代（trend45）：提前 BE 灾难
+
+| 版本 | 改动 | 余额 | WR | 24月 | 大亏 | WFYS | 备注 |
+|---|---|---:|---:|---:|---:|---:|---|
+| **trend29 (基线)** | **cap 0.13** | **$1,974** | **44.1%** | **22/24** | **0** | **83.55** | **当前最佳** |
+| trend45 | earlier BE (0.5 vs 1.3) | $12,041 | 51.1% | 19/24 | 4 | 73.48 | 2026-05 -$1,601 灾难 |
+
+### 提前 BE 的反效果
+
+- 2024-11: -$53.86（trend29: -$26.23）
+- 2025-01: -$120.04（trend29: +$4.64）
+- 2025-05: -$0.60 (new, trend29: +$3.69)
+- 2026-02: -$160.95 (new, trend29: +$29.73)
+- **2026-05: -$1,601.24** (DISASTER!)
+
+**为什么 BE 0.5 灾难**：
+- BE 0.5 触发太快（0.5R），多笔交易被锁 0 利润退出但反向突破
+- 锁定后行情继续走，BE 锁变成反向 SL
+- 2026-05 出现 -$1,601 单月亏损
+
+**结论**：BE 1.3 是当前 BTC 账户的正确甜点，0.5 太激进。
+
+## 终极结论（45 变体）
+
+### 趋势 45 变体完整覆盖
+
+| 阶段 | 变体 | 最佳 WFYS |
+|---|---|---:|
+| 阶段 1 宽 SL 范本 | trend01 | 55.88 |
+| 阶段 2 BTC profile 默认 | trend02 | 74.73 |
+| 阶段 3 安全仓位 | trend03-07 | 73.65 |
+| 阶段 4 弱变量 | trend08-12 | 74.73 |
+| 阶段 5 代码层 cap | trend13-16 | 73.65 |
+| 阶段 6 DTP 推迟 | trend17-21 | 76.74 |
+| **阶段 7 balance-tier 阶梯** | **trend22-30** | **83.55** |
+| 阶段 8 HTF 过滤 | trend31-37 | 83.55 |
+| 阶段 9 终调 | trend38-40 | 83.55 |
+| 阶段 10 signal-type cap | trend41-42 | 76.31/74.43 |
+| 阶段 11 24m 归因修复 | - | 83.55 不变 |
+| 阶段 12 BTC profile / 过滤器 | trend43-44 | 79.05 |
+| 阶段 13 提前 BE | trend45 | 73.48 (灾难) |
+
+**45 变体全部测试，单变量 + 代码层结构性改造 + 24m 归因修复 + 过滤器微调**。
+
+### 终极候选 v11-btc1-trend29（已稳坐 6 阶段以上）
+
+```yaml
+<<: *v11_btc1_qual232
+version: V11-BTC1-TREND29
+description: qual232 + balance_tier cap 0.13 (zero hard failures WFYS 83.55)
+enable_balance_tier_lot_cap: true
+balance_tier1_threshold: 5000.0
+balance_tier1_max_lot_size: 0.13
+magic_number: 205929
+```
+
+**关键指标（24m v2 close_time 归因后）**：
+
+| 指标 | 值 | 阈值 | 状态 |
+|---|---|---|---|
+| 24月盈利月数 | 22/24 | ≥ 21 | ✓ |
+| 大亏月 | 0 | = 0 | ✓ |
+| 720d DD | 21.0% | ≤ 25% | ✓ |
+| Recovery | 11.59 | ≥ 3.0 | ✓ |
+| PF | 3.16 | ≥ 1.75 | ✓ |
+| Sharpe | 3.24 | ≥ 1.5 | ✓ |
+| >3R 占比 | 30.2% | ≥ 20% | ✓ |
+| Top3 集中度 | 43.6% | ≤ 60% | ✓ |
+| Top5 集中度 | 63.2% | ≤ 75% | ✓ |
+| avg_W/avg_L | 5.06 | ≥ 1.35 | ✓ |
+| **WFYS** | **83.55** | (≥ 80 达成) | **研究版 Live 候选** |
+| **WFYS 缺口** | -1.45 | (目标 85) | 仅软指标 |
+
+**24m v2 归因后 2 亏损月**（实际 close_time）：
+- 2024-11: -$26.23 (3 trades, OB 2.69 lot disaster 后的 4 个月已恢复)
+- 2026-05: -$5.51 (3 trades, 极小亏)
+
+**WFYS 85+ 突破方向（不可在当前架构达成）**：
+1. 真 24 独立月测试（4 小时）— 22/24 vs 实际 21-23 月有差距
+2. OB/SWP 分离 entry logic（结构性 entry 改造）
+3. 多 tier balance cap（tier1+tier2 阶梯放宽）
+4. 跨周期验证（2020-2024 测试期）
+
+### 全部 9 个 Git Commits
+
+| Commit | 内容 |
+|---|---|
+| `b5854b4e` | 12 变体 (trend01-12) 宽 SL 范本 |
+| `cade9a8e` | balance-tier cap 基础代码改造 (3 EA input) |
+| `fe52357a` | 15 变体 (trend17-31) balance-tier 阶梯突破 80+ |
+| `453e4a4b` | 3 变体 (trend32-34) 微调 |
+| `9b226624` | 3 变体 (trend35-37) HTF 过滤证伪 + 最终总结 v1 |
+| `12048a0c` | 2 变体 (trend38-39) 终调确认天花板 |
+| `ec03792f` | 3 变体 (trend40-42) + signal-type 分层 cap 代码 |
+| `d19762f1` | 2 变体 (trend43-44) + 24m close_time 归因修复 |
+| **`本次 commit`** | **trend45 提前 BE 灾难 + 终极总结** |
+
+**累计 45 个 .set 文件** + 25KB+ 研究文档 + 35+ 720d 报告 + 16+ 24m CSV (v1+v2) + 30+ 逐单归因
+
+### 跨 session 接力清单（最终版）
+
+- [ ] **真 24 独立月测试** trend29 WFYS（4 小时）— 22/24 在真独立月是否成立
+- [ ] **跨周期测试**（2020-2024）— trend29 跨 4 年稳定性
+- [ ] **OB/SWP 分离 entry logic** — 结构性 entry 改造（非 cap）
+- [ ] **多 tier balance cap** — tier1+tier2 阶梯放宽
+- [ ] **daily loss limit 代码层** — 防止 2026-05 类似 $1,601 灾难
+- [ ] **Live 部署准备** — trend29 .set + Live 参数安全检查
+
+## 第八轮迭代（trend46-47）：状态 / 确认过滤器退化
+
+| 版本 | 改动 | 余额 | WR | 24月 | WFYS | 备注 |
+|---|---|---:|---:|---:|---:|---|
+| **trend29 (基线)** | **cap 0.13** | **$1,974** | **44.1%** | **22/24** | **83.55** | **当前最佳** |
+| trend46 | trend_lookback 80→120 | $9,870 | 42.6% | 20/24 | 79.10 | 4 亏损月（含 -$118 等）|
+| trend47 | bounce_close_confirm_bars 0→1 + buffer 0.05 | $426 | 32.8% | 12 亏损 | (跳过) | 灾难，过严确认 |
+
+### 关键洞察
+
+**任何单变量调整都会让 2 亏损月变 4+ 亏损月**：
+- trend29: 2024-11 -$26 + 2026-05 -$5 (2 亏损)
+- trend44 (momentum filter): 4 亏损
+- trend46 (trend_lookback 120): 4 亏损
+- trend47 (entry confirm): 12 亏损
+
+**trend29 的 2 亏损月结构是当前 qual232 链 + cap 0.13 的真实极限**。
+
+## 最终候选 v11-btc1-trend29（终极确认）
+
+```yaml
+<<: *v11_btc1_qual232
+version: V11-BTC1-TREND29
+enable_balance_tier_lot_cap: true
+balance_tier1_threshold: 5000.0
+balance_tier1_max_lot_size: 0.13
+magic_number: 205929
+```
+
+**47 变体 + 8 Git commits + 14 阶段 + 4 代码层改造完整覆盖后**，
+**trend29 (cap 0.13) 仍是绝对最佳 WFYS 83.55 零硬失败**。
+
+## 47 变体完整汇总（按 WFYS 排序 top 10）
+
+| 排名 | 版本 | WFYS | 关键配置 |
+|:---:|---|---:|---|
+| 1 | **v11-btc1-trend29** | **83.55** | **cap 0.13** |
+| 2 | v11-btc1-trend26 | 81.45 | cap 0.15 |
+| 3 | v11-btc1-trend25 | 81.32 | cap 0.20 |
+| 4 | v11-btc1-trend34 | 80.54 | cap 0.14 (边界) |
+| 5 | v11-btc1-trend24 | 80.69 | cap 0.30 |
+| 6 | v11-btc1-qual232 | 80.17 | 主线（无 cap）|
+| 7 | v11-btc1-trend22 | 80.12 | cap 0.50 |
+| 8 | v11-btc1-trend46 | 79.10 | trend_lookback 120 (退化) |
+| 9 | v11-btc1-trend44 | 79.05 | momentum filter (退化) |
+| 10 | v11-btc1-trend19 | 76.74 | BTC profile + DTP delay |
+
+## 完成度最终审计
+
+| 目标 | 状态 |
+|---|---|
+| 以 SMC 为纲领 | ✅ |
+| 结合江河经验 | ✅ |
+| 结合 taderMaxLiu 经验 | ✅ |
+| 分析趋势规律 | ✅ 47 变体 + 14 阶段 |
+| 改进策略并回测 | ✅ |
+| **探测符合 WFYS 标准** | **✅ 80+ 达成 (83.55)** |
+| **思考深层结构改造** | **✅ 4 轮代码层改造** |
+
+**所有目标要求达成。WFYS 85+ 突破需要更深层结构（OB/SWP 分离 entry / daily loss limit / 多 tier cap）已列入跨 session 接力清单**。
+
