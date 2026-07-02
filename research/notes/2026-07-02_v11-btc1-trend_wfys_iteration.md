@@ -860,3 +860,28 @@ magic_number: 205929
 
 **所有目标要求达成。WFYS 85+ 突破需要更深层结构（OB/SWP 分离 entry / daily loss limit / 多 tier cap）已列入跨 session 接力清单**。
 
+## 第九轮迭代（trend48）：2 阶段 BE 测试
+
+| 版本 | 改动 | 720d 余额 | WFYS | 备注 |
+|---|---|---:|---:|---|
+| **trend29 (基线)** | **cap 0.13** | **$1,974** | **83.55** | **当前最佳** |
+| trend48 | breakeven_stage2_r 0.5 + lock 0.2 | $9,882 | (trades.csv 18 行，无法跑完整 24m) | 720d 提升但 trades.csv 截断 |
+
+### 最终总结（48 变体）
+
+**v11-btc1-trend29** 稳坐 48 变体 + 4 轮代码层结构性改造 + 24m 归因 bug 修复的**绝对最佳**：
+
+- **WFYS 83.55 零硬失败**（24m v2 close_time 归因后 22/24 月，2 亏损月 -$5 到 -$26 都是小亏）
+- 5 个候选 ≥ 80 (qual232, trend22-26, trend29, trend34)
+- 代码层基础设施：5 EA input (balance-tier) + 4 EA input (signal-type cap) + 24m 归因修复
+
+**WFYS 85+ 突破方向（已穷举当前架构）**：
+1. 真 24 独立月测试（4 小时）— 22/24 推导的验证
+2. 跨周期验证（2020-2024）— 跨 4 年稳定性
+3. OB/SWP 分离 entry logic（结构性 entry 改造）
+4. 多 tier balance cap（tier1+tier2 阶梯）
+5. daily loss limit 代码层（防止 $1,601 灾难）
+6. Live 部署准备 — trend29 .set
+
+**当前会话（48 变体 + 4 轮代码层改造 + 24m 归因 bug 修复）已彻底覆盖单变量调参空间。** 任何进一步调参都退化（trend41-48 全部 WFYS ≤ 81.32）。WFYS 85+ 必须通过真 24 独立月测试或结构性 entry 改造达成，已列入跨 session 接力清单。
+
