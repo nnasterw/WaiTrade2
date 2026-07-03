@@ -38694,6 +38694,154 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend79:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND79
+  description: 'trend68 + 3-level Trail: 1.5/0.3, 2.5/0.5(mult0.3), 3.5/1.0(mult0.5) - 推 winners 到 3R+'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+    - trigger_r: 2.5
+      lock_r: 0.5
+      lock_mult: 0.3
+    - trigger_r: 3.5
+      lock_r: 1.0
+      lock_mult: 0.5
+  magic_number: 205979
+
+
+
+v11-btc1-trend80:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND80
+  description: 'trend68 + DTP Stage2(2.5R/0.5) + Stage3(3.5R/0.7) + PostPartial(0.3 retrace / 0.3 lock) - 阶梯锁定'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  dtp_stage2_trigger_r: 2.5
+  dtp_stage2_retrace: 0.5
+  dtp_stage3_trigger_r: 3.5
+  dtp_stage3_retrace: 0.7
+  dtp_post_partial_retrace: 0.3
+  dtp_post_partial_lock_r: 0.3
+  magic_number: 205980
+
+
+
+v11-btc1-trend81:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND81
+  description: 'trend80 + Trail 3-level (叠加 DTP阶梯 + Trail阶梯)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  dtp_stage2_trigger_r: 2.5
+  dtp_stage2_retrace: 0.5
+  dtp_stage3_trigger_r: 3.5
+  dtp_stage3_retrace: 0.7
+  dtp_post_partial_retrace: 0.3
+  dtp_post_partial_lock_r: 0.3
+  trail_levels:
+    - trigger_r: 1.5
+      lock_r: 0.3
+    - trigger_r: 2.5
+      lock_r: 0.5
+      lock_mult: 0.3
+    - trigger_r: 3.5
+      lock_r: 1.0
+      lock_mult: 0.5
+  magic_number: 205981
+
+
+
+v11-btc1-trend82:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND82
+  description: 'trend68 + 保守 Trail1 only: 2.0R/0.5 - 简单2R后锁0.5R'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  trail_levels:
+    - trigger_r: 2.0
+      lock_r: 0.5
+  magic_number: 205982
+
+
+
+v11-btc1-trend74:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND74
+  description: 'trend68 + VSL only (ConfirmBars=2, BreachSec=5, HardBuffer=0.10R, CloseBuffer=0.20ATR) - 延迟快SL'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  virtual_sl_confirm_bars: 2
+  virtual_sl_breach_sec: 5
+  virtual_sl_hard_buffer_r: 0.10
+  virtual_sl_close_buffer_atr: 0.20
+  magic_number: 205974
+
+
+
+v11-btc1-trend75:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND75
+  description: 'trend68 + sl_buffer 2.0 + VSL ConfirmBars=2 (SL拓宽+延迟)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  sl_buffer_atr: 2.0
+  virtual_sl_confirm_bars: 2
+  virtual_sl_breach_sec: 5
+  virtual_sl_hard_buffer_r: 0.10
+  virtual_sl_close_buffer_atr: 0.20
+  magic_number: 205975
+
+
+
+v11-btc1-trend76:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND76
+  description: 'trend68 + btc_min_score=5 (提高信号质量门槛)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  btc_min_score: 5
+  magic_number: 205976
+
+
+
+v11-btc1-trend77:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND77
+  description: 'trend68 + min_ob_strength 0.5→0.6 (收紧OB质量)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  min_ob_strength: 0.6
+  magic_number: 205977
+
+
+
+v11-btc1-trend78:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND78
+  description: 'trend68 + Trail1@1.5R锁0.5R + Trail2@2.5R锁1.0R mult0.5 (延长赢家)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  trail_1_trigger_r: 1.5
+  trail_1_lock_r: 0.5
+  trail_2_trigger_r: 2.5
+  trail_2_lock_r: 1.0
+  trail_2_lock_mult: 0.5
+  magic_number: 205978
+
+
+
 v11-btc1-trend67:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND67
