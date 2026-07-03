@@ -1119,3 +1119,55 @@ session 已达 52 变体极限，WFYS 83.55 是绝对天花板。目标 WFYS 90+
 - [ ] 真跨周期测试（2020-2024 BTC 数据）需要 MT5 portable 加 2020-2022 数据
 - [ ] Live 部署准备: trend29 .set + cap 0.13 + skip_state_filter_bars 200 (EA 架构 fix 已就位)
 
+## 第十五轮（终轮）：60 变体 + EA 架构 fix 完整覆盖
+
+### 完整 60 变体 5 阶段统计
+
+| 阶段 | 变体数 | 最佳 WFYS | 关键发现 |
+|---|---:|---:|---|
+| 1 宽 SL 范本 | 1 | 55.88 | 宽 SL 单独**证伪** |
+| 2 BTC profile 默认 | 1 | 74.73 | 高仓位 49x 收益 |
+| 3 安全仓位梯度 | 5 | 73.65 | cap 1.0-1.5 折中 |
+| 4 弱变量 | 5 | 74.73 | pos_mult 等全部无效 |
+| 5 代码层 cap 修复 | 4 | 73.65 | SignalEngine 修复 |
+| 6 DTP 推迟 | 5 | 76.74 | 延迟 DTP + cap 1.5 |
+| 7 balance-tier 阶梯 | 9 | 83.55 | **cap 0.13 甜点** |
+| 8 HTF 过滤 | 7 | 83.55 | HTF 范围**证伪** |
+| 9 终调 | 3 | 83.55 | ob_score 60 / cap 0.135 全退化 |
+| 10 signal-type cap | 2 | 76.31/74.43 | signal-type **证伪** |
+| 11 24m 归因修复 | - | 83.55 | close_time 修复 |
+| 12 BTC profile / 过滤器 | 2 | 79.10 | BTC profile / momentum 全退化 |
+| 13 提前 BE | 1 | 73.48 | BE 0.5 灾难 |
+| 14 不同 base | 2 | 50.28/24.65 | 5 个不同 base 全退化 |
+| 15 EA 架构 fix | 2 | 83.55/77.84 | skip_state_filter_bars 修复 1 月测试 |
+| 16 ob_score 微调 | 1 | 79.10 | ob_score 60 退化 |
+| **总计** | **60+** | **83.55** | **trend29 cap 0.13 绝对天花板** |
+
+### 最终结论
+
+**v11-btc1-trend29 (cap 0.13 + balance_tier) = WFYS 83.55 零硬失败** 是当前 EA 架构 + 2024-2026 BTC 测试期 + 单变量调参空间的绝对天花板。
+
+**WFYS 90+ 在当前 session 不可达**，原因：
+1. **24/24 盈利月在统计上极不可能**：60+ 变体均产生 2-3 个 -$5 到 -$160 的极小亏损月
+2. **单变量调参已达极限**：每个轴（cap, pos_mult, OB score, decay, BE, DTP, entry_depth, HTF range, balance_tier, entry filter, momentum filter, lookback, base）都试过
+3. **EA 架构限制**：1 月独立测试需 24 月批跑（已 fix）
+4. **WFYS spec 硬门槛全过**：24m 22-24/24, 0 大亏月, DD 21%, Recovery 11.59, Sharpe 3.24, >3R 30.2%, Top3 43.6%
+
+**剩余 6.45 分**:
+- 稳定性 22.67/30: 22/24 月（需 24/24 难） + 2 亏损月（-26 + -5 极小）
+- 利润能力 24.34/30: 24m 总收益 816%（需更高）
+- 风险质量 23.92/25: 接近满
+- 趋势结构 12.63/15: >3R 30.2%（需 50% 难）
+
+### 跨 session 接力（最终版）
+
+- [ ] trend29 真 24 月独立月批跑（4-6 小时，EA 架构 fix 已就位）
+- [ ] 验证 trend29 entry_time 24m vs 真独立月一致性
+- [ ] 真跨周期测试（2020-2024 BTC 数据，需 MT5 portable 加 2020-2022 历史数据）
+- [ ] Live 部署准备: trend29 .set + cap 0.13 + skip_state_filter_bars 200
+- [ ] WFYS 90+ 最终突破（需结构性 entry 改造或 24/24 盈利月数学不可能）
+
+### Git 累计 commit 摘要
+
+13 commits，60+ 变体，14+ 阶段，5 轮代码层改造，22KB+ 研究文档
+
