@@ -38593,6 +38593,119 @@ v11-btc1-trend59:
   skip_state_filter_bars: 200
   magic_number: 205959
 
+v11-btc1-trend60:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND60
+  description: 'trend59 + ob_high_pos_boost_min 1.5 (more selective OB boost)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  skip_state_filter_bars: 200
+  ob_high_pos_boost_min: 1.5
+  magic_number: 205960
+
+v11-btc1-trend61:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND61
+  description: 'trend29 + ob_score_min_pass 60 (higher OB quality, filter weak signals)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  ob_score_min_pass: 60
+  magic_number: 205961
+
+v11-btc1-trend62:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND62
+  description: 'trend29 + enable_decay_exit false (let 11.7m short-hold losers develop naturally)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  enable_decay_exit: false
+  magic_number: 205962
+
+v11-btc1-trend63:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND63
+  description: 'trend29 + entry_depth_pct 0.60 (between 0.67 default and 0.5 trend54)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  entry_depth_pct: 0.60
+  magic_number: 205963
+
+v11-btc1-trend64:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND64
+  description: 'trend29 + H4 direction gate (block counter-H4 Bounce entries per skill 2605 -87 percent)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  enable_htf_direction_gate: true
+  magic_number: 205964
+
+v11-btc1-trend65:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND65
+  description: 'trend29 + bos_retest_max_lot_size 0.20 (BOS tier cap slight expansion, OB/SWP stay 0.13)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  htf_bos_retest_max_lot_size: 0.20
+  magic_number: 205965
+
+v11-btc1-trend66:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND66
+  description: 'trend29 + H4 direction gate + bos_retest_max_lot_size 0.20 (combined H1+H2)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  enable_htf_direction_gate: true
+  htf_bos_retest_max_lot_size: 0.20
+  magic_number: 205966
+
+v11-btc1-trend68:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND68
+  description: 'trend29 + balance_tier cap 0.14 (slight global expansion between 0.13 and 0.15)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  magic_number: 205968
+
+v11-btc1-trend69:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND69
+  description: 'trend29 + bos_retest_max_lot_size 0.15 (BOS only, smaller than 0.20)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  htf_bos_retest_max_lot_size: 0.15
+  magic_number: 205969
+
+v11-btc1-trend70:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND70
+  description: 'trend29 + bos_retest_max_lot_size 0.18 (BOS only, between 0.15 and 0.20)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  htf_bos_retest_max_lot_size: 0.18
+  magic_number: 205970
+
+v11-btc1-trend67:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND67
+  description: 'trend29 + htf_bos_require_ob_confluence (BOS needs HTF OB confluence for higher quality)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  htf_bos_require_ob_confluence: true
+  magic_number: 205967
+
+
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01
