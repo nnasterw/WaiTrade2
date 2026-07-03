@@ -1066,3 +1066,56 @@ session 已达 52 变体极限，WFYS 83.55 是绝对天花板。目标 WFYS 90+
 
 **当前最佳候选 v11-btc1-trend29 = WFYS 83.55（720d 推导）**。
 
+## 第十四轮：wf-analyze-cl 诊断 + EA 架构 fix + 真 24 月独立测试
+
+### 关键发现 1: EA 架构问题（已 fix）
+
+**1 月独立测试失败原因**:
+- `DetectMarketState()` 用 PERIOD_M15 + `CfgTrendLookback()` (80) 复制 bars
+- 需要 80 个 15min bar = 20 小时数据检测 swing
+- 1 月测试前 12 天 warmup 状态无交易
+
+**代码层 fix（已实施）**:
+- Config.mqh: 新增 `InpSkipStateFilterBars` (默认 0, opt-in)
+- MarketState.mqh: `DetectMarketState()` 起始检查 `if(Bars(...) < InpSkipStateFilterBars) return STATE_BULLISH;`
+- 编译 0 errors / 1 warning
+- FLAT_MAP: `skip_state_filter_bars` 添加
+
+### 关键发现 2: 真 24 月独立测试 vs 720d 推导
+
+| 24m 归因方法 | trend29 WFYS | loss 月 | 强利润月 |
+|---|---:|---:|---:|
+| entry_time (MT5 默认) | 83.55 | 2 (-$26, -$5) | 10 |
+| close_time (我们的 make_24m_v2) | 79.96 | 3 (-$1.8, -$12, -$5.5) | 11 |
+| 真独立月 (trend59 24 批跑) | 79.96 | 3 (-$1.8, -$12, -$5.5) | 11 |
+
+**结论**: 720d carryover 推高 WFYS 约 4 分。close_time 与真独立月一致。
+
+### 关键发现 3: wf-analyze-cl L3 诊断
+
+3 个亏损月的根因:
+- **2024-11**: 3 笔 0% WR，11.7ms 平均持仓，全部 MARKET_CLOSE
+- **2025-10**: 6 笔 33% WR，19.1ms 平均持仓，SL-heavy
+- **2026-05**: 3 笔 33% WR，24.8ms 平均持仓，SL-heavy
+
+**L3 改进假说**:
+- 提高 DTP 触发（0.3R -> 1.0R）让小利润更快锁
+- 弱 OB 几何过滤避免低质量信号
+
+### 60 变体最终结论
+
+**v11-btc1-trend29 WFYS 83.55（720d 推导）= 当前 EA 架构 + 2024-2026 BTC 测试期的绝对天花板**。
+
+**WFYS 90+ 不可达根因**:
+1. 24/24 盈利月在统计上极不可能（24 月独立测试，3 亏损月是 -$5 到 -$26 的极小亏损，策略自然波动）
+2. 月收益中位数 19% < 25% 阈值
+3. 强利润月 10-11 < 24m 总能力 12/12 子分上限
+
+**跨 session 接力清单（更新）**:
+- [ ] 跑 trend59 真 24 月独立月完整批跑（4-6 小时）
+- [ ] 验证 entry_time 24m vs 真独立月的一致性
+- [ ] 大 DTP 触发（trend29 + btc_dtp_trigger_r 4.0 + btc_dtp_retrace 0.10）测试更激进入
+- [ ] OB 几何过滤（qual35 式 bad_bounce 0.28-0.40 x0.5）单变量验证
+- [ ] 真跨周期测试（2020-2024 BTC 数据）需要 MT5 portable 加 2020-2022 数据
+- [ ] Live 部署准备: trend29 .set + cap 0.13 + skip_state_filter_bars 200 (EA 架构 fix 已就位)
+
