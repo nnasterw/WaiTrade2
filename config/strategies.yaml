@@ -38554,6 +38554,35 @@ v11-btc1-trend55:
   decay_bars: 2
   magic_number: 205955
 
+v11-btc1-trend56:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND56
+  description: 'trend29 + trend_lookback 80->30 (short state window for 1-month test compatibility)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  trend_lookback: 30
+  magic_number: 205956
+
+v11-btc1-trend57:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND57
+  description: 'trend29 + trend_lookback 80 -> 60 (Pareto: WFYS vs 1-month test compatibility)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  trend_lookback: 60
+  magic_number: 205957
+
+v11-btc1-trend58:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND58
+  description: 'trend29 config (lookback 80) test with deposit override for 1-month validation'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  magic_number: 205958
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01
