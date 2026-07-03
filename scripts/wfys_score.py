@@ -247,9 +247,25 @@ def compute_monthly_metrics(rows: List[Dict[str, object]], deposit: float) -> Di
     total_trades = 0
     max_loss_vs_initial = 0.0
 
+    # 动态权益口径 (fix 2026-07-04): spec 定义 月亏损/月初余额 / 月盈利>25% 都以月初余额为分母
+    # 原代码用初始 deposit 作分母, 对 $200 起步但已盈利到 $8K 的账户
+    # 会把所有亏损月误判为大亏月 (单月亏 -$160 / $200 = -80% > 20%)
+    # 修复: 用月初余额 (= 上月结束余额) 重新计算 month_return
+    start_balance = deposit
     for row in rows:
         profit = float(row['profit'] or 0.0)
-        month_return = profit / deposit if deposit else 0.0
+        end_balance = float(row['balance'] or 0.0)
+        if start_balance > 0:
+            month_return = profit / start_balance
+        elif deposit > 0:
+            month_return = profit / deposit
+        else:
+            month_return = 0.0
+        # 单月亏损绝对保护仍按 spec 用初始资金 (防止前期暴赚掩盖后期失控)
+        if deposit > 0:
+            month_return_vs_initial = profit / deposit
+        else:
+            month_return_vs_initial = 0.0
         returns.append(month_return)
         profits.append(profit)
         total_trades += int(row.get('trades') or 0)
@@ -260,11 +276,16 @@ def compute_monthly_metrics(rows: List[Dict[str, object]], deposit: float) -> Di
             loss_months += 1
             if abs(month_return) > HARD_GATES['big_loss_monthly_dd_pct']:
                 big_loss_months += 1
-            max_loss_vs_initial = max(max_loss_vs_initial, abs(month_return))
+            max_loss_vs_initial = max(max_loss_vs_initial, abs(month_return_vs_initial))
         if month_return > HARD_GATES['strong_month_return_min']:
             strong_months += 1
         if month_return > HARD_GATES['trend_month_return_min']:
             trend_months += 1
+        # 月末余额推到下月作为月初余额
+        if end_balance > 0:
+            start_balance = end_balance
+        elif profit != 0:
+            start_balance = start_balance + profit
 
     total_profit = sum(profits)
     total_return = total_profit / deposit if deposit else 0.0
