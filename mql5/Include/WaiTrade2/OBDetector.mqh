@@ -7,6 +7,21 @@
 #include "TradeOps.mqh"
 #include "FVGDetector.mqh"
 
+bool AllowHTFPullbackSupplement(int monthly_entry_count)
+{
+   if(InpHTFPullbackMinDay <= 0 && InpHTFPullbackMaxMonthlyEntries < 0)
+      return true;
+
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   if(InpHTFPullbackMinDay > 0 && dt.day < InpHTFPullbackMinDay)
+      return false;
+   if(InpHTFPullbackMaxMonthlyEntries >= 0 &&
+      monthly_entry_count > InpHTFPullbackMaxMonthlyEntries)
+      return false;
+   return true;
+}
+
 bool IsImpulse(const MqlRates &rates[], int count, int start_idx, int direction, double atr)
 {
    if(atr <= 0) return false;
@@ -232,14 +247,24 @@ void UpdateOBStatus(OBZone &zones[], int &zone_count, double bid, double ask, co
 
       int bars_alive = state.bar_count - zones[i].created_bar;
       // FVG区使用独立的过期机制(UpdateFVGStatus), 不受通用过期控制
-      if(!zones[i].is_fvg && bars_alive > InpBars)
+      if(zones[i].is_bos_retest)
+      {
+         int bos_max_bars = MathMax(1, InpHTFBOSRetestMaxBars);
+         if(bars_alive > bos_max_bars)
+         {
+            zones[i].expired = true;
+            continue;
+         }
+      }
+
+      if(!zones[i].is_fvg && !zones[i].is_bos_retest && bars_alive > InpBars)
       {
          zones[i].expired = true;
          continue;
       }
 
       // FVG区使用独立的过期时间, 不受通用TTL控制
-      if(!zones[i].is_fvg)
+      if(!zones[i].is_fvg && !zones[i].is_bos_retest)
       {
          long minutes_alive = (long)(now - zones[i].created) / 60;
          // Gap6: 动态TTL — 高strength OB活更久, 低strength快过期
@@ -293,6 +318,7 @@ void ConsolidateOBs(OBZone &zones[], int &zone_count)
          if(zones[i].is_range_breakout || zones[j].is_range_breakout) continue;
          if(zones[i].is_liquidity_sweep || zones[j].is_liquidity_sweep) continue;
          if(zones[i].is_htf_pullback || zones[j].is_htf_pullback) continue;
+         if(zones[i].is_bos_retest || zones[j].is_bos_retest) continue;
          if(zones[i].is_fvg || zones[j].is_fvg) continue;  // ★ FVG保护: 防止被OB合并吞噬
 
          bool overlap = (zones[i].low <= zones[j].high && zones[i].high >= zones[j].low);
@@ -495,7 +521,7 @@ bool IsLooseSweepZoneForCapacity(const OBZone &zone)
 
 bool IsSupplementalZoneForCapacity(const OBZone &zone)
 {
-   return IsLooseSweepZoneForCapacity(zone) || zone.is_htf_pullback;
+   return IsLooseSweepZoneForCapacity(zone) || zone.is_htf_pullback || zone.is_bos_retest;
 }
 
 int CountLooseSweepZones(const OBZone &zones[], int zone_count)
@@ -764,6 +790,228 @@ void DetectHTFPullbacks(OBZone &zones[], int &zone_count, const EAState &state, 
 
    zones[zone_count] = zone;
    zone_count++;
+}
+
+bool IsBOSSwingHighLocal(const MqlRates &rates[], int idx, int pivot, int total)
+{
+   if(idx - pivot < 0 || idx + pivot >= total)
+      return false;
+   double hi = rates[idx].high;
+   for(int j = 1; j <= pivot; j++)
+   {
+      if(rates[idx - j].high >= hi) return false;
+      if(rates[idx + j].high >= hi) return false;
+   }
+   return true;
+}
+
+bool IsBOSSwingLowLocal(const MqlRates &rates[], int idx, int pivot, int total)
+{
+   if(idx - pivot < 0 || idx + pivot >= total)
+      return false;
+   double lo = rates[idx].low;
+   for(int j = 1; j <= pivot; j++)
+   {
+      if(rates[idx - j].low <= lo) return false;
+      if(rates[idx + j].low <= lo) return false;
+   }
+   return true;
+}
+
+bool HasHTFOBConfluenceNearLevel(const MqlRates &rates[], int total, int break_idx,
+                                 int direction, double level, double atr)
+{
+   if(!InpHTFBOSRequireOBConfluence)
+      return true;
+   if(total <= 0 || break_idx <= 1 || atr <= 0.0)
+      return false;
+
+   int lookback = MathMax(1, InpHTFBOSOBLookbackBars);
+   int start = MathMax(1, break_idx - lookback);
+   int end = break_idx - 1;
+   double tolerance = atr * MathMax(InpHTFBOSOBToleranceATR, 0.0);
+   double min_impulse = atr * MathMax(InpHTFBOSOBMinImpulseATR, 0.0);
+
+   for(int i = end; i >= start; i--)
+   {
+      if(i + 1 >= total)
+         continue;
+
+      double ob_high = 0.0;
+      double ob_low = 0.0;
+      double impulse = 0.0;
+
+      if(direction == OB_BUY)
+      {
+         if(rates[i].close >= rates[i].open)
+            continue;
+         impulse = rates[i + 1].close - rates[i].close;
+         if(impulse < min_impulse)
+            continue;
+         ob_high = rates[i].open;
+         ob_low = rates[i].close;
+      }
+      else
+      {
+         if(rates[i].close <= rates[i].open)
+            continue;
+         impulse = rates[i].close - rates[i + 1].close;
+         if(impulse < min_impulse)
+            continue;
+         ob_high = rates[i].close;
+         ob_low = rates[i].open;
+      }
+
+      if(ob_high < ob_low)
+      {
+         double tmp = ob_high;
+         ob_high = ob_low;
+         ob_low = tmp;
+      }
+
+      double distance = 0.0;
+      if(level > ob_high)
+         distance = level - ob_high;
+      else if(level < ob_low)
+         distance = ob_low - level;
+      else
+         distance = 0.0;
+
+      if(distance <= tolerance)
+         return true;
+   }
+
+   return false;
+}
+
+void DetectBOSRetestsOnTF(int tf_min, OBZone &zones[], int &zone_count,
+                          const EAState &state, double spread)
+{
+   if(!InpHTFBOSRetestEntry || tf_min <= 0 || zone_count >= MAX_OB_ZONES)
+      return;
+
+   int pivot = MathMax(1, MathMin(InpHTFBOSRetestPivotBars, 6));
+   int lookback = MathMax(InpHTFBOSRetestLookbackBars, pivot * 4 + 12);
+   int need = MathMin(MathMax(lookback + InpATRPeriod + pivot + 8, 80), 500);
+
+   MqlRates htf[];
+   int copied = CopyRates(Symbol(), MinutesToTF(tf_min), 1, need, htf);
+   if(copied < pivot * 2 + InpATRPeriod + 8)
+      return;
+
+   double htf_atr = CalcATR(htf, copied, InpATRPeriod);
+   if(htf_atr <= 0.0)
+      return;
+
+   int last = copied - 1;
+   int prev = last - 1;
+   double buffer = htf_atr * MathMax(InpHTFBOSRetestBreakBufferATR, 0.0);
+   double min_ext = htf_atr * MathMax(InpHTFBOSRetestMinExtensionATR, 0.0);
+   double swing_high = 0.0;
+   double swing_low = 999999999.0;
+
+   int oldest = MathMax(pivot, copied - 1 - lookback);
+   int newest = last - pivot - 1;
+   for(int i = newest; i >= oldest; i--)
+   {
+      if(swing_high <= 0.0 && IsBOSSwingHighLocal(htf, i, pivot, copied))
+         swing_high = htf[i].high;
+      if(swing_low >= 999999999.0 && IsBOSSwingLowLocal(htf, i, pivot, copied))
+         swing_low = htf[i].low;
+      if(swing_high > 0.0 && swing_low < 999999999.0)
+         break;
+   }
+
+   int direction = 0;
+   double level = 0.0;
+   double extension = 0.0;
+   if(swing_high > 0.0 &&
+      htf[prev].close <= swing_high + buffer &&
+      htf[last].close > swing_high + buffer)
+   {
+      direction = OB_BUY;
+      level = swing_high;
+      extension = htf[last].close - swing_high;
+   }
+   else if(swing_low < 999999999.0 &&
+           htf[prev].close >= swing_low - buffer &&
+           htf[last].close < swing_low - buffer)
+   {
+      direction = OB_SELL;
+      level = swing_low;
+      extension = swing_low - htf[last].close;
+   }
+   else
+      return;
+
+   if(extension < min_ext)
+      return;
+
+   if(!HasHTFOBConfluenceNearLevel(htf, copied, last, direction, level, htf_atr))
+      return;
+
+   MqlDateTime dt;
+   TimeToStruct(htf[last].time, dt);
+   if(IsInNoOBWindow(dt.hour))
+      return;
+
+   double half_height = htf_atr * MathMax(InpHTFBOSRetestTolerance, 0.05);
+   if(half_height <= 0.0)
+      return;
+   if(spread > 0 && half_height * 2.0 < spread * InpMinOBSpreadMult)
+      return;
+
+   double zone_high = level + half_height;
+   double zone_low = level - half_height;
+   if(zone_high <= zone_low)
+      return;
+
+   for(int z = 0; z < zone_count; z++)
+   {
+      if(zones[z].expired) continue;
+      if(!zones[z].is_bos_retest) continue;
+      if(zones[z].direction != direction) continue;
+      if(MathAbs(zones[z].mid - level) < htf_atr * 0.20)
+         return;
+   }
+
+   OBZone zone = {};
+   zone.high = zone_high;
+   zone.low = zone_low;
+   zone.mid = level;
+   zone.ob_top = zone.high;
+   zone.ob_bottom = zone.low;
+   zone.direction = direction;
+   zone.created = htf[last].time;
+   zone.created_bar = state.bar_count;
+   zone.touch_count = 0;
+   zone.first_touch = 0;
+   zone.last_touch = 0;
+   zone.strength = MathMin(5.0, 1.0 + extension / htf_atr);
+   zone.is_fresh = true;
+   zone.is_continuation = true;
+   zone.is_1h_aligned = false;
+   zone.ds_weight = 1.0;
+   zone.entry_count = 0;
+   zone.last_entry_time = 0;
+   zone.used = false;
+   zone.expired = false;
+   zone.is_range_breakout = false;
+   zone.is_liquidity_sweep = false;
+   zone.is_loose_sweep = false;
+   zone.is_htf_pullback = false;
+   zone.is_bos_retest = true;
+   zone.range_height = half_height * 2.0;
+
+   zones[zone_count] = zone;
+   zone_count++;
+}
+
+void DetectBOSRetests(OBZone &zones[], int &zone_count, const EAState &state, double spread)
+{
+   DetectBOSRetestsOnTF(InpHTFBOSRetestTF, zones, zone_count, state, spread);
+   if(InpHTFBOSRetestTF2 > 0 && zone_count < MAX_OB_ZONES)
+      DetectBOSRetestsOnTF(InpHTFBOSRetestTF2, zones, zone_count, state, spread);
 }
 
 void DetectLiquiditySweeps(const MqlRates &rates[], int count, OBZone &zones[], int &zone_count,

@@ -92,7 +92,8 @@ def run_bt_silent(name, set_name, date_from, date_to, ini_dir=None, deposit=DEPO
     ini_dir.mkdir(parents=True, exist_ok=True)
     ini_path = ini_dir / 'backtest.ini'
     ini_path.write_text(
-        "[Common]\nLogin=\nServer=\n"
+        "[Common]\n"
+        "ProxyEnable=1\nProxyType=0\nProxyAddress=127.0.0.1:7897\n"
         "[Tester]\nExpert=WaiTrade2\WaiTrade_OB\n"
         f"ExpertParameters={set_name}\n"
         f"Symbol={SYMBOL}\nPeriod=M1\nModel=4\n"

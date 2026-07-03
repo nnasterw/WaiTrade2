@@ -1,0 +1,44 @@
+v11xau-qs3-d1a:
+  <<: *v11xau-qs
+  version: V11XAU-QS3-D1A
+  description: "D1A弱反弹: bounce0.22"
+  risk_percent: 1.5
+  max_pos_mult: 2.0
+  max_lot_size: 3.0
+  max_concurrent: 5
+  max_entries_per_ob: 5
+  bounce_pct: 0.22
+  bounce_sweet_min_pct: 0.26
+  outside_bounce_sweet_mult: 0.5
+  min_risk_spread_ratio: 3.0
+  magic_number: 204879
+
+v11xau-qs3-d1b:
+  <<: *v11xau-qs
+  version: V11XAU-QS3-D1B
+  description: "D1B中反弹: bounce0.30"
+  risk_percent: 1.5
+  max_pos_mult: 2.0
+  max_lot_size: 3.0
+  max_concurrent: 5
+  max_entries_per_ob: 5
+  bounce_pct: 0.30
+  bounce_sweet_min_pct: 0.35
+  outside_bounce_sweet_mult: 0.4
+  min_risk_spread_ratio: 3.0
+  magic_number: 204878
+
+v11xau-qs3-d1c:
+  <<: *v11xau-qs
+  version: V11XAU-QS3-D1C
+  description: "D1C强反弹: bounce0.40"
+  risk_percent: 1.5
+  max_pos_mult: 2.0
+  max_lot_size: 3.0
+  max_concurrent: 5
+  max_entries_per_ob: 5
+  bounce_pct: 0.40
+  bounce_sweet_min_pct: 0.40
+  outside_bounce_sweet_mult: 0.3
+  min_risk_spread_ratio: 3.0
+  magic_number: 204877

@@ -34,6 +34,9 @@ OPEN_SUCCESS_PATTERN = re.compile(
     r'\s+bounce_sec=(-?\d+)\s+bounce_ob=([\d.]+)\s+confirm_pos=(-?[\d.]+)'
     r'\s+touch=([\d.]+)\s+confirm=([\d.]+)'
 )
+ADDON_OPEN_PATTERN = re.compile(
+    r'source=(\d+)\s+addon=(\d+)\s+r=(-?[\d.]+)\s+lot=([\d.]+)'
+)
 OPEN_MARKET_PATTERN = re.compile(
     r'market\s+(buy|sell)\s+([\d.]+)\s+(\S+)'
     r'(?:\s+sl:\s*([\d.]+))?(?:\s+tp:\s*([\d.]+))?'
@@ -329,7 +332,7 @@ def backtest_main(description, run_fn, args=None):
     parsed = parser.parse_args(args)
 
     # 加载配置：--v3 时合并加载 v2 + v3 yaml
-    config = load_config(CONFIG_PATH)
+    config = load_config()
 
     if parsed.v3:
         v3_path = ROOT / 'config' / 'strategies_v3.yaml'
@@ -676,6 +679,19 @@ def _parse_open_success(line, event_time):
     }
 
 
+def _parse_addon_open(line, event_time):
+    match = ADDON_OPEN_PATTERN.search(line)
+    if not match:
+        return None
+    return {
+        'time': event_time,
+        'source_ticket': int(match.group(1)),
+        'ticket': int(match.group(2)),
+        'trigger_r': float(match.group(3)),
+        'lot': float(match.group(4)),
+    }
+
+
 def _parse_close_event(line, event_time):
     trigger_match = TRIGGER_PATTERN.search(line)
     if trigger_match:
@@ -772,9 +788,32 @@ def _match_pending_order(pending_orders, direction_text, lot):
     return pending_orders.pop() if pending_orders else None
 
 
+def _match_pending_entry_deal(pending_entry_deals, ticket, lot=None):
+    for idx in range(len(pending_entry_deals) - 1, -1, -1):
+        deal = pending_entry_deals[idx]
+        if deal['ticket'] != ticket:
+            continue
+        if lot is not None and abs(deal['lots'] - lot) > 1e-9:
+            continue
+        return pending_entry_deals.pop(idx)
+    return None
+
+
 def _build_trade(ticket, symbol, open_event, diag, order):
-    direction = 'buy' if (diag and diag['dir'] > 0) or open_event['direction_char'] == 'B' else 'sell'
-    entry = diag['entry'] if diag else open_event['price']
+    direction_char = open_event.get('direction_char')
+    if diag and diag['dir'] > 0:
+        direction = 'buy'
+    elif diag and diag['dir'] < 0:
+        direction = 'sell'
+    elif direction_char == 'B':
+        direction = 'buy'
+    elif direction_char == 'S':
+        direction = 'sell'
+    elif order and order.get('dir') in ('buy', 'sell'):
+        direction = order['dir']
+    else:
+        direction = 'buy'
+    entry = diag['entry'] if diag else open_event.get('price')
     initial_sl = None
     if diag and diag.get('sl') is not None:
         initial_sl = diag['sl']
@@ -789,8 +828,8 @@ def _build_trade(ticket, symbol, open_event, diag, order):
         'symbol': symbol,
         'dir': direction,
         'comment': open_event.get('comment'),
-        'signal_type': _signal_type_from_comment(open_event.get('comment')),
-        'lot': open_event['lot'],
+        'signal_type': open_event.get('signal_type') or _signal_type_from_comment(open_event.get('comment')),
+        'lot': open_event.get('lot'),
         'pos_mult': diag['pos_mult'] if diag else None,
         'entry': entry,
         'initial_sl': initial_sl,
@@ -803,11 +842,11 @@ def _build_trade(ticket, symbol, open_event, diag, order):
         'duration_min': None,
         'mods': 0,
         'max_lock_r': None,
-        'bounce_sec': open_event['bounce_sec'],
-        'bounce_ob': open_event['bounce_ob'],
-        'confirm_pos': open_event['confirm_pos'],
-        'touch': open_event['touch'],
-        'confirm': open_event['confirm'],
+        'bounce_sec': open_event.get('bounce_sec'),
+        'bounce_ob': open_event.get('bounce_ob'),
+        'confirm_pos': open_event.get('confirm_pos'),
+        'touch': open_event.get('touch'),
+        'confirm': open_event.get('confirm'),
         'close_time': None,
         'stage': diag['stage'] if diag else None,
         'ob_age': diag['ob_age'] if diag else None,
@@ -890,6 +929,7 @@ def parse_agent_log_segment_details(segment_lines, symbol=None):
     basic = parse_agent_log_content('\n'.join(segment_lines)) or {}
     pending_diags = []
     pending_orders = []
+    pending_entry_deals = []
     close_by_exit_ticket = {}
     pending_market_closes = []
     trades = {}
@@ -909,10 +949,45 @@ def parse_agent_log_segment_details(segment_lines, symbol=None):
 
         open_event = _parse_open_success(line, event_time)
         if open_event:
+            _match_pending_entry_deal(pending_entry_deals, open_event['ticket'], open_event['lot'])
             direction = 1 if open_event['direction_char'] == 'B' else -1
             diag = _match_pending_diag(pending_diags, direction, open_event['price'])
             order = _match_pending_order(pending_orders, 'buy' if direction > 0 else 'sell', open_event['lot'])
             trades[open_event['ticket']] = _build_trade(open_event['ticket'], symbol, open_event, diag, order)
+            continue
+
+        addon_event = _parse_addon_open(line, event_time)
+        if addon_event:
+            source_trade = trades.get(addon_event['source_ticket'])
+            entry_deal = _match_pending_entry_deal(pending_entry_deals, addon_event['ticket'], addon_event['lot'])
+            direction_text = entry_deal['direction'] if entry_deal else (source_trade.get('dir') if source_trade else None)
+            order = _match_pending_order(pending_orders, direction_text, addon_event['lot'])
+            comment = source_trade.get('comment') if source_trade else None
+            signal_type = source_trade.get('signal_type') if source_trade else 'addon'
+            direction_char = None
+            if source_trade:
+                direction_char = 'B' if source_trade.get('dir') == 'buy' else 'S'
+            elif direction_text == 'buy':
+                direction_char = 'B'
+            elif direction_text == 'sell':
+                direction_char = 'S'
+            open_like = {
+                'time': addon_event['time'],
+                'date': addon_event['time'].split(' ')[0] if addon_event.get('time') else None,
+                'comment': comment,
+                'signal_type': signal_type,
+                'direction_char': direction_char,
+                'ticket': addon_event['ticket'],
+                'price': entry_deal['price'] if entry_deal else None,
+                'lot': addon_event['lot'],
+                'bounce_sec': None,
+                'bounce_ob': None,
+                'confirm_pos': None,
+                'touch': None,
+                'confirm': None,
+            }
+            trades[addon_event['ticket']] = _build_trade(addon_event['ticket'], symbol, open_like, None, order)
+            trades[addon_event['ticket']]['addon'] = True
             continue
 
         close_event = _parse_close_event(line, event_time)
@@ -979,7 +1054,10 @@ def parse_agent_log_segment_details(segment_lines, symbol=None):
         entry_ticket = close_by_exit_ticket.pop(deal['ticket'], None)
         if entry_ticket is None and pending_market_closes:
             entry_ticket = pending_market_closes.pop(0)
-        if entry_ticket is None or entry_ticket not in trades:
+        if entry_ticket is None:
+            pending_entry_deals.append(deal)
+            continue
+        if entry_ticket not in trades:
             continue
         _attach_close_deal(trades[entry_ticket], trades[entry_ticket].get('_close_meta', {}), deal, event_time)
 

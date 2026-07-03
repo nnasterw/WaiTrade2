@@ -66,8 +66,33 @@ double ClampEntryDepthPct()
     return GetEffectiveEntryDepthPct();
 }
 
+bool IsEntryDepthFamilyAllowed(const EntryMonitor &monitor)
+{
+    if(StringLen(InpEntryDepthSignalTypes) == 0)
+        return true;
+
+    string filter = InpEntryDepthSignalTypes;
+    StringToUpper(filter);
+    string fam = "OB";
+    if(monitor.is_bos_retest)
+        fam = "BOS";
+    else if(monitor.is_htf_pullback)
+        fam = "HTFPB";
+    else if(monitor.is_loose_sweep)
+        fam = "LSWP";
+    StringToUpper(fam);
+    if(StringFind("," + filter + ",", "," + fam + ",") >= 0)
+        return true;
+    if(fam == "LSWP" && StringFind("," + filter + ",", ",SWP,") >= 0)
+        return true;
+    return false;
+}
+
 double CalcDepthTouchLevel(const EntryMonitor &monitor)
 {
+    if(!IsEntryDepthFamilyAllowed(monitor))
+        return (monitor.direction == OB_BUY) ? monitor.ob_top : monitor.ob_bottom;
+
     double depth = ClampEntryDepthPct();
     if(depth <= 0)
         return (monitor.direction == OB_BUY) ? monitor.ob_top : monitor.ob_bottom;
@@ -83,6 +108,8 @@ double CalcDepthTouchLevel(const EntryMonitor &monitor)
 
 bool IsDeepTouched(const EntryMonitor &monitor, double price)
 {
+    if(!IsEntryDepthFamilyAllowed(monitor))
+        return false;
     if(ClampEntryDepthPct() <= 0)
         return false;
 
@@ -295,13 +322,14 @@ void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
     }
     if(mon_count >= MAX_MONITORS)
     {
-        if(zone.is_loose_sweep || zone.is_htf_pullback)
+        if(zone.is_loose_sweep || zone.is_htf_pullback || zone.is_bos_retest)
             return;
 
         int remove_idx = -1;
         for(int i = 0; i < mon_count; i++)
         {
-            if(monitors[i].active && (monitors[i].is_loose_sweep || monitors[i].is_htf_pullback))
+            if(monitors[i].active &&
+               (monitors[i].is_loose_sweep || monitors[i].is_htf_pullback || monitors[i].is_bos_retest))
             {
                 remove_idx = i;
                 break;
@@ -333,6 +361,7 @@ void AddEntryMonitor(const TradeSignal &sig, const OBZone &zone,
     m.active       = true;
     m.is_loose_sweep = zone.is_loose_sweep;
     m.is_htf_pullback = zone.is_htf_pullback;
+    m.is_bos_retest = zone.is_bos_retest;
     m.enable_mitigation = IsMitigationSignalType(zone);
     m.mitigation_bounce_time = 0;
     m.mitigation_bounce_price = 0;

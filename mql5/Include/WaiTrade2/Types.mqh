@@ -10,6 +10,18 @@
 #define OB_BUY         1
 #define OB_SELL       -1
 
+#define ENTRY_FAMILY_ANY     0
+#define ENTRY_FAMILY_OB      1
+#define ENTRY_FAMILY_SWP     2
+#define ENTRY_FAMILY_BOS     3
+#define ENTRY_FAMILY_MBOS    4
+#define ENTRY_FAMILY_SDFLIP  5
+#define ENTRY_FAMILY_HTFPB   6
+#define ENTRY_FAMILY_FVG     7
+#define ENTRY_FAMILY_MTF     8
+#define ENTRY_FAMILY_REV     9
+#define ENTRY_FAMILY_REVSWP  10
+
 struct OBZone
 {
     double   high;           // OB鍖哄煙涓婃部
@@ -34,6 +46,7 @@ struct OBZone
     bool     is_liquidity_sweep; // 鏄惁涓烘祦鍔ㄦ€ф壂鎹熷弽杞俊鍙?
     bool     is_loose_sweep; // loose sweep supplemental signal
     bool     is_htf_pullback; // higher-timeframe net-push pullback signal
+    bool     is_bos_retest;   // higher-timeframe BOS level retest signal
     double   range_height;    // 闇囪崱鍖洪棿楂樺害锛岀敤浜庨噺搴︾洰鏍?
     double   ob_top;          // OB妫€娴嬪師濮嬮《閮?瀹炰綋杈圭晫)
     double   ob_bottom;       // OB妫€娴嬪師濮嬪簳閮?瀹炰綋杈圭晫)
@@ -64,7 +77,9 @@ struct TradeSignal
     bool     htf_target;      // 鏄惁浣跨敤澶у懆鏈熺洰鏍囦綅
     double   htf_partial_r;   // 澶у懆鏈熺洰鏍囧崟鍒嗘壒R
     int      htf_partial_pct; // 澶у懆鏈熺洰鏍囧崟鍒嗘壒姣斾緥
+    bool     trend_release;   // 小周期延续成立时释放TP/BE截断
     bool     failure_reverse; // 鏄惁澶辫触鍙嶆墜鍗?
+    int      entry_family;    // 入场信号族, 用于失败后同族重入确认
     string   comment;        // 璁㈠崟澶囨敞
 };
 
@@ -84,9 +99,13 @@ struct PosTrack
     bool     partial_closed; // 鏄惁宸叉墽琛岄儴鍒嗗钩浠?
     bool     dtp_partial_closed; // DTP鏄惁宸叉墽琛岄儴鍒嗗钩浠?
     bool     deep_entry;      // 鏄惁娣卞叆OB鍚庡叆鍦?
+    int      bounce_seconds;  // 入场确认耗时
+    double   confirm_ob_pos;  // 入场确认位置
+    double   entry_pos_mult;  // 最终入场仓位倍数
     bool     htf_target;      // 鏄惁浣跨敤澶у懆鏈熺洰鏍囦綅
     double   htf_partial_r;   // 澶у懆鏈熺洰鏍囧崟鍒嗘壒R
     int      htf_partial_pct; // 澶у懆鏈熺洰鏍囧崟鍒嗘壒姣斾緥
+    bool     trend_release;   // 入场时小周期延续成立, 放宽TP/BE截断
     bool     failure_reverse; // 鏄惁澶辫触鍙嶆墜鍗?
     int      addon_count;     // 宸茶Е鍙戝己鍔垮欢缁姞浠撴鏁?
     bool     strong_addon;    // 鏄惁寮哄娍寤剁画鍔犱粨鍗?
@@ -97,7 +116,10 @@ struct PosTrack
     datetime virtual_sl_breach_start; // VSL breach timer (0=not breached)
     bool     survived_vsl_breach;       // VSL saved this trade from a wick stop
     int      entry_market_state;
-    bool     use_structure_sl;   // BD08: true=用M5结构止损, 跳过DTP
+    bool     use_structure_sl;   // BD08: true=用M15结构止损, 跳过DTP
+    bool     skip_mfe_exits;     // 结构持仓可跳过MFEFail/NoMFE秒级失败退出
+    int      entry_family;        // 入场信号族, 用于失败后同族重入确认
+    double   entry_balance;       // 入场时余额, 用于持仓消失后记录盈利冷却
 };
 
 struct EAState

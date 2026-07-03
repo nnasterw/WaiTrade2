@@ -54,7 +54,7 @@ HTFRange DetectHTFRange(string symbol, ENUM_TIMEFRAMES tf, int lookback_bars = 1
     HTFRange range;
     ZeroMemory(range);
 
-    if(!CfgEnableRangeFade())
+    if(!CfgRangeContextDetectorEnabled())
         return range;
 
     // 1. 加载HTF K线数据
@@ -74,6 +74,75 @@ HTFRange DetectHTFRange(string symbol, ENUM_TIMEFRAMES tf, int lookback_bars = 1
     double boundary_tolerance = atr * CfgRangeBoundaryToleranceATR(); // 默认0.15 ATR
     double min_range_width = atr * CfgRangeMinWidthATR();             // 默认1.5 ATR
     double max_range_width = atr * CfgRangeMaxWidthATR();             // 默认5.0 ATR
+
+    // 研究哨兵: InpRangeMaxWidthATR < 0 时，使用最近HTF历史高低点构造宽供需区。
+    // 用于验证类似 2602 的大区间OB边界触达反转；默认正值路径完全不变。
+    if(CfgRangeMaxWidthATR() < 0.0)
+    {
+        int last_closed = count - 2;
+        if(last_closed < CfgRangeMinBars())
+            return range;
+
+        // 大周期区间只能由已收盘K线定义，当前HTF K线只用于触达/反应判断。
+        double top = rates[1].high;
+        double bottom = rates[1].low;
+        for(int i = 1; i <= last_closed; i++)
+        {
+            if(rates[i].high > top) top = rates[i].high;
+            if(rates[i].low < bottom) bottom = rates[i].low;
+        }
+
+        double width = top - bottom;
+        double max_width = atr * MathAbs(CfgRangeMaxWidthATR());
+        if(width < min_range_width || width > max_width)
+            return range;
+
+        int touches_t = 0, touches_b = 0;
+        double touch_tol = boundary_tolerance * 1.2;
+        int bars_inside = 0;
+        for(int i = 0; i <= last_closed; i++)
+        {
+            if(MathAbs(rates[i].high - top) <= touch_tol) touches_t++;
+            if(MathAbs(rates[i].low - bottom) <= touch_tol) touches_b++;
+            if(rates[i].close >= bottom - touch_tol && rates[i].close <= top + touch_tol)
+                bars_inside++;
+        }
+        if(touches_t < MathMax(1, CfgRangeMinTouches()) ||
+           touches_b < MathMax(1, CfgRangeMinTouches()))
+            return range;
+
+        double containment_pct = (double)bars_inside / (double)(last_closed + 1);
+        if(containment_pct < CfgRangeMinContainment())
+            return range;
+
+        range.high = top;
+        range.low = bottom;
+        range.mid = (top + bottom) / 2.0;
+        range.width_price = width;
+        range.width_atr = width / atr;
+        range.touches_top = touches_t;
+        range.touches_bottom = touches_b;
+        range.age_bars = last_closed + 1;
+        range.first_detected = rates[0].time;
+        range.valid = true;
+        range.confidence = MathMax(0.0, MathMin(1.0,
+                           0.20 + MathMin(containment_pct, 0.35) +
+                           MathMin((touches_t + touches_b) / 8.0, 0.25) +
+                           MathMin(range.width_atr / MathAbs(CfgRangeMaxWidthATR()), 0.20)));
+
+        range.top_zone_high = top + boundary_tolerance * 0.8;
+        range.top_zone_low = top - boundary_tolerance * 2.0;
+        range.bottom_zone_high = bottom + boundary_tolerance * 2.0;
+        range.bottom_zone_low = bottom - boundary_tolerance * 0.8;
+
+        double current = rates[count - 1].close;
+        if(current > top + boundary_tolerance && rates[count - 1].close > rates[count - 2].close)
+            range.breaking_up = true;
+        if(current < bottom - boundary_tolerance && rates[count - 1].close < rates[count - 2].close)
+            range.breaking_down = true;
+        range.last_update = TimeCurrent();
+        return range;
+    }
 
     // 4. 找所有swing high/low
     int swing_strength = CfgRangeSwingStrength();  // 默认3 (H4上3个bar确认swing)
@@ -271,7 +340,7 @@ double CalcRangeTP(HTFRange &range, ENUM_RANGE_POSITION pos, double entry, int d
             if(direction == OB_SELL)
             {
                 // 做空: TP1=中轴, TP2=下沿
-                tp = CfgRangeTPTarget() == 1 ? range.mid : range.low;
+                tp = CfgRangeTPTarget() == 0 ? range.low : range.mid;
             }
             break;
 
@@ -279,7 +348,7 @@ double CalcRangeTP(HTFRange &range, ENUM_RANGE_POSITION pos, double entry, int d
             if(direction == OB_BUY)
             {
                 // 做多: TP1=中轴, TP2=上沿
-                tp = CfgRangeTPTarget() == 1 ? range.mid : range.high;
+                tp = CfgRangeTPTarget() == 0 ? range.high : range.mid;
             }
             break;
 

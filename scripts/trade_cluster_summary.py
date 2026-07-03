@@ -5,6 +5,7 @@ import argparse
 import csv
 from collections import defaultdict
 from pathlib import Path
+from typing import Dict, List, Tuple
 
 
 def _to_float(value) -> float:
@@ -14,12 +15,12 @@ def _to_float(value) -> float:
         return 0.0
 
 
-def read_trades(path: Path) -> list[dict]:
+def read_trades(path: Path) -> List[Dict[str, str]]:
     with Path(path).open(encoding='utf-8', newline='') as f:
         return list(csv.DictReader(f))
 
 
-def summarize_bucket(trades: list[dict]) -> dict:
+def summarize_bucket(trades: List[Dict[str, str]]) -> Dict[str, float]:
     total_r = sum(_to_float(row.get('r')) for row in trades)
     wins = sum(1 for row in trades if _to_float(row.get('r')) > 0)
     count = len(trades)
@@ -30,7 +31,7 @@ def summarize_bucket(trades: list[dict]) -> dict:
     }
 
 
-def group_by(trades: list[dict], field: str) -> dict[str, list[dict]]:
+def group_by(trades: List[Dict[str, str]], field: str) -> Dict[str, List[Dict[str, str]]]:
     groups = defaultdict(list)
     for row in trades:
         key = (row.get(field) or '').strip() or 'NA'
@@ -38,21 +39,21 @@ def group_by(trades: list[dict], field: str) -> dict[str, list[dict]]:
     return dict(groups)
 
 
-def best_and_worst(groups: dict[str, list[dict]], top: int) -> tuple[list[tuple], list[tuple]]:
+def best_and_worst(groups: Dict[str, List[Dict[str, str]]], top: int) -> Tuple[List[Tuple], List[Tuple]]:
     scored = [(key, summarize_bucket(rows)) for key, rows in groups.items()]
     positives = sorted(scored, key=lambda item: item[1]['total_r'], reverse=True)[:top]
     negatives = sorted(scored, key=lambda item: item[1]['total_r'])[:top]
     return positives, negatives
 
 
-def _line(prefix: str, key: str, stats: dict) -> str:
+def _line(prefix: str, key: str, stats: Dict[str, float]) -> str:
     return (
         f'{prefix} {key} count={stats["count"]} '
         f'total_r={stats["total_r"]:.2f} win_rate={stats["win_rate"]:.1f}%'
     )
 
 
-def render_summary(trades: list[dict], top: int = 3) -> str:
+def render_summary(trades: List[Dict[str, str]], top: int = 3) -> str:
     summary = summarize_bucket(trades)
     lines = [
         f'SUMMARY trades={summary["count"]} total_r={summary["total_r"]:.2f} win_rate={summary["win_rate"]:.1f}%'

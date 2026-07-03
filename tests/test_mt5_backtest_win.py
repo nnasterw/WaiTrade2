@@ -106,8 +106,8 @@ def test_kill_mt5_exists():
         "mt5_backtest_win 缺少 kill_mt5() 函数"
 
 
-def test_kill_mt5_uses_taskkill():
-    """Windows 下必须用 taskkill 终止进程，不能用 pkill（Unix 专用）"""
+def test_kill_mt5_filters_by_tester_home():
+    """kill_mt5 必须按 tester home 路径过滤，不能全局杀 Live 终端。"""
     calls = []
     def fake_run(cmd, **kwargs):
         calls.append(cmd)
@@ -118,8 +118,11 @@ def test_kill_mt5_uses_taskkill():
             win.kill_mt5()
 
     joined = ' '.join(' '.join(c) if isinstance(c, list) else c for c in calls)
-    assert 'taskkill' in joined.lower(), \
-        f"kill_mt5 应使用 taskkill，实际调用: {calls}"
+    assert 'get-ciminstance' in joined.lower()
+    assert 'executablepath.startswith' in joined.lower()
+    assert 'stop-process' in joined.lower()
+    assert 'taskkill' not in joined.lower(), \
+        f"kill_mt5 不应全局 taskkill，实际调用: {calls}"
     assert 'pkill' not in joined.lower(), \
         "kill_mt5 不应使用 pkill（Unix 专用）"
 
@@ -174,6 +177,7 @@ def test_run_mt5_calls_kill_before_start():
 
     with patch('mt5_backtest_win.kill_mt5', side_effect=lambda: call_order.append('kill')) as mock_kill, \
          patch('mt5_backtest_win.clear_tester_cache', side_effect=lambda: call_order.append('cache')), \
+         patch('mt5_backtest_win.is_admin', return_value=True), \
          patch('mt5_backtest_win.subprocess.Popen', side_effect=lambda *a, **kw: (call_order.append('popen'), fake_proc)[1]) as mock_popen, \
          patch('mt5_backtest_win.time.sleep'):
         win.run_mt5(timeout_sec=60)
@@ -194,6 +198,7 @@ def test_run_mt5_returns_true_on_exit_code_zero():
 
     with patch('mt5_backtest_win.kill_mt5'), \
          patch('mt5_backtest_win.clear_tester_cache'), \
+         patch('mt5_backtest_win.is_admin', return_value=True), \
          patch('mt5_backtest_win.subprocess.Popen', return_value=fake_proc), \
          patch('mt5_backtest_win.time.sleep'):
         result = win.run_mt5(timeout_sec=60)
@@ -209,6 +214,7 @@ def test_run_mt5_returns_false_on_nonzero_exit():
 
     with patch('mt5_backtest_win.kill_mt5'), \
          patch('mt5_backtest_win.clear_tester_cache'), \
+         patch('mt5_backtest_win.is_admin', return_value=True), \
          patch('mt5_backtest_win.subprocess.Popen', return_value=fake_proc), \
          patch('mt5_backtest_win.time.sleep'):
         result = win.run_mt5(timeout_sec=60)
@@ -231,6 +237,7 @@ def test_run_mt5_returns_false_on_timeout():
 
     with patch('mt5_backtest_win.kill_mt5'), \
          patch('mt5_backtest_win.clear_tester_cache'), \
+         patch('mt5_backtest_win.is_admin', return_value=True), \
          patch('mt5_backtest_win.subprocess.Popen', return_value=fake_proc), \
          patch('mt5_backtest_win.time.sleep', side_effect=fake_sleep), \
          patch('mt5_backtest_win.time.time', side_effect=lambda: start_time + elapsed_calls[0]):
@@ -252,3 +259,62 @@ def test_expert_ex5_path_nested():
     experts_root = Path(r'C:\MT5Data\MQL5\Experts')
     p = win.expert_ex5_path(experts_root, r'WaiTrade2\WaiTrade_OB')
     assert p == experts_root / 'WaiTrade2' / 'WaiTrade_OB.ex5'
+
+
+def test_portable_ini_uses_terminal_root_short_name(tmp_path):
+    orig_portable = win.MT5_PORTABLE
+    orig_home = win.MT5_HOME
+    orig_data = win.MT5_DATA
+    orig_ini = win.INI_DIR
+    try:
+        win.MT5_PORTABLE = True
+        win.MT5_HOME = tmp_path
+        win.MT5_DATA = tmp_path
+        win.INI_DIR = tmp_path
+        ini_path = win.generate_ini('v99g1', 'XAUUSDm', '2026.01.01', '2026.01.02', BASE_CONFIG)
+        assert ini_path == tmp_path / 'bt.ini'
+        assert win._mt5_argument_list(ini_path) == ['/portable', '/config:bt.ini']
+    finally:
+        win.MT5_PORTABLE = orig_portable
+        win.MT5_HOME = orig_home
+        win.MT5_DATA = orig_data
+        win.INI_DIR = orig_ini
+
+
+def test_run_mt5_uac_branch_sets_working_directory_and_portable_args(tmp_path):
+    fake_proc = MagicMock()
+    fake_proc.communicate.return_value = (b'', b'')
+    fake_proc.returncode = 0
+    calls = []
+
+    orig_portable = win.MT5_PORTABLE
+    orig_require_admin = win.MT5_REQUIRE_ADMIN
+    orig_home = win.MT5_HOME
+    orig_ini = win.INI_DIR
+    try:
+        win.MT5_PORTABLE = True
+        win.MT5_REQUIRE_ADMIN = True
+        win.MT5_HOME = tmp_path
+        win.INI_DIR = tmp_path
+        (tmp_path / 'bt.ini').write_text('[Tester]\n', encoding='utf-8')
+
+        def fake_popen(cmd, **kwargs):
+            calls.append(cmd)
+            return fake_proc
+
+        with patch('mt5_backtest_win.kill_mt5'), \
+             patch('mt5_backtest_win.clear_tester_cache'), \
+             patch('mt5_backtest_win.is_admin', return_value=False), \
+             patch('mt5_backtest_win.subprocess.Popen', side_effect=fake_popen):
+            assert win.run_mt5(timeout_sec=60) is True
+    finally:
+        win.MT5_PORTABLE = orig_portable
+        win.MT5_REQUIRE_ADMIN = orig_require_admin
+        win.MT5_HOME = orig_home
+        win.INI_DIR = orig_ini
+
+    ps_cmd = calls[0][-1]
+    assert "-WorkingDirectory" in ps_cmd
+    assert str(tmp_path) in ps_cmd
+    assert "/portable" in ps_cmd
+    assert "/config:bt.ini" in ps_cmd

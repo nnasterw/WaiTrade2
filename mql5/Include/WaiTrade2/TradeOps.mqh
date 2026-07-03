@@ -52,7 +52,7 @@ double BrokerStopFromVirtualSL(double virtual_sl, double entry_price, double ris
    return NormalizeDouble(broker_sl, digits);
 }
 
-bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
+bool ModifySLTP(ulong ticket, double new_sl, double new_tp, int max_retries=2)
 {
    // VSL soft-stop: broker SL is emergency only, EA manages exit via CheckVirtualSL
    if(UseVirtualSLMode())
@@ -61,18 +61,21 @@ bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
    if(!PositionSelectByTicket(ticket)) return false;
 
    double current_sl = PositionGetDouble(POSITION_SL);
+   double current_tp = PositionGetDouble(POSITION_TP);
    string symbol = PositionGetString(POSITION_SYMBOL);
    int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
-   new_sl = NormalizeDouble(new_sl, digits);
+   if(new_sl > 0)
+      new_sl = NormalizeDouble(new_sl, digits);
+   if(new_tp > 0)
+      new_tp = NormalizeDouble(new_tp, digits);
    // 跳过无效修改: 新SL与当前SL差距小于3个point（减少MT5日志量）
-   if(MathAbs(new_sl - current_sl) < SymbolInfoDouble(symbol, SYMBOL_POINT) * 3)
+   if(MathAbs(new_sl - current_sl) < SymbolInfoDouble(symbol, SYMBOL_POINT) * 3 &&
+      MathAbs(new_tp - current_tp) < SymbolInfoDouble(symbol, SYMBOL_POINT) * 3)
       return true;
 
    for(int attempt = 0; attempt <= max_retries; attempt++)
    {
       if(!PositionSelectByTicket(ticket)) return false;
-
-      double tp = PositionGetDouble(POSITION_TP);
 
       MqlTradeRequest request = {};
       MqlTradeResult result = {};
@@ -80,7 +83,7 @@ bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
       request.position = ticket;
       request.symbol = symbol;
       request.sl = new_sl;
-      request.tp = tp;
+      request.tp = new_tp;
 
       if(OrderSend(request, result))
       {
@@ -92,6 +95,20 @@ bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
          Sleep(100);
    }
    return false;
+}
+
+bool ModifySL(ulong ticket, double new_sl, int max_retries=2)
+{
+   if(!PositionSelectByTicket(ticket)) return false;
+   double tp = PositionGetDouble(POSITION_TP);
+   return ModifySLTP(ticket, new_sl, tp, max_retries);
+}
+
+bool ClearTP(ulong ticket, int max_retries=2)
+{
+   if(!PositionSelectByTicket(ticket)) return false;
+   double sl = PositionGetDouble(POSITION_SL);
+   return ModifySLTP(ticket, sl, 0.0, max_retries);
 }
 
 bool PartialClose(ulong ticket, int close_pct)

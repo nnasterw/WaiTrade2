@@ -1,0 +1,1294 @@
+schedules:
+  r186_r196_season_guard:
+    description: "R186 + R196 account-level season/regime guard proxy for BTC 720d"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 2500.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 2500.0
+        monthly_profit_target_stop_months: "10,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_season_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=2500"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [10, 12]
+      guard_max_month_start_balance: 2500.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+
+  r186_r196_r117_season_guard:
+    description: "R186 + R196 + R117 account-level season/regime guard proxy for BTC 720d"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R117
+        strategy: v11_r117_j2_r107_mneg_cut
+        path: results/backtest/v11_r117_j2_r107_mneg_cut_20240603_20260524_20260524.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 2500.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 2500.0
+        monthly_profit_target_stop_months: "10,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r117_season_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=2500"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [10, 12]
+      guard_max_month_start_balance: 2500.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+
+  r186_r196_r117_robust_guard:
+    description: "R186 + R196 + R117 with wider early-season profit stop for shared-balance robustness"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R117
+        strategy: v11_r117_j2_r107_mneg_cut
+        path: results/backtest/v11_r117_j2_r107_mneg_cut_20240603_20260524_20260524.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 25000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r117_robust_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=25000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+  r186_r196_r117_r209_march_guard:
+    description: "R186 + R196 + R117 robust guard plus R209 March-only HTFPB patch from full-window MT5 validation"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R117
+        strategy: v11_r117_j2_r107_mneg_cut
+        path: results/backtest/v11_r117_j2_r107_mneg_cut_20240603_20260524_20260524.trades.csv
+      - name: R209M
+        strategy: v11_r209_j2_r142_h00182022
+        path: results/backtest/v11_r209_j2_r142_h00182022_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 25000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r117_r209_march_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=25000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+
+  r186_r196_r117_r211_march_guard:
+    description: "R186 + R196 + R117 robust guard plus R211 tighter March-only HTFPB patch from full-window MT5 validation"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R117
+        strategy: v11_r117_j2_r107_mneg_cut
+        path: results/backtest/v11_r117_j2_r107_mneg_cut_20240603_20260524_20260524.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 25000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r117_r211_march_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=25000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+
+  r186_r196_r212_r211_march_guard:
+    description: "R186 + R196 + R212 high-balance May guard plus R211 tighter March-only HTFPB patch"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R212
+        strategy: v11_r212_j2_r117_no_may_highbal
+        path: results/backtest/v11_r212_j2_r117_no_may_highbal_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 25000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r212_r211_march_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=25000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+
+  r186_r196_r212_r211_r213_dec_guard:
+    description: "R186 + R196 + R212 + R211 plus R213 December hour-filtered coverage patch"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R212
+        strategy: v11_r212_j2_r117_no_may_highbal
+        path: results/backtest/v11_r212_j2_r117_no_may_highbal_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 25000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r212_r211_r213_dec_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=25000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+
+  r186_r196_r212_r211_r213_r216_guard:
+    description: "R186 + R196 + R212 + R211 plus R213/R216 coverage patches and high-balance May sweep-hour guard"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R212
+        strategy: v11_r212_j2_r117_no_may_highbal
+        path: results/backtest/v11_r212_j2_r117_no_may_highbal_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r212_r211_r213_r216_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=25000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+    preflight:
+      require_cost_pass: 1.0
+
+  r224_r225_r226_r211_r213_r216_r227_deployable_context: &v11a_btc_portfolio
+    description: "Deployable-context version of shared_fix: per-stream March/May direction-hour context filters"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R224
+        strategy: v11_r224_j2_r186_ctx35
+        path: results/backtest/v11_r224_j2_r186_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R225
+        strategy: v11_r225_j2_r196_ctx35
+        path: results/backtest/v11_r225_j2_r196_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R226
+        strategy: v11_r226_j2_r212_ctx3
+        path: results/backtest/v11_r226_j2_r212_ctx3_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R227
+        strategy: v11_r227_j2_r221_ctx35_merge
+        path: results/backtest/v11_r227_j2_r221_ctx35_merge_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r224_r225_r226_r211_r213_r216_r227_deployable_context"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "src=R224;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R225;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R226;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R211M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R213D;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R216M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R227;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R224;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R224;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R224;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R224;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R225;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R225;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R225;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R225;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R226;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R226;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R227;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=100000"
+      - "src=R227;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R227;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+    preflight:
+      require_cost_pass: 1.0
+
+  v11a:
+    <<: *v11a_btc_portfolio
+    description: "v11a BTC deployable 7-leg portfolio: R224/R225/R226/R211M/R213D/R216M/R227"
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 2000.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        monthly_profit_target_stop2_pct: 35.0
+        monthly_profit_target_stop2_min_balance: 0.0
+        monthly_profit_target_stop2_max_balance: 2000.0
+        monthly_profit_target_stop2_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "v11a_compound"
+        shared_monthly_guard_debug: true
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_min_month_start_balance: 2000.0
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+      guard2_monthnums: [3, 4, 5, 10, 11, 12]
+      guard2_min_month_start_balance: 0.0
+      guard2_max_month_start_balance: 2000.0
+      profit_target_stop2_pct: 35.0
+      profit_target2_min_trades: 1
+
+  v11btc_mix_r248: &v11btc_mix_r248
+    <<: *v11a_btc_portfolio
+    description: "v11btc-mix candidate: v11a 7-leg portfolio plus R248/v11b add-on for faster compounding"
+    series:
+      - name: R224
+        strategy: v11_r224_j2_r186_ctx35
+        path: results/backtest/v11_r224_j2_r186_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R225
+        strategy: v11_r225_j2_r196_ctx35
+        path: results/backtest/v11_r225_j2_r196_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R226
+        strategy: v11_r226_j2_r212_ctx3
+        path: results/backtest/v11_r226_j2_r212_ctx3_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R227
+        strategy: v11_r227_j2_r221_ctx35_merge
+        path: results/backtest/v11_r227_j2_r221_ctx35_merge_20240604_20260525_20260525.trades.csv
+      - name: R248
+        strategy: v11_r252_j2_r248_shared_only
+        path: results/backtest/v11_r252_j2_r248_shared_only_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 2000.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        monthly_profit_target_stop2_pct: 35.0
+        monthly_profit_target_stop2_min_balance: 0.0
+        monthly_profit_target_stop2_max_balance: 2000.0
+        monthly_profit_target_stop2_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "v11btc_mix_r248"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "src=R224;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R225;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R226;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R211M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R213D;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R216M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R227;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R224;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R224;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R224;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R224;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R225;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R225;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R225;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R225;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R226;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R226;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R227;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=100000"
+      - "src=R227;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R227;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=50000"
+      - "src=R248;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R248;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=buy;hour=18,22,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=sell;hour=0,1,2,8,9;min_start=50000"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_min_month_start_balance: 2000.0
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+      guard2_monthnums: [3, 4, 5, 10, 11, 12]
+      guard2_min_month_start_balance: 0.0
+      guard2_max_month_start_balance: 2000.0
+      profit_target_stop2_pct: 35.0
+      profit_target2_min_trades: 1
+
+  v11btc_mix_r261_apr_addons: &v11btc_mix_r261_apr_addons
+    <<: *v11btc_mix_r248
+    description: "v11btc-mix candidate: R248 plus April-only R261/R262/R263 add-ons"
+    series:
+      - name: R224
+        strategy: v11_r224_j2_r186_ctx35
+        path: results/backtest/v11_r224_j2_r186_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R225
+        strategy: v11_r225_j2_r196_ctx35
+        path: results/backtest/v11_r225_j2_r196_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R226
+        strategy: v11_r226_j2_r212_ctx3
+        path: results/backtest/v11_r226_j2_r212_ctx3_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R227
+        strategy: v11_r227_j2_r221_ctx35_merge
+        path: results/backtest/v11_r227_j2_r221_ctx35_merge_20240604_20260525_20260525.trades.csv
+      - name: R248
+        strategy: v11_r252_j2_r248_shared_only
+        path: results/backtest/v11_r252_j2_r248_shared_only_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R261A
+        strategy: v11_r261_j2_r106_april_only_shared
+        path: results/backtest/v11_r261_j2_r106_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R262A
+        strategy: v11_r262_j2_r107_april_only_shared
+        path: results/backtest/v11_r262_j2_r107_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R263A
+        strategy: v11_r263_j2_r105_april_only_shared
+        path: results/backtest/v11_r263_j2_r105_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 2000.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        monthly_profit_target_stop2_pct: 35.0
+        monthly_profit_target_stop2_min_balance: 0.0
+        monthly_profit_target_stop2_max_balance: 2000.0
+        monthly_profit_target_stop2_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "v11btc_mix_r261_apr_addons"
+        shared_monthly_guard_debug: true
+
+  v11btc_mix_r270_apr_hibal_filters: &v11btc_mix_r270_apr_hibal_filters
+    <<: *v11btc_mix_r261_apr_addons
+    description: "v11btc-mix candidate: R261 April add-ons plus high-balance April bad-hour filters"
+    series:
+      - name: R224
+        strategy: v11_r224_j2_r186_ctx35
+        path: results/backtest/v11_r224_j2_r186_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R225
+        strategy: v11_r225_j2_r196_ctx35
+        path: results/backtest/v11_r225_j2_r196_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R226
+        strategy: v11_r226_j2_r212_ctx3
+        path: results/backtest/v11_r226_j2_r212_ctx3_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R227
+        strategy: v11_r227_j2_r221_ctx35_merge
+        path: results/backtest/v11_r227_j2_r221_ctx35_merge_20240604_20260525_20260525.trades.csv
+        overrides:
+          context_filter4_months: "4"
+          context_filter4_no_hours: "15"
+          context_filter4_mult: 0.0
+          context_filter4_min_month_start_balance: 100000.0
+      - name: R248
+        strategy: v11_r252_j2_r248_shared_only
+        path: results/backtest/v11_r252_j2_r248_shared_only_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+        overrides:
+          context_filter5_months: "4"
+          context_filter5_no_hours: "2,15"
+          context_filter5_mult: 0.0
+          context_filter5_min_month_start_balance: 100000.0
+      - name: R261A
+        strategy: v11_r261_j2_r106_april_only_shared
+        path: results/backtest/v11_r261_j2_r106_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R262A
+        strategy: v11_r262_j2_r107_april_only_shared
+        path: results/backtest/v11_r262_j2_r107_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R263A
+        strategy: v11_r263_j2_r105_april_only_shared
+        path: results/backtest/v11_r263_j2_r105_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 2000.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        monthly_profit_target_stop2_pct: 35.0
+        monthly_profit_target_stop2_min_balance: 0.0
+        monthly_profit_target_stop2_max_balance: 2000.0
+        monthly_profit_target_stop2_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "v11btc_mix_r270_apr_hibal_filters"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "src=R224;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R225;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R226;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R211M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R213D;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R216M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R227;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R224;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R224;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R224;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R224;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R225;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R225;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R225;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R225;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R226;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R226;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R227;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=100000"
+      - "src=R227;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R227;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=50000"
+      - "src=R248;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R248;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=buy;hour=18,22,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=sell;hour=0,1,2,8,9;min_start=50000"
+      - "src=R227;monthnum=4;hour=15;min_start=100000"
+      - "src=R248;monthnum=4;hour=2,15;min_start=100000"
+
+  v11btc_mix_r271_r227_feb22: &v11btc_mix_r271_r227_feb22
+    <<: *v11btc_mix_r270_apr_hibal_filters
+    description: "v11btc-mix candidate: R270 plus deployable R227 February 22h high-balance filter"
+    series:
+      - name: R224
+        strategy: v11_r224_j2_r186_ctx35
+        path: results/backtest/v11_r224_j2_r186_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R225
+        strategy: v11_r225_j2_r196_ctx35
+        path: results/backtest/v11_r225_j2_r196_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R226
+        strategy: v11_r226_j2_r212_ctx3
+        path: results/backtest/v11_r226_j2_r212_ctx3_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R227
+        strategy: v11_r227_j2_r221_ctx35_merge
+        path: results/backtest/v11_r227_j2_r221_ctx35_merge_20240604_20260525_20260525.trades.csv
+        overrides:
+          context_filter4_months: "4"
+          context_filter4_no_hours: "15"
+          context_filter4_mult: 0.0
+          context_filter4_min_month_start_balance: 100000.0
+          context_filter5_months: "2"
+          context_filter5_no_hours: "22"
+          context_filter5_mult: 0.0
+          context_filter5_min_month_start_balance: 100000.0
+      - name: R248
+        strategy: v11_r252_j2_r248_shared_only
+        path: results/backtest/v11_r252_j2_r248_shared_only_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+        overrides:
+          context_filter5_months: "4"
+          context_filter5_no_hours: "2,15"
+          context_filter5_mult: 0.0
+          context_filter5_min_month_start_balance: 100000.0
+      - name: R261A
+        strategy: v11_r261_j2_r106_april_only_shared
+        path: results/backtest/v11_r261_j2_r106_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R262A
+        strategy: v11_r262_j2_r107_april_only_shared
+        path: results/backtest/v11_r262_j2_r107_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R263A
+        strategy: v11_r263_j2_r105_april_only_shared
+        path: results/backtest/v11_r263_j2_r105_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 2000.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        monthly_profit_target_stop2_pct: 35.0
+        monthly_profit_target_stop2_min_balance: 0.0
+        monthly_profit_target_stop2_max_balance: 2000.0
+        monthly_profit_target_stop2_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "v11btc_mix_r271_r227_feb22"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "src=R224;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R225;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R226;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R211M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R213D;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R216M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R227;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R224;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R224;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R224;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R224;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R225;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R225;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R225;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R225;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R226;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R226;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R227;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=100000"
+      - "src=R227;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R227;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=50000"
+      - "src=R248;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R248;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=buy;hour=18,22,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=sell;hour=0,1,2,8,9;min_start=50000"
+      - "src=R227;monthnum=4;hour=15;min_start=100000"
+      - "src=R248;monthnum=4;hour=2,15;min_start=100000"
+      - "src=R227;monthnum=2;hour=22;min_start=100000"
+
+  v11btc_mix_r272_r38_apr_addon: &v11btc_mix_r272_r38_apr_addon
+    <<: *v11btc_mix_r271_r227_feb22
+    description: "v11btc-mix candidate: R271 plus April-only low-frequency R38 add-on to improve complete-month 35pct shortfall without cost-stress regression"
+    series:
+      - name: R224
+        strategy: v11_r224_j2_r186_ctx35
+        path: results/backtest/v11_r224_j2_r186_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R225
+        strategy: v11_r225_j2_r196_ctx35
+        path: results/backtest/v11_r225_j2_r196_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R226
+        strategy: v11_r226_j2_r212_ctx3
+        path: results/backtest/v11_r226_j2_r212_ctx3_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R227
+        strategy: v11_r227_j2_r221_ctx35_merge
+        path: results/backtest/v11_r227_j2_r221_ctx35_merge_20240604_20260525_20260525.trades.csv
+        overrides:
+          context_filter4_months: "4"
+          context_filter4_no_hours: "15"
+          context_filter4_mult: 0.0
+          context_filter4_min_month_start_balance: 100000.0
+          context_filter5_months: "2"
+          context_filter5_no_hours: "22"
+          context_filter5_mult: 0.0
+          context_filter5_min_month_start_balance: 100000.0
+      - name: R248
+        strategy: v11_r252_j2_r248_shared_only
+        path: results/backtest/v11_r252_j2_r248_shared_only_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+        overrides:
+          context_filter5_months: "4"
+          context_filter5_no_hours: "2,15"
+          context_filter5_mult: 0.0
+          context_filter5_min_month_start_balance: 100000.0
+      - name: R261A
+        strategy: v11_r261_j2_r106_april_only_shared
+        path: results/backtest/v11_r261_j2_r106_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R262A
+        strategy: v11_r262_j2_r107_april_only_shared
+        path: results/backtest/v11_r262_j2_r107_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R263A
+        strategy: v11_r263_j2_r105_april_only_shared
+        path: results/backtest/v11_r263_j2_r105_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R38S
+        strategy: v11_r38_j2_start2000_m16
+        path: results/backtest/v11_r38_j2_start2000_m16_20240601_20260522_20260522.trades.csv
+        guard_override_mode: shared_only
+        overrides:
+          entry_months: "4"
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 2000.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        monthly_profit_target_stop2_pct: 35.0
+        monthly_profit_target_stop2_min_balance: 0.0
+        monthly_profit_target_stop2_max_balance: 2000.0
+        monthly_profit_target_stop2_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "v11btc_mix_r272_r38_apr_addon"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "src=R224;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R225;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R226;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R211M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R213D;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R216M;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R227;monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "src=R224;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R225;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R226;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R211M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R213D;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R216M;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R227;monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R224;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R224;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R224;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R224;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R225;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R225;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R225;monthnum=5;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "src=R225;monthnum=5;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "src=R226;monthnum=3;dir=buy;hour=16,23;min_start=100000"
+      - "src=R226;monthnum=3;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R227;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=100000"
+      - "src=R227;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=100000"
+      - "src=R227;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R227;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=buy;hour=4,8,14,15,16,17,23;min_start=50000"
+      - "src=R248;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14,18,23;min_start=50000"
+      - "src=R248;monthnum=5;dir=buy;hour=1,2,3,6,13,14,20,21,22;min_start=50000"
+      - "src=R248;monthnum=5;dir=sell;hour=0,2,4,7,11,15,16,19,21,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=buy;hour=18,22,23;min_start=50000"
+      - "src=R248;monthnum=10;dir=sell;hour=0,1,2,8,9;min_start=50000"
+      - "src=R227;monthnum=4;hour=15;min_start=100000"
+      - "src=R248;monthnum=4;hour=2,15;min_start=100000"
+      - "src=R227;monthnum=2;hour=22;min_start=100000"
+      - "src=R38S;monthnum=1,2,3,5,6,7,8,9,10,11,12"
+
+  v11btc_mix_r273_r38_r175_apr_addons:
+    <<: *v11btc_mix_r272_r38_apr_addon
+    description: "v11btc-mix candidate: R272 plus MT5-confirmed April-only R175 add-on"
+    series:
+      - name: R224
+        strategy: v11_r224_j2_r186_ctx35
+        path: results/backtest/v11_r224_j2_r186_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R225
+        strategy: v11_r225_j2_r196_ctx35
+        path: results/backtest/v11_r225_j2_r196_ctx35_20240604_20260525_20260525.trades.csv
+      - name: R226
+        strategy: v11_r226_j2_r212_ctx3
+        path: results/backtest/v11_r226_j2_r212_ctx3_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R227
+        strategy: v11_r227_j2_r221_ctx35_merge
+        path: results/backtest/v11_r227_j2_r221_ctx35_merge_20240604_20260525_20260525.trades.csv
+        overrides:
+          context_filter4_months: "4"
+          context_filter4_no_hours: "15"
+          context_filter4_mult: 0.0
+          context_filter4_min_month_start_balance: 100000.0
+          context_filter5_months: "2"
+          context_filter5_no_hours: "22"
+          context_filter5_mult: 0.0
+          context_filter5_min_month_start_balance: 100000.0
+      - name: R248
+        strategy: v11_r252_j2_r248_shared_only
+        path: results/backtest/v11_r252_j2_r248_shared_only_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+        overrides:
+          context_filter5_months: "4"
+          context_filter5_no_hours: "2,15"
+          context_filter5_mult: 0.0
+          context_filter5_min_month_start_balance: 100000.0
+      - name: R261A
+        strategy: v11_r261_j2_r106_april_only_shared
+        path: results/backtest/v11_r261_j2_r106_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R262A
+        strategy: v11_r262_j2_r107_april_only_shared
+        path: results/backtest/v11_r262_j2_r107_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R263A
+        strategy: v11_r263_j2_r105_april_only_shared
+        path: results/backtest/v11_r263_j2_r105_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+      - name: R38S
+        strategy: v11_r38_j2_start2000_m16
+        path: results/backtest/v11_r38_j2_start2000_m16_20240601_20260522_20260522.trades.csv
+        guard_override_mode: shared_only
+        overrides:
+          entry_months: "4"
+      - name: R273
+        strategy: v11_r273_j2_r175_april_only_shared
+        path: results/backtest/v11_r273_j2_r175_april_only_shared_20240606_20260526_20260527.trades.csv
+        guard_override_mode: shared_only
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 2000.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        monthly_profit_target_stop2_pct: 35.0
+        monthly_profit_target_stop2_min_balance: 0.0
+        monthly_profit_target_stop2_max_balance: 2000.0
+        monthly_profit_target_stop2_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "v11btc_mix_r273_r38_r175_apr_addons"
+        shared_monthly_guard_debug: true
+
+  r186_r196_r212_r211_r213_r216_r221_guard:
+    description: "Current six-leg guard plus R221 R61 context-filtered high-balance add-on"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R212
+        strategy: v11_r212_j2_r117_no_may_highbal
+        path: results/backtest/v11_r212_j2_r117_no_may_highbal_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R221C
+        strategy: v11_r221_j2_r61_context_march_probe
+        path: results/backtest/v11_r221_j2_r61_context_march_probe_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 25000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r212_r211_r213_r216_r221_guard"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=25000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "src=R221C;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=100000"
+      - "src=R221C;monthnum=3;dir=buy;hour=4,8,14,15,16,17;min_start=100000"
+      - "src=R221C;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14;min_start=100000"
+      - "src=R221C;monthnum=5;dir=buy;hour=6,13,20,21,22;min_start=100000"
+      - "src=R221C;monthnum=5;dir=sell;hour=0,2,11,15,16,23;min_start=100000"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+    preflight:
+      require_cost_pass: 1.0
+
+  r186_r196_r212_r211_r213_r216_r221_shared_fix:
+    description: "R221 guard with shared-return bad-month OB filters for 2024-11, 2025-03, and 2025-05"
+    deposit: 200.0
+    days: 720
+    targets:
+      profit_min: 90000.0
+      daily_trades_min: 4.0
+      require_non_negative_months: true
+      monthly_profit_min: 0.01
+    series:
+      - name: R186
+        strategy: v11_r186_j2_r185_ob8_tail_cut
+        path: results/backtest/v11_r186_j2_r185_ob8_tail_cut_20260524.trades.csv
+      - name: R196
+        strategy: v11_r196_j2_r195_pt1_min300
+        path: results/backtest/v11_r196_j2_r195_pt1_min300_20240602_20260523_20260524.trades.csv
+      - name: R212
+        strategy: v11_r212_j2_r117_no_may_highbal
+        path: results/backtest/v11_r212_j2_r117_no_may_highbal_20240604_20260525_20260525.trades.csv
+      - name: R211M
+        strategy: v11_r211_j2_r142_h20_risk220
+        path: results/backtest/v11_r211_j2_r142_h20_risk220_20240604_20260525_20260525.trades.csv
+      - name: R213D
+        strategy: v11_r213_j2_r104_dec_hours_patch
+        path: results/backtest/v11_r213_j2_r104_dec_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R216M
+        strategy: v11_r216_j2_r215_march_hours_patch
+        path: results/backtest/v11_r216_j2_r215_march_hours_patch_20240604_20260525_20260525.trades.csv
+      - name: R221C
+        strategy: v11_r221_j2_r61_context_march_probe
+        path: results/backtest/v11_r221_j2_r61_context_march_probe_20240604_20260525_20260525.trades.csv
+    live_profile:
+      symbol: BTCUSDm
+      guard_overrides:
+        low_balance_ob_bad_months: "11"
+        low_balance_ob_bad_hours: "7,13,14,15,18,22"
+        low_balance_ob_bad_max_month_start_balance: 65000.0
+        low_balance_ob_bad_hour_mult: 0.0
+        sweep_context_months: "3,5"
+        sweep_context_max_day: 2
+        sweep_context_min_month_start_balance: 100000.0
+        sweep_context_no_hours: "0,1,6,23"
+        monthly_profit_target_stop_pct: 3.0
+        monthly_profit_target_stop_min_balance: 0.0
+        monthly_profit_target_stop_max_balance: 65000.0
+        monthly_profit_target_stop_months: "3,4,5,10,11,12"
+        shared_monthly_guard: true
+        shared_monthly_guard_key: "r186_r196_r212_r211_r213_r216_r221_shared_fix"
+        shared_monthly_guard_debug: true
+    drop_filters:
+      - "monthnum=11;signal=ob;hour=7,13,14,15,18,22;max_start=65000"
+      - "monthnum=3;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "monthnum=5;signal=sweep;hour=0,1,6,23;min_start=100000;max_day=2"
+      - "monthnum=5;signal=ob;dir=buy;hour=1,2,3,14;min_start=50000"
+      - "monthnum=5;signal=ob;dir=sell;hour=2,4,7,15,19,21;min_start=50000"
+      - "month=2025-03;signal=ob;dir=buy;hour=16,23;min_start=100000"
+      - "month=2025-03;signal=ob;dir=sell;hour=6,18,23;min_start=100000"
+      - "src=R221C;monthnum=1;dir=buy;hour=1,2,3,12,15,16,17,18,23;min_start=100000"
+      - "src=R221C;monthnum=3;dir=buy;hour=4,8,14,15,16,17;min_start=100000"
+      - "src=R221C;monthnum=3;dir=sell;hour=0,1,5,6,8,9,14;min_start=100000"
+      - "src=R221C;monthnum=5;dir=buy;hour=6,13,20,21,22;min_start=100000"
+      - "src=R221C;monthnum=5;dir=sell;hour=0,2,11,15,16,23;min_start=100000"
+    guards:
+      guard_monthnums: [3, 4, 5, 10, 11, 12]
+      guard_max_month_start_balance: 65000.0
+      profit_target_stop_pct: 3.0
+      profit_target_min_trades: 1
+    preflight:
+      require_cost_pass: 1.0

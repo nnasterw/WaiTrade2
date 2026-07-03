@@ -19,7 +19,7 @@ from yaml_to_set import (
 )
 from backtest_digest import (
     build_digest_data, build_monthly_stats, render_digest_markdown, write_trade_csv,
-    read_text_auto_tail,
+    read_text_auto_tail, expected_log_markers, _extract_date_token,
 )
 import backtest_digest
 import mt5_cli_backtest as cli
@@ -288,10 +288,12 @@ def test_strategy_to_set_basic():
         'description': 'test',
         'bounce_pct': 0.30,
         'breakeven_r': 0.2,
+        'monthly_max_entries': 12,
     }
     content = strategy_to_set('v96b', cfg)
     assert 'InpBouncePct=0.3' in content
     assert 'InpBreakevenR=0.2' in content
+    assert 'InpMonthlyMaxEntries=12' in content
     assert 'InpVersion=V96b' in content
 
 
@@ -360,6 +362,16 @@ def test_v98_decay_params_in_flat_map():
     assert FLAT_MAP['engulf_body_pct'] == 'InpEngulfBodyPct'
 
 
+def test_bd07_noise_params_in_flat_map():
+    assert FLAT_MAP['enable_tick_noise_gate'] == 'InpEnableTickNoiseGate'
+    assert FLAT_MAP['tick_noise_gate_lookback'] == 'InpTickNoiseGateLookback'
+    assert FLAT_MAP['tick_noise_gate_min_dir_ratio'] == 'InpTickNoiseGateMinDirRatio'
+    assert FLAT_MAP['tick_noise_gate_max_range_atr'] == 'InpTickNoiseGateMaxRangeATR'
+    assert FLAT_MAP['enable_dynamic_spread'] == 'InpEnableDynamicSpread'
+    assert FLAT_MAP['min_sl_spread_mult'] == 'InpMinSLSpreadMult'
+    assert FLAT_MAP['ob_touch_confirm_ticks'] == 'InpOBTouchConfirmTicks'
+
+
 def test_v11_btc_profile_extended_params_in_flat_map():
     assert FLAT_MAP['btc_enable_state_filter'] == 'InpBTCEnableStateFilter'
     assert FLAT_MAP['btc_enable_scoring'] == 'InpBTCEnableScoring'
@@ -371,6 +383,7 @@ def test_v11_btc_profile_extended_params_in_flat_map():
     assert FLAT_MAP['btc_free_run_min_r'] == 'InpBTCFreeRunMinR'
     assert FLAT_MAP['btc_shallow_confirm_pos_mult'] == 'InpBTCShallowConfirmPosMult'
     assert FLAT_MAP['btc_dtp_reset_peak_after_partial'] == 'InpBTCDTPResetPeakAfterPartial'
+    assert FLAT_MAP['btc_allow_monthly_profit_target_stop'] == 'InpBTCAllowMonthlyProfitTargetStop'
 
 
 def test_strategy_to_set_v11_btc_profile_extended_params():
@@ -381,6 +394,7 @@ def test_strategy_to_set_v11_btc_profile_extended_params():
         'btc_no_mfe_exit_bars': 3,
         'btc_htf_net_push_tf': 60,
         'btc_dtp_reset_peak_after_partial': False,
+        'btc_allow_monthly_profit_target_stop': True,
     }
     content = strategy_to_set('v11', cfg)
     assert 'InpBTCEnableStateFilter=true' in content
@@ -388,6 +402,7 @@ def test_strategy_to_set_v11_btc_profile_extended_params():
     assert 'InpBTCNoMFEExitBars=3' in content
     assert 'InpBTCHTFNetPushTF=60' in content
     assert 'InpBTCDTPResetPeakAfterPartial=false' in content
+    assert 'InpBTCAllowMonthlyProfitTargetStop=true' in content
 
 
 def test_v11_xau_fage_alt_profile_params_in_flat_map():
@@ -486,6 +501,7 @@ def test_v98a_entry_engine_params():
     assert FLAT_MAP['enable_entry_engine'] == 'InpEnableEntryEngine'
     assert FLAT_MAP['entry_depth_pct'] == 'InpEntryDepthPct'
     assert FLAT_MAP['entry_depth_filter'] == 'InpEntryDepthFilter'
+    assert FLAT_MAP['entry_depth_signal_types'] == 'InpEntryDepthSignalTypes'
     assert FLAT_MAP['deep_entry_boost'] == 'InpDeepEntryBoost'
     assert FLAT_MAP['entry_confirm_bars'] == 'InpEntryConfirmBars'
     assert FLAT_MAP['bounce_close_confirm_bars'] == 'InpBounceCloseConfirmBars'
@@ -496,6 +512,59 @@ def test_v98a_entry_engine_params():
     assert FLAT_MAP['entry_momentum_tf'] == 'InpEntryMomentumTF'
     assert FLAT_MAP['entry_block_counter_strong'] == 'InpEntryBlockCounterStrong'
     assert FLAT_MAP['entry_require_counter_weak'] == 'InpEntryRequireCounterWeak'
+    assert FLAT_MAP['enable_entry_structure_confirm'] == 'InpEnableEntryStructureConfirm'
+    assert FLAT_MAP['entry_structure_confirm_families'] == 'InpEntryStructureConfirmFamilies'
+    assert FLAT_MAP['entry_structure_confirm_ob_directions'] == 'InpEntryStructureConfirmOBDirections'
+    assert FLAT_MAP['entry_structure_confirm_tf'] == 'InpEntryStructureConfirmTF'
+    assert FLAT_MAP['entry_structure_lookback_bars'] == 'InpEntryStructureLookbackBars'
+    assert FLAT_MAP['entry_structure_pivot_bars'] == 'InpEntryStructurePivotBars'
+    assert FLAT_MAP['entry_structure_break_buffer_atr'] == 'InpEntryStructureBreakBufferATR'
+    assert FLAT_MAP['entry_structure_require_break'] == 'InpEntryStructureRequireBreak'
+    assert FLAT_MAP['entry_structure_min_net_atr'] == 'InpEntryStructureMinNetATR'
+    assert FLAT_MAP['entry_structure_net_bars'] == 'InpEntryStructureNetBars'
+    assert FLAT_MAP['entry_structure_reverse_body_atr'] == 'InpEntryStructureReverseBodyATR'
+    assert FLAT_MAP['enable_entry_htf_shape_filter'] == 'InpEnableEntryHTFShapeFilter'
+    assert FLAT_MAP['entry_htf_shape_tf'] == 'InpEntryHTFShapeTF'
+    assert FLAT_MAP['entry_htf_shape_bars'] == 'InpEntryHTFShapeBars'
+    assert FLAT_MAP['entry_htf_max_same_body'] == 'InpEntryHTFMaxSameBody'
+    assert FLAT_MAP['entry_htf_max_range_pos'] == 'InpEntryHTFMaxRangePos'
+    assert FLAT_MAP['enable_entry_exhaustion_filter'] == 'InpEnableEntryExhaustionFilter'
+    assert FLAT_MAP['entry_exhaustion_tf'] == 'InpEntryExhaustionTF'
+    assert FLAT_MAP['entry_exhaustion_bars'] == 'InpEntryExhaustionBars'
+    assert FLAT_MAP['entry_exhaustion_max_net'] == 'InpEntryExhaustionMaxNet'
+    assert FLAT_MAP['enable_entry_context_filter'] == 'InpEnableEntryContextFilter'
+    assert FLAT_MAP['entry_context_tf'] == 'InpEntryContextTF'
+    assert FLAT_MAP['entry_context_bars'] == 'InpEntryContextBars'
+    assert FLAT_MAP['entry_context_min_net'] == 'InpEntryContextMinNet'
+    assert FLAT_MAP['entry_context_max_net'] == 'InpEntryContextMaxNet'
+    assert FLAT_MAP['entry_context_min_efficiency'] == 'InpEntryContextMinEfficiency'
+    assert FLAT_MAP['entry_context_tf2'] == 'InpEntryContextTF2'
+    assert FLAT_MAP['entry_context_bars2'] == 'InpEntryContextBars2'
+    assert FLAT_MAP['entry_context_min_net2'] == 'InpEntryContextMinNet2'
+    assert FLAT_MAP['entry_context_max_net2'] == 'InpEntryContextMaxNet2'
+    assert FLAT_MAP['entry_context_min_efficiency2'] == 'InpEntryContextMinEfficiency2'
+    assert FLAT_MAP['enable_entry_dir_context_filter'] == 'InpEnableEntryDirContextFilter'
+    assert FLAT_MAP['entry_dir_context_apply_buy'] == 'InpEntryDirContextApplyBuy'
+    assert FLAT_MAP['entry_dir_context_apply_sell'] == 'InpEntryDirContextApplySell'
+    assert FLAT_MAP['entry_dir_context_tf'] == 'InpEntryDirContextTF'
+    assert FLAT_MAP['entry_dir_context_bars'] == 'InpEntryDirContextBars'
+    assert FLAT_MAP['entry_dir_context_min_net'] == 'InpEntryDirContextMinNet'
+    assert FLAT_MAP['entry_dir_context_max_net'] == 'InpEntryDirContextMaxNet'
+    assert FLAT_MAP['entry_dir_context_tf2'] == 'InpEntryDirContextTF2'
+    assert FLAT_MAP['entry_dir_context_bars2'] == 'InpEntryDirContextBars2'
+    assert FLAT_MAP['entry_dir_context_min_net2'] == 'InpEntryDirContextMinNet2'
+    assert FLAT_MAP['entry_dir_context_max_net2'] == 'InpEntryDirContextMaxNet2'
+    assert FLAT_MAP['enable_swp_continuation_confirm'] == 'InpEnableSWPContinuationConfirm'
+    assert FLAT_MAP['swp_continuation_tf'] == 'InpSWPContinuationTF'
+    assert FLAT_MAP['swp_continuation_bars'] == 'InpSWPContinuationBars'
+    assert FLAT_MAP['swp_continuation_min_net_atr'] == 'InpSWPContinuationMinNetATR'
+    assert FLAT_MAP['swp_continuation_reverse_body_atr'] == 'InpSWPContinuationReverseBodyATR'
+    assert FLAT_MAP['swp_continuation_break_buffer_atr'] == 'InpSWPContinuationBreakBufferATR'
+    assert FLAT_MAP['swp_continuation_fail_mult'] == 'InpSWPContinuationFailMult'
+    assert 'range_apply_aligned_signal' not in FLAT_MAP
+    assert 'enable_range_reaction' not in FLAT_MAP
+    assert 'range_reaction_confirm_tf' not in FLAT_MAP
+    assert 'range_reaction_cooldown_bars' not in FLAT_MAP
 
 
 def test_bounce_close_confirm_params_in_set():
@@ -524,6 +593,138 @@ def test_entry_momentum_filter_params_in_set():
     assert 'InpEntryMomentumTF=1' in content
     assert 'InpEntryBlockCounterStrong=true' in content
     assert 'InpEntryRequireCounterWeak=false' in content
+
+
+def test_entry_structure_confirm_params_in_set():
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'enable_entry_structure_confirm': True,
+        'entry_structure_confirm_families': 'SWP,OB',
+        'entry_structure_confirm_ob_directions': 'SELL',
+        'entry_structure_confirm_tf': 5,
+        'entry_structure_lookback_bars': 30,
+        'entry_structure_pivot_bars': 2,
+        'entry_structure_break_buffer_atr': 0.05,
+        'entry_structure_require_break': False,
+        'entry_structure_min_net_atr': 0.18,
+        'entry_structure_net_bars': 3,
+        'entry_structure_reverse_body_atr': 0.5,
+        'enable_entry_htf_shape_filter': True,
+        'entry_htf_shape_tf': 240,
+        'entry_htf_shape_bars': 4,
+        'entry_htf_max_same_body': 667.0,
+        'entry_htf_max_range_pos': 0.7257,
+        'enable_entry_exhaustion_filter': True,
+        'entry_exhaustion_tf': 5,
+        'entry_exhaustion_bars': 6,
+        'entry_exhaustion_max_net': 52.04,
+        'enable_entry_context_filter': True,
+        'entry_context_tf': 60,
+        'entry_context_bars': 6,
+        'entry_context_min_net': -999.0,
+        'entry_context_max_net': 999.0,
+        'entry_context_min_efficiency': 0.08,
+        'entry_context_tf2': 5,
+        'entry_context_bars2': 12,
+        'entry_context_min_net2': -280.9,
+        'entry_context_max_net2': 999999.0,
+        'entry_context_min_efficiency2': 0.0,
+        'enable_entry_dir_context_filter': True,
+        'entry_dir_context_apply_buy': True,
+        'entry_dir_context_apply_sell': False,
+        'entry_dir_context_tf': 15,
+        'entry_dir_context_bars': 8,
+        'entry_dir_context_min_net': -251.9,
+        'entry_dir_context_max_net': 999999.0,
+        'entry_dir_context_tf2': 5,
+        'entry_dir_context_bars2': 12,
+        'entry_dir_context_min_net2': -699.3,
+        'entry_dir_context_max_net2': 999999.0,
+        'enable_swp_continuation_confirm': True,
+        'swp_continuation_tf': 5,
+        'swp_continuation_bars': 2,
+        'swp_continuation_min_net_atr': 0.2,
+        'swp_continuation_reverse_body_atr': 0.45,
+        'swp_continuation_break_buffer_atr': 0.05,
+        'swp_continuation_fail_mult': 0.3,
+    })
+    assert 'InpEnableEntryStructureConfirm=true' in content
+    assert 'InpEntryStructureConfirmFamilies=SWP,OB' in content
+    assert 'InpEntryStructureConfirmOBDirections=SELL' in content
+    assert 'InpEntryStructureConfirmTF=5' in content
+    assert 'InpEntryStructureLookbackBars=30' in content
+    assert 'InpEntryStructurePivotBars=2' in content
+    assert 'InpEntryStructureBreakBufferATR=0.05' in content
+    assert 'InpEntryStructureRequireBreak=false' in content
+    assert 'InpEntryStructureMinNetATR=0.18' in content
+    assert 'InpEntryStructureNetBars=3' in content
+    assert 'InpEntryStructureReverseBodyATR=0.5' in content
+    assert 'InpEnableEntryHTFShapeFilter=true' in content
+    assert 'InpEntryHTFShapeTF=240' in content
+    assert 'InpEntryHTFShapeBars=4' in content
+    assert 'InpEntryHTFMaxSameBody=667.0' in content
+    assert 'InpEntryHTFMaxRangePos=0.7257' in content
+    assert 'InpEnableEntryExhaustionFilter=true' in content
+    assert 'InpEntryExhaustionTF=5' in content
+    assert 'InpEntryExhaustionBars=6' in content
+    assert 'InpEntryExhaustionMaxNet=52.04' in content
+    assert 'InpEnableEntryContextFilter=true' in content
+    assert 'InpEntryContextTF=60' in content
+    assert 'InpEntryContextBars=6' in content
+    assert 'InpEntryContextMinNet=-999.0' in content
+    assert 'InpEntryContextMaxNet=999.0' in content
+    assert 'InpEntryContextMinEfficiency=0.08' in content
+    assert 'InpEntryContextTF2=5' in content
+    assert 'InpEntryContextBars2=12' in content
+    assert 'InpEntryContextMinNet2=-280.9' in content
+    assert 'InpEntryContextMaxNet2=999999.0' in content
+    assert 'InpEntryContextMinEfficiency2=0.0' in content
+    assert 'InpEnableEntryDirContextFilter=true' in content
+    assert 'InpEntryDirContextApplyBuy=true' in content
+    assert 'InpEntryDirContextApplySell=false' in content
+    assert 'InpEntryDirContextTF=15' in content
+    assert 'InpEntryDirContextBars=8' in content
+    assert 'InpEntryDirContextMinNet=-251.9' in content
+    assert 'InpEntryDirContextMaxNet=999999.0' in content
+    assert 'InpEntryDirContextTF2=5' in content
+    assert 'InpEntryDirContextBars2=12' in content
+    assert 'InpEntryDirContextMinNet2=-699.3' in content
+    assert 'InpEntryDirContextMaxNet2=999999.0' in content
+    assert 'InpEnableSWPContinuationConfirm=true' in content
+    assert 'InpSWPContinuationTF=5' in content
+    assert 'InpSWPContinuationBars=2' in content
+    assert 'InpSWPContinuationMinNetATR=0.2' in content
+    assert 'InpSWPContinuationReverseBodyATR=0.45' in content
+    assert 'InpSWPContinuationBreakBufferATR=0.05' in content
+    assert 'InpSWPContinuationFailMult=0.3' in content
+
+
+def test_failure_reentry_structure_params_in_set():
+    assert FLAT_MAP['failure_reentry_require_structure_break'] == 'InpFailureReentryRequireStructureBreak'
+    assert FLAT_MAP['failure_reentry_structure_lookback_bars'] == 'InpFailureReentryStructureLookbackBars'
+    assert FLAT_MAP['failure_reentry_structure_pivot_bars'] == 'InpFailureReentryStructurePivotBars'
+    assert FLAT_MAP['failure_reentry_break_buffer_atr'] == 'InpFailureReentryBreakBufferATR'
+    assert FLAT_MAP['failure_reentry_reverse_body_atr'] == 'InpFailureReentryReverseBodyATR'
+    assert FLAT_MAP['failure_reentry_block_strong_reverse'] == 'InpFailureReentryBlockStrongReverse'
+    assert FLAT_MAP['failure_reentry_block_reverse_break'] == 'InpFailureReentryBlockReverseBreak'
+
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'failure_reentry_require_structure_break': True,
+        'failure_reentry_structure_lookback_bars': 30,
+        'failure_reentry_structure_pivot_bars': 2,
+        'failure_reentry_break_buffer_atr': 0.05,
+        'failure_reentry_reverse_body_atr': 0.5,
+        'failure_reentry_block_strong_reverse': True,
+        'failure_reentry_block_reverse_break': True,
+    })
+    assert 'InpFailureReentryRequireStructureBreak=true' in content
+    assert 'InpFailureReentryStructureLookbackBars=30' in content
+    assert 'InpFailureReentryStructurePivotBars=2' in content
+    assert 'InpFailureReentryBreakBufferATR=0.05' in content
+    assert 'InpFailureReentryReverseBodyATR=0.5' in content
+    assert 'InpFailureReentryBlockStrongReverse=true' in content
+    assert 'InpFailureReentryBlockReverseBreak=true' in content
 
 
 def test_partial_close_params():
@@ -580,6 +781,33 @@ def test_early_loss_cut_param_in_set():
     assert FLAT_MAP['no_mfe_exit_bars'] == 'InpNoMFEExitBars'
     assert FLAT_MAP['no_mfe_min_peak_r'] == 'InpNoMFEMinPeakR'
     assert FLAT_MAP['no_mfe_exit_r'] == 'InpNoMFEExitR'
+    assert FLAT_MAP['enable_failure_reentry_confirm'] == 'InpEnableFailureReentryConfirm'
+    assert FLAT_MAP['failure_reentry_confirm_losses'] == 'InpFailureReentryConfirmLosses'
+    assert FLAT_MAP['failure_reentry_confirm_tf'] == 'InpFailureReentryConfirmTF'
+    assert FLAT_MAP['failure_reentry_confirm_bars'] == 'InpFailureReentryConfirmBars'
+    assert FLAT_MAP['failure_reentry_confirm_min_atr'] == 'InpFailureReentryConfirmMinATR'
+    assert FLAT_MAP['failure_reentry_confirm_max_age_min'] == 'InpFailureReentryConfirmMaxAgeMin'
+    assert FLAT_MAP['failure_reentry_block_min'] == 'InpFailureReentryBlockMin'
+    assert FLAT_MAP['failure_reentry_block_ob_only'] == 'InpFailureReentryBlockOBOnly'
+    assert FLAT_MAP['failure_reentry_block_min_pos_mult'] == 'InpFailureReentryBlockMinPosMult'
+    assert FLAT_MAP['post_win_cooldown_min_profit'] == 'InpPostWinCooldownMinProfit'
+    assert FLAT_MAP['post_win_cooldown_min'] == 'InpPostWinCooldownMin'
+    assert FLAT_MAP['post_win_cooldown_families'] == 'InpPostWinCooldownFamilies'
+    assert FLAT_MAP['post_win_cooldown_same_direction'] == 'InpPostWinCooldownSameDirection'
+    assert FLAT_MAP['post_win_cooldown_cross_family'] == 'InpPostWinCooldownCrossFamily'
+    assert FLAT_MAP['post_win_cooldown_block_entries'] == 'InpPostWinCooldownBlockEntries'
+    assert FLAT_MAP['post_win_cooldown_max_lot_size'] == 'InpPostWinCooldownMaxLotSize'
+    assert FLAT_MAP['post_win_cooldown_require_continuation'] == 'InpPostWinCooldownRequireContinuation'
+    assert FLAT_MAP['post_win_cooldown_continuation_tf'] == 'InpPostWinCooldownContinuationTF'
+    assert FLAT_MAP['post_win_cooldown_continuation_bars'] == 'InpPostWinCooldownContinuationBars'
+    assert FLAT_MAP['post_win_cooldown_continuation_min_net_atr'] == 'InpPostWinCooldownContinuationMinNetATR'
+    assert FLAT_MAP['post_win_cooldown_continuation_require_break'] == 'InpPostWinCooldownContinuationRequireBreak'
+    assert FLAT_MAP['post_win_cooldown_continuation_break_buffer_atr'] == 'InpPostWinCooldownContinuationBreakBufferATR'
+    assert FLAT_MAP['post_win_cooldown_continuation_reverse_body_atr'] == 'InpPostWinCooldownContinuationReverseBodyATR'
+    assert FLAT_MAP['failure_reentry_clear_win_r'] == 'InpFailureReentryClearWinR'
+    assert FLAT_MAP['failure_reentry_record_passive_loss'] == 'InpFailureReentryRecordPassiveLoss'
+    assert FLAT_MAP['failure_reentry_passive_loss_max_peak_r'] == 'InpFailureReentryPassiveLossMaxPeakR'
+    assert FLAT_MAP['failure_reentry_family_filter'] == 'InpFailureReentryFamilyFilter'
     assert FLAT_MAP['enable_failure_reverse'] == 'InpEnableFailureReverse'
     assert FLAT_MAP['reverse_on_early_loss'] == 'InpReverseOnEarlyLoss'
     assert FLAT_MAP['reverse_on_mfe_fail'] == 'InpReverseOnMFEFail'
@@ -588,6 +816,8 @@ def test_early_loss_cut_param_in_set():
     assert FLAT_MAP['failure_reverse_lot_mult'] == 'InpFailureReverseLotMult'
     assert FLAT_MAP['failure_reverse_tp_r'] == 'InpFailureReverseTPR'
     assert FLAT_MAP['failure_reverse_allow_chain'] == 'InpFailureReverseAllowChain'
+    assert 'failure_reentry_price_tolerance' not in FLAT_MAP
+    assert 'failure_reentry_price_cluster_block_min' not in FLAT_MAP
     content = strategy_to_set('test', {
         'version': 'test',
         'early_loss_cut_r': 0.35,
@@ -596,6 +826,33 @@ def test_early_loss_cut_param_in_set():
         'no_mfe_exit_bars': 3,
         'no_mfe_min_peak_r': 0.15,
         'no_mfe_exit_r': -0.2,
+        'enable_failure_reentry_confirm': True,
+        'failure_reentry_confirm_losses': 2,
+        'failure_reentry_confirm_tf': 5,
+        'failure_reentry_confirm_bars': 3,
+        'failure_reentry_confirm_min_atr': 0.18,
+        'failure_reentry_confirm_max_age_min': 90.0,
+        'failure_reentry_block_min': 30.0,
+        'failure_reentry_block_ob_only': True,
+        'failure_reentry_block_min_pos_mult': 0.5,
+        'failure_reentry_clear_win_r': 1.2,
+        'failure_reentry_record_passive_loss': True,
+        'failure_reentry_passive_loss_max_peak_r': 0.4,
+        'failure_reentry_family_filter': 'SWP,OB',
+        'post_win_cooldown_min_profit': 100.0,
+        'post_win_cooldown_min': 60,
+        'post_win_cooldown_families': 'BOS,OB',
+        'post_win_cooldown_same_direction': True,
+        'post_win_cooldown_cross_family': True,
+        'post_win_cooldown_block_entries': False,
+        'post_win_cooldown_max_lot_size': 0.08,
+        'post_win_cooldown_require_continuation': True,
+        'post_win_cooldown_continuation_tf': 15,
+        'post_win_cooldown_continuation_bars': 3,
+        'post_win_cooldown_continuation_min_net_atr': 0.25,
+        'post_win_cooldown_continuation_require_break': False,
+        'post_win_cooldown_continuation_break_buffer_atr': 0.08,
+        'post_win_cooldown_continuation_reverse_body_atr': 0.55,
     })
     assert 'InpEarlyLossCutR=0.35' in content
     assert 'InpMFEFailMinR=0.5' in content
@@ -603,6 +860,33 @@ def test_early_loss_cut_param_in_set():
     assert 'InpNoMFEExitBars=3' in content
     assert 'InpNoMFEMinPeakR=0.15' in content
     assert 'InpNoMFEExitR=-0.2' in content
+    assert 'InpEnableFailureReentryConfirm=true' in content
+    assert 'InpFailureReentryConfirmLosses=2' in content
+    assert 'InpFailureReentryConfirmTF=5' in content
+    assert 'InpFailureReentryConfirmBars=3' in content
+    assert 'InpFailureReentryConfirmMinATR=0.18' in content
+    assert 'InpFailureReentryConfirmMaxAgeMin=90.0' in content
+    assert 'InpFailureReentryBlockMin=30.0' in content
+    assert 'InpFailureReentryBlockOBOnly=true' in content
+    assert 'InpFailureReentryBlockMinPosMult=0.5' in content
+    assert 'InpFailureReentryClearWinR=1.2' in content
+    assert 'InpFailureReentryRecordPassiveLoss=true' in content
+    assert 'InpFailureReentryPassiveLossMaxPeakR=0.4' in content
+    assert 'InpFailureReentryFamilyFilter=SWP,OB' in content
+    assert 'InpPostWinCooldownMinProfit=100.0' in content
+    assert 'InpPostWinCooldownMin=60' in content
+    assert 'InpPostWinCooldownFamilies=BOS,OB' in content
+    assert 'InpPostWinCooldownSameDirection=true' in content
+    assert 'InpPostWinCooldownCrossFamily=true' in content
+    assert 'InpPostWinCooldownBlockEntries=false' in content
+    assert 'InpPostWinCooldownMaxLotSize=0.08' in content
+    assert 'InpPostWinCooldownRequireContinuation=true' in content
+    assert 'InpPostWinCooldownContinuationTF=15' in content
+    assert 'InpPostWinCooldownContinuationBars=3' in content
+    assert 'InpPostWinCooldownContinuationMinNetATR=0.25' in content
+    assert 'InpPostWinCooldownContinuationRequireBreak=false' in content
+    assert 'InpPostWinCooldownContinuationBreakBufferATR=0.08' in content
+    assert 'InpPostWinCooldownContinuationReverseBodyATR=0.55' in content
 
 
 def test_failure_reverse_params_in_set():
@@ -653,6 +937,11 @@ def test_direction_override_params_in_set():
         'strong_addon_lot_mult': 0.4,
         'strong_addon_risk_mult': 0.6,
         'strong_addon_min_spread_ratio': 6.0,
+        'strong_addon_use_risk_lot': True,
+        'strong_addon_risk_percent': 5.0,
+        'strong_addon_max_lot_size': 0.8,
+        'strong_addon_families': 'BOS,HTFPB',
+        'strong_addon_directions': 'buy',
     })
     assert 'InpBuyMinStrength=5.0' in content
     assert 'InpSellMinStrength=3.0' in content
@@ -677,6 +966,11 @@ def test_direction_override_params_in_set():
     assert 'InpStrongAddOnLotMult=0.4' in content
     assert 'InpStrongAddOnRiskMult=0.6' in content
     assert 'InpStrongAddOnMinSpreadRatio=6.0' in content
+    assert 'InpStrongAddOnUseRiskLot=true' in content
+    assert 'InpStrongAddOnRiskPercent=5.0' in content
+    assert 'InpStrongAddOnMaxLotSize=0.8' in content
+    assert 'InpStrongAddOnFamilies=BOS,HTFPB' in content
+    assert 'InpStrongAddOnDirections=buy' in content
 
 
 def test_gap_quality_params_in_set():
@@ -743,6 +1037,8 @@ def test_liquidity_sweep_params_in_set():
     assert FLAT_MAP['htf_pullback_zone_atr'] == 'InpHTFPullbackZoneATR'
     assert FLAT_MAP['htf_pullback_offset_atr'] == 'InpHTFPullbackOffsetATR'
     assert FLAT_MAP['htf_pullback_tp_mult'] == 'InpHTFPullbackTPMult'
+    assert FLAT_MAP['htf_pullback_min_day'] == 'InpHTFPullbackMinDay'
+    assert FLAT_MAP['htf_pullback_max_monthly_entries'] == 'InpHTFPullbackMaxMonthlyEntries'
 
     content = strategy_to_set('test', {
         'version': 'test',
@@ -769,6 +1065,8 @@ def test_liquidity_sweep_params_in_set():
         'htf_pullback_zone_atr': 0.4,
         'htf_pullback_offset_atr': 0.15,
         'htf_pullback_tp_mult': 1.3,
+        'htf_pullback_min_day': 10,
+        'htf_pullback_max_monthly_entries': 2,
         'htf_pullback_allow_hours': '12,20,23',
         'htf_pullback_no_hours': '13',
         'htf_pullback_risk_min': 200.0,
@@ -800,6 +1098,8 @@ def test_liquidity_sweep_params_in_set():
     assert 'InpHTFPullbackZoneATR=0.4' in content
     assert 'InpHTFPullbackOffsetATR=0.15' in content
     assert 'InpHTFPullbackTPMult=1.3' in content
+    assert 'InpHTFPullbackMinDay=10' in content
+    assert 'InpHTFPullbackMaxMonthlyEntries=2' in content
     assert 'InpHTFPullbackAllowHours=12,20,23' in content
     assert 'InpHTFPullbackNoHours=13' in content
     assert 'InpHTFPullbackRiskMin=200.0' in content
@@ -838,6 +1138,7 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['runtime_defensive_min_trades'] == 'InpRuntimeDefensiveMinTrades'
     assert FLAT_MAP['runtime_defensive_max_balance'] == 'InpRuntimeDefensiveMaxBalance'
     assert FLAT_MAP['runtime_defensive_pos_mult'] == 'InpRuntimeDefensivePosMult'
+    assert FLAT_MAP['monthly_max_entries'] == 'InpMonthlyMaxEntries'
     assert FLAT_MAP['monthly_defensive_loss_pct'] == 'InpMonthlyDefensiveLossPct'
     assert FLAT_MAP['monthly_defensive_until_profit_pct'] == 'InpMonthlyDefensiveUntilProfitPct'
     assert FLAT_MAP['monthly_defensive_max_month_start_balance'] == 'InpMonthlyDefensiveMaxMonthStartBalance'
@@ -850,7 +1151,11 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['enable_pos_mult'] == 'InpEnablePosMult'
     assert FLAT_MAP['max_pos_mult'] == 'InpMaxPosMult'
     assert FLAT_MAP['max_lot_size'] == 'InpMaxLotSize'
+    assert FLAT_MAP['high_pos_mult_cap_threshold'] == 'InpHighPosMultCapThreshold'
+    assert FLAT_MAP['high_pos_mult_max_lot_size'] == 'InpHighPosMultMaxLotSize'
+    assert FLAT_MAP['high_pos_mult_cap_directions'] == 'InpHighPosMultCapDirections'
     assert FLAT_MAP['sweep_pos_mult'] == 'InpSweepPosMult'
+    assert FLAT_MAP['sweep_h1_aligned_mult'] == 'InpSweepH1AlignedMult'
     assert FLAT_MAP['range_breakout_pos_mult'] == 'InpRangeBreakoutPosMult'
     assert FLAT_MAP['htf_pullback_pos_mult'] == 'InpHTFPullbackPosMult'
     assert FLAT_MAP['sweep_max_lot_size'] == 'InpSweepMaxLotSize'
@@ -859,6 +1164,8 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['loose_sweep_max_active_zones'] == 'InpLooseSweepMaxActiveZones'
     assert FLAT_MAP['range_breakout_max_lot_size'] == 'InpRangeBreakoutMaxLotSize'
     assert FLAT_MAP['htf_pullback_max_lot_size'] == 'InpHTFPullbackMaxLotSize'
+    assert FLAT_MAP['htf_pullback_min_day'] == 'InpHTFPullbackMinDay'
+    assert FLAT_MAP['htf_pullback_max_monthly_entries'] == 'InpHTFPullbackMaxMonthlyEntries'
     assert FLAT_MAP['htf_pullback_allow_hours'] == 'InpHTFPullbackAllowHours'
     assert FLAT_MAP['htf_pullback_no_hours'] == 'InpHTFPullbackNoHours'
     assert FLAT_MAP['htf_pullback_risk_min'] == 'InpHTFPullbackRiskMin'
@@ -879,16 +1186,86 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['sweep_low_balance_threshold'] == 'InpSweepLowBalanceThreshold'
     assert FLAT_MAP['sweep_low_balance_mult'] == 'InpSweepLowBalanceMult'
     assert FLAT_MAP['sweep_monthly_negative_mult'] == 'InpSweepMonthlyNegativeMult'
+    assert FLAT_MAP['sweep_only_monthly_negative'] == 'InpSweepOnlyMonthlyNegative'
     assert FLAT_MAP['sweep_monthly_profit_start_pct'] == 'InpSweepMonthlyProfitStartPct'
     assert FLAT_MAP['sweep_early_bounce_sec_min'] == 'InpSweepEarlyBounceSecMin'
     assert FLAT_MAP['sweep_early_bounce_sec_max'] == 'InpSweepEarlyBounceSecMax'
     assert FLAT_MAP['sweep_early_bounce_mult'] == 'InpSweepEarlyBounceMult'
     assert FLAT_MAP['sweep_early_bounce_hours'] == 'InpSweepEarlyBounceHours'
+    assert FLAT_MAP['sweep_late_bounce_sec_min'] == 'InpSweepLateBounceSecMin'
+    assert FLAT_MAP['sweep_late_bounce_mult'] == 'InpSweepLateBounceMult'
+    assert FLAT_MAP['bad_bounce_min_pct'] == 'InpBadBounceMinPct'
+    assert FLAT_MAP['bad_bounce_max_pct'] == 'InpBadBounceMaxPct'
+    assert FLAT_MAP['bad_bounce_mult'] == 'InpBadBounceMult'
+    assert FLAT_MAP['bad_bounce_signal_types'] == 'InpBadBounceSignalTypes'
+    assert FLAT_MAP['bad_bounce_max_entry_pos_mult'] == 'InpBadBounceMaxEntryPosMult'
+    assert FLAT_MAP['bad_bounce_pos_mult_directions'] == 'InpBadBouncePosMultDirections'
+    assert FLAT_MAP['sweep_high_pos_mult_min'] == 'InpSweepHighPosMultMin'
+    assert FLAT_MAP['sweep_high_pos_mult_mult'] == 'InpSweepHighPosMultMult'
+    assert FLAT_MAP['aligned_no_cont_spread_risk_max'] == 'InpAlignedNoContSpreadRiskMax'
+    assert FLAT_MAP['aligned_no_cont_mult'] == 'InpAlignedNoContMult'
+    assert FLAT_MAP['sell_spread_risk_min'] == 'InpSellSpreadRiskMin'
+    assert FLAT_MAP['sell_spread_risk_max'] == 'InpSellSpreadRiskMax'
+    assert FLAT_MAP['sell_spread_risk_mult'] == 'InpSellSpreadRiskMult'
+    assert FLAT_MAP['sell_spread_risk_until_profit_pct'] == 'InpSellSpreadRiskUntilProfitPct'
+    assert FLAT_MAP['sell_spread_risk_ob_only'] == 'InpSellSpreadRiskOBOnly'
+    assert FLAT_MAP['small_risk_atr_max'] == 'InpSmallRiskATRMax'
+    assert FLAT_MAP['small_risk_atr_mult'] == 'InpSmallRiskATRMult'
+    assert FLAT_MAP['small_risk_atr_entry_count_max'] == 'InpSmallRiskATREntryCountMax'
+    assert FLAT_MAP['small_risk_atr_age_max_bars'] == 'InpSmallRiskATRAgeMaxBars'
+    assert FLAT_MAP['risk_atr_band_bad_max'] == 'InpRiskATRBandBadMax'
+    assert FLAT_MAP['risk_atr_band_bad_spread_risk_max'] == 'InpRiskATRBandBadSpreadRiskMax'
+    assert FLAT_MAP['risk_atr_band_bad_age_min_bars'] == 'InpRiskATRBandBadAgeMinBars'
+    assert FLAT_MAP['risk_atr_band_bad_touch_min'] == 'InpRiskATRBandBadTouchMin'
+    assert FLAT_MAP['risk_atr_band_bad_mult'] == 'InpRiskATRBandBadMult'
+    assert FLAT_MAP['risk_atr_band_bad_require_counter_push'] == 'InpRiskATRBandBadRequireCounterPush'
+    assert FLAT_MAP['risk_atr_band_good_min'] == 'InpRiskATRBandGoodMin'
+    assert FLAT_MAP['risk_atr_band_good_touch_min'] == 'InpRiskATRBandGoodTouchMin'
+    assert FLAT_MAP['risk_atr_band_good_mult'] == 'InpRiskATRBandGoodMult'
+    assert FLAT_MAP['old_high_score_ob_age_min_bars'] == 'InpOldHighScoreOBAgeMinBars'
+    assert FLAT_MAP['old_high_score_ob_score_min'] == 'InpOldHighScoreOBScoreMin'
+    assert FLAT_MAP['old_high_score_ob_mult'] == 'InpOldHighScoreOBMult'
+    assert FLAT_MAP['old_pos_mult_ob_age_min_bars'] == 'InpOldPosMultOBAgeMinBars'
+    assert FLAT_MAP['old_pos_mult_ob_pos_min'] == 'InpOldPosMultOBPosMin'
+    assert FLAT_MAP['old_pos_mult_ob_mult'] == 'InpOldPosMultOBMult'
+    assert FLAT_MAP['deep_confirm_low_spread_confirm_max'] == 'InpDeepConfirmLowSpreadConfirmMax'
+    assert FLAT_MAP['deep_confirm_low_spread_risk_max'] == 'InpDeepConfirmLowSpreadRiskMax'
+    assert FLAT_MAP['deep_confirm_low_spread_mult'] == 'InpDeepConfirmLowSpreadMult'
+    assert FLAT_MAP['buy_cont_no_h1_age_min_bars'] == 'InpBuyContNoH1AgeMinBars'
+    assert FLAT_MAP['buy_cont_no_h1_spread_risk_max'] == 'InpBuyContNoH1SpreadRiskMax'
+    assert FLAT_MAP['buy_cont_no_h1_age_mult'] == 'InpBuyContNoH1AgeMult'
+    assert FLAT_MAP['bos_lock_allow_counter_momentum'] == 'InpBOSLockAllowCounterMomentum'
+    assert FLAT_MAP['bos_lock_counter_momentum_tf'] == 'InpBOSLockCounterMomentumTF'
+    assert FLAT_MAP['bos_lock_counter_momentum_bars'] == 'InpBOSLockCounterMomentumBars'
+    assert FLAT_MAP['bos_lock_counter_momentum_min_atr'] == 'InpBOSLockCounterMomentumMinATR'
+    assert FLAT_MAP['bos_lock_allow_counter_break'] == 'InpBOSLockAllowCounterBreak'
+    assert FLAT_MAP['bos_lock_counter_break_tf'] == 'InpBOSLockCounterBreakTF'
+    assert FLAT_MAP['bos_lock_counter_break_bars'] == 'InpBOSLockCounterBreakBars'
+    assert FLAT_MAP['bos_lock_counter_break_min_atr'] == 'InpBOSLockCounterBreakMinATR'
+    assert FLAT_MAP['bos_lock_counter_break_buffer_atr'] == 'InpBOSLockCounterBreakBufferATR'
+    assert FLAT_MAP['bos_lock_counter_break_ob_only'] == 'InpBOSLockCounterBreakOBOnly'
+    assert FLAT_MAP['bos_lock_allow_counter_ob'] == 'InpBOSLockAllowCounterOB'
+    assert FLAT_MAP['bos_lock_allow_counter_bounce'] == 'InpBOSLockAllowCounterBounce'
+    assert FLAT_MAP['bos_lock_counter_bounce_sec_min'] == 'InpBOSLockCounterBounceSecMin'
+    assert FLAT_MAP['bos_lock_counter_bounce_sec_max'] == 'InpBOSLockCounterBounceSecMax'
     assert FLAT_MAP['sweep_bad_age_min_bars'] == 'InpSweepBadAgeMinBars'
     assert FLAT_MAP['sweep_bad_age_max_bars'] == 'InpSweepBadAgeMaxBars'
     assert FLAT_MAP['sweep_bad_age_mult'] == 'InpSweepBadAgeMult'
     assert FLAT_MAP['ob_pos_mult'] == 'InpOBPosMult'
     assert FLAT_MAP['ob_pos_mult_min_balance'] == 'InpOBPosMultMinBalance'
+    assert FLAT_MAP['ob_min_pos_mult'] == 'InpOBMinPosMult'
+    assert FLAT_MAP['ob_min_pos_mult_directions'] == 'InpOBMinPosMultDirections'
+    assert FLAT_MAP['ob_min_pos_mult_only_monthly_nonnegative'] == 'InpOBMinPosMultOnlyMonthlyNonNegative'
+    assert FLAT_MAP['ob_high_pos_boost_min'] == 'InpOBHighPosBoostMin'
+    assert FLAT_MAP['ob_high_pos_boost_mult'] == 'InpOBHighPosBoostMult'
+    assert FLAT_MAP['ob_high_pos_boost_directions'] == 'InpOBHighPosBoostDirections'
+    assert FLAT_MAP['ob_no_h1_pos_mult'] == 'InpOBNoH1PosMult'
+    assert FLAT_MAP['ob_monthly_warmup_profit_pct'] == 'InpOBMonthlyWarmupProfitPct'
+    assert FLAT_MAP['ob_monthly_warmup_pos_mult'] == 'InpOBMonthlyWarmupPosMult'
+    assert FLAT_MAP['ob_monthly_profit_cap_pct'] == 'InpOBMonthlyProfitCapPct'
+    assert FLAT_MAP['ob_monthly_profit_cap_mult'] == 'InpOBMonthlyProfitCapMult'
+    assert FLAT_MAP['ob_monthly_negative_pos_mult'] == 'InpOBMonthlyNegativePosMult'
+    assert FLAT_MAP['ob_monthly_mult_max_start_balance'] == 'InpOBMonthlyMultMaxStartBalance'
     assert FLAT_MAP['ob_bad_hours'] == 'InpOBBadHours'
     assert FLAT_MAP['ob_bad_hour_mult'] == 'InpOBBadHourMult'
     assert FLAT_MAP['low_balance_ob_bad_hours'] == 'InpLowBalanceOBBadHours'
@@ -995,6 +1372,16 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['large_risk_mult'] == 'InpLargeRiskMult'
     assert FLAT_MAP['shallow_confirm_pos_min'] == 'InpShallowConfirmPosMin'
     assert FLAT_MAP['shallow_confirm_pos_mult'] == 'InpShallowConfirmPosMult'
+    assert FLAT_MAP['shallow_confirm_signal_types'] == 'InpShallowConfirmSignalTypes'
+    assert FLAT_MAP['shallow_confirm_directions'] == 'InpShallowConfirmDirections'
+    assert FLAT_MAP['shallow_confirm_max_entry_pos_mult'] == 'InpShallowConfirmMaxEntryPosMult'
+    assert FLAT_MAP['deep_fast_confirm_pos_max'] == 'InpDeepFastConfirmPosMax'
+    assert FLAT_MAP['deep_fast_confirm_sec_max'] == 'InpDeepFastConfirmSecMax'
+    assert FLAT_MAP['deep_fast_confirm_mult'] == 'InpDeepFastConfirmMult'
+    assert FLAT_MAP['deep_fast_confirm_bounce_min_pct'] == 'InpDeepFastConfirmBounceMinPct'
+    assert FLAT_MAP['deep_fast_confirm_bounce_max_pct'] == 'InpDeepFastConfirmBounceMaxPct'
+    assert FLAT_MAP['deep_fast_confirm_signal_types'] == 'InpDeepFastConfirmSignalTypes'
+    assert FLAT_MAP['deep_fast_confirm_directions'] == 'InpDeepFastConfirmDirections'
     assert FLAT_MAP['bad_cluster_min_balance'] == 'InpBadClusterMinBalance'
     assert FLAT_MAP['bad_cluster_only_monthly_negative'] == 'InpBadClusterOnlyMonthlyNegative'
     assert FLAT_MAP['bad_cluster1_hours'] == 'InpBadCluster1Hours'
@@ -1068,6 +1455,11 @@ def test_execution_and_scan_params_in_set():
     assert FLAT_MAP['strong_addon_lot_mult'] == 'InpStrongAddOnLotMult'
     assert FLAT_MAP['strong_addon_risk_mult'] == 'InpStrongAddOnRiskMult'
     assert FLAT_MAP['strong_addon_min_spread_ratio'] == 'InpStrongAddOnMinSpreadRatio'
+    assert FLAT_MAP['strong_addon_use_risk_lot'] == 'InpStrongAddOnUseRiskLot'
+    assert FLAT_MAP['strong_addon_risk_percent'] == 'InpStrongAddOnRiskPercent'
+    assert FLAT_MAP['strong_addon_max_lot_size'] == 'InpStrongAddOnMaxLotSize'
+    assert FLAT_MAP['strong_addon_families'] == 'InpStrongAddOnFamilies'
+    assert FLAT_MAP['strong_addon_directions'] == 'InpStrongAddOnDirections'
     assert FLAT_MAP['close_retry_cooldown_sec'] == 'InpCloseRetryCooldownSec'
     assert FLAT_MAP['max_entries_per_ob'] == 'InpMaxEntriesPerOB'
     assert FLAT_MAP['ob_reentry_cooldown_min'] == 'InpOBReentryCooldownMin'
@@ -1222,6 +1614,9 @@ def test_context_filter_params_in_set():
         'enable_pos_mult': False,
         'max_pos_mult': 8.0,
         'max_lot_size': 0.08,
+        'high_pos_mult_cap_threshold': 0.0,
+        'high_pos_mult_max_lot_size': 0.0,
+        'high_pos_mult_cap_directions': '',
         'free_run_min_r': 5.0,
         'entry_months': '3',
         'high_balance_no_entry_months': '5',
@@ -1235,10 +1630,18 @@ def test_context_filter_params_in_set():
         'high_risk_hour_mult': 2.0,
         'late_bounce_sec': 30,
         'late_bounce_mult': 0.4,
+        'bad_bounce_min_pct': 0.28,
+        'bad_bounce_max_pct': 0.40,
+        'bad_bounce_mult': 0.0,
+        'bad_bounce_signal_types': 'OB',
+        'bad_bounce_max_entry_pos_mult': 1.9,
+        'bad_bounce_pos_mult_directions': 'BUY',
         'sweep_early_bounce_sec_min': 1,
         'sweep_early_bounce_sec_max': 5,
         'sweep_early_bounce_mult': 0.35,
         'sweep_early_bounce_hours': '0,9,20',
+        'sweep_late_bounce_sec_min': 21,
+        'sweep_late_bounce_mult': 0.4,
         'sweep_context_months': '3',
         'sweep_context_max_day': 2,
         'sweep_context_min_month_start_balance': 100000.0,
@@ -1269,6 +1672,16 @@ def test_context_filter_params_in_set():
         'large_risk_mult': 1.5,
         'shallow_confirm_pos_min': -0.6,
         'shallow_confirm_pos_mult': 0.45,
+        'shallow_confirm_signal_types': 'OB',
+        'shallow_confirm_directions': 'BUY',
+        'shallow_confirm_max_entry_pos_mult': 1.9,
+        'deep_fast_confirm_pos_max': -1.2,
+        'deep_fast_confirm_sec_max': 20,
+        'deep_fast_confirm_mult': 0.0,
+        'deep_fast_confirm_bounce_min_pct': 0.26,
+        'deep_fast_confirm_bounce_max_pct': 0.31,
+        'deep_fast_confirm_signal_types': 'OB',
+        'deep_fast_confirm_directions': 'BUY',
         'enable_htf_net_push_filter': True,
         'htf_net_push_tf': 15,
         'htf_net_push_bars': 4,
@@ -1287,6 +1700,59 @@ def test_context_filter_params_in_set():
         'filter_buy_no_h1_min_pos_mult': 5.0,
         'filter_buy_no_h1_max_pos_mult': 6.5,
         'filter_buy_no_h1_pos_mult': 0.4,
+        'ob_no_h1_pos_mult': 0.0,
+        'aligned_no_cont_spread_risk_max': 0.2,
+        'aligned_no_cont_mult': 0.0,
+        'sell_spread_risk_min': 0.16,
+        'sell_spread_risk_max': 999.0,
+        'sell_spread_risk_mult': 0.3,
+        'sell_spread_risk_until_profit_pct': 2.0,
+        'sell_spread_risk_ob_only': True,
+        'small_risk_atr_max': 0.75,
+        'small_risk_atr_mult': 0.0,
+        'small_risk_atr_entry_count_max': 5,
+        'small_risk_atr_age_max_bars': 160,
+        'risk_atr_band_bad_max': 0.85,
+        'risk_atr_band_bad_spread_risk_max': 0.2,
+        'risk_atr_band_bad_age_min_bars': 20,
+        'risk_atr_band_bad_touch_min': 100,
+        'risk_atr_band_bad_mult': 0.0,
+        'risk_atr_band_bad_require_counter_push': True,
+        'risk_atr_band_good_min': 0.85,
+        'risk_atr_band_good_touch_min': 500,
+        'risk_atr_band_good_mult': 2.0,
+        'old_high_score_ob_age_min_bars': 100,
+        'old_high_score_ob_score_min': 5,
+        'old_high_score_ob_mult': 0.0,
+        'old_pos_mult_ob_age_min_bars': 120,
+        'old_pos_mult_ob_pos_min': 0.5,
+        'old_pos_mult_ob_mult': 0.0,
+        'deep_confirm_low_spread_confirm_max': -0.7,
+        'deep_confirm_low_spread_risk_max': 0.16,
+        'deep_confirm_low_spread_mult': 0.0,
+        'ob_min_pos_mult': 0.3,
+        'ob_min_pos_mult_directions': 'BUY',
+        'ob_min_pos_mult_only_monthly_nonnegative': True,
+        'ob_high_pos_boost_min': 1.0,
+        'ob_high_pos_boost_mult': 1.25,
+        'ob_high_pos_boost_directions': 'BUY',
+        'buy_cont_no_h1_age_min_bars': 100,
+        'buy_cont_no_h1_spread_risk_max': 0.36,
+        'buy_cont_no_h1_age_mult': 0.0,
+        'bos_lock_allow_counter_momentum': True,
+        'bos_lock_counter_momentum_tf': 5,
+        'bos_lock_counter_momentum_bars': 4,
+        'bos_lock_counter_momentum_min_atr': 0.55,
+        'bos_lock_allow_counter_break': True,
+        'bos_lock_counter_break_tf': 5,
+        'bos_lock_counter_break_bars': 3,
+        'bos_lock_counter_break_min_atr': 0.35,
+        'bos_lock_counter_break_buffer_atr': 0.03,
+        'bos_lock_counter_break_ob_only': True,
+        'bos_lock_allow_counter_ob': True,
+        'bos_lock_allow_counter_bounce': True,
+        'bos_lock_counter_bounce_sec_min': 12,
+        'bos_lock_counter_bounce_sec_max': 18,
         'ob_scan_depth': 200,
         'magic_number': 202605,
         'enable_entry_engine': False,
@@ -1299,6 +1765,9 @@ def test_context_filter_params_in_set():
     assert 'InpEnablePosMult=false' in content
     assert 'InpMaxPosMult=8.0' in content
     assert 'InpMaxLotSize=0.08' in content
+    assert 'InpHighPosMultCapThreshold=0.0' in content
+    assert 'InpHighPosMultMaxLotSize=0.0' in content
+    assert 'InpHighPosMultCapDirections=' in content
     assert 'InpFreeRunMinR=5.0' in content
     assert 'InpEntryMonths=3' in content
     assert 'InpHighBalanceNoEntryMonths=5' in content
@@ -1312,10 +1781,28 @@ def test_context_filter_params_in_set():
     assert 'InpHighRiskHourMult=2.0' in content
     assert 'InpLateBounceSec=30' in content
     assert 'InpLateBounceMult=0.4' in content
+    assert 'InpBadBounceMinPct=0.28' in content
+    assert 'InpBadBounceMaxPct=0.4' in content
+    assert 'InpBadBounceMult=0.0' in content
+    assert 'InpBadBounceSignalTypes=OB' in content
+    assert 'InpBadBounceMaxEntryPosMult=1.9' in content
+    assert 'InpBadBouncePosMultDirections=BUY' in content
+    assert 'InpShallowConfirmSignalTypes=OB' in content
+    assert 'InpShallowConfirmDirections=BUY' in content
+    assert 'InpShallowConfirmMaxEntryPosMult=1.9' in content
+    assert 'InpDeepFastConfirmPosMax=-1.2' in content
+    assert 'InpDeepFastConfirmSecMax=20' in content
+    assert 'InpDeepFastConfirmMult=0.0' in content
+    assert 'InpDeepFastConfirmBounceMinPct=0.26' in content
+    assert 'InpDeepFastConfirmBounceMaxPct=0.31' in content
+    assert 'InpDeepFastConfirmSignalTypes=OB' in content
+    assert 'InpDeepFastConfirmDirections=BUY' in content
     assert 'InpSweepEarlyBounceSecMin=1' in content
     assert 'InpSweepEarlyBounceSecMax=5' in content
     assert 'InpSweepEarlyBounceMult=0.35' in content
     assert 'InpSweepEarlyBounceHours=0,9,20' in content
+    assert 'InpSweepLateBounceSecMin=21' in content
+    assert 'InpSweepLateBounceMult=0.4' in content
     assert 'InpSweepContextMonths=3' in content
     assert 'InpSweepContextMaxDay=2' in content
     assert 'InpSweepContextMinMonthStartBalance=100000.0' in content
@@ -1323,6 +1810,39 @@ def test_context_filter_params_in_set():
     assert 'InpSweepBadAgeMinBars=20' in content
     assert 'InpSweepBadAgeMaxBars=40' in content
     assert 'InpSweepBadAgeMult=0.35' in content
+    assert 'InpRiskATRBandBadRequireCounterPush=true' in content
+    assert 'InpOldHighScoreOBAgeMinBars=100' in content
+    assert 'InpOldHighScoreOBScoreMin=5' in content
+    assert 'InpOldHighScoreOBMult=0.0' in content
+    assert 'InpOldPosMultOBAgeMinBars=120' in content
+    assert 'InpOldPosMultOBPosMin=0.5' in content
+    assert 'InpOldPosMultOBMult=0.0' in content
+    assert 'InpOBMinPosMult=0.3' in content
+    assert 'InpOBMinPosMultDirections=BUY' in content
+    assert 'InpOBMinPosMultOnlyMonthlyNonNegative=true' in content
+    assert 'InpOBHighPosBoostMin=1.0' in content
+    assert 'InpOBHighPosBoostMult=1.25' in content
+    assert 'InpOBHighPosBoostDirections=BUY' in content
+    assert 'InpDeepConfirmLowSpreadConfirmMax=-0.7' in content
+    assert 'InpDeepConfirmLowSpreadRiskMax=0.16' in content
+    assert 'InpDeepConfirmLowSpreadMult=0.0' in content
+    assert 'InpBuyContNoH1AgeMinBars=100' in content
+    assert 'InpBuyContNoH1SpreadRiskMax=0.36' in content
+    assert 'InpBuyContNoH1AgeMult=0.0' in content
+    assert 'InpBOSLockAllowCounterMomentum=true' in content
+    assert 'InpBOSLockCounterMomentumTF=5' in content
+    assert 'InpBOSLockCounterMomentumBars=4' in content
+    assert 'InpBOSLockCounterMomentumMinATR=0.55' in content
+    assert 'InpBOSLockAllowCounterBreak=true' in content
+    assert 'InpBOSLockCounterBreakTF=5' in content
+    assert 'InpBOSLockCounterBreakBars=3' in content
+    assert 'InpBOSLockCounterBreakMinATR=0.35' in content
+    assert 'InpBOSLockCounterBreakBufferATR=0.03' in content
+    assert 'InpBOSLockCounterBreakOBOnly=true' in content
+    assert 'InpBOSLockAllowCounterOB=true' in content
+    assert 'InpBOSLockAllowCounterBounce=true' in content
+    assert 'InpBOSLockCounterBounceSecMin=12' in content
+    assert 'InpBOSLockCounterBounceSecMax=18' in content
     assert 'InpLowBalanceOBBadHours=7,13,14' in content
     assert 'InpLowBalanceOBBadMonths=11' in content
     assert 'InpLowBalanceOBBadMaxMonthStartBalance=2500.0' in content
@@ -1364,6 +1884,26 @@ def test_context_filter_params_in_set():
     assert 'InpFilterBuyNoH1MinPosMult=5.0' in content
     assert 'InpFilterBuyNoH1MaxPosMult=6.5' in content
     assert 'InpFilterBuyNoH1PosMult=0.4' in content
+    assert 'InpOBNoH1PosMult=0.0' in content
+    assert 'InpAlignedNoContSpreadRiskMax=0.2' in content
+    assert 'InpAlignedNoContMult=0.0' in content
+    assert 'InpSellSpreadRiskMin=0.16' in content
+    assert 'InpSellSpreadRiskMax=999.0' in content
+    assert 'InpSellSpreadRiskMult=0.3' in content
+    assert 'InpSellSpreadRiskUntilProfitPct=2.0' in content
+    assert 'InpSellSpreadRiskOBOnly=true' in content
+    assert 'InpSmallRiskATRMax=0.75' in content
+    assert 'InpSmallRiskATRMult=0.0' in content
+    assert 'InpSmallRiskATREntryCountMax=5' in content
+    assert 'InpSmallRiskATRAgeMaxBars=160' in content
+    assert 'InpRiskATRBandBadMax=0.85' in content
+    assert 'InpRiskATRBandBadSpreadRiskMax=0.2' in content
+    assert 'InpRiskATRBandBadAgeMinBars=20' in content
+    assert 'InpRiskATRBandBadTouchMin=100' in content
+    assert 'InpRiskATRBandBadMult=0.0' in content
+    assert 'InpRiskATRBandGoodMin=0.85' in content
+    assert 'InpRiskATRBandGoodTouchMin=500' in content
+    assert 'InpRiskATRBandGoodMult=2.0' in content
     assert 'InpOBScanDepth=200' in content
     assert 'InpMagicNumber=202605' in content
     assert 'InpEnableEntryEngine=false' in content
@@ -1407,6 +1947,7 @@ def test_v98a_strategy_set():
         'bounce_pct': 0.60,
         'entry_depth_pct': 0.67,
         'entry_depth_filter': False,
+        'entry_depth_signal_types': 'OB,BOS',
         'deep_entry_boost': 2.0,
         'entry_confirm_bars': 3,
         'min_score': 4,
@@ -1416,6 +1957,7 @@ def test_v98a_strategy_set():
     assert 'InpBouncePct=0.6' in content
     assert 'InpEntryDepthPct=0.67' in content
     assert 'InpEntryDepthFilter=false' in content
+    assert 'InpEntryDepthSignalTypes=OB,BOS' in content
     assert 'InpDeepEntryBoost=2.0' in content
     assert 'InpEntryConfirmBars=3' in content
     assert 'InpMinScore=4' in content
@@ -1437,9 +1979,69 @@ def test_htf_target_and_momentum_params_in_set():
     assert FLAT_MAP['htf_dtp_trigger_r'] == 'InpHTFDTPTriggerR'
     assert FLAT_MAP['htf_dtp_retrace'] == 'InpHTFDTPRetrace'
     assert FLAT_MAP['htf_dtp_post_partial_retrace'] == 'InpHTFDTPPostPartialRetrace'
+    assert FLAT_MAP['early_bounce_sec_max'] == 'InpEarlyBounceSecMax'
+    assert FLAT_MAP['early_bounce_mult'] == 'InpEarlyBounceMult'
     assert FLAT_MAP['enable_momentum_regime'] == 'InpEnableMomentumRegime'
     assert FLAT_MAP['weak_exit_min_r'] == 'InpWeakExitMinR'
+    assert FLAT_MAP['weak_exit_family_filter'] == 'InpWeakExitFamilyFilter'
+    assert FLAT_MAP['weak_exit_family_min_r'] == 'InpWeakExitFamilyMinR'
+    assert FLAT_MAP['weak_exit_require_reverse_continuation'] == 'InpWeakExitRequireReverseContinuation'
+    assert FLAT_MAP['weak_exit_hold_lock_r'] == 'InpWeakExitHoldLockR'
+    assert FLAT_MAP['weak_exit_low_balance_threshold'] == 'InpWeakExitLowBalanceThreshold'
+    assert FLAT_MAP['weak_exit_low_balance_force_exit_r'] == 'InpWeakExitLowBalanceForceExitR'
+    assert FLAT_MAP['weak_exit_low_balance_hold_lock_r'] == 'InpWeakExitLowBalanceHoldLockR'
     assert FLAT_MAP['strong_dtp_retrace_mult'] == 'InpStrongDTPRetraceMult'
+    assert FLAT_MAP['dtp_hold_on_continuation'] == 'InpDTPHoldOnContinuation'
+    assert FLAT_MAP['dtp_hold_tf1'] == 'InpDTPHoldTF1'
+    assert FLAT_MAP['dtp_hold_tf2'] == 'InpDTPHoldTF2'
+    assert FLAT_MAP['dtp_hold_lookback_bars'] == 'InpDTPHoldLookbackBars'
+    assert FLAT_MAP['dtp_hold_min_net_atr'] == 'InpDTPHoldMinNetATR'
+    assert FLAT_MAP['dtp_hold_reverse_body_atr'] == 'InpDTPHoldReverseBodyATR'
+    assert FLAT_MAP['dtp_hold_break_buffer_atr'] == 'InpDTPHoldBreakBufferATR'
+    assert FLAT_MAP['dtp_hold_require_htf_aligned'] == 'InpDTPHoldRequireHTFAligned'
+    assert FLAT_MAP['dtp_hold_min_bounce_sec'] == 'InpDTPHoldMinBounceSec'
+    assert FLAT_MAP['dtp_hold_min_bounce_directions'] == 'InpDTPHoldMinBounceDirections'
+    assert FLAT_MAP['dtp_hold_max_confirm_pos'] == 'InpDTPHoldMaxConfirmPos'
+    assert FLAT_MAP['dtp_hold_confirm_pos_directions'] == 'InpDTPHoldConfirmPosDirections'
+    assert FLAT_MAP['dtp_hold_min_entry_pos_mult'] == 'InpDTPHoldMinEntryPosMult'
+    assert FLAT_MAP['dtp_hold_min_entry_pos_mult_directions'] == 'InpDTPHoldMinEntryPosMultDirections'
+    assert FLAT_MAP['dtp_exit_require_reverse_continuation'] == 'InpDTPExitRequireReverseContinuation'
+    assert FLAT_MAP['dtp_exit_require_momentum_weakness'] == 'InpDTPExitRequireMomentumWeakness'
+    assert FLAT_MAP['dtp_strict_exit_families'] == 'InpDTPStrictExitFamilies'
+    assert FLAT_MAP['dtp_strict_require_htf_aligned'] == 'InpDTPStrictRequireHTFAligned'
+    assert FLAT_MAP['dtp_strict_htf_tf'] == 'InpDTPStrictHTFTF'
+    assert FLAT_MAP['dtp_strict_htf_bars'] == 'InpDTPStrictHTFBars'
+    assert FLAT_MAP['dtp_strict_htf_min_atr'] == 'InpDTPStrictHTFMinATR'
+    assert FLAT_MAP['conditional_ob_trend_release'] == 'InpConditionalOBTrendRelease'
+    assert FLAT_MAP['conditional_ob_trend_release_families'] == 'InpConditionalOBTrendReleaseFamilies'
+    assert FLAT_MAP['conditional_ob_trend_release_drop_tp'] == 'InpConditionalOBTrendReleaseDropTP'
+    assert FLAT_MAP['conditional_ob_trend_release_be_lock_r'] == 'InpConditionalOBTrendReleaseBELockR'
+    assert FLAT_MAP['conditional_ob_trend_release_min_entry_pos_mult'] == 'InpConditionalOBTrendReleaseMinEntryPosMult'
+    assert FLAT_MAP['conditional_ob_trend_release_pos_mult_directions'] == 'InpConditionalOBTrendReleasePosMultDirections'
+    assert FLAT_MAP['conditional_ob_trend_release_tf1'] == 'InpConditionalOBTrendReleaseTF1'
+    assert FLAT_MAP['conditional_ob_trend_release_tf2'] == 'InpConditionalOBTrendReleaseTF2'
+    assert FLAT_MAP['conditional_ob_trend_release_lookback_bars'] == 'InpConditionalOBTrendReleaseLookbackBars'
+    assert FLAT_MAP['conditional_ob_trend_release_min_net_atr'] == 'InpConditionalOBTrendReleaseMinNetATR'
+    assert FLAT_MAP['conditional_ob_trend_release_reverse_body_atr'] == 'InpConditionalOBTrendReleaseReverseBodyATR'
+    assert FLAT_MAP['conditional_ob_trend_release_break_buffer_atr'] == 'InpConditionalOBTrendReleaseBreakBufferATR'
+    assert FLAT_MAP['struct_mom_require_full_reverse_exit'] == 'InpStructMomRequireFullReverseExit'
+    assert FLAT_MAP['struct_mom_full_reverse_min_r'] == 'InpStructMomFullReverseMinR'
+    assert FLAT_MAP['struct_profit_lock_trigger_r'] == 'InpStructProfitLockTriggerR'
+    assert FLAT_MAP['struct_profit_lock_r'] == 'InpStructProfitLockR'
+    assert FLAT_MAP['struct_profit_trail_trigger_r'] == 'InpStructProfitTrailTriggerR'
+    assert FLAT_MAP['struct_profit_trail_lock_mult'] == 'InpStructProfitTrailLockMult'
+    assert FLAT_MAP['struct_profit_lock_require_reverse_signal'] == 'InpStructProfitLockRequireReverseSignal'
+    assert FLAT_MAP['structure_sl_require_htf_aligned'] == 'InpStructureSLRequireHTFAligned'
+    assert FLAT_MAP['structure_sl_htf_tf'] == 'InpStructureSLHTFTF'
+    assert FLAT_MAP['structure_sl_htf_bars'] == 'InpStructureSLHTFBars'
+    assert FLAT_MAP['structure_sl_htf_min_atr'] == 'InpStructureSLHTFMinATR'
+    assert FLAT_MAP['structure_sl_require_strong_break'] == 'InpStructureSLRequireStrongBreak'
+    assert FLAT_MAP['structure_sl_strong_break_tf1'] == 'InpStructureSLStrongBreakTF1'
+    assert FLAT_MAP['structure_sl_strong_break_tf2'] == 'InpStructureSLStrongBreakTF2'
+    assert FLAT_MAP['structure_sl_strong_break_lookback'] == 'InpStructureSLStrongBreakLookback'
+    assert FLAT_MAP['structure_sl_strong_break_max_age'] == 'InpStructureSLStrongBreakMaxAge'
+    assert FLAT_MAP['structure_sl_strong_break_pivot'] == 'InpStructureSLStrongBreakPivot'
+    assert FLAT_MAP['structure_sl_strong_break_buffer_atr'] == 'InpStructureSLStrongBreakBufferATR'
 
     content = strategy_to_set('test', {
         'version': 'test',
@@ -1458,8 +2060,17 @@ def test_htf_target_and_momentum_params_in_set():
         'htf_dtp_trigger_r': 3.0,
         'htf_dtp_retrace': 0.35,
         'htf_dtp_post_partial_retrace': 0.45,
+        'early_bounce_sec_max': 10,
+        'early_bounce_mult': 0.0,
         'enable_momentum_regime': True,
         'weak_exit_min_r': 1.2,
+        'weak_exit_family_filter': 'SWP',
+        'weak_exit_family_min_r': 1.5,
+        'weak_exit_require_reverse_continuation': True,
+        'weak_exit_hold_lock_r': 0.8,
+        'weak_exit_low_balance_threshold': 600.0,
+        'weak_exit_low_balance_force_exit_r': 1.2,
+        'weak_exit_low_balance_hold_lock_r': 1.0,
         'weak_body_shrink_pct': 0.8,
         'weak_wick_body_ratio': 2.0,
         'strong_momentum_bars': 4,
@@ -1467,6 +2078,57 @@ def test_htf_target_and_momentum_params_in_set():
         'strong_weak_reverse_body_pct': 25.0,
         'strong_max_pullback_pct': 35.0,
         'strong_dtp_retrace_mult': 1.5,
+        'dtp_hold_on_continuation': True,
+        'dtp_hold_tf1': 1,
+        'dtp_hold_tf2': 5,
+        'dtp_hold_lookback_bars': 4,
+        'dtp_hold_min_net_atr': 0.25,
+        'dtp_hold_reverse_body_atr': 0.5,
+        'dtp_hold_break_buffer_atr': 0.08,
+        'dtp_hold_require_htf_aligned': True,
+        'dtp_hold_min_bounce_sec': 12,
+        'dtp_hold_min_bounce_directions': 'BUY',
+        'dtp_hold_max_confirm_pos': -0.45,
+        'dtp_hold_confirm_pos_directions': 'BUY',
+        'dtp_hold_min_entry_pos_mult': 2.0,
+        'dtp_hold_min_entry_pos_mult_directions': 'BUY',
+        'dtp_exit_require_reverse_continuation': True,
+        'dtp_exit_require_momentum_weakness': True,
+        'dtp_strict_exit_families': 'BOS,MBOS',
+        'dtp_strict_require_htf_aligned': True,
+        'dtp_strict_htf_tf': 60,
+        'dtp_strict_htf_bars': 4,
+        'dtp_strict_htf_min_atr': 0.4,
+        'conditional_ob_trend_release': True,
+        'conditional_ob_trend_release_families': 'OB',
+        'conditional_ob_trend_release_drop_tp': True,
+        'conditional_ob_trend_release_be_lock_r': 0.0,
+        'conditional_ob_trend_release_min_entry_pos_mult': 2.0,
+        'conditional_ob_trend_release_pos_mult_directions': 'BUY',
+        'conditional_ob_trend_release_tf1': 1,
+        'conditional_ob_trend_release_tf2': 5,
+        'conditional_ob_trend_release_lookback_bars': 3,
+        'conditional_ob_trend_release_min_net_atr': 0.2,
+        'conditional_ob_trend_release_reverse_body_atr': 0.45,
+        'conditional_ob_trend_release_break_buffer_atr': 0.05,
+        'struct_mom_require_full_reverse_exit': True,
+        'struct_mom_full_reverse_min_r': 0.7,
+        'struct_profit_lock_trigger_r': 1.0,
+        'struct_profit_lock_r': 0.4,
+        'struct_profit_trail_trigger_r': 2.0,
+        'struct_profit_trail_lock_mult': 0.5,
+        'struct_profit_lock_require_reverse_signal': True,
+        'structure_sl_require_htf_aligned': True,
+        'structure_sl_htf_tf': 15,
+        'structure_sl_htf_bars': 5,
+        'structure_sl_htf_min_atr': 0.45,
+        'structure_sl_require_strong_break': True,
+        'structure_sl_strong_break_tf1': 60,
+        'structure_sl_strong_break_tf2': 240,
+        'structure_sl_strong_break_lookback': 96,
+        'structure_sl_strong_break_max_age': 144,
+        'structure_sl_strong_break_pivot': 3,
+        'structure_sl_strong_break_buffer_atr': 0.05,
     })
     assert 'InpEnableHTFTarget=true' in content
     assert 'InpHTFTargetTF=15' in content
@@ -1483,13 +2145,367 @@ def test_htf_target_and_momentum_params_in_set():
     assert 'InpHTFDTPTriggerR=3.0' in content
     assert 'InpHTFDTPRetrace=0.35' in content
     assert 'InpHTFDTPPostPartialRetrace=0.45' in content
+    assert 'InpEarlyBounceSecMax=10' in content
+    assert 'InpEarlyBounceMult=0.0' in content
     assert 'InpEnableMomentumRegime=true' in content
     assert 'InpWeakExitMinR=1.2' in content
+    assert 'InpWeakExitFamilyFilter=SWP' in content
+    assert 'InpWeakExitFamilyMinR=1.5' in content
+    assert 'InpWeakExitRequireReverseContinuation=true' in content
+    assert 'InpWeakExitHoldLockR=0.8' in content
+    assert 'InpWeakExitLowBalanceThreshold=600.0' in content
+    assert 'InpWeakExitLowBalanceForceExitR=1.2' in content
+    assert 'InpWeakExitLowBalanceHoldLockR=1.0' in content
     assert 'InpWeakBodyShrinkPct=0.8' in content
     assert 'InpStrongDTPRetraceMult=1.5' in content
+    assert 'InpDTPHoldOnContinuation=true' in content
+    assert 'InpDTPHoldTF1=1' in content
+    assert 'InpDTPHoldTF2=5' in content
+    assert 'InpDTPHoldLookbackBars=4' in content
+    assert 'InpDTPHoldMinNetATR=0.25' in content
+    assert 'InpDTPHoldReverseBodyATR=0.5' in content
+    assert 'InpDTPHoldBreakBufferATR=0.08' in content
+    assert 'InpDTPHoldRequireHTFAligned=true' in content
+    assert 'InpDTPHoldMinBounceSec=12' in content
+    assert 'InpDTPHoldMinBounceDirections=BUY' in content
+    assert 'InpDTPHoldMaxConfirmPos=-0.45' in content
+    assert 'InpDTPHoldConfirmPosDirections=BUY' in content
+    assert 'InpDTPHoldMinEntryPosMult=2.0' in content
+    assert 'InpDTPHoldMinEntryPosMultDirections=BUY' in content
+    assert 'InpDTPExitRequireReverseContinuation=true' in content
+    assert 'InpDTPExitRequireMomentumWeakness=true' in content
+    assert 'InpDTPStrictExitFamilies=BOS,MBOS' in content
+    assert 'InpDTPStrictRequireHTFAligned=true' in content
+    assert 'InpDTPStrictHTFTF=60' in content
+    assert 'InpDTPStrictHTFBars=4' in content
+    assert 'InpDTPStrictHTFMinATR=0.4' in content
+    assert 'InpConditionalOBTrendRelease=true' in content
+    assert 'InpConditionalOBTrendReleaseFamilies=OB' in content
+    assert 'InpConditionalOBTrendReleaseDropTP=true' in content
+    assert 'InpConditionalOBTrendReleaseBELockR=0.0' in content
+    assert 'InpConditionalOBTrendReleaseMinEntryPosMult=2.0' in content
+    assert 'InpConditionalOBTrendReleasePosMultDirections=BUY' in content
+    assert 'InpConditionalOBTrendReleaseTF1=1' in content
+    assert 'InpConditionalOBTrendReleaseTF2=5' in content
+    assert 'InpConditionalOBTrendReleaseLookbackBars=3' in content
+    assert 'InpConditionalOBTrendReleaseMinNetATR=0.2' in content
+    assert 'InpConditionalOBTrendReleaseReverseBodyATR=0.45' in content
+    assert 'InpConditionalOBTrendReleaseBreakBufferATR=0.05' in content
+    assert 'InpStructMomRequireFullReverseExit=true' in content
+    assert 'InpStructMomFullReverseMinR=0.7' in content
+    assert 'InpStructProfitLockTriggerR=1.0' in content
+    assert 'InpStructProfitLockR=0.4' in content
+    assert 'InpStructProfitTrailTriggerR=2.0' in content
+    assert 'InpStructProfitTrailLockMult=0.5' in content
+    assert 'InpStructProfitLockRequireReverseSignal=true' in content
+    assert 'InpStructureSLRequireHTFAligned=true' in content
+    assert 'InpStructureSLHTFTF=15' in content
+    assert 'InpStructureSLHTFBars=5' in content
+    assert 'InpStructureSLHTFMinATR=0.45' in content
+    assert 'InpStructureSLRequireStrongBreak=true' in content
+    assert 'InpStructureSLStrongBreakTF1=60' in content
+    assert 'InpStructureSLStrongBreakTF2=240' in content
+    assert 'InpStructureSLStrongBreakLookback=96' in content
+    assert 'InpStructureSLStrongBreakMaxAge=144' in content
+    assert 'InpStructureSLStrongBreakPivot=3' in content
+    assert 'InpStructureSLStrongBreakBufferATR=0.05' in content
 
 
 # ── write_set_file ───────────────────────────────────────────────────
+
+def test_structure_momentum_hold_params_in_set():
+    assert FLAT_MAP['bos_retest_entry'] == 'InpBOSRetestEntry'
+    assert FLAT_MAP['bos_lock_bounce_entries'] == 'InpBOSLockBounceEntries'
+    assert FLAT_MAP['bos_retest_direct_entry'] == 'InpBOSRetestDirectEntry'
+    assert FLAT_MAP['bos_retest_tf'] == 'InpBOSRetestTF'
+    assert FLAT_MAP['bos_retest_tf2'] == 'InpBOSRetestTF2'
+    assert FLAT_MAP['bos_retest_lookback_bars'] == 'InpBOSRetestLookbackBars'
+    assert FLAT_MAP['bos_retest_pivot_bars'] == 'InpBOSRetestPivotBars'
+    assert FLAT_MAP['bos_retest_break_buffer_atr'] == 'InpBOSRetestBreakBufferATR'
+    assert FLAT_MAP['bos_retest_min_extension_atr'] == 'InpBOSRetestMinExtensionATR'
+    assert FLAT_MAP['bos_retest_sl_buffer'] == 'InpBOSRetestSLBuffer'
+    assert FLAT_MAP['bos_retest_tolerance'] == 'InpBOSRetestTolerance'
+    assert FLAT_MAP['bos_retest_max_bars'] == 'InpBOSRetestMaxBars'
+    assert FLAT_MAP['bos_retest_weight'] == 'InpBOSRetestWeight'
+    assert FLAT_MAP['bos_retest_max_lot_size'] == 'InpBOSRetestMaxLotSize'
+    assert FLAT_MAP['htf_bos_retest_entry'] == 'InpHTFBOSRetestEntry'
+    assert FLAT_MAP['htf_bos_retest_direct_entry'] == 'InpHTFBOSRetestDirectEntry'
+    assert FLAT_MAP['htf_bos_retest_tf'] == 'InpHTFBOSRetestTF'
+    assert FLAT_MAP['htf_bos_retest_tf2'] == 'InpHTFBOSRetestTF2'
+    assert FLAT_MAP['htf_bos_retest_lookback_bars'] == 'InpHTFBOSRetestLookbackBars'
+    assert FLAT_MAP['htf_bos_retest_pivot_bars'] == 'InpHTFBOSRetestPivotBars'
+    assert FLAT_MAP['htf_bos_retest_break_buffer_atr'] == 'InpHTFBOSRetestBreakBufferATR'
+    assert FLAT_MAP['htf_bos_retest_min_extension_atr'] == 'InpHTFBOSRetestMinExtensionATR'
+    assert FLAT_MAP['htf_bos_retest_sl_buffer'] == 'InpHTFBOSRetestSLBuffer'
+    assert FLAT_MAP['htf_bos_retest_tolerance'] == 'InpHTFBOSRetestTolerance'
+    assert FLAT_MAP['htf_bos_retest_max_bars'] == 'InpHTFBOSRetestMaxBars'
+    assert FLAT_MAP['htf_bos_retest_weight'] == 'InpHTFBOSRetestWeight'
+    assert FLAT_MAP['htf_bos_retest_max_lot_size'] == 'InpHTFBOSRetestMaxLotSize'
+    assert FLAT_MAP['htf_bos_require_ob_confluence'] == 'InpHTFBOSRequireOBConfluence'
+    assert FLAT_MAP['htf_bos_ob_lookback_bars'] == 'InpHTFBOSOBLookbackBars'
+    assert FLAT_MAP['htf_bos_ob_tolerance_atr'] == 'InpHTFBOSOBToleranceATR'
+    assert FLAT_MAP['htf_bos_ob_min_impulse_atr'] == 'InpHTFBOSOBMinImpulseATR'
+    assert FLAT_MAP['enable_structure_momentum_hold'] == 'InpEnableStructureMomentumHold'
+    assert FLAT_MAP['structure_hold_families'] == 'InpStructureHoldFamilies'
+    assert FLAT_MAP['struct_skip_mfe_exits'] == 'InpStructSkipMFEExits'
+    assert FLAT_MAP['struct_mom_lookback_bars'] == 'InpStructMomLookbackBars'
+    assert FLAT_MAP['struct_mom_min_net_atr'] == 'InpStructMomMinNetATR'
+    assert FLAT_MAP['struct_mom_strong_rev_body_atr'] == 'InpStructMomStrongRevBodyATR'
+    assert FLAT_MAP['struct_mom_break_buffer_atr'] == 'InpStructMomBreakBufferATR'
+    assert FLAT_MAP['structure_hold_require_quality'] == 'InpStructureHoldRequireQuality'
+    assert FLAT_MAP['structure_hold_quality_tf'] == 'InpStructureHoldQualityTF'
+    assert FLAT_MAP['structure_hold_quality_bars'] == 'InpStructureHoldQualityBars'
+    assert FLAT_MAP['structure_hold_quality_min_atr'] == 'InpStructureHoldQualityMinATR'
+    assert FLAT_MAP['structure_hold_quality_require_strong_break'] == 'InpStructureHoldQualityRequireStrongBreak'
+    assert FLAT_MAP['structure_hold_dynamic_release'] == 'InpStructureHoldDynamicRelease'
+    assert FLAT_MAP['structure_hold_release_min_r'] == 'InpStructureHoldReleaseMinR'
+    assert FLAT_MAP['structure_hold_release_require_reverse_continuation'] == 'InpStructureHoldReleaseRequireReverseContinuation'
+
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'bos_retest_entry': True,
+        'bos_lock_bounce_entries': False,
+        'bos_retest_direct_entry': True,
+        'bos_retest_tf': 60,
+        'bos_retest_tf2': 240,
+        'bos_retest_lookback_bars': 96,
+        'bos_retest_pivot_bars': 3,
+        'bos_retest_break_buffer_atr': 0.05,
+        'bos_retest_min_extension_atr': 0.45,
+        'bos_retest_sl_buffer': 0.7,
+        'bos_retest_tolerance': 0.35,
+        'bos_retest_max_bars': 1440,
+        'bos_retest_weight': 2.5,
+        'bos_retest_max_lot_size': 0.6,
+        'htf_bos_retest_entry': True,
+        'htf_bos_retest_direct_entry': False,
+        'htf_bos_retest_tf': 240,
+        'htf_bos_retest_tf2': 0,
+        'htf_bos_retest_lookback_bars': 120,
+        'htf_bos_retest_pivot_bars': 2,
+        'htf_bos_retest_break_buffer_atr': 0.08,
+        'htf_bos_retest_min_extension_atr': 0.8,
+        'htf_bos_retest_sl_buffer': 0.7,
+        'htf_bos_retest_tolerance': 0.22,
+        'htf_bos_retest_max_bars': 1440,
+        'htf_bos_retest_weight': 8.0,
+        'htf_bos_retest_max_lot_size': 0.8,
+        'htf_bos_require_ob_confluence': True,
+        'htf_bos_ob_lookback_bars': 36,
+        'htf_bos_ob_tolerance_atr': 0.45,
+        'htf_bos_ob_min_impulse_atr': 0.75,
+        'enable_structure_momentum_hold': True,
+        'structure_hold_families': 'BOS,HTFPB',
+        'struct_skip_mfe_exits': True,
+        'struct_mom_lookback_bars': 6,
+        'struct_mom_min_net_atr': 0.3,
+        'struct_mom_strong_rev_body_atr': 0.55,
+        'struct_mom_break_buffer_atr': 0.1,
+        'structure_hold_require_quality': True,
+        'structure_hold_quality_tf': 5,
+        'structure_hold_quality_bars': 3,
+        'structure_hold_quality_min_atr': 0.35,
+        'structure_hold_quality_require_strong_break': True,
+        'structure_hold_dynamic_release': True,
+        'structure_hold_release_min_r': 0.4,
+        'structure_hold_release_require_reverse_continuation': True,
+    })
+    assert 'InpBOSRetestEntry=true' in content
+    assert 'InpBOSLockBounceEntries=false' in content
+    assert 'InpBOSRetestDirectEntry=true' in content
+    assert 'InpBOSRetestTF=60' in content
+    assert 'InpBOSRetestTF2=240' in content
+    assert 'InpBOSRetestLookbackBars=96' in content
+    assert 'InpBOSRetestPivotBars=3' in content
+    assert 'InpBOSRetestBreakBufferATR=0.05' in content
+    assert 'InpBOSRetestMinExtensionATR=0.45' in content
+    assert 'InpBOSRetestSLBuffer=0.7' in content
+    assert 'InpBOSRetestTolerance=0.35' in content
+    assert 'InpBOSRetestMaxBars=1440' in content
+    assert 'InpBOSRetestWeight=2.5' in content
+    assert 'InpBOSRetestMaxLotSize=0.6' in content
+    assert 'InpHTFBOSRetestEntry=true' in content
+    assert 'InpHTFBOSRetestDirectEntry=false' in content
+    assert 'InpHTFBOSRetestTF=240' in content
+    assert 'InpHTFBOSRetestTF2=0' in content
+    assert 'InpHTFBOSRetestLookbackBars=120' in content
+    assert 'InpHTFBOSRetestPivotBars=2' in content
+    assert 'InpHTFBOSRetestBreakBufferATR=0.08' in content
+    assert 'InpHTFBOSRetestMinExtensionATR=0.8' in content
+    assert 'InpHTFBOSRetestSLBuffer=0.7' in content
+    assert 'InpHTFBOSRetestTolerance=0.22' in content
+    assert 'InpHTFBOSRetestMaxBars=1440' in content
+    assert 'InpHTFBOSRetestWeight=8.0' in content
+    assert 'InpHTFBOSRetestMaxLotSize=0.8' in content
+    assert 'InpHTFBOSRequireOBConfluence=true' in content
+    assert 'InpHTFBOSOBLookbackBars=36' in content
+    assert 'InpHTFBOSOBToleranceATR=0.45' in content
+    assert 'InpHTFBOSOBMinImpulseATR=0.75' in content
+    assert 'InpEnableStructureMomentumHold=true' in content
+    assert 'InpStructureHoldFamilies=BOS,HTFPB' in content
+    assert 'InpStructSkipMFEExits=true' in content
+    assert 'InpStructMomLookbackBars=6' in content
+    assert 'InpStructMomMinNetATR=0.3' in content
+    assert 'InpStructMomStrongRevBodyATR=0.55' in content
+    assert 'InpStructMomBreakBufferATR=0.1' in content
+    assert 'InpStructureHoldRequireQuality=true' in content
+    assert 'InpStructureHoldQualityTF=5' in content
+    assert 'InpStructureHoldQualityBars=3' in content
+    assert 'InpStructureHoldQualityMinATR=0.35' in content
+    assert 'InpStructureHoldQualityRequireStrongBreak=true' in content
+    assert 'InpStructureHoldDynamicRelease=true' in content
+    assert 'InpStructureHoldReleaseMinR=0.4' in content
+    assert 'InpStructureHoldReleaseRequireReverseContinuation=true' in content
+
+
+def test_micro_bos_confluence_params_in_set():
+    assert FLAT_MAP['enable_micro_bos_retest'] == 'InpEnableMicroBOSRetest'
+    assert FLAT_MAP['micro_bos_tf'] == 'InpMicroBOSTF'
+    assert FLAT_MAP['micro_bos_lookback_bars'] == 'InpMicroBOSLookbackBars'
+    assert FLAT_MAP['micro_bos_pivot_bars'] == 'InpMicroBOSPivotBars'
+    assert FLAT_MAP['micro_bos_break_buffer_atr'] == 'InpMicroBOSBreakBufferATR'
+    assert FLAT_MAP['micro_bos_min_net_atr'] == 'InpMicroBOSMinNetATR'
+    assert FLAT_MAP['micro_bos_extension_atr'] == 'InpMicroBOSExtensionATR'
+    assert FLAT_MAP['micro_bos_retest_tolerance_atr'] == 'InpMicroBOSRetestToleranceATR'
+    assert FLAT_MAP['micro_bos_zone_atr'] == 'InpMicroBOSZoneATR'
+    assert FLAT_MAP['micro_bos_sl_atr'] == 'InpMicroBOSSLATR'
+    assert FLAT_MAP['micro_bos_pos_mult'] == 'InpMicroBOSPosMult'
+    assert FLAT_MAP['micro_bos_max_bars'] == 'InpMicroBOSMaxBars'
+    assert FLAT_MAP['micro_bos_cooldown_bars'] == 'InpMicroBOSCooldownBars'
+    assert FLAT_MAP['micro_bos_min_bounce_sec'] == 'InpMicroBOSMinBounceSec'
+    assert FLAT_MAP['micro_bos_max_bounce_sec'] == 'InpMicroBOSMaxBounceSec'
+    assert FLAT_MAP['micro_bos_min_final_pos_mult'] == 'InpMicroBOSMinFinalPosMult'
+    assert FLAT_MAP['micro_bos_require_h4_aligned'] == 'InpMicroBOSRequireH4Aligned'
+    assert FLAT_MAP['micro_bos_require_continuation'] == 'InpMicroBOSRequireContinuation'
+    assert FLAT_MAP['micro_bos_continuation_tf'] == 'InpMicroBOSContinuationTF'
+    assert FLAT_MAP['micro_bos_continuation_bars'] == 'InpMicroBOSContinuationBars'
+    assert FLAT_MAP['micro_bos_continuation_min_atr'] == 'InpMicroBOSContinuationMinATR'
+    assert FLAT_MAP['micro_bos_use_structure_hold'] == 'InpMicroBOSUseStructureHold'
+    assert FLAT_MAP['micro_bos_require_zone_confluence'] == 'InpMicroBOSRequireZoneConfluence'
+    assert FLAT_MAP['micro_bos_confluence_allow_ob'] == 'InpMicroBOSConfluenceAllowOB'
+    assert FLAT_MAP['micro_bos_confluence_allow_fvg'] == 'InpMicroBOSConfluenceAllowFVG'
+    assert FLAT_MAP['micro_bos_confluence_tolerance_atr'] == 'InpMicroBOSConfluenceToleranceATR'
+
+    content = strategy_to_set('test', {
+        'version': 'test',
+        'enable_micro_bos_retest': True,
+        'micro_bos_tf': 5,
+        'micro_bos_lookback_bars': 48,
+        'micro_bos_pivot_bars': 2,
+        'micro_bos_break_buffer_atr': 0.05,
+        'micro_bos_min_net_atr': 0.25,
+        'micro_bos_extension_atr': 0.35,
+        'micro_bos_retest_tolerance_atr': 0.20,
+        'micro_bos_zone_atr': 0.30,
+        'micro_bos_sl_atr': 0.70,
+        'micro_bos_pos_mult': 0.20,
+        'micro_bos_max_bars': 72,
+        'micro_bos_cooldown_bars': 24,
+        'micro_bos_min_bounce_sec': 0,
+        'micro_bos_max_bounce_sec': 90,
+        'micro_bos_min_final_pos_mult': 0.0,
+        'micro_bos_require_h4_aligned': True,
+        'micro_bos_require_continuation': True,
+        'micro_bos_continuation_tf': 5,
+        'micro_bos_continuation_bars': 2,
+        'micro_bos_continuation_min_atr': 0.20,
+        'micro_bos_use_structure_hold': False,
+        'micro_bos_require_zone_confluence': True,
+        'micro_bos_confluence_allow_ob': True,
+        'micro_bos_confluence_allow_fvg': False,
+        'micro_bos_confluence_tolerance_atr': 0.35,
+    })
+    assert 'InpEnableMicroBOSRetest=true' in content
+    assert 'InpMicroBOSTF=5' in content
+    assert 'InpMicroBOSLookbackBars=48' in content
+    assert 'InpMicroBOSPivotBars=2' in content
+    assert 'InpMicroBOSBreakBufferATR=0.05' in content
+    assert 'InpMicroBOSMinNetATR=0.25' in content
+    assert 'InpMicroBOSExtensionATR=0.35' in content
+    assert 'InpMicroBOSRetestToleranceATR=0.2' in content
+    assert 'InpMicroBOSZoneATR=0.3' in content
+    assert 'InpMicroBOSSLATR=0.7' in content
+    assert 'InpMicroBOSPosMult=0.2' in content
+    assert 'InpMicroBOSMaxBars=72' in content
+    assert 'InpMicroBOSCooldownBars=24' in content
+    assert 'InpMicroBOSMinBounceSec=0' in content
+    assert 'InpMicroBOSMaxBounceSec=90' in content
+    assert 'InpMicroBOSMinFinalPosMult=0.0' in content
+    assert 'InpMicroBOSRequireH4Aligned=true' in content
+    assert 'InpMicroBOSRequireContinuation=true' in content
+    assert 'InpMicroBOSContinuationTF=5' in content
+    assert 'InpMicroBOSContinuationBars=2' in content
+    assert 'InpMicroBOSContinuationMinATR=0.2' in content
+    assert 'InpMicroBOSUseStructureHold=false' in content
+    assert 'InpMicroBOSRequireZoneConfluence=true' in content
+    assert 'InpMicroBOSConfluenceAllowOB=true' in content
+    assert 'InpMicroBOSConfluenceAllowFVG=false' in content
+    assert 'InpMicroBOSConfluenceToleranceATR=0.35' in content
+
+
+def test_fvg_mitigation_params_in_set():
+    assert FLAT_MAP['fvg_require_h1_aligned'] == 'InpFVGRequireH1Aligned'
+    assert FLAT_MAP['fvg_fade_max_entry_offset_r'] == 'InpFVGFadeMaxEntryOffsetR'
+
+    content = strategy_to_set('test', {
+        'version': 'TEST',
+        'enable_fvg': True,
+        'fvg_enable_fade_entry': True,
+        'fvg_require_h1_aligned': True,
+        'fvg_fade_max_entry_offset_r': -1.0,
+        'fvg_fade_tp_mult': 1.8,
+        'fvg_fade_pos_mult': 0.3,
+        'fvg_fade_max_lot_size': 0.04,
+        'fvg_require_confirm_candle': True,
+    })
+    assert 'InpEnableFVG=true' in content
+    assert 'InpFVGEnableFadeEntry=true' in content
+    assert 'InpFVGRequireH1Aligned=true' in content
+    assert 'InpFVGFadeMaxEntryOffsetR=-1.0' in content
+    assert 'InpFVGFadeTPMult=1.8' in content
+    assert 'InpFVGFadePosMult=0.3' in content
+    assert 'InpFVGFadeMaxLotSize=0.04' in content
+    assert 'InpFVGRequireConfirmCandle=true' in content
+
+
+def test_strong_sweep_reversal_params_in_set():
+    assert FLAT_MAP['enable_strong_sweep_reversal'] == 'InpEnableStrongSweepReversal'
+    assert FLAT_MAP['strong_sweep_require_dp'] == 'InpStrongSweepRequireDP'
+    assert FLAT_MAP['strong_sweep_continuation_min_atr'] == 'InpStrongSweepContinuationMinATR'
+    assert FLAT_MAP['strong_sweep_max_lot_size'] == 'InpStrongSweepMaxLotSize'
+
+    cfg = {
+        'version': 'TEST',
+        'enable_strong_sweep_reversal': True,
+        'strong_sweep_tf': 5,
+        'strong_sweep_lookback_bars': 60,
+        'strong_sweep_require_dp': True,
+        'strong_sweep_discount_max': 0.45,
+        'strong_sweep_premium_min': 0.55,
+        'strong_sweep_require_continuation': True,
+        'strong_sweep_continuation_min_atr': 0.18,
+        'strong_sweep_max_lot_size': 0.03,
+    }
+    content = strategy_to_set('test', cfg)
+    assert 'InpEnableStrongSweepReversal=true' in content
+    assert 'InpStrongSweepLookbackBars=60' in content
+    assert 'InpStrongSweepRequireDP=true' in content
+    assert 'InpStrongSweepDiscountMax=0.45' in content
+    assert 'InpStrongSweepContinuationMinATR=0.18' in content
+    assert 'InpStrongSweepMaxLotSize=0.03' in content
+
+
+def test_sdflip_failure_cluster_sentinel_in_set():
+    content = strategy_to_set('test', {
+        'version': 'TEST',
+        'enable_failure_reentry_confirm': True,
+        'failure_reentry_record_passive_loss': True,
+        'failure_reentry_family_filter': 'SWP,OB',
+    })
+    assert 'InpEnableFailureReentryConfirm=true' in content
+    assert 'InpFailureReentryRecordPassiveLoss=true' in content
+    assert 'InpFailureReentryFamilyFilter=SWP,OB' in content
+
 
 from mt5_common import write_set_file, read_agent_log, backtest_main
 
@@ -1964,6 +2980,24 @@ CS\t0\t00:14:09.554\tTester\tfinal balance -0.86 USD
 CS\t3\t00:14:09.555\tTester\tstop out occurred on 28% of testing interval
 """
 
+SAMPLE_ADDON_SEGMENT = """CS\t0\t00:14:08.437\tTester\tBTCUSDm,M1: testing of Experts\\WaiTrade2\\WaiTrade_OB.ex5 from 2026.03.22 00:00 to 2026.05.21 00:00 started with inputs:
+CS\t0\t00:14:09.534\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:41:01   ENTRY_DIAG stage=entry_engine ticket=0 dir=-1 hour=11 ob_age=9 touch=278 strength=5.00 ds=1.00 fresh=0 cont=0 h1=1 deep=1 htf=0 bounce_sec=27 bounce_ob=0.276 confirm_pos=-0.791 touch=71258.60 confirm=71238.77 risk_atr=1.68 spread_risk=0.065 pos_mult=0.52 score=4 entry=71224.77 sl=71441.55
+CS\t0\t00:14:09.536\tTrade\t2026.03.24 11:41:01   market sell 0.01 BTCUSDm sl: 71441.55 tp: 71116.95 (71224.77 / 71238.77)
+CS\t0\t00:14:09.537\tTrades\t2026.03.24 11:41:01   deal #2 sell 0.01 BTCUSDm at 71224.77 done (based on order #2)
+CS\t0\t00:14:09.538\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:41:01   寮€浠撴垚鍔? WT V11-R10-Q6K S x0.5 ticket=2 price=71224.77 lot=0.01 bounce_sec=27 bounce_ob=0.276 confirm_pos=-0.791 touch=71258.60 confirm=71238.77
+CS\t0\t00:14:09.539\tTrade\t2026.03.24 11:45:01   market sell 0.02 BTCUSDm sl: 71441.55 (71190.00 / 71200.00)
+CS\t0\t00:14:09.539\tTrades\t2026.03.24 11:45:01   deal #6 sell 0.02 BTCUSDm at 71200.00 done (based on order #6)
+CS\t0\t00:14:09.540\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:45:01   强势延续加仓: source=2 addon=6 r=1.20 lot=0.02
+CS\t0\t00:14:09.541\tTrade\t2026.03.24 11:53:06   take profit triggered #2 sell 0.01 BTCUSDm 71224.77 sl: 71441.55 tp: 71116.95 [#3 buy 0.01 BTCUSDm at 71116.95]
+CS\t0\t00:14:09.541\tTrades\t2026.03.24 11:53:06   deal #3 buy 0.01 BTCUSDm at 71115.61 done (based on order #3)
+CS\t0\t00:14:09.541\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:53:06   POSITION_GONE_DIAG ticket=2 dir=-1 entry=71224.77 sl_initial=71441.55 peak_r=0.49 raw_peak_r=0.49 dtp_peak_r=0.00 open_bar=717 last_sl= be=false trail=0 partial=false dtp_partial=false deep=true htf=false rev=false addon=false
+CS\t0\t00:14:09.542\tTrade\t2026.03.24 11:54:06   market buy 0.02 BTCUSDm, close #6 (71100.00 / 71110.00 / 71100.00)
+CS\t0\t00:14:09.542\tTrades\t2026.03.24 11:54:06   deal #7 buy 0.02 BTCUSDm at 71110.00 done (based on order #7)
+CS\t0\t00:14:09.542\tWaiTrade_OB (BTCUSDm,M1)\t2026.03.24 11:54:06   POSITION_GONE_DIAG ticket=6 dir=-1 entry=71200.00 sl_initial=71441.55 peak_r=0.37 raw_peak_r=0.37 dtp_peak_r=0.00 open_bar=721 last_sl= be=false trail=0 partial=false dtp_partial=false deep=true htf=false rev=false addon=true
+CS\t0\t00:14:09.554\tTester\tfinal balance 240.00
+CS\t0\t00:14:09.554\tTester\t1000 ticks, 200 bars generated
+"""
+
 
 def test_parse_backtest_report_content_extracts_meta():
     parsed = parse_backtest_report_content(SAMPLE_REPORT)
@@ -2038,6 +3072,18 @@ def test_parse_agent_log_segment_details_extracts_trades():
     assert second['risk'] == abs(second['entry'] - second['initial_sl'])
 
 
+def test_parse_agent_log_segment_details_extracts_addon_trade():
+    segment = split_agent_log_segments(SAMPLE_ADDON_SEGMENT)[0]
+    details = parse_agent_log_segment_details(segment['lines'], 'BTCUSDm')
+    addon_trade = next(t for t in details['trades'] if t['ticket'] == 6)
+    assert addon_trade['addon'] is True
+    assert addon_trade['dir'] == 'sell'
+    assert addon_trade['signal_type'] == 'addon'
+    assert addon_trade['entry'] == 71200.00
+    assert addon_trade['initial_sl'] == 71441.55
+    assert round(addon_trade['r'], 3) > 0
+
+
 def test_signal_type_from_comment_parses_distinct_tags():
     assert _signal_type_from_comment('WT V11 B x1.0') == 'ob'
     assert _signal_type_from_comment('WT V11 B SWP x1.0') == 'sweep'
@@ -2065,6 +3111,29 @@ def test_render_digest_markdown_contains_sections():
     assert '### 贡献簇' in markdown
     assert '### 判别因子' in markdown
     assert 'Stopout' in markdown
+
+def test_backtest_digest_extract_date_token_uses_report_suffix_date():
+    token = _extract_date_token(
+        Path('results/backtest/v11-btc1-qual232_20240601_20260531_20260701.txt')
+    )
+    assert token == '20260701'
+
+
+def test_backtest_digest_expected_log_markers_falls_back_to_version_lookup(monkeypatch):
+    fake_config = {
+        'defaults': {},
+        'v11-btc1-qual232': {
+            'version': 'V11-BTC1-QUAL232',
+        },
+    }
+
+    monkeypatch.setattr(backtest_digest, 'CONFIG_PATH', Path('ignored.yaml'))
+    monkeypatch.setattr(backtest_digest.yaml, 'safe_load', lambda _text: fake_config)
+    monkeypatch.setattr(Path, 'read_text', lambda self, encoding='utf-8': 'ignored')
+
+    markers = expected_log_markers({'strategy_name': 'V11-BTC1-QUAL232'})
+
+    assert markers == ['V11-BTC1-QUAL232']
 
 
 def test_parse_agent_log_segment_details_extracts_stopout():

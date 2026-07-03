@@ -66,10 +66,18 @@ input bool   InpEdgeBounceOnly           = false;   // P0: 仅OB边缘入场(默
 input bool   InpOBFreshnessFilter        = false;   // OB新鲜度过滤(默认false=v2兼容)
 input int    InpOBMaxMitigations         = 2;       // OB最大缓解次数(超过后不再交易该OB)
 input bool   InpBOSRetestEntry           = false;   // BOS突破回踩入场(结构突破→回踩→M1 OB确认)
+input bool   InpBOSLockBounceEntries     = true;    // BOS开启时同步用H4方向锁约束普通Bounce入场
+input bool   InpBOSRetestDirectEntry     = false;   // BOS回踩到位后直接入场(默认false保持EntryEngine确认)
+input bool   InpKeepZonesOnProfileSwitch = false;   // XAU趋势/震荡profile切换时保留zone, 默认false保持旧行为
 input double InpBOSRetestSLBuffer        = 0.5;     // BOS回踩SL缓冲(ATR倍数, 突破位外侧)
 input double InpBOSRetestTolerance       = 0.3;     // BOS回踩容差(ATR倍数, 价格接近突破位即触发)
 input int    InpBOSRetestMaxBars         = 480;     // BOS回踩最大等待bars(M1, 480=8小时)
 input double InpBOSRetestWeight          = 1.5;     // BOS回踩仓位加权(>1.0=比普通MTF信号更高的仓位)
+input bool   InpBOSStrictCloseBreak      = false;   // 大周期BOS用已收K收盘突破极限价, 过滤影线假突破
+input bool   InpBOSRequireContinuation   = false;   // BOS回踩成交前要求小周期同向延续
+input int    InpBOSContinuationTF        = 5;
+input int    InpBOSContinuationBars      = 2;
+input double InpBOSContinuationMinATR    = 0.20;
 
 // ════════════════════════════════════════════════
 // P0: 流动性池检测（Liquidity Pool）
@@ -114,6 +122,103 @@ input double InpStructTrailBufferATR      = 0.2;    // 结构轨迹SL缓冲(ATR�
 input int    InpStructTrailLookback       = 10;     // 结构pivot查找bars
 input bool   InpStructTrailOnlyDTPFree    = false;  // 仅DTP未触发时启用
 
+// BD08: 小周期趋势/动能持有门控
+input int    InpStructMomLookbackBars       = 6;     // M5/M15动能观察bars
+input double InpStructMomMinNetATR          = 0.30;  // 顺势净实体推进阈值(ATR)
+input double InpStructMomStrongRevBodyATR   = 0.55;  // 强反弹K线实体阈值(ATR)
+input double InpStructMomBreakBufferATR     = 0.10;  // 反向突破确认缓冲(ATR)
+input bool   InpStructureHoldRequireQuality = false; // 仅质量合格订单允许结构长持仓
+input int    InpStructureHoldQualityTF      = 5;     // 长持仓质量判断周期
+input int    InpStructureHoldQualityBars    = 3;     // 长持仓质量判断K线数
+input double InpStructureHoldQualityMinATR  = 0.35;  // 长持仓顺向净推进阈值(ATR)
+input bool   InpStructureHoldQualityRequireStrongBreak = false; // 长持仓需强高低点突破
+input bool   InpStructureHoldDynamicRelease = false; // 小周期反转且顺向动能衰弱时恢复普通出场
+input double InpStructureHoldReleaseMinR    = 0.30;  // 动态解除结构持仓所需最小浮盈R
+input bool   InpStructureHoldReleaseRequireReverseContinuation = false; // 解除需反向动能延续
+
+// BD08: micro structure break + retest entry, default off.
+input bool   InpEnableMicroBOSRetest       = false;
+input int    InpMicroBOSTF                 = 5;
+input int    InpMicroBOSLookbackBars       = 48;
+input int    InpMicroBOSPivotBars          = 2;
+input double InpMicroBOSBreakBufferATR     = 0.05;
+input double InpMicroBOSMinNetATR          = 0.25;
+input double InpMicroBOSExtensionATR       = 0.35;
+input double InpMicroBOSRetestToleranceATR = 0.20;
+input double InpMicroBOSZoneATR            = 0.30;
+input double InpMicroBOSSLATR              = 0.70;
+input double InpMicroBOSPosMult            = 1.0;
+input int    InpMicroBOSMaxBars            = 72;
+input int    InpMicroBOSCooldownBars       = 24;
+input int    InpMicroBOSMinBounceSec       = 0;
+input int    InpMicroBOSMaxBounceSec       = 0;
+input double InpMicroBOSMinFinalPosMult    = 0.0;
+input bool   InpMicroBOSRequireH4Aligned   = false;
+input bool   InpMicroBOSRequireContinuation = false;
+input int    InpMicroBOSContinuationTF     = 5;
+input int    InpMicroBOSContinuationBars   = 2;
+input double InpMicroBOSContinuationMinATR = 0.20;
+input bool   InpMicroBOSUseStructureHold   = false;
+input bool   InpMicroBOSRequireZoneConfluence = false;
+input bool   InpMicroBOSConfluenceAllowOB  = true;
+input bool   InpMicroBOSConfluenceAllowFVG = true;
+input double InpMicroBOSConfluenceToleranceATR = 0.25;
+
+// BD08: supply/demand flip after an opposite OB is engulfed, default off.
+input bool   InpEnableSupplyDemandFlip      = false;
+input int    InpSDFlipTF                    = 5;
+input int    InpSDFlipLookbackBars          = 36;
+input bool   InpSDFlipRequireSourceOB       = true;
+input double InpSDFlipMinBodyATR            = 0.80;
+input double InpSDFlipBreakBufferATR        = 0.05;
+input double InpSDFlipRetestToleranceATR    = 0.20;
+input double InpSDFlipZoneATR               = 0.35;
+input double InpSDFlipSLATR                 = 0.80;
+input double InpSDFlipPosMult               = 1.0;
+input int    InpSDFlipMaxBars               = 120;
+input int    InpSDFlipCooldownBars          = 30;
+input bool   InpSDFlipRequireH4Aligned      = true;
+input bool   InpSDFlipRequireContinuation   = true;
+input int    InpSDFlipContinuationTF        = 1;
+input int    InpSDFlipContinuationBars      = 2;
+input double InpSDFlipContinuationMinATR    = 0.20;
+input bool   InpSDFlipUseStructureHold      = true;
+
+// BD08: 强高低点扫损后的反向入场, default off.
+input bool   InpEnableStrongSweepReversal   = false;
+input int    InpStrongSweepTF               = 5;
+input int    InpStrongSweepLookbackBars     = 48;
+input int    InpStrongSweepPivotBars        = 2;
+input double InpStrongSweepPenetrationATR   = 0.05;
+input double InpStrongSweepCloseBackATR     = 0.02;
+input double InpStrongSweepWickPct          = 35.0;
+input bool   InpStrongSweepRequireDP        = true;
+input int    InpStrongSweepDPTF             = 60;
+input int    InpStrongSweepDPLookbackBars   = 48;
+input double InpStrongSweepDiscountMax      = 0.50;
+input double InpStrongSweepPremiumMin       = 0.50;
+input bool   InpStrongSweepRequireContinuation = true;
+input int    InpStrongSweepContinuationTF   = 1;
+input int    InpStrongSweepContinuationBars = 2;
+input double InpStrongSweepContinuationMinATR = 0.15;
+input double InpStrongSweepZoneATR          = 0.25;
+input double InpStrongSweepSLATR            = 0.70;
+input double InpStrongSweepPosMult          = 0.35;
+input double InpStrongSweepMaxLotSize       = 0.05;
+input int    InpStrongSweepMaxBars          = 72;
+input int    InpStrongSweepCooldownBars     = 12;
+input bool   InpStrongSweepUseStructureHold = false;
+
+// BD08: lightweight regime position multiplier, default off.
+input bool   InpEnableLightRegimePosMult    = false;
+input int    InpLightRegimeTF               = 60;
+input int    InpLightRegimeBars             = 3;
+input double InpLightRegimeMinNetATR        = 0.45;
+input double InpLightRegimeTrendAlignedMult = 1.0;
+input double InpLightRegimeTrendCounterMult = 1.0;
+input double InpLightRegimeRangeMult        = 1.0;
+input bool   InpLightRegimeSweepOnly        = true;
+
 // ════════════════════════════════════════════════
 // 工具函数
 // ════════════════════════════════════════════════
@@ -130,6 +235,9 @@ bool CfgEnableLiquidityPool()        { return InpEnableLiquidityPool; }
 bool CfgEnableDiscountPremium()      { return InpEnableDiscountPremium; }
 bool CfgEnableOBScoring()            { return InpEnableOBScoring; }
 bool CfgEnableStructureTrail()       { return InpEnableStructureTrail; }
+bool CfgEnableStructureMomentumHold(){ return InpEnableStructureMomentumHold; }
+bool CfgEnableMicroBOSRetest()       { return InpEnableMicroBOSRetest; }
+bool CfgEnableSupplyDemandFlip()     { return InpEnableSupplyDemandFlip; }
 bool CfgEnableH4Adaptive()           { return InpEnableH4Adaptive; }
 bool CfgSLUseH1ATR()                 { return InpSLUseH1ATR; }
 int  CfgH4TrendMaxEntriesPerOB()     { return InpH4TrendMaxEntriesPerOB; }

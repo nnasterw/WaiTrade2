@@ -147,6 +147,186 @@ void OnDeinit(const int reason)
     Print("WaiTrade2 ", InpVersion, " 已卸载 | 原因=", reason);
 }
 
+bool HasHTFRangeBoundaryReaction(string symbol, const HTFRange &range,
+                                 ENUM_RANGE_POSITION range_pos, int direction,
+                                 double &touch_price, double &confirm_price,
+                                 double &reaction_atr)
+{
+    int tf_min = (CfgRangeTF() >= 1440) ? 15 : 5;
+    ENUM_TIMEFRAMES tf = MinutesToTF(tf_min);
+    MqlRates rates[60];
+    int count = CopyRates(symbol, tf, 0, 60, rates);
+    if(count < 24)
+        return false;
+
+    double atr = CalcATR(rates, count, InpATRPeriod);
+    if(atr <= 0.0)
+        return false;
+
+    MqlRates c = rates[1];
+    double candle_range = c.high - c.low;
+    if(candle_range <= 0.0)
+        return false;
+
+    double body_dir = (c.close - c.open) * direction;
+    bool touched = false;
+    bool rejected = false;
+
+    if(range_pos == RANGE_NEAR_BOTTOM && direction == OB_BUY)
+    {
+        touched = (c.low <= range.bottom_zone_high && c.high >= range.bottom_zone_low);
+        double lower_wick = MathMin(c.open, c.close) - c.low;
+        bool close_reject = (c.close - c.low) / candle_range >= 0.55;
+        rejected = (lower_wick >= atr * 0.20 && close_reject) ||
+                   (body_dir >= atr * 0.12 && c.close > range.bottom_zone_high);
+        touch_price = c.low;
+    }
+    else if(range_pos == RANGE_NEAR_TOP && direction == OB_SELL)
+    {
+        touched = (c.high >= range.top_zone_low && c.low <= range.top_zone_high);
+        double upper_wick = c.high - MathMax(c.open, c.close);
+        bool close_reject = (c.high - c.close) / candle_range >= 0.55;
+        rejected = (upper_wick >= atr * 0.20 && close_reject) ||
+                   (body_dir >= atr * 0.12 && c.close < range.top_zone_low);
+        touch_price = c.high;
+    }
+
+    if(!touched || !rejected)
+        return false;
+
+    confirm_price = c.close;
+    reaction_atr = MathMax(0.0, body_dir / atr);
+    return true;
+}
+
+bool ExecuteHTFRangeBoundarySignal(double bid, double ask, string symbol)
+{
+    if(!CfgEnableRangeFade() || CfgRangeMaxWidthATR() > -40.0)
+        return false;
+    if(g_state.pos_count >= CfgMaxConcurrent())
+        return false;
+
+    static datetime s_last_range_entry = 0;
+    int cooldown_min = (CfgRangeTF() >= 1440) ? 1440 : MathMax(120, CfgRangeTF());
+    if(s_last_range_entry > 0 && TimeCurrent() - s_last_range_entry < cooldown_min * 60)
+        return false;
+
+    HTFRange range = GetHTFRange(symbol);
+    if(!range.valid)
+        return false;
+
+    double mid_price = (bid + ask) / 2.0;
+    ENUM_RANGE_POSITION range_pos = GetRangePosition(range, mid_price);
+    int direction = 0;
+    if(range_pos == RANGE_NEAR_BOTTOM)
+        direction = OB_BUY;
+    else if(range_pos == RANGE_NEAR_TOP)
+        direction = OB_SELL;
+    else
+        return false;
+
+    if(!PassDirectionEntryHours(direction, TimeCurrent()))
+        return false;
+    if(!PassMonthlyEntryGuard())
+        return false;
+    if(!PassEntryMomentumFilter(direction))
+        return false;
+
+    double touch_price = 0.0;
+    double confirm_price = 0.0;
+    double reaction_atr = 0.0;
+    if(!HasHTFRangeBoundaryReaction(symbol, range, range_pos, direction,
+                                    touch_price, confirm_price, reaction_atr))
+        return false;
+
+    double entry = (direction == OB_BUY) ? ask : bid;
+    double htf_atr = (g_state.atr_1h > 0.0) ? g_state.atr_1h : MathMax(g_state.atr_value, 0.0);
+    double sl_buffer = MathMax(htf_atr * MathMax(CfgRangeSLBufferATR(), 0.5),
+                               range.width_price * 0.03);
+    sl_buffer = MathMin(sl_buffer, range.width_price * 0.12);
+    double sl = (direction == OB_BUY) ? range.low - sl_buffer : range.high + sl_buffer;
+    double risk_price = MathAbs(entry - sl);
+    double spread = GetSpread(symbol);
+    if(risk_price <= 0.0 || !PassSpreadRatio(risk_price, spread))
+        return false;
+
+    double tp = CalcRangeTP(range, range_pos, entry, direction);
+    double pos_mult = (CfgRangePosMult() > 0.0) ? CfgRangePosMult() : 1.0;
+    pos_mult = ApplyDirectionPosMult(direction, pos_mult);
+    pos_mult = ApplyHourPositionMultiplier(pos_mult);
+    pos_mult = ApplyBalancePositionMultiplier(pos_mult);
+    pos_mult = ApplyMonthlyPositionMultiplier(pos_mult);
+    pos_mult = ApplyRuntimePositionMultiplier(pos_mult);
+    pos_mult = ApplyPositionMultiplierCap(pos_mult);
+    if(pos_mult <= 0.0)
+        return false;
+
+    double final_lot = CalcEntryLot(symbol, CfgRiskPercent(), risk_price, pos_mult);
+    final_lot = ApplyLotCap(final_lot);
+    final_lot = ApplyBalanceLotCap(final_lot);
+    if(CfgRangeMaxLot() > 0.0 && final_lot > CfgRangeMaxLot())
+        final_lot = CfgRangeMaxLot();
+    if(!PassMinRisk(final_lot, risk_price, symbol))
+        return false;
+
+    double margin_required = 0.0;
+    ENUM_ORDER_TYPE order_type = (direction == OB_BUY) ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+    if(!OrderCalcMargin(order_type, symbol, final_lot, entry, margin_required))
+        return false;
+    double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
+    if(margin_required > free_margin)
+    {
+        if(free_margin <= 0.0)
+            return false;
+        final_lot = final_lot * (free_margin / margin_required) * 0.95;
+        final_lot = ApplyLotCap(final_lot);
+        final_lot = ApplyBalanceLotCap(final_lot);
+        if(CfgRangeMaxLot() > 0.0 && final_lot > CfgRangeMaxLot())
+            final_lot = CfgRangeMaxLot();
+    }
+
+    double lot_min = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+    double lot_max = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+    double lot_step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+    if(lot_step <= 0.0)
+        return false;
+    final_lot = MathFloor(final_lot / lot_step) * lot_step;
+    if(final_lot < lot_min) final_lot = lot_min;
+    if(final_lot > lot_max) return false;
+
+    TradeSignal sig;
+    ZeroMemory(sig);
+    sig.direction = direction;
+    sig.entry = entry;
+    sig.sl = sl;
+    sig.tp = tp;
+    sig.risk_price = risk_price;
+    sig.lot = NormalizeDouble(final_lot, 2);
+    sig.pos_mult = pos_mult;
+    sig.ob_index = -1;
+    sig.deep_entry = false;
+    sig.touch_price = touch_price;
+    sig.confirm_price = confirm_price;
+    sig.bounce_seconds = 0;
+    sig.bounce_ob_pct = reaction_atr;
+    sig.confirm_ob_pos = (range.width_price > 0.0) ? (confirm_price - range.mid) / range.width_price : 0.0;
+    sig.htf_target = true;
+    sig.htf_partial_r = InpHTFPartialR;
+    sig.htf_partial_pct = InpHTFPartialPct;
+    sig.comment = "WT " + InpVersion + " " + (direction > 0 ? "B" : "S") +
+                  " HTRG " + RangePositionToString(range_pos) +
+                  " x" + DoubleToString(pos_mult, 1);
+
+    if(ExecuteSignalFromZone(sig, g_zones, g_state.ob_count, false))
+    {
+        s_last_range_entry = TimeCurrent();
+        g_state.last_entry_bar = g_state.bar_count;
+        g_state.pos_count++;
+        return true;
+    }
+    return false;
+}
+
 void OnTick()
 {
     string symbol = _Symbol;
@@ -223,10 +403,16 @@ void OnTick()
         DetectOrderBlocks(rates, copied, g_zones, g_state.ob_count, g_state);
         if(InpConsolidateOB) ConsolidateOBs(g_zones, g_state.ob_count);
         ExpireOldZones(g_zones, g_state.ob_count, g_state.bar_count);
-        if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+        bool htf_supp_enabled = ((InpEnableHTFPullback && !InpHTFPullbackOnly) || InpHTFBOSRetestEntry);
+        if(htf_supp_enabled)
         {
             CompactZones(g_htf_zones, g_htf_zone_count);
-            DetectHTFPullbacks(g_htf_zones, g_htf_zone_count, g_state, GetSpread(symbol));
+            double supp_spread = GetSpread(symbol);
+            if(InpEnableHTFPullback && !InpHTFPullbackOnly &&
+               AllowHTFPullbackSupplement(g_monthly_entry_count))
+                DetectHTFPullbacks(g_htf_zones, g_htf_zone_count, g_state, supp_spread);
+            if(InpHTFBOSRetestEntry)
+                DetectBOSRetests(g_htf_zones, g_htf_zone_count, g_state, supp_spread);
         }
 
         MqlRates rates_h1[];
@@ -236,7 +422,7 @@ void OnTick()
 
         int h1_dir = Detect1HOBDirection(symbol);
         Update1HAlignment(g_zones, g_state.ob_count, h1_dir);
-        if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+        if((InpEnableHTFPullback && !InpHTFPullbackOnly) || InpHTFBOSRetestEntry)
             Update1HAlignment(g_htf_zones, g_htf_zone_count, h1_dir);
 
         if(CfgEnableStateFilter() || CfgEnableScoring())
@@ -303,7 +489,7 @@ void OnTick()
         UpdateOBStatus(g_zones_osc, g_state_osc.ob_count, bid, ask, g_state_osc);
         UpdateFVGStatus(g_zones_osc, g_state_osc.ob_count, bid, ask, g_state_osc);
     }
-    else if(InpEnableHTFPullback && !InpHTFPullbackOnly)
+    else if((InpEnableHTFPullback && !InpHTFPullbackOnly) || InpHTFBOSRetestEntry)
         UpdateOBStatus(g_htf_zones, g_htf_zone_count, bid, ask, g_state);
     // 4. 扫描入场信号（双通道：振荡用M3 osc通道，趋势用M1主通道）
     bool new_active_bar = g_osc_active ? new_osc_bar_tick : new_bar;
@@ -322,7 +508,8 @@ void OnTick()
             RegisterChannelMonitors(g_zones, g_state, g_monitors, g_monitor_count, new_active_bar, symbol);
 
         // HTF pullback（仅单通道或趋势通道模式）
-        if(!g_osc_active && new_bar && InpEnableHTFPullback && !InpHTFPullbackOnly)
+        if(!g_osc_active && new_bar &&
+           ((InpEnableHTFPullback && !InpHTFPullbackOnly) || InpHTFBOSRetestEntry))
         {
             for(int z = 0; z < g_htf_zone_count; z++)
             {
@@ -334,9 +521,22 @@ void OnTick()
                 TradeSignal tmp;
                 ZeroMemory(tmp);
                 tmp.direction  = g_htf_zones[z].direction;
-                tmp.sl         = (g_htf_zones[z].direction == OB_BUY)
-                    ? g_htf_zones[z].low  - g_state.atr_value * CfgSLBufferATR()
-                    : g_htf_zones[z].high + g_state.atr_value * CfgSLBufferATR();
+                if(g_htf_zones[z].is_bos_retest)
+                {
+                    double bos_tol = MathMax(InpHTFBOSRetestTolerance, 0.05);
+                    double bos_atr = g_htf_zones[z].range_height / (2.0 * bos_tol);
+                    if(bos_atr <= 0.0)
+                        bos_atr = (g_state.atr_1h > 0.0) ? g_state.atr_1h : g_state.atr_value;
+                    tmp.sl = (g_htf_zones[z].direction == OB_BUY)
+                        ? g_htf_zones[z].mid - bos_atr * InpHTFBOSRetestSLBuffer
+                        : g_htf_zones[z].mid + bos_atr * InpHTFBOSRetestSLBuffer;
+                }
+                else
+                {
+                    tmp.sl = (g_htf_zones[z].direction == OB_BUY)
+                        ? g_htf_zones[z].low  - g_state.atr_value * CfgSLBufferATR()
+                        : g_htf_zones[z].high + g_state.atr_value * CfgSLBufferATR();
+                }
                 tmp.risk_price = MathAbs(((g_htf_zones[z].high + g_htf_zones[z].low) / 2.0) - tmp.sl);
                 tmp.ob_index   = z;
                 tmp.pos_mult   = 1.0;
@@ -350,7 +550,7 @@ void OnTick()
         else
             ExecuteChannelConfirmed(g_zones, g_state, g_monitors, g_monitor_count, bid, ask, symbol);
 
-        if(!g_osc_active && InpEnableHTFPullback && !InpHTFPullbackOnly)
+        if(!g_osc_active && ((InpEnableHTFPullback && !InpHTFPullbackOnly) || InpHTFBOSRetestEntry))
         {
             // 双扫确认门控: HTF EntryEngine路径(不更新体制状态,防覆盖主通道)
             if(PassDoubleSweepConfirm(g_htf_zones, g_htf_zone_count, g_state.bar_count, false))
@@ -398,6 +598,9 @@ void OnTick()
 
     // 6. 每小时存活日志
     {
+    if(!g_osc_active)
+        ExecuteHTFRangeBoundarySignal(bid, ask, symbol);
+
         static datetime s_last_hb = 0;
         datetime now_t = TimeCurrent();
         if(now_t - s_last_hb >= 3600)
@@ -543,10 +746,12 @@ bool ExecuteMicroEntryOrders(const TradeSignal &sig)
         RecordMonthlyEntry();
         RecordRuntimeEntry();
         RegisterPosition(res.order, sig.direction, res.price, sig.sl, sig.risk_price,
-                         sig.deep_entry,
+                         sig.deep_entry, sig.bounce_seconds, sig.confirm_ob_pos, sig.pos_mult,
                          sig.htf_target, sig.htf_partial_r, sig.htf_partial_pct,
+                         sig.trend_release,
                          sig.failure_reverse,
-                         g_tracks, g_track_count);
+                         g_tracks, g_track_count,
+                         sig.entry_family);
         if(g_track_count > 0)
         {
             g_tracks[g_track_count - 1].open_bar = g_state.bar_count;
@@ -633,10 +838,12 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
         RecordMonthlyEntry();
         RecordRuntimeEntry();
         RegisterPosition(result.order, sig.direction, result.price, sig.sl, sig.risk_price,
-                         sig.deep_entry,
+                         sig.deep_entry, sig.bounce_seconds, sig.confirm_ob_pos, sig.pos_mult,
                          sig.htf_target, sig.htf_partial_r, sig.htf_partial_pct,
+                         sig.trend_release,
                          sig.failure_reverse,
-                         g_tracks, g_track_count);
+                         g_tracks, g_track_count,
+                         sig.entry_family);
 
         if(g_track_count > 0)
         {

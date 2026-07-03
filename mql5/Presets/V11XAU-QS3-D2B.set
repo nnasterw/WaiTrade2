@@ -1,0 +1,13 @@
+; V11XAU-QS3-D2B — D2B:age3h
+InpBouncePct=0.22
+InpMinRiskSpreadRatio=3.0
+InpRiskPercent=1.5
+InpMaxPosMult=2.0
+InpMaxLotSize=3.0
+InpMaxConcurrent=5
+InpBounceSweetMinPct=0.3
+InpOutsideBounceSweetMult=0.4
+InpMaxEntriesPerOB=5
+InpVersion=V11XAU-QS3-D2B
+InpMagicNumber=206523
+InpMaxOBAgeBarsTF=180

@@ -8,3 +8,22 @@ results/backtest/*.md
 results/backtest/*.trades.csv
 results/backtest/*.jsonl
 temp/*.log
+
+# MT5 回测/Live portable 运行目录与缓存：体积巨大，可再生成，禁止被 git add -A 写入对象库。
+temp/**
+!temp/.gitkeep
+*.htm
+*.html
+*.tkc
+*.hcc
+*.hcs
+*.hc
+*.opt
+*.fxt
+*.dat
+*.tmp
+
+# 回测导出的结构化大文件默认不入库，需要保留时使用 git add -f 精确添加。
+results/backtest/*.csv
+results/backtest/*.json
+results/backtest/*.xml

@@ -26,6 +26,7 @@ DEFAULT_WINE_TESTER = Path.home() / (
     'drive_c/Program Files/MetaTrader 5/Tester'
 )
 DEFAULT_WINDOWS_TESTER = Path.home() / 'AppData/Roaming/MetaQuotes/Terminal'
+DEFAULT_PORTABLE_TESTER = ROOT / 'temp' / 'mt5_portable_bt'
 CONFIG_PATH = ROOT / 'config' / 'strategies.yaml'
 CSV_COLUMNS = [
     'ticket', 'time', 'date', 'hour', 'symbol', 'dir', 'comment', 'signal_type', 'lot', 'pos_mult',
@@ -617,14 +618,16 @@ def write_trade_csv(path: Path, symbol_digests: list[dict]):
 
 
 def _extract_date_token(path: Path) -> str | None:
-    match = re.search(r'(\d{8})', path.stem)
-    return match.group(1) if match else None
+    matches = re.findall(r'(\d{8})', path.stem)
+    return matches[-1] if matches else None
 
 
 def candidate_log_paths(report_path: Path) -> list[Path]:
     candidates = []
     date_token = _extract_date_token(report_path)
     search_roots = [
+        DEFAULT_PORTABLE_TESTER / 'Tester' / 'Agent-127.0.0.1-3000' / 'logs',
+        DEFAULT_PORTABLE_TESTER / 'Tester' / 'logs',
         DEFAULT_WINE_TESTER / 'Agent-127.0.0.1-3000' / 'logs',
         DEFAULT_WINE_TESTER / 'logs',
     ]
@@ -655,12 +658,21 @@ def candidate_log_paths(report_path: Path) -> list[Path]:
 def expected_log_markers(report_data: dict) -> list[str]:
     """返回用于防止同窗口同余额日志误匹配的EA版本标记。"""
     markers = []
-    strategy_key = (report_data.get('strategy_name') or '').lower()
+    strategy_name = str(report_data.get('strategy_name') or '').strip()
+    strategy_key = strategy_name.lower()
     try:
         config = yaml.safe_load(CONFIG_PATH.read_text(encoding='utf-8')) or {}
     except OSError:
         config = {}
     strategy = config.get(strategy_key)
+    if not isinstance(strategy, dict) and strategy_name:
+        for _, candidate in config.items():
+            if not isinstance(candidate, dict):
+                continue
+            version = candidate.get('version')
+            if isinstance(version, str) and version.strip().lower() == strategy_key:
+                strategy = candidate
+                break
     if isinstance(strategy, dict):
         version = strategy.get('version')
         if version:

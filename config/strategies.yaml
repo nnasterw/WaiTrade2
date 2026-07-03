@@ -38431,6 +38431,129 @@ v11-btc1-trend44:
   enable_entry_momentum_filter: true
   magic_number: 205944
 
+v11-btc1-trend45:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND45
+  description: 'trend29 + earlier BE (breakeven_r 1.3 -> 0.5, breakeven_lock_r 0.3 -> 0.10) to convert 2 loss months to breakeven'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.10
+  magic_number: 205945
+
+v11-btc1-trend46:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND46
+  description: 'trend29 + extended trend_lookback (80 -> 120) for better trend identification'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  trend_lookback: 120
+  magic_number: 205946
+
+v11-btc1-trend47:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND47
+  description: 'trend29 + bounce_close_confirm_bars (1 bar entry confirmation)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  bounce_close_confirm_bars: 1
+  bounce_close_buffer_pct: 0.05
+  magic_number: 205947
+
+v11-btc1-trend48:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND48
+  description: 'trend29 + 2-stage BE (breakeven_stage2_r 0.5 with lock 0.2) to lock more micro profit'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  breakeven_stage2_r: 0.5
+  breakeven_stage2_lock_r: 0.2
+  magic_number: 205948
+
+v11-btc1-trend49:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND49
+  description: 'trend29 + mfe_fail_min_r 0.5 -> 0.3 (earlier MFE-fail exit to eliminate small loss months)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  mfe_fail_min_r: 0.3
+  magic_number: 205949
+
+v11-btc1-trend50:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND50
+  description: 'qual232 + high ob_score (70) + balance_tier (cap 0.2)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.2
+  ob_score_min_pass: 70
+  magic_number: 205950
+
+v11-btc1-trend51:
+  <<: *v12btc_xau2_h1pb20
+  version: V11-BTC1-TREND51
+  description: 'H1 pullback base + balance_tier cap 0.13 (H1 cycle focus)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  magic_number: 205951
+
+v11-btc1-trend52:
+  <<: *v12btc_xau2_pos24
+  version: V11-BTC1-TREND52
+  description: 'h4bos-obconf inline + balance_tier cap 0.13 (H4 BOS + HTF OB confirm)'
+  enable_htf_pullback: false
+  htf_pullback_only: false
+  htf_bos_retest_entry: true
+  htf_bos_retest_direct_entry: false
+  htf_bos_retest_tf: 240
+  htf_bos_retest_lookback_bars: 120
+  htf_bos_retest_pivot_bars: 2
+  htf_bos_retest_break_buffer_atr: 0.08
+  htf_bos_retest_min_extension_atr: 0.80
+  htf_bos_retest_tolerance: 0.22
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  magic_number: 205952
+
+v11-btc1-trend53:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND53
+  description: 'qual232 + ob_high_pos_boost_min 1.0 -> 2.0 (only boost pos_mult >= 2) + balance_tier 0.13'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  ob_high_pos_boost_min: 2.0
+  ob_high_pos_boost_mult: 1.0
+  magic_number: 205953
+
+v11-btc1-trend54:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND54
+  description: 'qual232 + entry_depth_pct 0.67 -> 0.5 (shallower entry, wider SL) + balance_tier 0.13'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  entry_depth_pct: 0.5
+  magic_number: 205954
+
+v11-btc1-trend55:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND55
+  description: 'qual232 + decay_min_r 1.0 -> 0.3, decay_bars 3 -> 2 (more aggressive decay exit)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  decay_min_r: 0.3
+  decay_bars: 2
+  magic_number: 205955
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01
@@ -38485,7 +38608,7 @@ v12btc-xau2-h4bos-rb-mom5-cap4:
   range_breakout_max_lot_size: 0.40
   magic_number: 205639
 
-v12btc-xau2-h4bos-obconf-pt150-cap6:
+v12btc-xau2-h4bos-obconf-pt150-cap6: &v12btc_xau2_h4bos_obconf_pt150_cap6
   <<: *v12btc_xau2_h1pb20
   version: V12BTC-XAU2-H4BOSOBCONFPT150C6
   description: "research: H4 BOS retest requires HTF OB confluence, higher capacity"

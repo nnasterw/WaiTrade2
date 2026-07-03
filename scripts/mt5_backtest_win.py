@@ -2,7 +2,9 @@
 """MT5 Strategy Tester 回测管理器 — Windows 原生版本"""
 
 import ctypes
+import html
 import os
+import re
 import subprocess
 import sys
 import time
@@ -20,18 +22,32 @@ from mt5_common import (
 )
 
 # ── Windows MT5 路径常量 ──────────────────────────────────────────────
-MT5_HOME = Path(os.environ.get('MT5_HOME', r'C:\Program Files\MetaTrader 5'))
+DEFAULT_PORTABLE_HOME = ROOT / 'temp' / 'mt5_portable_bt'
+DEFAULT_MT5_HOME = DEFAULT_PORTABLE_HOME if (DEFAULT_PORTABLE_HOME / 'terminal64.exe').exists() else Path(r'C:\Program Files\MetaTrader 5')
+MT5_HOME = Path(os.environ.get('MT5_HOME', str(DEFAULT_MT5_HOME)))
 MT5_TERMINAL = str(MT5_HOME / 'terminal64.exe')
-MT5_DATA = Path(os.environ.get(
-    'MT5_DATA',
-    os.path.expandvars(r'%APPDATA%\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075')
-))
+MT5_PORTABLE = os.environ.get(
+    'MT5_PORTABLE',
+    '1' if MT5_HOME.resolve() == DEFAULT_PORTABLE_HOME.resolve() else '',
+).lower() in ('1', 'true', 'yes', 'on')
+MT5_REQUIRE_ADMIN = os.environ.get(
+    'MT5_REQUIRE_ADMIN',
+    '0' if MT5_PORTABLE else '1',
+).lower() in ('1', 'true', 'yes', 'on')
+if MT5_PORTABLE:
+    MT5_DATA = Path(os.environ.get('MT5_DATA', str(MT5_HOME)))
+else:
+    MT5_DATA = Path(os.environ.get(
+        'MT5_DATA',
+        os.path.expandvars(r'%APPDATA%\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075')
+    ))
 MT5_TESTER_PROFILES = MT5_DATA / 'MQL5' / 'Profiles' / 'Tester'
 MT5_EXPERTS = MT5_DATA / 'MQL5' / 'Experts'
 MT5_TESTER_DIR = MT5_DATA / 'Tester'
 
-INI_DIR = MT5_TESTER_DIR
-REPORT_DIR = MT5_TESTER_DIR
+INI_DIR = MT5_HOME if MT5_PORTABLE else MT5_TESTER_DIR
+REPORT_DIR = MT5_DATA if MT5_PORTABLE else MT5_TESTER_DIR
+LAST_REPORT_NAME = None
 
 
 def ensure_mt5_dirs():
@@ -55,6 +71,7 @@ def expert_ex5_path(experts_root, expert):
 
 
 def generate_ini(strategy_name, symbol, date_from, date_to, config):
+    global LAST_REPORT_NAME
     strategy_cfg = config[strategy_name]
     defaults = config.get('backtest_defaults', {})
     account = config.get('mt5_account', {})
@@ -73,8 +90,9 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     if isinstance(leverage, str) and ':' in leverage:
         leverage = leverage.split(':')[-1]
 
-    today_str = datetime.now().strftime('%Y%m%d')
+    today_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     report_name = f'{strategy_name}_{symbol}_{today_str}'
+    LAST_REPORT_NAME = report_name
 
     os.makedirs(INI_DIR, exist_ok=True)
 
@@ -102,7 +120,7 @@ ShutdownTerminal=1
 Report={report_name}
 """
 
-    ini_path = INI_DIR / 'backtest.ini'
+    ini_path = INI_DIR / ('bt.ini' if MT5_PORTABLE else 'backtest.ini')
     with open(ini_path, 'w', encoding='utf-8') as f:
         f.write(ini_content)
     print(f'  INI 文件已写入: {ini_path}')
@@ -117,16 +135,6 @@ def is_admin():
         return False
 
 
-def kill_mt5():
-    """杀掉正在运行的 terminal64/metatester64 进程（不限路径, 回测前清理）"""
-    cmd = (
-        "Get-Process -Name terminal64,metatester64 -ErrorAction SilentlyContinue | "
-        "Stop-Process -Force"
-    )
-    subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True)
-    time.sleep(2)
-
-
 def clear_tester_cache():
     import shutil
     cache_dir = MT5_TESTER_DIR / 'cache'
@@ -135,24 +143,60 @@ def clear_tester_cache():
         cache_dir.mkdir()
 
 
+def _ps_quote(value):
+    return "'" + str(value).replace("'", "''") + "'"
+
+
+def kill_mt5():
+    """只停止当前 tester home 下的 MT5 进程，避免误杀 Live portable。"""
+    cmd = (
+        f"$root = [System.IO.Path]::GetFullPath({_ps_quote(MT5_HOME)}).TrimEnd('\\') + '\\'; "
+        "Get-CimInstance Win32_Process -Filter \"name='terminal64.exe' or name='metatester64.exe'\" | "
+        "Where-Object { $_.ExecutablePath -and "
+        "$_.ExecutablePath.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase) } | "
+        "ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"
+    )
+    subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True)
+    time.sleep(2)
+
+
+def _mt5_config_arg(ini_path):
+    ini_path = Path(ini_path)
+    if MT5_PORTABLE and ini_path.parent.resolve() == MT5_HOME.resolve():
+        return f'/config:{ini_path.name}'
+    return f'/config:{ini_path}'
+
+
+def _mt5_argument_list(ini_path):
+    args = []
+    if MT5_PORTABLE:
+        args.append('/portable')
+    args.append(_mt5_config_arg(ini_path))
+    return args
+
+
+def _ps_array(values):
+    return '@(' + ','.join(_ps_quote(v) for v in values) + ')'
+
+
 def run_mt5(timeout_sec=300):
     kill_mt5()
     clear_tester_cache()
 
-    ini_path = INI_DIR / 'backtest.ini'
-    config_arg = f'/config:{ini_path}'
+    ini_path = INI_DIR / ('bt.ini' if MT5_PORTABLE else 'backtest.ini')
+    mt5_args = _mt5_argument_list(ini_path)
     start_time = time.time()
 
-    if not is_admin():
+    if MT5_REQUIRE_ADMIN and not is_admin():
         # Win11 26200 + MT5 5836: 非Admin下IPC dispatcher无法启动
         # 通过PowerShell Start-Process -Verb RunAs 提权运行
         print(f'  启动 MT5 回测 (Admin提权, 超时 {timeout_sec}s, 可能需要点UAC确认)...')
         print(f'  [提示] 也可用管理员终端运行本脚本以跳过UAC弹窗', flush=True)
 
-        ps_args = f'/config:{ini_path}'
         ps_cmd = (
             f'$p = Start-Process -FilePath "{MT5_TERMINAL}" '
-            f'-ArgumentList \'{ps_args}\' '
+            f'-ArgumentList {_ps_array(mt5_args)} '
+            f'-WorkingDirectory "{MT5_HOME}" '
             f'-Wait -PassThru -WindowStyle Minimized -Verb RunAs; '
             f'exit $p.ExitCode'
         )
@@ -180,9 +224,10 @@ def run_mt5(timeout_sec=300):
     print(f'  启动 MT5 回测 (超时 {timeout_sec}s)...', end='', flush=True)
 
     proc = subprocess.Popen(
-        [MT5_TERMINAL, config_arg],
+        [MT5_TERMINAL, *mt5_args],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        cwd=str(MT5_HOME),
         creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
     )
     while proc.poll() is None:
@@ -252,6 +297,73 @@ def _parse_matching_result(content, symbol=None, date_from=None, date_to=None, e
     return parse_agent_log_content('\n'.join(segment['lines']))
 
 
+def find_report_file(report_name):
+    if not report_name:
+        return None
+    candidates = [
+        REPORT_DIR / f'{report_name}.htm',
+        MT5_DATA / f'{report_name}.htm',
+        MT5_TESTER_DIR / f'{report_name}.htm',
+        MT5_HOME / f'{report_name}.htm',
+    ]
+    for path in candidates:
+        if path.exists() and path.stat().st_size > 1000:
+            return path
+    return None
+
+
+def parse_html_report_stats(path, deposit, days):
+    """从 MT5 HTML 报告兜底解析成交汇总，防止日志路径变化导致误报失败。"""
+    if not path or not Path(path).exists():
+        return None
+    raw = Path(path).read_bytes()
+    try:
+        content = raw.decode('utf-16-le')
+    except UnicodeDecodeError:
+        content = raw.decode('utf-16-le', errors='replace')
+
+    rows = re.findall(r'<tr bgcolor="[^"]*" align=right>(.*?)</tr>', content, re.DOTALL | re.IGNORECASE)
+    trades = []
+    pending = 0
+    for row in rows:
+        cells = re.findall(r'<td[^>]*>(.*?)</td>', row, re.DOTALL | re.IGNORECASE)
+        cells = [html.unescape(re.sub(r'<[^>]+>', '', cell)).strip() for cell in cells]
+        if len(cells) != 13:
+            continue
+        if cells[3].lower() == 'balance':
+            continue
+        io = cells[4].lower()
+        try:
+            pnl = float(cells[10].replace(' ', '').replace(',', ''))
+        except ValueError:
+            pnl = 0.0
+        if io == 'in':
+            pending += 1
+        elif io == 'out' and pending > 0:
+            pending -= 1
+            trades.append(pnl)
+
+    if not trades:
+        return None
+
+    wins = [p for p in trades if p > 0]
+    losses = [p for p in trades if p < 0]
+    gross_profit = sum(wins)
+    gross_loss = abs(sum(losses))
+    final_balance = deposit + sum(trades)
+    return {
+        'trades': len(trades),
+        'wins': len(wins),
+        'losses': len(losses),
+        'win_rate': len(wins) / len(trades) * 100 if trades else 0,
+        'profit_factor': gross_profit / gross_loss if gross_loss > 0 else float('inf'),
+        'daily_trades': len(trades) / days if days > 0 else 0,
+        'final_balance': final_balance,
+        'profit': final_balance - deposit,
+        'net_r': None,
+    }
+
+
 def parse_agent_log(symbol=None, date_from=None, date_to=None, log_offsets=None, expected_markers=None):
     log_paths = get_tester_log_paths()
     existing = [p for p in log_paths if p.exists()]
@@ -264,7 +376,11 @@ def parse_agent_log(symbol=None, date_from=None, date_to=None, log_offsets=None,
     for use_offsets in (True, False):
         for log_path in ordered_paths:
             offset = log_offsets.get(log_path, 0) if use_offsets and log_offsets else 0
-            content = _read_utf16_log(log_path, offset=offset)
+            try:
+                content = _read_utf16_log(log_path, offset=offset)
+            except MemoryError:
+                print(f'  [警告] Agent 日志过大，跳过日志解析: {log_path}')
+                continue
             result = _parse_matching_result(
                 content,
                 symbol=symbol,
@@ -279,7 +395,11 @@ def parse_agent_log(symbol=None, date_from=None, date_to=None, log_offsets=None,
         for use_offsets in (True, False):
             for log_path in ordered_paths:
                 offset = log_offsets.get(log_path, 0) if use_offsets and log_offsets else 0
-                content = _read_utf16_log(log_path, offset=offset)
+                try:
+                    content = _read_utf16_log(log_path, offset=offset)
+                except MemoryError:
+                    print(f'  [警告] Agent 日志过大，跳过日志解析: {log_path}')
+                    continue
                 result = parse_agent_log_content(content) if content else None
                 if result is not None:
                     return result
@@ -320,13 +440,23 @@ def run_backtest(strategy_name, symbols, date_from, date_to, days, config, timeo
         success = run_mt5(timeout_sec=timeout)
 
         if success:
-            result = parse_agent_log(
-                symbol=symbol,
-                date_from=date_from,
-                date_to=date_to,
-                expected_markers=expected_markers,
-            )
+            try:
+                result = parse_agent_log(
+                    symbol=symbol,
+                    date_from=date_from,
+                    date_to=date_to,
+                    expected_markers=expected_markers,
+                )
+            except MemoryError:
+                print('  [警告] Agent 日志解析内存不足，改用 HTML 报告兜底')
+                result = None
             stats = calc_stats(result, deposit, days)
+            if stats is None:
+                report_file = find_report_file(LAST_REPORT_NAME)
+                if report_file:
+                    stats = parse_html_report_stats(report_file, deposit, days)
+                    if stats:
+                        print(f'  [HTML兜底] 已从报告解析结果: {report_file}')
             symbol_results[symbol] = stats
             if stats:
                 print(f'  结果: {stats["trades"]}笔交易, 胜率{stats["win_rate"]:.1f}%, 余额${stats["final_balance"]:.2f}')
