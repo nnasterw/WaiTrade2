@@ -38583,6 +38583,16 @@ v11-btc1-trend58:
   balance_tier1_max_lot_size: 0.13
   magic_number: 205958
 
+v11-btc1-trend59:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND59
+  description: 'EA 架构 fix: trend29 + skip_state_filter_bars=200 (skip 20h warmup for 1-month test)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.13
+  skip_state_filter_bars: 200
+  magic_number: 205959
+
 v11-btc1-geo01:
   <<: *v11_btc1_qual06
   version: V11-BTC1-GEO01

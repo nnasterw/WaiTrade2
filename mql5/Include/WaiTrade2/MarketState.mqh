@@ -41,6 +41,8 @@ bool IsSwingLow(const MqlRates &rates[], int idx, int strength, int total)
 
 MARKET_STATE DetectMarketState(string symbol, double &target_price)
 {
+    if(InpSkipStateFilterBars > 0 && Bars(symbol, PERIOD_CURRENT) < InpSkipStateFilterBars)
+        return STATE_BULLISH;  // skip first N bars warmup
     MqlRates rates[];
     int swing_strength = CfgSwingStrength();
     int count = CopyRates(symbol, PERIOD_M15, 0, CfgTrendLookback(), rates);

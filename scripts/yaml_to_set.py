@@ -961,6 +961,7 @@ FLAT_MAP = {
     "trend_lookback": "InpTrendLookback",
     "swing_strength": "InpSwingStrength",
     "enable_state_filter": "InpEnableStateFilter",
+    "skip_state_filter_bars": "InpSkipStateFilterBars",
     "range_be_r": "InpRangeBE_R",
     "range_time_exit": "InpRangeTimeExit",
     "trend_be_r": "InpTrendBE_R",

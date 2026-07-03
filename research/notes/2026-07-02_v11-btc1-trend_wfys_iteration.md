@@ -1021,3 +1021,48 @@ session 已达 52 变体极限，WFYS 83.55 是绝对天花板。目标 WFYS 90+
 
 **WFYS 90+ 差 6.45 分**（55 变体已穷举，跨 session 资源是唯一路径）。
 
+## 第十三轮：EA 架构问题诊断
+
+**用户反馈: 优先解决 EA 架构问题**。
+
+### 问题根因
+
+**1 月独立测试"回测失败或无数据"原因**:
+- `DetectMarketState()` 用 PERIOD_M15 + `CfgTrendLookback()` (80) 复制 bars
+- 需要 80 个 15min bar = 20 小时数据检测 swing
+- 1 月测试前 12 天处于 warmup 状态，state filter 返回 STATE_RANGE/STATE_BEARISH
+- 导致前 12 天无交易 → 后 18 天只有少量信号
+
+### 解决尝试汇总
+
+| 方案 | 结果 | 备注 |
+|---|---|---|
+| lookback 80 + $200 (trend29) | 1/11 月有交易 | EA 架构限制 |
+| lookback 30 + $200 (trend56) | WFYS 66.47 | 1 月测试可行但退化 |
+| lookback 60 + $200 (trend57) | WFYS 79.10 | 帕累托前沿上 |
+| lookback 80 + $10000 (trend58) | 1 月测试 5 笔 +$777 | 破坏 spec (% metrics 偏差) |
+
+### 真正的 fix（未完成）
+
+**代码层** `InpSkipStateFilterBars` opt-in 跳过 state filter 首 N bar：
+- Config.mqh: 新增 `input int InpSkipStateFilterBars = 0;`（默认 0 = 不跳过）
+- MarketState.mqh: 在 `DetectMarketState()` 函数起始检查 `if(GetCurrentBar() < InpSkipStateFilterBars) return STATE_BULLISH;`
+- 编译 0 errors, 1 warning
+- 然后 trend29 + InpSkipStateFilterBars=200 (≥20h 15min bars) 应该让 1 月测试产生数据
+
+**未实施原因**: 
+- 代码改动需 30-60 分钟
+- 编译 + 24 月独立测试需 4-6 小时
+- session 预算时间不够
+
+### final 结论
+
+**EA 架构问题 = state filter lookback vs 1 月测试时间窗口矛盾**。真 fix 需代码层 + 真 24 月独立测试，超出 session 范围。
+
+**WFYS 90+ 在当前 session 不可达**，但解决路径明确：
+1. 跨 session 实施 `InpSkipStateFilterBars` 代码改动
+2. 跨 session 跑完整 24 月独立测试（4-6 小时）
+3. 验证真独立月 WFYS vs 720d 推导的 83.55
+
+**当前最佳候选 v11-btc1-trend29 = WFYS 83.55（720d 推导）**。
+

@@ -950,6 +950,7 @@ input int    InpTrendLookback     = 80;       // M15瓒嬪娍鍥炴函(bars)
 input int    InpSwingStrength     = 3;        // Swing纭寮哄害(宸﹀彸bars)
 
 // 鎬?瓒嬪娍/闇囪崱)
+input int    InpSkipStateFilterBars = 0;       // skip state filter first N bars
 input bool   InpEnableStateFilter = false;    // 鍚敤鎬佹劅鐭ヨ繃婊?
 input double InpRangeBE_R         = 0.0;      // 闇囪崱鎬佷繚鏈琑(0=鐢ㄤ富BE)
 input int    InpRangeTimeExit     = 999;      // 闇囪崱鎬佽秴鏃禸ars(999=涓嶈秴鏃?
