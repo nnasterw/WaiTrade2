@@ -1014,6 +1014,7 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
         CheckMFEFailExit(tracks[i], state, tracks, track_count);
         CheckFastSL(tracks[i], state, tracks, track_count);
          CheckLossCut(tracks[i], state, tracks, track_count);
+         CheckMaxLossCap(tracks[i], state, tracks, track_count);
          CheckNoMFEExit(tracks[i], state, tracks, track_count);
         CheckPartialClose(tracks[i], state);
         CheckBreakeven(tracks[i], state);
@@ -1196,6 +1197,32 @@ void CheckLossCut(PosTrack &track, const EAState &state,
     else
         MarkCloseAttemptFailed(track);
 }
+// BTC 硬止损Cap - 直接cap R值, 防止单笔大亏
+void CheckMaxLossCap(PosTrack &track, const EAState &state,
+                  PosTrack &tracks[], int &track_count)
+{
+    double cap_r = UseBTCProfile() ? InpBTCCapLossR : 0.0;
+    string cap_hours = UseBTCProfile() ? InpBTCCapLossHours : "";
+    if(cap_r >= 0.0) return;  // 0或正数=禁用
+    if(!PositionSelectByTicket(track.ticket)) return;
+    MqlDateTime dt;
+    TimeCurrent(dt);
+    if(StringLen(cap_hours) > 0 && !IsCsvIntListed(cap_hours, dt.hour)) return;
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+    if(current_r > cap_r) return;
+    if(ShouldSkipCloseAttempt(track)) return;
+    double source_volume = PositionGetDouble(POSITION_VOLUME);
+    if(ClosePosition(track.ticket, "max_loss_cap"))
+    {
+        PrintExitDebug("max_loss_cap", track, current_r, state);
+        RecordFailureReentryState(track.direction, track.entry_family, track.entry_price);
+    }
+    else
+        MarkCloseAttemptFailed(track);
+}
+
+
 
 void CheckPartialClose(PosTrack &track, const EAState &state)
 {
