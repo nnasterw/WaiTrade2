@@ -38694,6 +38694,88 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend193:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND193
+  description: 'trend111 + M1 timeframe (bar_period_min=1) - 更细粒度, 期望更多交易'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_bar_period_min: 1
+  magic_number: 206093
+
+
+
+v11-btc1-trend194:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND194
+  description: 'trend111 + M3 timeframe (bar_period_min=3) - 介于M1和M5之间'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_bar_period_min: 3
+  magic_number: 206094
+
+
+
+v11-btc1-trend195:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND195
+  description: 'trend111 + 月度利润锁 (10%起锁) - 防止损月, 同时启用 HTFPB 增交易'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_ob_reentry_cooldown_min: 1
+  btc_max_entries_per_ob: 8
+  monthly_profit_lock_start_pct: 0.10
+  btc_allow_monthly_profit_target_stop: true
+  magic_number: 206095
+
+
+
+v11-btc1-trend196:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND196
+  description: 'trend111 + HTFPB + OB max_entries=8 + reentry=1 + min_risk=4.0 (HTF严格过滤)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_ob_reentry_cooldown_min: 1
+  btc_max_entries_per_ob: 8
+  min_risk_spread_ratio: 4.0
+  enable_htf_pullback: true
+  magic_number: 206096
+
+
+
 v11-btc1-trend189:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND189
