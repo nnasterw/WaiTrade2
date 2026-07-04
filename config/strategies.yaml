@@ -38694,6 +38694,91 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend181:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND181
+  description: 'trend111 + disable HTF target (根本性改变: 纯SL+BE管理) + LossCut 1bar/-0.5R'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  enable_htf_target: false
+  btc_loss_cut_bars: 1
+  btc_loss_cut_r: -0.5
+  magic_number: 206081
+
+
+
+v11-btc1-trend182:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND182
+  description: 'trend111 + enable HTF DTP (1.0R trigger 0.3R retrace) + LossCut 1bar/-0.4R (激进切损)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_htf_skip_dtp: false
+  btc_dtp_trigger_r: 1.0
+  btc_dtp_retrace: 0.3
+  btc_loss_cut_bars: 1
+  btc_loss_cut_r: -0.4
+  magic_number: 206082
+
+
+
+v11-btc1-trend183:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND183
+  description: 'trend111 + LossCut 1bar/-0.4R (温和) + BadBounce BLOCK 0.25-0.30 (用0代表BLOCK)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_loss_cut_bars: 1
+  btc_loss_cut_r: -0.4
+  magic_number: 206083
+
+
+
+v11-btc1-trend184:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND184
+  description: 'trend111 + LossCut 1bar/-0.6R (更宽) + FastSL peak=4.0/bars=2 (排除中频赢单)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_loss_cut_bars: 1
+  btc_loss_cut_r: -0.6
+  btc_fast_sl_peak_r: 4.0
+  btc_fast_sl_bars: 2
+  btc_fast_sl_exit_r: -0.5
+  magic_number: 206084
+
+
+
 v11-btc1-trend177:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND177
