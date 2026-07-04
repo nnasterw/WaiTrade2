@@ -38694,6 +38694,85 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend197:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND197
+  description: 'trend111 + HTFPB + bad_bounce 适用于 HTFPB (过滤HTFPB噪声)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB,HTFPB
+  enable_htf_pullback: true
+  magic_number: 206097
+
+
+
+v11-btc1-trend198:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND198
+  description: 'trend111 + HTFPB + bad_bounce 适用于 OB+HTFPB+SWP+FVG (多类型严格过滤)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.3
+  bad_bounce_signal_types: OB,HTFPB,SWP,FVG
+  enable_htf_pullback: true
+  magic_number: 206098
+
+
+
+v11-btc1-trend199:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND199
+  description: 'trend111 + HTFPB + FVG (双类型入场) + bad_bounce严格过滤 0.25-0.30 mult 0.3'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.3
+  bad_bounce_signal_types: OB,HTFPB,FVG
+  enable_htf_pullback: true
+  enable_fvg: true
+  magic_number: 206099
+
+
+
+v11-btc1-trend200:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND200
+  description: 'trend111 + HTFPB + FVG + Sweep (全入场类型) + bad_bounce严格0.25-0.30 mult 0.25'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.25
+  bad_bounce_signal_types: OB,HTFPB,FVG,SWP
+  enable_htf_pullback: true
+  enable_fvg: true
+  enable_double_sweep_confirm: true
+  magic_number: 206100
+
+
+
 v11-btc1-trend193:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND193
