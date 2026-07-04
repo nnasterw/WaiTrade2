@@ -1012,7 +1012,8 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
 
         CheckEarlyLossCut(tracks[i], state, tracks, track_count);
         CheckMFEFailExit(tracks[i], state, tracks, track_count);
-        CheckNoMFEExit(tracks[i], state, tracks, track_count);
+        CheckFastSL(tracks[i], state, tracks, track_count);
+         CheckNoMFEExit(tracks[i], state, tracks, track_count);
         CheckPartialClose(tracks[i], state);
         CheckBreakeven(tracks[i], state);
         CheckStructureProfitLock(tracks[i], state);
@@ -1139,6 +1140,33 @@ void CheckNoMFEExit(PosTrack &track, const EAState &state,
     {
         RecordFailureReentryState(track.direction, track.entry_family, track.entry_price);
         OpenFailureReverse(track, "no_mfe", source_volume, state.bar_count, tracks, track_count);
+    }
+    else
+        MarkCloseAttemptFailed(track);
+}
+
+// BTC 快速SL防护 - 不受BE/Trail/DTP skip条件限制
+void CheckFastSL(PosTrack &track, const EAState &state,
+                PosTrack &tracks[], int &track_count)
+{
+    double min_peak = UseBTCProfile() ? InpBTCFastSLPeakR : 0.0;
+    int bars = UseBTCProfile() ? InpBTCFastSLBars : 0;
+    double exit_r = UseBTCProfile() ? InpBTCFastSLExitR : 0.0;
+    if(min_peak <= 0 || bars <= 0) return;
+    if(!PositionSelectByTicket(track.ticket)) return;
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+    track.peak_profit_r = MathMax(track.peak_profit_r, current_r);
+    int bars_held = state.bar_count - track.open_bar;
+    if(bars_held < bars) return;
+    if(track.peak_profit_r >= min_peak) return;
+    if(current_r > exit_r) return;
+    if(ShouldSkipCloseAttempt(track)) return;
+    double source_volume = PositionGetDouble(POSITION_VOLUME);
+    if(ClosePosition(track.ticket, "fast_sl"))
+    {
+        PrintExitDebug("fast_sl", track, current_r, state);
+        RecordFailureReentryState(track.direction, track.entry_family, track.entry_price);
     }
     else
         MarkCloseAttemptFailed(track);
