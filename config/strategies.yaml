@@ -38694,6 +38694,90 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend177:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND177
+  description: 'trend111 + 激进 LossCut (1bar/-0.3R) - 防止 2026-05 -$84 损失'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_loss_cut_bars: 1
+  btc_loss_cut_r: -0.3
+  magic_number: 206077
+
+
+
+v11-btc1-trend178:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND178
+  description: 'trend111 + 启用 HTF 方向门控 + 启用 momentum 过滤 + HTF shape 过滤 (多重过滤)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  enable_htf_direction_gate: true
+  enable_entry_momentum_filter: true
+  enable_entry_htf_shape_filter: true
+  magic_number: 206078
+
+
+
+v11-btc1-trend179:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND179
+  description: 'trend111 + 启用 BTC DTP (HTFSkipDTP=false) + 降低DTP阈值 (1.5R trigger 0.5R retrace)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_htf_skip_dtp: false
+  btc_dtp_trigger_r: 1.5
+  btc_dtp_retrace: 0.5
+  magic_number: 206079
+
+
+
+v11-btc1-trend180:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND180
+  description: 'trend111 + 启用 BTC DTP + trigger 1.5R retrace 0.3R partial 50% (分批锁利)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_htf_skip_dtp: false
+  btc_dtp_trigger_r: 1.5
+  btc_dtp_retrace: 0.3
+  btc_dtp_partial_pct: 50
+  magic_number: 206080
+
+
+
 v11-btc1-trend173:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND173
