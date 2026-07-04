@@ -38694,6 +38694,88 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend169:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND169
+  description: 'trend111 + BTC BE 强化 (1.0R锁0.5R) - 提前锁利, 减少回吐'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_breakeven_r: 1.0
+  btc_breakeven_lock_r: 0.5
+  magic_number: 206069
+
+
+
+v11-btc1-trend170:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND170
+  description: 'trend111 + BTC BE 强化 (1.5R锁0.8R) - 更高锁利'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_breakeven_r: 1.5
+  btc_breakeven_lock_r: 0.8
+  magic_number: 206070
+
+
+
+v11-btc1-trend171:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND171
+  description: 'trend111 + BTC BE 强化 (2.0R锁1.0R) - 大幅锁利, 让交易不归零'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_breakeven_r: 2.0
+  btc_breakeven_lock_r: 1.0
+  magic_number: 206071
+
+
+
+v11-btc1-trend172:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND172
+  description: 'trend111 + BTC BE (1.0R锁0.5R) + LossCut (bars=1, exit=-0.3)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_breakeven_r: 1.0
+  btc_breakeven_lock_r: 0.5
+  btc_loss_cut_bars: 1
+  btc_loss_cut_r: -0.3
+  magic_number: 206072
+
+
+
 v11-btc1-trend165:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND165
