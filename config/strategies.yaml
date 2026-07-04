@@ -38694,6 +38694,1291 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend151:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND151
+  description: 'trend111 + 极限 BTC NoMFE (1bar/1.0peak/-0.5R) - 极强快速SL防护'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 1
+  btc_no_mfe_min_peak_r: 1.0
+  btc_no_mfe_exit_r: -0.5
+  magic_number: 206051
+
+
+
+v11-btc1-trend152:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND152
+  description: 'trend111 + 极限 BTC NoMFE (2bar/0.8peak/-0.5R) - 中度防护'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 2
+  btc_no_mfe_min_peak_r: 0.8
+  btc_no_mfe_exit_r: -0.5
+  magic_number: 206052
+
+
+
+v11-btc1-trend153:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND153
+  description: 'trend111 + BTC NoMFE (5bar/0.8peak/-0.5R) - 慢热防护'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 5
+  btc_no_mfe_min_peak_r: 0.8
+  btc_no_mfe_exit_r: -0.5
+  magic_number: 206053
+
+
+
+v11-btc1-trend154:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND154
+  description: 'trend111 + BTC NoMFE 1bar/0.5peak/-0.3R (温和切损, 保留赢家)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 1
+  btc_no_mfe_min_peak_r: 0.5
+  btc_no_mfe_exit_r: -0.3
+  magic_number: 206054
+
+
+
+v11-btc1-trend147:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND147
+  description: 'trend111 + 强化 BTC NoMFE 3bar/0.3peak/-0.5R (快速SL防护)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 3
+  btc_no_mfe_min_peak_r: 0.3
+  btc_no_mfe_exit_r: -0.5
+  magic_number: 206047
+
+
+
+v11-btc1-trend148:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND148
+  description: 'trend111 + 强化 BTC MFE Fail 0.5peak/-0.3R (峰值后回调退出)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_mfe_fail_min_r: 0.5
+  btc_mfe_fail_exit_r: -0.3
+  magic_number: 206048
+
+
+
+v11-btc1-trend149:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND149
+  description: 'trend111 + BTC NoMFE 3bar/0.5peak/-0.5R + MFE Fail 0.5/-0.3R (双防护)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 3
+  btc_no_mfe_min_peak_r: 0.5
+  btc_no_mfe_exit_r: -0.5
+  btc_mfe_fail_min_r: 0.5
+  btc_mfe_fail_exit_r: -0.3
+  magic_number: 206049
+
+
+
+v11-btc1-trend150:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND150
+  description: 'trend111 + BTC NoMFE 5bar/0.3peak/-0.5R (5bar内快速检测)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 5
+  btc_no_mfe_min_peak_r: 0.3
+  btc_no_mfe_exit_r: -0.5
+  magic_number: 206050
+
+
+
+v11-btc1-trend143:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND143
+  description: 'trend111 + btc_sl_buffer_atr 2.0 (宽SL 容纳更多波动, 帮中R赢单到3R+)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_sl_buffer_atr: 2.0
+  magic_number: 206043
+
+
+
+v11-btc1-trend144:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND144
+  description: 'trend111 + btc_sl_buffer_atr 1.8 (略宽SL, 介于1.5和2.0之间)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_sl_buffer_atr: 1.8
+  magic_number: 206044
+
+
+
+v11-btc1-trend145:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND145
+  description: 'trend111 + btc_sl_buffer_atr 1.5 (默认, 对照组)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_sl_buffer_atr: 1.5
+  magic_number: 206045
+
+
+
+v11-btc1-trend146:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND146
+  description: 'trend111 + btc_sl_buffer_atr 2.0 + htf_measured 2.7 (宽SL + 略低目标)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 2.7
+  htf_min_target_r: 2.0
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_sl_buffer_atr: 2.0
+  magic_number: 206046
+
+
+
+v11-btc1-trend139:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND139
+  description: 'trend111 + 强化 NoMFE 快速SL防护 (bars=10, min_peak=0.3, exit=-0.5)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_mfe_exit_bars: 10
+  btc_no_mfe_min_peak_r: 0.3
+  btc_no_mfe_exit_r: -0.5
+  magic_number: 206039
+
+
+
+v11-btc1-trend140:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND140
+  description: 'trend111 + 强化 MFE Fail Exit (mfe_fail_min_r=0.7, exit=-0.3)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_mfe_fail_min_r: 0.7
+  btc_mfe_fail_exit_r: -0.3
+  magic_number: 206040
+
+
+
+v11-btc1-trend141:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND141
+  description: 'trend111 + decay (decay_min_r=1.5, decay_bars=2) - 弱盈利早退'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_decay_min_r: 1.5
+  btc_decay_bars: 2
+  magic_number: 206041
+
+
+
+v11-btc1-trend142:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND142
+  description: 'trend111 + 强化 time exit (time_exit_bars=100) - 限制持仓时间'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_time_exit_bars: 100
+  magic_number: 206042
+
+
+
+v11-btc1-trend135:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND135
+  description: 'trend111 + cooldown_bars 3 (全局K线冷却, 减交易频率)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_cooldown_bars: 3
+  magic_number: 206035
+
+
+
+v11-btc1-trend136:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND136
+  description: 'trend111 + ob_reentry_cooldown_min 10 (OB再入场冷却10min, 减交易频率)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_ob_reentry_cooldown_min: 10
+  magic_number: 206036
+
+
+
+v11-btc1-trend137:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND137
+  description: 'trend111 + max_entries_per_ob 3 (每个OB最多3次入场, 减交易频率)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_max_entries_per_ob: 3
+  magic_number: 206037
+
+
+
+v11-btc1-trend138:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND138
+  description: 'trend111 + min_ob_strength 0.6 + ob_reentry_cooldown 5 (提高OB质量+冷却)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  min_ob_strength: 0.6
+  btc_ob_reentry_cooldown_min: 5
+  magic_number: 206038
+
+
+
+v11-btc1-trend131:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND131
+  description: 'trend111 + btc_no_ob_start_hour 0 + btc_no_ob_end_hour 5 (block h=0-5 OB入场, 减低流动性损失)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_ob_start_hour: 0
+  btc_no_ob_end_hour: 5
+  magic_number: 206031
+
+
+
+v11-btc1-trend132:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND132
+  description: 'trend111 + btc_no_ob_start_hour 6 + btc_no_ob_end_hour 14 (block h=6-14, 保留下午+晚间)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_ob_start_hour: 6
+  btc_no_ob_end_hour: 14
+  magic_number: 206032
+
+
+
+v11-btc1-trend133:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND133
+  description: 'trend111 + btc_no_sell_hours "0,1,2,3,4,5" (只block卖单在低流动性时段)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_sell_hours: "0,1,2,3,4,5"
+  magic_number: 206033
+
+
+
+v11-btc1-trend134:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND134
+  description: 'trend111 + btc_no_buy_hours "0,1,2,3,4,5" (只block买单在低流动性时段)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_no_buy_hours: "0,1,2,3,4,5"
+  magic_number: 206034
+
+
+
+v11-btc1-trend127:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND127
+  description: 'trend111 + bad_bounce_mult 0.0 (BLOCK 0.25-0.30区间所有OB入场)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.0
+  bad_bounce_signal_types: OB
+  magic_number: 206027
+
+
+
+v11-btc1-trend128:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND128
+  description: 'trend111 + bad_bounce_mult -0.1 (BLOCK, 同时带负值标记)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: -0.1
+  bad_bounce_signal_types: OB
+  magic_number: 206028
+
+
+
+v11-btc1-trend129:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND129
+  description: 'trend111 + bad_bounce 0.27-0.30 mult 0 (BLOCK 0.27-0.30区间, 保留0.25-0.27大赢单)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.27
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.0
+  bad_bounce_signal_types: OB
+  magic_number: 206029
+
+
+
+v11-btc1-trend130:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND130
+  description: 'trend111 + bad_bounce 0.25-0.30 mult 0.3 (减少但不BLOCK, 测试最低mult)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.3
+  bad_bounce_signal_types: OB
+  magic_number: 206030
+
+
+
+v11-btc1-trend123:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND123
+  description: 'trend111 + htf_measured_move_r 3.5 (slight increase from 3.2)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206023
+
+
+
+v11-btc1-trend124:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND124
+  description: 'trend111 + bad_bounce 0.25-0.32 mult 0.5 (slight expansion)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.32
+  bad_bounce_mult: 0.5
+  bad_bounce_signal_types: OB
+  magic_number: 206024
+
+
+
+v11-btc1-trend125:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND125
+  description: 'trend111 + bad_bounce_max_entry_pos_mult 0.05 (cap pos_mult, block 一些大lot)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_max_entry_pos_mult: 0.05
+  bad_bounce_signal_types: OB
+  magic_number: 206025
+
+
+
+v11-btc1-trend126:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND126
+  description: 'trend111 + 全部defaults 最低 (尝试基础对比)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.3
+  bad_bounce_signal_types: OB
+  magic_number: 206026
+
+
+
+v11-btc1-trend119:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND119
+  description: 'trend111 + htf_min_target_r 2.0 (更低min, 触发更多swing目标命中)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.0
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206019
+
+
+
+v11-btc1-trend120:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND120
+  description: 'trend111 + htf_min_target_r 1.5 + htf_lookback 240 (更长回看期)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 1.5
+  htf_target_lookback: 240
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206020
+
+
+
+v11-btc1-trend121:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND121
+  description: 'trend111 + max_lot 0.8 (更严lot cap)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 0.8
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206021
+
+
+
+v11-btc1-trend122:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND122
+  description: 'trend111 + bad_bounce 0.25-0.30 mult 0.5 (略宽mult, 保留更多size)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.5
+  bad_bounce_signal_types: OB
+  magic_number: 206022
+
+
+
+v11-btc1-trend115:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND115
+  description: 'trend111 (HTF 3.2/2.2) + htf_max_target_r 4.0 (cap目标上限4R, 避免swing目标过高)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  htf_max_target_r: 4.0
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206015
+
+
+
+v11-btc1-trend116:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND116
+  description: 'trend111 + htf_max_target_r 5.0 (略调上限)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  htf_max_target_r: 5.0
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206016
+
+
+
+v11-btc1-trend117:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND117
+  description: 'trend111 + htf_target_tf 60 (H1周期找目标, 可能有更多swing命中)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  htf_target_tf: 60
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206017
+
+
+
+v11-btc1-trend118:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND118
+  description: 'trend111 + htf_swing_strength 1 (更敏感的swing检测, 更多swing命中)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  htf_swing_strength: 1
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206018
+
+
+
+v11-btc1-trend111:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND111
+  description: 'trend108 (HTF 3.0/2.5 + bad 0.25-0.30 + max_lot 1.0) + HTF 3.2/2.2 (略升目标, 推big_win)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206011
+
+
+
+v11-btc1-trend112:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND112
+  description: 'trend108 + HTF 3.3/2.3 (再升, 看对big_win影响)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.3
+  htf_min_target_r: 2.3
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206012
+
+
+
+v11-btc1-trend113:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND113
+  description: 'trend108 + HTF 3.1/2.0 (中间值, 测swing目标空间)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.1
+  htf_min_target_r: 2.0
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206013
+
+
+
+v11-btc1-trend114:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND114
+  description: 'trend108 + bad_bounce 0.25-0.32 (扩展bad范围上限, 多捕一些噪声)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.32
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206014
+
+
+
+v11-btc1-trend107:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND107
+  description: 'trend84 (HTF 3.5/2.5) + max_lot_size 1.0 (全局lot上限压低, 避免单笔大亏)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 206007
+
+
+
+v11-btc1-trend108:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND108
+  description: 'trend90 (HTF 3.0/2.5 + bad 0.25-0.30) + max_lot_size 1.0 (双保险: bad_bounce + lot cap)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206008
+
+
+
+v11-btc1-trend109:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND109
+  description: 'trend84 + balance_tier1_ob_signal_max_lot_size 1.0 (OB特定lot上限1.0)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  balance_tier1_ob_signal_max_lot_size: 1.0
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 206009
+
+
+
+v11-btc1-trend110:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND110
+  description: 'trend90 + balance_tier1_ob_signal_max_lot_size 0.8 (OB特定lot上限0.8)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  balance_tier1_ob_signal_max_lot_size: 0.8
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206010
+
+
+
+v11-btc1-trend103:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND103
+  description: 'trend90 (HTF 3.0/2.5 + bad 0.25-0.30 mult 0.4) + max_pos_mult 3.0 (压低仓位倍数, 避免大亏月)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_pos_mult: 3.0
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206003
+
+
+
+v11-btc1-trend104:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND104
+  description: 'trend84 (HTF 3.5/2.5) + entry_depth_pct 0.75 (更深入场=更好质量)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  entry_depth_pct: 0.75
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 206004
+
+
+
+v11-btc1-trend105:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND105
+  description: 'trend90 + entry_depth_pct 0.75 (双保险: 深度入场 + bad_bounce)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  entry_depth_pct: 0.75
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206005
+
+
+
+v11-btc1-trend106:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND106
+  description: 'trend84 + max_pos_mult 4.0 + bad_bounce 0.25-0.30 mult 0.4 (压低仓位 + 噪声过滤)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_pos_mult: 4.0
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 206006
+
+
+
+v11-btc1-trend99:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND99
+  description: 'trend84 (HTF 3.5/2.5) + min_risk_spread_ratio 8.0 (提高入场质量门槛, 减少噪声交易)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  min_risk_spread_ratio: 8.0
+  magic_number: 205999
+
+
+
+v11-btc1-trend100:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND100
+  description: 'trend84 (HTF 3.5/2.5) + bad_bounce 0.25-0.30 mult 0.3 (trend88基础上mult降低)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.3
+  bad_bounce_signal_types: OB
+  magic_number: 206000
+
+
+
+v11-btc1-trend101:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND101
+  description: 'trend90 (HTF 3.0/2.5 + bad 0.25-0.30 mult 0.4) + min_risk_spread_ratio 8.0'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  min_risk_spread_ratio: 8.0
+  magic_number: 206001
+
+
+
+v11-btc1-trend102:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND102
+  description: 'trend84 (HTF 3.5/2.5) + bad_bounce 0.25-0.32 mult 0.3 (扩展上限到0.32)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.32
+  bad_bounce_mult: 0.3
+  bad_bounce_signal_types: OB
+  magic_number: 206002
+
+
+
+v11-btc1-trend95:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND95
+  description: 'trend84 (HTF 3.5/2.5) + balance_tier1_ob_signal_max_lot_size 0.05 (OB信号手数严格限制)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.10
+  balance_tier1_ob_signal_max_lot_size: 0.05
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 205995
+
+
+
+v11-btc1-trend96:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND96
+  description: 'trend84 (HTF 3.5/2.5) + balance_tier1_ob_signal_max_lot_size 0.08 (OB信号手数0.08上限)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.10
+  balance_tier1_ob_signal_max_lot_size: 0.08
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 205996
+
+
+
+v11-btc1-trend97:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND97
+  description: 'trend90 (HTF 3.0/2.5 + bad 0.25-0.30 mult 0.4) + OB信号手数 0.08'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.10
+  balance_tier1_ob_signal_max_lot_size: 0.08
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 205997
+
+
+
+v11-btc1-trend98:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND98
+  description: 'trend84 (HTF 3.5/2.5) + balance_tier1_ob 0.06 + balance_tier1_other 0.03 (双层OB+Other压低)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.10
+  balance_tier1_ob_signal_max_lot_size: 0.06
+  balance_tier1_other_max_lot_size: 0.03
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 205998
+
+
+
+v11-btc1-trend91:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND91
+  description: 'trend84 (HTF 3.5/2.5) + balance_tier1_max_lot_size 0.10 (收紧手数, 避免单月巨亏)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.10
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 205991
+
+
+
+v11-btc1-trend92:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND92
+  description: 'trend84 (HTF 3.5/2.5) + htf_swing_strength 3 (更大级别H4摆动=更大目标)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  htf_swing_strength: 3
+  magic_number: 205992
+
+
+
+v11-btc1-trend93:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND93
+  description: 'trend84 (HTF 3.5/2.5) + htf_target_tf=60 (改H1周期找目标)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  htf_target_tf: 60
+  magic_number: 205993
+
+
+
+v11-btc1-trend94:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND94
+  description: 'trend90 (HTF 3.0/2.5 + bad 0.25-0.30 mult 0.4) + balance_tier 0.10 (双保险)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.10
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 205994
+
+
+
+v11-btc1-trend87:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND87
+  description: 'trend68 + 进一步降低HTF target (3.0/2.0) - 推更多 >3R'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.0
+  magic_number: 205987
+
+
+
+v11-btc1-trend88:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND88
+  description: 'trend84 (HTF 3.5/2.5) + bad_bounce 0.25-0.30 mult 0.4 (窄范围减损)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 205988
+
+
+
+v11-btc1-trend89:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND89
+  description: 'trend84 (HTF 3.5/2.5) + HTF DTP 2.5R/0.4 (晚触发DTP, 锁更多)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  htf_skip_dtp: false
+  htf_dtp_trigger_r: 2.5
+  htf_dtp_retrace: 0.4
+  htf_dtp_post_partial_retrace: 0.4
+  magic_number: 205989
+
+
+
+v11-btc1-trend90:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND90
+  description: 'trend68 + HTF target 3.0/2.5 + bad_bounce 0.25-0.30 mult 0.4 (双重)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.0
+  htf_min_target_r: 2.5
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  magic_number: 205990
+
+
+
+v11-btc1-trend83:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND83
+  description: 'trend68 + HTF DTP 激活 (skip_dtp=false, trigger=1.5R, retrace=0.3) - 绕过HTFSkip'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_skip_dtp: false
+  htf_dtp_trigger_r: 1.5
+  htf_dtp_retrace: 0.3
+  htf_dtp_post_partial_retrace: 0.3
+  magic_number: 205983
+
+
+
+v11-btc1-trend84:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND84
+  description: 'trend68 + 降低HTF目标 (measured_move 4.0->3.5, min_target 3.0->2.5) - 推 >3R 比例'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 205984
+
+
+
+v11-btc1-trend85:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND85
+  description: 'trend68 + HTF partial close (partial_r=1.5, partial_pct=50) - HTF 1.5R 锁50%'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_partial_r: 1.5
+  htf_partial_pct: 50
+  magic_number: 205985
+
+
+
+v11-btc1-trend86:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND86
+  description: 'trend83 + 84 组合 (HTF DTP 1.5/0.3 + HTF target 3.5/2.5)'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  htf_skip_dtp: false
+  htf_dtp_trigger_r: 1.5
+  htf_dtp_retrace: 0.3
+  htf_dtp_post_partial_retrace: 0.3
+  htf_measured_move_r: 3.5
+  htf_min_target_r: 2.5
+  magic_number: 205986
+
+
+
 v11-btc1-trend79:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND79
