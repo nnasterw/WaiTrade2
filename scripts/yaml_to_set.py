@@ -859,6 +859,8 @@ FLAT_MAP = {
     "btc_fast_sl_peak_r": "InpBTCFastSLPeakR",
     "btc_fast_sl_bars": "InpBTCFastSLBars",
     "btc_fast_sl_exit_r": "InpBTCFastSLExitR",
+    "btc_loss_cut_bars": "InpBTCLossCutBars",
+    "btc_loss_cut_r": "InpBTCLossCutR",
     "btc_enable_htf_net_push_filter": "InpBTCEnableHTFNetPushFilter",
     "btc_htf_net_push_tf": "InpBTCHTFNetPushTF",
     "btc_htf_net_push_bars": "InpBTCHTFNetPushBars",

@@ -847,6 +847,8 @@ input double InpBTCNoMFEExitR = -0.25;       // BTC鏃犳诞鐩堥€€鍑篟
 input double InpBTCFastSLPeakR = 0.0;        // BTC 快速SL防护峰值R (0=禁用, 设>0启用)
 input int    InpBTCFastSLBars  = 2;             // BTC 快速SL检查bars
 input double InpBTCFastSLExitR = -0.5;         // BTC 快速SL退出R (负数)
+input int    InpBTCLossCutBars = 0;         // BTC 损失定时切损bars (0=禁用, 设>0启用)
+input double InpBTCLossCutR = -0.5;         // BTC 损失定时切损R (负数)
 input bool   InpBTCEnableHTFNetPushFilter = true; // BTC鍚敤HTF鍑€鎺ㄨ繘
 input int    InpBTCHTFNetPushTF = 60;        // BTC HTF鍑€鎺ㄨ繘鍛ㄦ湡
 input int    InpBTCHTFNetPushBars = 3;       // BTC HTF鍑€鎺ㄨ繘bars

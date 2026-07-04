@@ -1013,6 +1013,7 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
         CheckEarlyLossCut(tracks[i], state, tracks, track_count);
         CheckMFEFailExit(tracks[i], state, tracks, track_count);
         CheckFastSL(tracks[i], state, tracks, track_count);
+         CheckLossCut(tracks[i], state, tracks, track_count);
          CheckNoMFEExit(tracks[i], state, tracks, track_count);
         CheckPartialClose(tracks[i], state);
         CheckBreakeven(tracks[i], state);
@@ -1166,6 +1167,30 @@ void CheckFastSL(PosTrack &track, const EAState &state,
     if(ClosePosition(track.ticket, "fast_sl"))
     {
         PrintExitDebug("fast_sl", track, current_r, state);
+        RecordFailureReentryState(track.direction, track.entry_family, track.entry_price);
+    }
+    else
+        MarkCloseAttemptFailed(track);
+}
+
+// BTC 损失定时切损 - 不检查peak, 在损失N bars后强制切损
+void CheckLossCut(PosTrack &track, const EAState &state,
+                PosTrack &tracks[], int &track_count)
+{
+    int bars = UseBTCProfile() ? InpBTCLossCutBars : 0;
+    double exit_r = UseBTCProfile() ? InpBTCLossCutR : 0.0;
+    if(bars <= 0) return;
+    if(!PositionSelectByTicket(track.ticket)) return;
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+    int bars_held = state.bar_count - track.open_bar;
+    if(bars_held < bars) return;
+    if(current_r > exit_r) return;
+    if(ShouldSkipCloseAttempt(track)) return;
+    double source_volume = PositionGetDouble(POSITION_VOLUME);
+    if(ClosePosition(track.ticket, "loss_cut"))
+    {
+        PrintExitDebug("loss_cut", track, current_r, state);
         RecordFailureReentryState(track.direction, track.entry_family, track.entry_price);
     }
     else
