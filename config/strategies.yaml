@@ -38694,6 +38694,48 @@ v11-btc1-trend70:
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
 
+v11-btc1-trend163:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND163
+  description: 'trend111 + BTC FastSL (peak=3.0, bars=2, exit=-0.5) - 极高peak阈值'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_fast_sl_peak_r: 3.0
+  btc_fast_sl_bars: 2
+  btc_fast_sl_exit_r: -0.5
+  magic_number: 206063
+
+
+
+v11-btc1-trend164:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND164
+  description: 'trend111 + BTC FastSL (peak=2.5, bars=1, exit=-0.5) - 中peak阈值, 1bar'
+  enable_balance_tier_lot_cap: true
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 0.14
+  max_lot_size: 1.0
+  htf_measured_move_r: 3.2
+  htf_min_target_r: 2.2
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  bad_bounce_signal_types: OB
+  btc_fast_sl_peak_r: 2.5
+  btc_fast_sl_bars: 1
+  btc_fast_sl_exit_r: -0.5
+  magic_number: 206064
+
+
+
 v11-btc1-trend159:
   <<: *v11_btc1_qual232
   version: V11-BTC1-TREND159
