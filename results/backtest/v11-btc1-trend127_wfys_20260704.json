@@ -1,0 +1,119 @@
+{
+  "spec": "btc",
+  "deposit": 200.0,
+  "period": {
+    "date_from": "2024.06.01",
+    "date_to": "2026.05.31",
+    "days": 729
+  },
+  "metrics": {
+    "monthly": {
+      "month_count": 24,
+      "total_profit": -120.16000000000003,
+      "total_return": -0.6008000000000001,
+      "profitable_months": 4,
+      "loss_months": 9,
+      "big_loss_months": 5,
+      "strong_months": 3,
+      "trend_months": 3,
+      "median_monthly_return": 0.0,
+      "top3_concentration": -1.9192743009320903,
+      "top5_concentration": -1.9900133155792272,
+      "total_trades": 33,
+      "max_loss_vs_initial": 0.8001999999999999
+    },
+    "continuous": {
+      "final_balance": 79.85429999999613,
+      "net_profit": -120.14570000000387,
+      "net_return": -0.6007285000000193,
+      "profit_factor": 0.6846070388567985,
+      "max_drawdown_abs": 193.7757000000023,
+      "max_drawdown_pct": 0.9688785000000115,
+      "recovery_factor": -0.620024595447223,
+      "avg_win": 43.46566666666666,
+      "avg_loss": 17.31544090909109,
+      "avg_win_loss": 2.5102258091415948,
+      "monthly_returns": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.8001834999999948,
+        -0.12000260238767847,
+        0.0,
+        3.2470541066207095,
+        0.056937426477330896,
+        -0.8014301025954393,
+        -0.2238346497888406,
+        -0.42741766439380957,
+        0.0,
+        -0.11501604324138932,
+        0.0,
+        4.738092920642048,
+        -0.5493272908721657,
+        1.8196648297019544,
+        0.0,
+        -0.10502083486286647,
+        -0.007482322701890897
+      ],
+      "sharpe": 0.787897184735513,
+      "sortino": 3.48391945684896,
+      "calmar": -0.3803556732907053,
+      "trade_count": 28
+    },
+    "r_metrics": {
+      "has_r_metrics": true,
+      "big_win_ratio": 0.3333333333333333,
+      "micro_win_ratio": 0.3333333333333333
+    }
+  },
+  "hard_gates": {
+    "24月盈利月数": false,
+    "亏损月数量": false,
+    "大亏月": false,
+    "单月亏损绝对保护": true,
+    "月收益中位数": false,
+    "强利润月数量": true,
+    "大趋势月数量": true,
+    "Top3集中度": true,
+    "Top5集中度": true,
+    "720d最大回撤": false,
+    "720dRecovery": false,
+    "720dPF": false,
+    "Sharpe": false,
+    "Sortino": true,
+    "Calmar": false,
+    "avg_W/|avg_L|": true,
+    ">3R大赢单占比": true,
+    "<0.5R微利单占比": true
+  },
+  "hard_failures": [
+    "24月盈利月数",
+    "亏损月数量",
+    "大亏月",
+    "月收益中位数",
+    "720d最大回撤",
+    "720dRecovery",
+    "720dPF",
+    "Sharpe",
+    "Calmar"
+  ],
+  "score": {
+    "modules": {
+      "稳定性": 12.0,
+      "利润能力": 6.0,
+      "风险质量": 3.461751345324889,
+      "趋势利润结构": 13.0
+    },
+    "total_score": 34.461751345324885,
+    "top_drags": [
+      "利润能力/24月总收益能力",
+      "稳定性/24月盈利月数",
+      "利润能力/720d净利能力"
+    ]
+  },
+  "grade": "淘汰"
+}
