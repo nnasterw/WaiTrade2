@@ -866,6 +866,12 @@ input double InpBTCShallowConfirmPosMult = 0.45; // BTC娴呯‘璁ゅ€嶆暟
 input double InpBTCDTPPostPartialLockR = 0.0; // BTC DTP鍒嗘壒鍚庨攣瀹?
 input double InpBTCDTPPostPartialRetrace = 0.0; // BTC DTP鍒嗘壒鍚庡洖鎾?
 input bool   InpBTCDTPResetPeakAfterPartial = false; // BTC DTP鍒嗘壒鍚庨噸缃嘲鍊?
+input double InpBTCBigWinTriggerR = 0.0;        // BTC 大赢单保护触发R (0=禁用)
+input double InpBTCBigWinLockToR = 0.0;         // BTC 大赢单保护锁定到R (0=不锁)
+input bool   InpBTCBigWinOnlyHTFTarget = true;  // 大赢单保护仅用于 HTF target 单
+input bool   InpBTCEnableMonthlyLossGuard = false; // BTC 启用月度最大单笔损失强平 (0=禁用)
+input double InpBTCMonthlyLossGuardR = -1.5;     // BTC 月度 max_loss 自动强平 R (负数)
+input bool   InpBTCMonthlyLossGuardOnlyHTFTarget = true; // 月度 max_loss 仅支持 HTF target 单
 
 // 鈹€鈹€ v11 鍗曠瓥鐣?XAU FAGE-alt Profile瑕嗙洊 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 input bool   InpEnableXAUFageAltProfile = false; // 鍚敤XAU FAGE-alt瑕嗙洊

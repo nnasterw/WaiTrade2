@@ -98,6 +98,7 @@ struct PosTrack
     double   dtp_peak_r;     // DTP婵€娲诲悗鐨勫嘲鍊糝
     bool     partial_closed; // 鏄惁宸叉墽琛岄儴鍒嗗钩浠?
     bool     dtp_partial_closed; // DTP鏄惁宸叉墽琛岄儴鍒嗗钩浠?
+    bool     bigwin_locked;   // bigwin protection applied
     bool     deep_entry;      // 鏄惁娣卞叆OB鍚庡叆鍦?
     int      bounce_seconds;  // 入场确认耗时
     double   confirm_ob_pos;  // 入场确认位置
