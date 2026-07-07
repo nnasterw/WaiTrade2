@@ -38007,6 +38007,7 @@ v11-btc1-trend05:
   htf_pullback_only: true
   htf_pullback_tf: 60
   magic_number: 205905
+  enable_btc_profile: true
 
 v11-btc1-trend06:
   <<: *v11_btc1_qual232
@@ -38201,6 +38202,7 @@ v11-btc1-trend22:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.5
   magic_number: 205922
+  enable_btc_profile: true
 
 v11-btc1-trend23:
   <<: *v11_btc1_qual232
@@ -38210,6 +38212,7 @@ v11-btc1-trend23:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.8
   magic_number: 205923
+  enable_btc_profile: true
 
 v11-btc1-trend24:
   <<: *v11_btc1_qual232
@@ -38219,6 +38222,7 @@ v11-btc1-trend24:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.3
   magic_number: 205924
+  enable_btc_profile: true
 
 v11-btc1-trend25:
   <<: *v11_btc1_qual232
@@ -38228,6 +38232,7 @@ v11-btc1-trend25:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.2
   magic_number: 205925
+  enable_btc_profile: true
 
 v11-btc1-trend26:
   <<: *v11_btc1_qual232
@@ -38237,6 +38242,7 @@ v11-btc1-trend26:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.15
   magic_number: 205926
+  enable_btc_profile: true
 
 v11-btc1-trend27:
   <<: *v11_btc1_qual232
@@ -38246,6 +38252,7 @@ v11-btc1-trend27:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.10
   magic_number: 205927
+  enable_btc_profile: true
 
 v11-btc1-trend28:
   <<: *v11_btc1_qual232
@@ -38255,6 +38262,7 @@ v11-btc1-trend28:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.18
   magic_number: 205928
+  enable_btc_profile: true
 
 v11-btc1-trend29:
   <<: *v11_btc1_qual232
@@ -38264,6 +38272,7 @@ v11-btc1-trend29:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.13
   magic_number: 205929
+  enable_btc_profile: true
 
 v11-btc1-trend30:
   <<: *v11_btc1_qual232
@@ -38273,6 +38282,7 @@ v11-btc1-trend30:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.12
   magic_number: 205930
+  enable_btc_profile: true
 
 v11-btc1-trend31:
   <<: *v11_btc1_qual232
@@ -38284,6 +38294,7 @@ v11-btc1-trend31:
   btc_dtp_trigger_r: 6.0
   btc_dtp_retrace: 0.18
   magic_number: 205931
+  enable_btc_profile: true
 
 v11-btc1-trend32:
   <<: *v11_btc1_qual232
@@ -38308,6 +38319,7 @@ v11-btc1-trend33:
   balance_tier1_threshold: 8000.0
   balance_tier1_max_lot_size: 0.13
   magic_number: 205933
+  enable_btc_profile: true
 
 v11-btc1-trend34:
   <<: *v11_btc1_qual232
@@ -38317,6 +38329,7 @@ v11-btc1-trend34:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.14
   magic_number: 205934
+  enable_btc_profile: true
 
 v11-btc1-trend35:
   <<: *v11_btc1_qual232
@@ -38328,6 +38341,7 @@ v11-btc1-trend35:
   entry_htf_max_range_pos: 0.5
   enable_double_sweep_confirm: true
   magic_number: 205935
+  enable_btc_profile: true
 
 v11-btc1-trend36:
   <<: *v11_btc1_qual232
@@ -38338,6 +38352,7 @@ v11-btc1-trend36:
   balance_tier1_max_lot_size: 0.13
   entry_htf_max_range_pos: 0.65
   magic_number: 205936
+  enable_btc_profile: true
 
 v11-btc1-trend37:
   <<: *v11_btc1_qual232
@@ -38348,6 +38363,7 @@ v11-btc1-trend37:
   balance_tier1_max_lot_size: 0.13
   entry_htf_max_range_pos: 0.7
   magic_number: 205937
+  enable_btc_profile: true
 
 v11-btc1-trend38:
   <<: *v11_btc1_qual232
@@ -38357,6 +38373,7 @@ v11-btc1-trend38:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.135
   magic_number: 205938
+  enable_btc_profile: true
 
 v11-btc1-trend39:
   <<: *v11_btc1_qual232
@@ -38367,6 +38384,7 @@ v11-btc1-trend39:
   balance_tier1_max_lot_size: 0.13
   ob_high_pos_boost_mult: 1.0
   magic_number: 205939
+  enable_btc_profile: true
 
 v11-btc1-trend40:
   <<: *v11_btc1_qual232
@@ -38377,6 +38395,7 @@ v11-btc1-trend40:
   balance_tier1_max_lot_size: 0.13
   ob_score_min_pass: 60
   magic_number: 205940
+  enable_btc_profile: true
 
 v11-btc1-trend41:
   <<: *v11_btc1_qual232
@@ -38430,6 +38449,7 @@ v11-btc1-trend44:
   balance_tier1_max_lot_size: 0.13
   enable_entry_momentum_filter: true
   magic_number: 205944
+  enable_btc_profile: true
 
 v11-btc1-trend45:
   <<: *v11_btc1_qual232
@@ -38441,6 +38461,7 @@ v11-btc1-trend45:
   breakeven_r: 0.5
   breakeven_lock_r: 0.10
   magic_number: 205945
+  enable_btc_profile: true
 
 v11-btc1-trend46:
   <<: *v11_btc1_qual232
@@ -38451,6 +38472,7 @@ v11-btc1-trend46:
   balance_tier1_max_lot_size: 0.13
   trend_lookback: 120
   magic_number: 205946
+  enable_btc_profile: true
 
 v11-btc1-trend47:
   <<: *v11_btc1_qual232
@@ -38462,6 +38484,7 @@ v11-btc1-trend47:
   bounce_close_confirm_bars: 1
   bounce_close_buffer_pct: 0.05
   magic_number: 205947
+  enable_btc_profile: true
 
 v11-btc1-trend48:
   <<: *v11_btc1_qual232
@@ -38473,6 +38496,7 @@ v11-btc1-trend48:
   breakeven_stage2_r: 0.5
   breakeven_stage2_lock_r: 0.2
   magic_number: 205948
+  enable_btc_profile: true
 
 v11-btc1-trend49:
   <<: *v11_btc1_qual232
@@ -38483,6 +38507,7 @@ v11-btc1-trend49:
   balance_tier1_max_lot_size: 0.13
   mfe_fail_min_r: 0.3
   magic_number: 205949
+  enable_btc_profile: true
 
 v11-btc1-trend50:
   <<: *v11_btc1_qual232
@@ -38493,6 +38518,7 @@ v11-btc1-trend50:
   balance_tier1_max_lot_size: 0.2
   ob_score_min_pass: 70
   magic_number: 205950
+  enable_btc_profile: true
 
 v11-btc1-trend51:
   <<: *v12btc_xau2_h1pb20
@@ -38502,6 +38528,7 @@ v11-btc1-trend51:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.13
   magic_number: 205951
+  enable_btc_profile: true
 
 v11-btc1-trend52:
   <<: *v12btc_xau2_pos24
@@ -38521,6 +38548,7 @@ v11-btc1-trend52:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.13
   magic_number: 205952
+  enable_btc_profile: true
 
 v11-btc1-trend53:
   <<: *v11_btc1_qual232
@@ -38532,6 +38560,7 @@ v11-btc1-trend53:
   ob_high_pos_boost_min: 2.0
   ob_high_pos_boost_mult: 1.0
   magic_number: 205953
+  enable_btc_profile: true
 
 v11-btc1-trend54:
   <<: *v11_btc1_qual232
@@ -38542,6 +38571,7 @@ v11-btc1-trend54:
   balance_tier1_max_lot_size: 0.13
   entry_depth_pct: 0.5
   magic_number: 205954
+  enable_btc_profile: true
 
 v11-btc1-trend55:
   <<: *v11_btc1_qual232
@@ -38553,6 +38583,7 @@ v11-btc1-trend55:
   decay_min_r: 0.3
   decay_bars: 2
   magic_number: 205955
+  enable_btc_profile: true
 
 v11-btc1-trend56:
   <<: *v11_btc1_qual232
@@ -38563,6 +38594,7 @@ v11-btc1-trend56:
   balance_tier1_max_lot_size: 0.13
   trend_lookback: 30
   magic_number: 205956
+  enable_btc_profile: true
 
 v11-btc1-trend57:
   <<: *v11_btc1_qual232
@@ -38573,6 +38605,7 @@ v11-btc1-trend57:
   balance_tier1_max_lot_size: 0.13
   trend_lookback: 60
   magic_number: 205957
+  enable_btc_profile: true
 
 v11-btc1-trend58:
   <<: *v11_btc1_qual232
@@ -38582,6 +38615,7 @@ v11-btc1-trend58:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.13
   magic_number: 205958
+  enable_btc_profile: true
 
 v11-btc1-trend59:
   <<: *v11_btc1_qual232
@@ -38592,6 +38626,7 @@ v11-btc1-trend59:
   balance_tier1_max_lot_size: 0.13
   skip_state_filter_bars: 200
   magic_number: 205959
+  enable_btc_profile: true
 
 v11-btc1-trend60:
   <<: *v11_btc1_qual232
@@ -38603,6 +38638,7 @@ v11-btc1-trend60:
   skip_state_filter_bars: 200
   ob_high_pos_boost_min: 1.5
   magic_number: 205960
+  enable_btc_profile: true
 
 v11-btc1-trend61:
   <<: *v11_btc1_qual232
@@ -38613,6 +38649,7 @@ v11-btc1-trend61:
   balance_tier1_max_lot_size: 0.13
   ob_score_min_pass: 60
   magic_number: 205961
+  enable_btc_profile: true
 
 v11-btc1-trend62:
   <<: *v11_btc1_qual232
@@ -38623,6 +38660,7 @@ v11-btc1-trend62:
   balance_tier1_max_lot_size: 0.13
   enable_decay_exit: false
   magic_number: 205962
+  enable_btc_profile: true
 
 v11-btc1-trend63:
   <<: *v11_btc1_qual232
@@ -38633,6 +38671,7 @@ v11-btc1-trend63:
   balance_tier1_max_lot_size: 0.13
   entry_depth_pct: 0.60
   magic_number: 205963
+  enable_btc_profile: true
 
 v11-btc1-trend64:
   <<: *v11_btc1_qual232
@@ -38643,6 +38682,7 @@ v11-btc1-trend64:
   balance_tier1_max_lot_size: 0.13
   enable_htf_direction_gate: true
   magic_number: 205964
+  enable_btc_profile: true
 
 v11-btc1-trend65:
   <<: *v11_btc1_qual232
@@ -38653,6 +38693,7 @@ v11-btc1-trend65:
   balance_tier1_max_lot_size: 0.13
   htf_bos_retest_max_lot_size: 0.20
   magic_number: 205965
+  enable_btc_profile: true
 
 v11-btc1-trend66:
   <<: *v11_btc1_qual232
@@ -38664,6 +38705,7 @@ v11-btc1-trend66:
   enable_htf_direction_gate: true
   htf_bos_retest_max_lot_size: 0.20
   magic_number: 205966
+  enable_btc_profile: true
 
 v11-btc1-trend68:
   <<: *v11_btc1_qual232
@@ -38673,6 +38715,7 @@ v11-btc1-trend68:
   balance_tier1_threshold: 5000.0
   balance_tier1_max_lot_size: 0.14
   magic_number: 205968
+  enable_btc_profile: true
 
 v11-btc1-trend69:
   <<: *v11_btc1_qual232
@@ -38683,6 +38726,7 @@ v11-btc1-trend69:
   balance_tier1_max_lot_size: 0.13
   htf_bos_retest_max_lot_size: 0.15
   magic_number: 205969
+  enable_btc_profile: true
 
 v11-btc1-trend70:
   <<: *v11_btc1_qual232
@@ -38693,6 +38737,7 @@ v11-btc1-trend70:
   balance_tier1_max_lot_size: 0.13
   htf_bos_retest_max_lot_size: 0.18
   magic_number: 205970
+  enable_btc_profile: true
 
 v11-btc1-trend217:
   <<: *v11_btc1_qual232
@@ -38710,6 +38755,7 @@ v11-btc1-trend217:
   bad_bounce_signal_types: OB
   btc_cap_loss_r: -0.5
   magic_number: 206217
+  enable_btc_profile: true
 
 
 
@@ -38730,6 +38776,7 @@ v11-btc1-trend218:
   btc_cap_loss_r: -0.3
   btc_cap_loss_hours: "3,4,5"
   magic_number: 206218
+  enable_btc_profile: true
 
 
 
@@ -38751,6 +38798,7 @@ v11-btc1-trend219:
   btc_cap_loss_hours: "3,4,5"
   btc_cap_loss_days: "5"
   magic_number: 206219
+  enable_btc_profile: true
 
 
 
@@ -38770,6 +38818,7 @@ v11-btc1-trend220:
   bad_bounce_signal_types: OB
   btc_cap_loss_r: -0.3
   magic_number: 206220
+  enable_btc_profile: true
 
 
 
@@ -38789,6 +38838,7 @@ v11-btc1-trend213:
   bad_bounce_signal_types: OB
   no_entry_hours: "3,4,5"
   magic_number: 206213
+  enable_btc_profile: true
 
 
 
@@ -38813,6 +38863,7 @@ v11-btc1-trend214:
   btc_no_buy_hours: "3,4,5,22,23"
   btc_no_sell_hours: "3,4,5,22,23"
   magic_number: 206214
+  enable_btc_profile: true
 
 
 
@@ -38833,6 +38884,7 @@ v11-btc1-trend215:
   no_entry_hours: "3,4,5"
   btc_no_entry_hours: "0,7,22,23"
   magic_number: 206215
+  enable_btc_profile: true
 
 
 
@@ -38853,6 +38905,7 @@ v11-btc1-trend216:
   no_buy_hours: "3,4,5"
   no_sell_hours: "3,4,5"
   magic_number: 206216
+  enable_btc_profile: true
 
 
 
@@ -38873,6 +38926,7 @@ v11-btc1-trend209:
   btc_no_buy_hours: "3,4,5"
   btc_no_sell_hours: "3,4,5"
   magic_number: 206209
+  enable_btc_profile: true
 
 
 
@@ -38893,6 +38947,7 @@ v11-btc1-trend210:
   btc_no_buy_hours: "3,4,5,22,23"
   btc_no_sell_hours: "3,4,5,22,23"
   magic_number: 206210
+  enable_btc_profile: true
 
 
 
@@ -38913,6 +38968,7 @@ v11-btc1-trend211:
   btc_no_buy_hours: "4"
   btc_no_sell_hours: "4"
   magic_number: 206211
+  enable_btc_profile: true
 
 
 
@@ -38935,6 +38991,7 @@ v11-btc1-trend212:
   btc_breakeven_r: 1.0
   btc_breakeven_lock_r: 0.5
   magic_number: 206212
+  enable_btc_profile: true
 
 
 
@@ -38954,6 +39011,7 @@ v11-btc1-trend201:
   bad_bounce_signal_types: OB
   enable_htf_direction_gate: true
   magic_number: 206201
+  enable_btc_profile: true
 
 
 
@@ -38973,6 +39031,7 @@ v11-btc1-trend202:
   bad_bounce_signal_types: OB
   enable_entry_momentum_filter: true
   magic_number: 206202
+  enable_btc_profile: true
 
 
 
@@ -38992,6 +39051,7 @@ v11-btc1-trend203:
   bad_bounce_signal_types: OB
   enable_entry_context_filter: true
   magic_number: 206203
+  enable_btc_profile: true
 
 
 
@@ -39011,6 +39071,7 @@ v11-btc1-trend204:
   bad_bounce_signal_types: OB
   enable_double_sweep_confirm: true
   magic_number: 206204
+  enable_btc_profile: true
 
 
 
@@ -39032,6 +39093,7 @@ v11-btc1-trend205:
   btc_dtp_trigger_r: 3.0
   btc_dtp_retrace: 0.5
   magic_number: 206205
+  enable_btc_profile: true
 
 
 
@@ -39051,6 +39113,7 @@ v11-btc1-trend206:
   bad_bounce_signal_types: OB
   btc_htf_skip_trail: false
   magic_number: 206206
+  enable_btc_profile: true
 
 
 
@@ -39070,6 +39133,7 @@ v11-btc1-trend207:
   bad_bounce_signal_types: OB,FVG
   enable_fvg: true
   magic_number: 206207
+  enable_btc_profile: true
 
 
 
@@ -39090,6 +39154,7 @@ v11-btc1-trend208:
   monthly_profit_lock_start_pct: 0.08
   monthly_profit_lock_keep_pct: 0.50
   magic_number: 206208
+  enable_btc_profile: true
 
 
 
@@ -39109,6 +39174,7 @@ v11-btc1-trend197:
   bad_bounce_signal_types: OB,HTFPB
   enable_htf_pullback: true
   magic_number: 206097
+  enable_btc_profile: true
 
 
 
@@ -39128,6 +39194,7 @@ v11-btc1-trend198:
   bad_bounce_signal_types: OB,HTFPB,SWP,FVG
   enable_htf_pullback: true
   magic_number: 206098
+  enable_btc_profile: true
 
 
 
@@ -39148,6 +39215,7 @@ v11-btc1-trend199:
   enable_htf_pullback: true
   enable_fvg: true
   magic_number: 206099
+  enable_btc_profile: true
 
 
 
@@ -39169,6 +39237,7 @@ v11-btc1-trend200:
   enable_fvg: true
   enable_double_sweep_confirm: true
   magic_number: 206100
+  enable_btc_profile: true
 
 
 
@@ -39188,6 +39257,7 @@ v11-btc1-trend193:
   bad_bounce_signal_types: OB
   btc_bar_period_min: 1
   magic_number: 206093
+  enable_btc_profile: true
 
 
 
@@ -39207,6 +39277,7 @@ v11-btc1-trend194:
   bad_bounce_signal_types: OB
   btc_bar_period_min: 3
   magic_number: 206094
+  enable_btc_profile: true
 
 
 
@@ -39229,6 +39300,7 @@ v11-btc1-trend195:
   monthly_profit_lock_start_pct: 0.10
   btc_allow_monthly_profit_target_stop: true
   magic_number: 206095
+  enable_btc_profile: true
 
 
 
@@ -39251,6 +39323,7 @@ v11-btc1-trend196:
   min_risk_spread_ratio: 4.0
   enable_htf_pullback: true
   magic_number: 206096
+  enable_btc_profile: true
 
 
 
@@ -39271,6 +39344,7 @@ v11-btc1-trend189:
   btc_ob_reentry_cooldown_min: 1
   btc_max_entries_per_ob: 8
   magic_number: 206089
+  enable_btc_profile: true
 
 
 
@@ -39291,6 +39365,7 @@ v11-btc1-trend190:
   btc_ob_reentry_cooldown_min: 1
   btc_max_entries_per_ob: 10
   magic_number: 206090
+  enable_btc_profile: true
 
 
 
@@ -39312,6 +39387,7 @@ v11-btc1-trend191:
   btc_max_entries_per_ob: 8
   enable_double_sweep_confirm: true
   magic_number: 206091
+  enable_btc_profile: true
 
 
 
@@ -39334,6 +39410,7 @@ v11-btc1-trend192:
   min_risk_spread_ratio: 3.5
   enable_htf_pullback: true
   magic_number: 206092
+  enable_btc_profile: true
 
 
 
@@ -39353,6 +39430,7 @@ v11-btc1-trend185:
   bad_bounce_signal_types: OB
   btc_ob_reentry_cooldown_min: 1
   magic_number: 206085
+  enable_btc_profile: true
 
 
 
@@ -39373,6 +39451,7 @@ v11-btc1-trend186:
   btc_ob_reentry_cooldown_min: 1
   enable_htf_pullback: true
   magic_number: 206086
+  enable_btc_profile: true
 
 
 
@@ -39395,6 +39474,7 @@ v11-btc1-trend187:
   btc_max_entries_per_ob: 10
   enable_htf_pullback: true
   magic_number: 206087
+  enable_btc_profile: true
 
 
 
@@ -39415,6 +39495,7 @@ v11-btc1-trend188:
   btc_ob_reentry_cooldown_min: 1
   min_risk_spread_ratio: 3.0
   magic_number: 206088
+  enable_btc_profile: true
 
 
 
@@ -39434,6 +39515,7 @@ v11-btc1-trend181:
   btc_loss_cut_bars: 1
   btc_loss_cut_r: -0.5
   magic_number: 206081
+  enable_btc_profile: true
 
 
 
@@ -39457,6 +39539,7 @@ v11-btc1-trend182:
   btc_loss_cut_bars: 1
   btc_loss_cut_r: -0.4
   magic_number: 206082
+  enable_btc_profile: true
 
 
 
@@ -39477,6 +39560,7 @@ v11-btc1-trend183:
   btc_loss_cut_bars: 1
   btc_loss_cut_r: -0.4
   magic_number: 206083
+  enable_btc_profile: true
 
 
 
@@ -39500,6 +39584,7 @@ v11-btc1-trend184:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.5
   magic_number: 206084
+  enable_btc_profile: true
 
 
 
@@ -39520,6 +39605,7 @@ v11-btc1-trend177:
   btc_loss_cut_bars: 1
   btc_loss_cut_r: -0.3
   magic_number: 206077
+  enable_btc_profile: true
 
 
 
@@ -39541,6 +39627,7 @@ v11-btc1-trend178:
   enable_entry_momentum_filter: true
   enable_entry_htf_shape_filter: true
   magic_number: 206078
+  enable_btc_profile: true
 
 
 
@@ -39562,6 +39649,7 @@ v11-btc1-trend179:
   btc_dtp_trigger_r: 1.5
   btc_dtp_retrace: 0.5
   magic_number: 206079
+  enable_btc_profile: true
 
 
 
@@ -39584,6 +39672,7 @@ v11-btc1-trend180:
   btc_dtp_retrace: 0.3
   btc_dtp_partial_pct: 50
   magic_number: 206080
+  enable_btc_profile: true
 
 
 
@@ -39604,6 +39693,7 @@ v11-btc1-trend173:
   btc_breakeven_stage2_r: 2.0
   btc_breakeven_stage2_lock_r: 1.0
   magic_number: 206073
+  enable_btc_profile: true
 
 
 
@@ -39624,6 +39714,7 @@ v11-btc1-trend174:
   btc_breakeven_stage2_r: 1.5
   btc_breakeven_stage2_lock_r: 0.5
   magic_number: 206074
+  enable_btc_profile: true
 
 
 
@@ -39644,6 +39735,7 @@ v11-btc1-trend175:
   btc_breakeven_stage2_r: 2.5
   btc_breakeven_stage2_lock_r: 1.5
   magic_number: 206075
+  enable_btc_profile: true
 
 
 
@@ -39666,6 +39758,7 @@ v11-btc1-trend176:
   btc_breakeven_r: 1.3
   btc_breakeven_lock_r: 0.3
   magic_number: 206076
+  enable_btc_profile: true
 
 
 
@@ -39686,6 +39779,7 @@ v11-btc1-trend169:
   btc_breakeven_r: 1.0
   btc_breakeven_lock_r: 0.5
   magic_number: 206069
+  enable_btc_profile: true
 
 
 
@@ -39706,6 +39800,7 @@ v11-btc1-trend170:
   btc_breakeven_r: 1.5
   btc_breakeven_lock_r: 0.8
   magic_number: 206070
+  enable_btc_profile: true
 
 
 
@@ -39726,6 +39821,7 @@ v11-btc1-trend171:
   btc_breakeven_r: 2.0
   btc_breakeven_lock_r: 1.0
   magic_number: 206071
+  enable_btc_profile: true
 
 
 
@@ -39748,6 +39844,7 @@ v11-btc1-trend172:
   btc_loss_cut_bars: 1
   btc_loss_cut_r: -0.3
   magic_number: 206072
+  enable_btc_profile: true
 
 
 
@@ -39768,6 +39865,7 @@ v11-btc1-trend165:
   btc_loss_cut_bars: 2
   btc_loss_cut_r: -0.5
   magic_number: 206065
+  enable_btc_profile: true
 
 
 
@@ -39788,6 +39886,7 @@ v11-btc1-trend166:
   btc_loss_cut_bars: 1
   btc_loss_cut_r: -0.5
   magic_number: 206066
+  enable_btc_profile: true
 
 
 
@@ -39808,6 +39907,7 @@ v11-btc1-trend167:
   btc_loss_cut_bars: 2
   btc_loss_cut_r: -0.3
   magic_number: 206067
+  enable_btc_profile: true
 
 
 
@@ -39831,6 +39931,7 @@ v11-btc1-trend168:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.5
   magic_number: 206068
+  enable_btc_profile: true
 
 
 
@@ -39852,6 +39953,7 @@ v11-btc1-trend163:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.5
   magic_number: 206063
+  enable_btc_profile: true
 
 
 
@@ -39873,6 +39975,7 @@ v11-btc1-trend164:
   btc_fast_sl_bars: 1
   btc_fast_sl_exit_r: -0.5
   magic_number: 206064
+  enable_btc_profile: true
 
 
 
@@ -39894,6 +39997,7 @@ v11-btc1-trend159:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.5
   magic_number: 206059
+  enable_btc_profile: true
 
 
 
@@ -39915,6 +40019,7 @@ v11-btc1-trend160:
   btc_fast_sl_bars: 1
   btc_fast_sl_exit_r: -0.3
   magic_number: 206060
+  enable_btc_profile: true
 
 
 
@@ -39936,6 +40041,7 @@ v11-btc1-trend161:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.3
   magic_number: 206061
+  enable_btc_profile: true
 
 
 
@@ -39957,6 +40063,7 @@ v11-btc1-trend162:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.5
   magic_number: 206062
+  enable_btc_profile: true
 
 
 
@@ -39978,6 +40085,7 @@ v11-btc1-trend155:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.5
   magic_number: 206055
+  enable_btc_profile: true
 
 
 
@@ -39999,6 +40107,7 @@ v11-btc1-trend156:
   btc_fast_sl_bars: 2
   btc_fast_sl_exit_r: -0.5
   magic_number: 206056
+  enable_btc_profile: true
 
 
 
@@ -40020,6 +40129,7 @@ v11-btc1-trend157:
   btc_fast_sl_bars: 1
   btc_fast_sl_exit_r: -0.3
   magic_number: 206057
+  enable_btc_profile: true
 
 
 
@@ -40041,6 +40151,7 @@ v11-btc1-trend158:
   btc_fast_sl_bars: 1
   btc_fast_sl_exit_r: -0.3
   magic_number: 206058
+  enable_btc_profile: true
 
 
 
@@ -40062,6 +40173,7 @@ v11-btc1-trend151:
   btc_no_mfe_min_peak_r: 1.0
   btc_no_mfe_exit_r: -0.5
   magic_number: 206051
+  enable_btc_profile: true
 
 
 
@@ -40083,6 +40195,7 @@ v11-btc1-trend152:
   btc_no_mfe_min_peak_r: 0.8
   btc_no_mfe_exit_r: -0.5
   magic_number: 206052
+  enable_btc_profile: true
 
 
 
@@ -40104,6 +40217,7 @@ v11-btc1-trend153:
   btc_no_mfe_min_peak_r: 0.8
   btc_no_mfe_exit_r: -0.5
   magic_number: 206053
+  enable_btc_profile: true
 
 
 
@@ -40125,6 +40239,7 @@ v11-btc1-trend154:
   btc_no_mfe_min_peak_r: 0.5
   btc_no_mfe_exit_r: -0.3
   magic_number: 206054
+  enable_btc_profile: true
 
 
 
@@ -40146,6 +40261,7 @@ v11-btc1-trend147:
   btc_no_mfe_min_peak_r: 0.3
   btc_no_mfe_exit_r: -0.5
   magic_number: 206047
+  enable_btc_profile: true
 
 
 
@@ -40166,6 +40282,7 @@ v11-btc1-trend148:
   btc_mfe_fail_min_r: 0.5
   btc_mfe_fail_exit_r: -0.3
   magic_number: 206048
+  enable_btc_profile: true
 
 
 
@@ -40189,6 +40306,7 @@ v11-btc1-trend149:
   btc_mfe_fail_min_r: 0.5
   btc_mfe_fail_exit_r: -0.3
   magic_number: 206049
+  enable_btc_profile: true
 
 
 
@@ -40210,6 +40328,7 @@ v11-btc1-trend150:
   btc_no_mfe_min_peak_r: 0.3
   btc_no_mfe_exit_r: -0.5
   magic_number: 206050
+  enable_btc_profile: true
 
 
 
@@ -40229,6 +40348,7 @@ v11-btc1-trend143:
   bad_bounce_signal_types: OB
   btc_sl_buffer_atr: 2.0
   magic_number: 206043
+  enable_btc_profile: true
 
 
 
@@ -40248,6 +40368,7 @@ v11-btc1-trend144:
   bad_bounce_signal_types: OB
   btc_sl_buffer_atr: 1.8
   magic_number: 206044
+  enable_btc_profile: true
 
 
 
@@ -40267,6 +40388,7 @@ v11-btc1-trend145:
   bad_bounce_signal_types: OB
   btc_sl_buffer_atr: 1.5
   magic_number: 206045
+  enable_btc_profile: true
 
 
 
@@ -40286,6 +40408,7 @@ v11-btc1-trend146:
   bad_bounce_signal_types: OB
   btc_sl_buffer_atr: 2.0
   magic_number: 206046
+  enable_btc_profile: true
 
 
 
@@ -40307,6 +40430,7 @@ v11-btc1-trend139:
   btc_no_mfe_min_peak_r: 0.3
   btc_no_mfe_exit_r: -0.5
   magic_number: 206039
+  enable_btc_profile: true
 
 
 
@@ -40327,6 +40451,7 @@ v11-btc1-trend140:
   btc_mfe_fail_min_r: 0.7
   btc_mfe_fail_exit_r: -0.3
   magic_number: 206040
+  enable_btc_profile: true
 
 
 
@@ -40347,6 +40472,7 @@ v11-btc1-trend141:
   btc_decay_min_r: 1.5
   btc_decay_bars: 2
   magic_number: 206041
+  enable_btc_profile: true
 
 
 
@@ -40366,6 +40492,7 @@ v11-btc1-trend142:
   bad_bounce_signal_types: OB
   btc_time_exit_bars: 100
   magic_number: 206042
+  enable_btc_profile: true
 
 
 
@@ -40385,6 +40512,7 @@ v11-btc1-trend135:
   bad_bounce_signal_types: OB
   btc_cooldown_bars: 3
   magic_number: 206035
+  enable_btc_profile: true
 
 
 
@@ -40404,6 +40532,7 @@ v11-btc1-trend136:
   bad_bounce_signal_types: OB
   btc_ob_reentry_cooldown_min: 10
   magic_number: 206036
+  enable_btc_profile: true
 
 
 
@@ -40423,6 +40552,7 @@ v11-btc1-trend137:
   bad_bounce_signal_types: OB
   btc_max_entries_per_ob: 3
   magic_number: 206037
+  enable_btc_profile: true
 
 
 
@@ -40443,6 +40573,7 @@ v11-btc1-trend138:
   min_ob_strength: 0.6
   btc_ob_reentry_cooldown_min: 5
   magic_number: 206038
+  enable_btc_profile: true
 
 
 
@@ -40463,6 +40594,7 @@ v11-btc1-trend131:
   btc_no_ob_start_hour: 0
   btc_no_ob_end_hour: 5
   magic_number: 206031
+  enable_btc_profile: true
 
 
 
@@ -40483,6 +40615,7 @@ v11-btc1-trend132:
   btc_no_ob_start_hour: 6
   btc_no_ob_end_hour: 14
   magic_number: 206032
+  enable_btc_profile: true
 
 
 
@@ -40502,6 +40635,7 @@ v11-btc1-trend133:
   bad_bounce_signal_types: OB
   btc_no_sell_hours: "0,1,2,3,4,5"
   magic_number: 206033
+  enable_btc_profile: true
 
 
 
@@ -40521,6 +40655,7 @@ v11-btc1-trend134:
   bad_bounce_signal_types: OB
   btc_no_buy_hours: "0,1,2,3,4,5"
   magic_number: 206034
+  enable_btc_profile: true
 
 
 
@@ -40539,6 +40674,7 @@ v11-btc1-trend127:
   bad_bounce_mult: 0.0
   bad_bounce_signal_types: OB
   magic_number: 206027
+  enable_btc_profile: true
 
 
 
@@ -40557,6 +40693,7 @@ v11-btc1-trend128:
   bad_bounce_mult: -0.1
   bad_bounce_signal_types: OB
   magic_number: 206028
+  enable_btc_profile: true
 
 
 
@@ -40575,6 +40712,7 @@ v11-btc1-trend129:
   bad_bounce_mult: 0.0
   bad_bounce_signal_types: OB
   magic_number: 206029
+  enable_btc_profile: true
 
 
 
@@ -40593,6 +40731,7 @@ v11-btc1-trend130:
   bad_bounce_mult: 0.3
   bad_bounce_signal_types: OB
   magic_number: 206030
+  enable_btc_profile: true
 
 
 
@@ -40611,6 +40750,7 @@ v11-btc1-trend123:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206023
+  enable_btc_profile: true
 
 
 
@@ -40629,6 +40769,7 @@ v11-btc1-trend124:
   bad_bounce_mult: 0.5
   bad_bounce_signal_types: OB
   magic_number: 206024
+  enable_btc_profile: true
 
 
 
@@ -40648,6 +40789,7 @@ v11-btc1-trend125:
   bad_bounce_max_entry_pos_mult: 0.05
   bad_bounce_signal_types: OB
   magic_number: 206025
+  enable_btc_profile: true
 
 
 
@@ -40666,6 +40808,7 @@ v11-btc1-trend126:
   bad_bounce_mult: 0.3
   bad_bounce_signal_types: OB
   magic_number: 206026
+  enable_btc_profile: true
 
 
 
@@ -40684,6 +40827,7 @@ v11-btc1-trend119:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206019
+  enable_btc_profile: true
 
 
 
@@ -40703,6 +40847,7 @@ v11-btc1-trend120:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206020
+  enable_btc_profile: true
 
 
 
@@ -40721,6 +40866,7 @@ v11-btc1-trend121:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206021
+  enable_btc_profile: true
 
 
 
@@ -40739,6 +40885,7 @@ v11-btc1-trend122:
   bad_bounce_mult: 0.5
   bad_bounce_signal_types: OB
   magic_number: 206022
+  enable_btc_profile: true
 
 
 
@@ -40758,6 +40905,7 @@ v11-btc1-trend115:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206015
+  enable_btc_profile: true
 
 
 
@@ -40777,6 +40925,7 @@ v11-btc1-trend116:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206016
+  enable_btc_profile: true
 
 
 
@@ -40796,6 +40945,7 @@ v11-btc1-trend117:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206017
+  enable_btc_profile: true
 
 
 
@@ -40815,6 +40965,7 @@ v11-btc1-trend118:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206018
+  enable_btc_profile: true
 
 
 
@@ -40833,6 +40984,7 @@ v11-btc1-trend111:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206011
+  enable_btc_profile: true
 
 
 
@@ -40851,6 +41003,7 @@ v11-btc1-trend112:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206012
+  enable_btc_profile: true
 
 
 
@@ -40869,6 +41022,7 @@ v11-btc1-trend113:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206013
+  enable_btc_profile: true
 
 
 
@@ -40887,6 +41041,7 @@ v11-btc1-trend114:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206014
+  enable_btc_profile: true
 
 
 
@@ -40901,6 +41056,7 @@ v11-btc1-trend107:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 206007
+  enable_btc_profile: true
 
 
 
@@ -40919,6 +41075,7 @@ v11-btc1-trend108:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206008
+  enable_btc_profile: true
 
 
 
@@ -40933,6 +41090,7 @@ v11-btc1-trend109:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 206009
+  enable_btc_profile: true
 
 
 
@@ -40951,6 +41109,7 @@ v11-btc1-trend110:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206010
+  enable_btc_profile: true
 
 
 
@@ -40969,6 +41128,7 @@ v11-btc1-trend103:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206003
+  enable_btc_profile: true
 
 
 
@@ -40983,6 +41143,7 @@ v11-btc1-trend104:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 206004
+  enable_btc_profile: true
 
 
 
@@ -41001,6 +41162,7 @@ v11-btc1-trend105:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206005
+  enable_btc_profile: true
 
 
 
@@ -41019,6 +41181,7 @@ v11-btc1-trend106:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 206006
+  enable_btc_profile: true
 
 
 
@@ -41033,6 +41196,7 @@ v11-btc1-trend99:
   htf_min_target_r: 2.5
   min_risk_spread_ratio: 8.0
   magic_number: 205999
+  enable_btc_profile: true
 
 
 
@@ -41050,6 +41214,7 @@ v11-btc1-trend100:
   bad_bounce_mult: 0.3
   bad_bounce_signal_types: OB
   magic_number: 206000
+  enable_btc_profile: true
 
 
 
@@ -41068,6 +41233,7 @@ v11-btc1-trend101:
   bad_bounce_signal_types: OB
   min_risk_spread_ratio: 8.0
   magic_number: 206001
+  enable_btc_profile: true
 
 
 
@@ -41085,6 +41251,7 @@ v11-btc1-trend102:
   bad_bounce_mult: 0.3
   bad_bounce_signal_types: OB
   magic_number: 206002
+  enable_btc_profile: true
 
 
 
@@ -41099,6 +41266,7 @@ v11-btc1-trend95:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 205995
+  enable_btc_profile: true
 
 
 
@@ -41113,6 +41281,7 @@ v11-btc1-trend96:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 205996
+  enable_btc_profile: true
 
 
 
@@ -41131,6 +41300,7 @@ v11-btc1-trend97:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 205997
+  enable_btc_profile: true
 
 
 
@@ -41146,6 +41316,7 @@ v11-btc1-trend98:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 205998
+  enable_btc_profile: true
 
 
 
@@ -41159,6 +41330,7 @@ v11-btc1-trend91:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 205991
+  enable_btc_profile: true
 
 
 
@@ -41173,6 +41345,7 @@ v11-btc1-trend92:
   htf_min_target_r: 2.5
   htf_swing_strength: 3
   magic_number: 205992
+  enable_btc_profile: true
 
 
 
@@ -41187,6 +41360,7 @@ v11-btc1-trend93:
   htf_min_target_r: 2.5
   htf_target_tf: 60
   magic_number: 205993
+  enable_btc_profile: true
 
 
 
@@ -41204,6 +41378,7 @@ v11-btc1-trend94:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 205994
+  enable_btc_profile: true
 
 
 
@@ -41217,6 +41392,7 @@ v11-btc1-trend87:
   htf_measured_move_r: 3.0
   htf_min_target_r: 2.0
   magic_number: 205987
+  enable_btc_profile: true
 
 
 
@@ -41234,6 +41410,7 @@ v11-btc1-trend88:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 205988
+  enable_btc_profile: true
 
 
 
@@ -41251,6 +41428,7 @@ v11-btc1-trend89:
   htf_dtp_retrace: 0.4
   htf_dtp_post_partial_retrace: 0.4
   magic_number: 205989
+  enable_btc_profile: true
 
 
 
@@ -41268,6 +41446,7 @@ v11-btc1-trend90:
   bad_bounce_mult: 0.4
   bad_bounce_signal_types: OB
   magic_number: 205990
+  enable_btc_profile: true
 
 
 
@@ -41283,6 +41462,7 @@ v11-btc1-trend83:
   htf_dtp_retrace: 0.3
   htf_dtp_post_partial_retrace: 0.3
   magic_number: 205983
+  enable_btc_profile: true
 
 
 
@@ -41296,6 +41476,7 @@ v11-btc1-trend84:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 205984
+  enable_btc_profile: true
 
 
 
@@ -41309,6 +41490,7 @@ v11-btc1-trend85:
   htf_partial_r: 1.5
   htf_partial_pct: 50
   magic_number: 205985
+  enable_btc_profile: true
 
 
 
@@ -41326,6 +41508,7 @@ v11-btc1-trend86:
   htf_measured_move_r: 3.5
   htf_min_target_r: 2.5
   magic_number: 205986
+  enable_btc_profile: true
 
 
 
@@ -41346,6 +41529,7 @@ v11-btc1-trend79:
       lock_r: 1.0
       lock_mult: 0.5
   magic_number: 205979
+  enable_btc_profile: true
 
 
 
@@ -41363,6 +41547,7 @@ v11-btc1-trend80:
   dtp_post_partial_retrace: 0.3
   dtp_post_partial_lock_r: 0.3
   magic_number: 205980
+  enable_btc_profile: true
 
 
 
@@ -41389,6 +41574,7 @@ v11-btc1-trend81:
       lock_r: 1.0
       lock_mult: 0.5
   magic_number: 205981
+  enable_btc_profile: true
 
 
 
@@ -41403,6 +41589,7 @@ v11-btc1-trend82:
     - trigger_r: 2.0
       lock_r: 0.5
   magic_number: 205982
+  enable_btc_profile: true
 
 
 
@@ -41418,6 +41605,7 @@ v11-btc1-trend74:
   virtual_sl_hard_buffer_r: 0.10
   virtual_sl_close_buffer_atr: 0.20
   magic_number: 205974
+  enable_btc_profile: true
 
 
 
@@ -41434,6 +41622,7 @@ v11-btc1-trend75:
   virtual_sl_hard_buffer_r: 0.10
   virtual_sl_close_buffer_atr: 0.20
   magic_number: 205975
+  enable_btc_profile: true
 
 
 
@@ -41446,6 +41635,7 @@ v11-btc1-trend76:
   balance_tier1_max_lot_size: 0.14
   btc_min_score: 5
   magic_number: 205976
+  enable_btc_profile: true
 
 
 
@@ -41458,6 +41648,7 @@ v11-btc1-trend77:
   balance_tier1_max_lot_size: 0.14
   min_ob_strength: 0.6
   magic_number: 205977
+  enable_btc_profile: true
 
 
 
@@ -41474,6 +41665,7 @@ v11-btc1-trend78:
   trail_2_lock_r: 1.0
   trail_2_lock_mult: 0.5
   magic_number: 205978
+  enable_btc_profile: true
 
 
 
@@ -41486,6 +41678,7 @@ v11-btc1-trend67:
   balance_tier1_max_lot_size: 0.13
   htf_bos_require_ob_confluence: true
   magic_number: 205967
+  enable_btc_profile: true
 
 
 
@@ -42541,6 +42734,7 @@ v11-btc1-trend500:
   version: V11-BTC1-TREND500
   description: "trend218 + cap_loss_hours 3,4,5,10,12 - covers 2025-11 h12 + 2026-01 h10"
   magic_number: 206500
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,10,12"
 
 v11-btc1-trend501:
@@ -42548,6 +42742,7 @@ v11-btc1-trend501:
   version: V11-BTC1-TREND501
   description: "trend218 + btc_cap_loss_r=-0.5"
   magic_number: 206501
+  enable_btc_profile: true
   btc_cap_loss_r: -0.5
 
 v11-btc1-trend502:
@@ -42555,6 +42750,7 @@ v11-btc1-trend502:
   version: V11-BTC1-TREND502
   description: "trend218 + cap_loss h=3,4,5,10,12,15 r=-0.4"
   magic_number: 206502
+  enable_btc_profile: true
   btc_cap_loss_r: -0.4
   btc_cap_loss_hours: "3,4,5,10,12,15"
 
@@ -42563,6 +42759,7 @@ v11-btc1-trend503:
   version: V11-BTC1-TREND503
   description: "trend218 + DTP 1.8/0.25"
   magic_number: 206503
+  enable_btc_profile: true
   btc_dtp_trigger_r: 1.8
   btc_dtp_retrace: 0.25
 
@@ -42571,6 +42768,7 @@ v11-btc1-trend504:
   version: V11-BTC1-TREND504
   description: "trend218 + DTP 1.5/0.20"
   magic_number: 206504
+  enable_btc_profile: true
   btc_dtp_trigger_r: 1.5
   btc_dtp_retrace: 0.2
 
@@ -42579,6 +42777,7 @@ v11-btc1-trend505:
   version: V11-BTC1-TREND505
   description: "trend218 + entry_depth 0.7 + DTP 1.5/0.20"
   magic_number: 206505
+  enable_btc_profile: true
   entry_depth_pct: 0.7
   btc_dtp_trigger_r: 1.5
   btc_dtp_retrace: 0.2
@@ -42588,6 +42787,7 @@ v11-btc1-trend506:
   version: V11-BTC1-TREND506
   description: "trend218 + cap_loss r=-0.4 + monthly_defensive 5pct"
   magic_number: 206506
+  enable_btc_profile: true
   btc_cap_loss_r: -0.4
   monthly_defensive_max_month_start_balance: 99999.0
   monthly_defensive_min_trades: 5
@@ -42601,6 +42801,7 @@ v11-btc1-trend507:
   version: V11-BTC1-TREND507
   description: "trend218 + cap_loss h=3,4,5,10,12 + DTP 1.5/0.20"
   magic_number: 206507
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,10,12"
   btc_dtp_trigger_r: 1.5
   btc_dtp_retrace: 0.2
@@ -42610,6 +42811,7 @@ v11-btc1-trend508:
   version: V11-BTC1-TREND508
   description: "trend218 + cap_loss h=3,4,5,11,12,13"
   magic_number: 206508
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,11,12,13"
 
 v11-btc1-trend509:
@@ -42617,6 +42819,7 @@ v11-btc1-trend509:
   version: V11-BTC1-TREND509
   description: "trend218 + cap_loss h=3,4,5,10,12 + cap_loss_days=5"
   magic_number: 206509
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,10,12"
   btc_cap_loss_days: "5"
 
@@ -42625,6 +42828,7 @@ v11-btc1-trend520:
   version: V11-BTC1-TREND520
   description: "trend218 + cap_loss h=3,4,5,10,12 + max_lot=1.0 (fix trend500 max_lot bug)"
   magic_number: 206520
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,10,12"
   max_lot_size: 1.0
 
@@ -42633,6 +42837,7 @@ v11-btc1-trend521:
   version: V11-BTC1-TREND521
   description: "trend218 + monthly_profit_target_stop 10pct (防 2026-05 集中损失)"
   magic_number: 206521
+  enable_btc_profile: true
   btc_allow_monthly_profit_target_stop: true
   monthly_profit_target_stop_pct: 10.0
   monthly_profit_target_stop_min_balance: 1000.0
@@ -42645,6 +42850,7 @@ v11-btc1-trend522:
   version: V11-BTC1-TREND522
   description: "trend218 + cap_loss h=3,4,5,10,12,13,15,20,21,22 (全时段, 防 2026-05)"
   magic_number: 206522
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,10,12,13,15,20,21,22"
   btc_cap_loss_r: -0.5
   max_lot_size: 1.0
@@ -42654,6 +42860,7 @@ v11-btc1-trend523:
   version: V11-BTC1-TREND523
   description: "trend218 + cap_loss h=3,4,5,10,12 + monthly_defensive 5pct (双重防)"
   magic_number: 206523
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,10,12"
   btc_cap_loss_r: -0.4
   max_lot_size: 1.0
@@ -42669,6 +42876,7 @@ v11-btc1-trend524:
   version: V11-BTC1-TREND524
   description: "trend218 + cap_loss h=3,4,5,10,12 + DTP 1.5/0.20 + max_lot 1.0"
   magic_number: 206524
+  enable_btc_profile: true
   btc_cap_loss_hours: "3,4,5,10,12"
   btc_dtp_trigger_r: 1.5
   btc_dtp_retrace: 0.2
@@ -42679,6 +42887,7 @@ v11-btc1-trend530:
   version: V11-BTC1-TREND530
   description: "trend218 + htf_min_target 2.5 + htf_measured 3.5 (从 2.2/3.2 提高, 提升 big_w)"
   magic_number: 206530
+  enable_btc_profile: true
   htf_min_target_r: 2.5
   htf_measured_move_r: 3.5
   max_lot_size: 1.0
@@ -42688,6 +42897,7 @@ v11-btc1-trend531:
   version: V11-BTC1-TREND531
   description: "trend218 + bad_bounce 0.22-0.28 mult 0.4 (更严过滤, 提升质量)"
   magic_number: 206531
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42698,6 +42908,7 @@ v11-btc1-trend532:
   version: V11-BTC1-TREND532
   description: "trend218 + monthly_profit_target_stop 15pct + 30pct 阶梯"
   magic_number: 206532
+  enable_btc_profile: true
   btc_allow_monthly_profit_target_stop: true
   monthly_profit_target_stop_pct: 15.0
   monthly_profit_target_stop_min_balance: 1000.0
@@ -42710,6 +42921,7 @@ v11-btc1-trend533:
   version: V11-BTC1-TREND533
   description: "trend218 + breakeven 1.5/0.5 (从 1.3/0.3 提高, 锁利早)"
   magic_number: 206533
+  enable_btc_profile: true
   breakeven_r: 1.5
   breakeven_lock_r: 0.5
   max_lot_size: 1.0
@@ -42719,6 +42931,7 @@ v11-btc1-trend534:
   version: V11-BTC1-TREND534
   description: "trend218 + breakeven_stage2 2.0/0.8 (双层BE, 强锁利)"
   magic_number: 206534
+  enable_btc_profile: true
   breakeven_r: 1.0
   breakeven_lock_r: 0.4
   breakeven_stage2_r: 2.0
@@ -42730,6 +42943,7 @@ v11-btc1-trend535:
   version: V11-BTC1-TREND535
   description: "trend218 + max_lot 0.6 (降一档, 防月度失控)"
   magic_number: 206535
+  enable_btc_profile: true
   max_lot_size: 0.6
 
 v11-btc1-trend540:
@@ -42737,6 +42951,7 @@ v11-btc1-trend540:
   version: V11-BTC1-TREND540
   description: "trend531 + htf 2.5/3.5 (从 2.2/3.2 提升 HTF 目标)"
   magic_number: 206540
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42749,6 +42964,7 @@ v11-btc1-trend541:
   version: V11-BTC1-TREND541
   description: "trend531 + bad_bounce 0.20-0.26 (更严过滤)"
   magic_number: 206541
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.20
   bad_bounce_max_pct: 0.26
   bad_bounce_mult: 0.4
@@ -42759,6 +42975,7 @@ v11-btc1-trend542:
   version: V11-BTC1-TREND542
   description: "trend531 + DTP 1.8/0.25 (从 2.0/0.3 折中, 期望 big_w 提升)"
   magic_number: 206542
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42771,6 +42988,7 @@ v11-btc1-trend543:
   version: V11-BTC1-TREND543
   description: "trend531 + btc_low_balance 0.4 (从 0.5 收紧, 防低余额时失控)"
   magic_number: 206543
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42784,6 +43002,7 @@ v11-btc1-trend544:
   version: V11-BTC1-TREND544
   description: "trend531 + bad_bounce 0.20-0.28 mult 0.5 (更严 + 减少过滤)"
   magic_number: 206544
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.20
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.5
@@ -42794,6 +43013,7 @@ v11-btc1-trend545:
   version: V11-BTC1-TREND545
   description: "trend531 + btc_bounce_pct 0.22 (从 0.25 收紧)"
   magic_number: 206545
+  enable_btc_profile: true
   btc_bounce_pct: 0.22
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
@@ -42805,6 +43025,7 @@ v11-btc1-trend550:
   version: V11-BTC1-TREND550
   description: "trend531 + BigWinLock 2.5/1.5 (R>=2.5 锁到 1.5R) - 提升 big_w"
   magic_number: 206550
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42817,6 +43038,7 @@ v11-btc1-trend551:
   version: V11-BTC1-TREND551
   description: "trend531 + BigWinLock 3.0/2.0 (R>=3.0 锁到 2.0R)"
   magic_number: 206551
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42829,6 +43051,7 @@ v11-btc1-trend552:
   version: V11-BTC1-TREND552
   description: "trend531 + BigWinLock 2.0/1.0 + MonthlyGuard -1.5R (防月度失控)"
   magic_number: 206552
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42844,6 +43067,7 @@ v11-btc1-trend553:
   version: V11-BTC1-TREND553
   description: "trend531 + BigWinLock 2.5/1.0 + MonthlyGuard -1.5R (组合优化)"
   magic_number: 206553
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42859,6 +43083,7 @@ v11-btc1-trend560:
   version: V11-BTC1-TREND560
   description: "trend531 + htf_partial_r 1.5 pct 50 (HTF 单部分止盈 1.5R/50%)"
   magic_number: 206560
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42871,6 +43096,7 @@ v11-btc1-trend561:
   version: V11-BTC1-TREND561
   description: "trend531 + bad_bounce 0.24-0.28 (更窄 sweet spot)"
   magic_number: 206561
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.24
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42881,6 +43107,7 @@ v11-btc1-trend562:
   version: V11-BTC1-TREND562
   description: "trend531 + ob_high_pos_boost 1.7 mult (从 1.5 提高)"
   magic_number: 206562
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
@@ -42892,9 +43119,143 @@ v11-btc1-trend563:
   version: V11-BTC1-TREND563
   description: "trend531 + bad_bounce 0.22-0.28 + htf_partial_r 1.0 (双锁)"
   magic_number: 206563
+  enable_btc_profile: true
   bad_bounce_min_pct: 0.22
   bad_bounce_max_pct: 0.28
   bad_bounce_mult: 0.4
   max_lot_size: 1.0
   htf_partial_r: 1.0
   htf_partial_pct: 50
+
+v11-btc1-trend600:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND600
+  description: "BigWinLock diagnostic - trigger R=0.5 lock to 0.4 (should lock almost every winning trade)"
+  magic_number: 206600
+  enable_btc_profile: true
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  btc_big_win_trigger_r: 0.5
+  btc_big_win_lock_to_r: 0.4
+  btc_big_win_only_htf_target: false
+
+v11-btc1-trend610:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND610
+  description: "trend531 + BigWinLock 2.5/1.5 no_htf_filter (apply to all trades)"
+  magic_number: 206610
+  enable_btc_profile: true
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  btc_big_win_trigger_r: 2.5
+  btc_big_win_lock_to_r: 1.5
+  btc_big_win_only_htf_target: false
+
+v11-btc1-trend611:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND611
+  description: "trend531 + BigWinLock 2.0/1.5 no_htf_filter"
+  magic_number: 206611
+  enable_btc_profile: true
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  btc_big_win_trigger_r: 2.0
+  btc_big_win_lock_to_r: 1.5
+  btc_big_win_only_htf_target: false
+
+v11-btc1-trend612:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND612
+  description: "trend531 + BigWinLock 2.0/1.0 no_htf_filter + MonthlyGuard -1.5R"
+  magic_number: 206612
+  enable_btc_profile: true
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  btc_big_win_trigger_r: 2.0
+  btc_big_win_lock_to_r: 1.0
+  btc_big_win_only_htf_target: false
+  btc_enable_monthly_loss_guard: true
+  btc_monthly_loss_guard_r: -1.5
+  btc_monthly_loss_guard_only_htf_target: false
+
+v11-btc1-trend613:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND613
+  description: "trend531 + BigWinLock 2.5/2.0 no_htf_filter"
+  magic_number: 206613
+  enable_btc_profile: true
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  btc_big_win_trigger_r: 2.5
+  btc_big_win_lock_to_r: 2.0
+  btc_big_win_only_htf_target: false
+
+v11-btc1-trend620:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-TREND620
+  description: "DIAGNOSTIC: BigWinLock 0.1/0.05 no_htf (should always trigger)"
+  magic_number: 206620
+  enable_btc_profile: true
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  btc_big_win_trigger_r: 0.1
+  btc_big_win_lock_to_r: 0.05
+  btc_big_win_only_htf_target: false
+
+v11-btc1-yhcl1:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-YHCL1
+  description: "yhcl multi-var: cap_loss h=3,4,5,10 + bad_bounce 0.22-0.28"
+  magic_number: 207001
+  btc_cap_loss_hours: "3,4,5,10"
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+
+v11-btc1-yhcl2:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-YHCL2
+  description: "yhcl multi-var: yhcl1 + DTP 1.5/0.2 + monthly_defensive 5pct"
+  magic_number: 207002
+  btc_cap_loss_hours: "3,4,5,10"
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  btc_dtp_trigger_r: 1.5
+  btc_dtp_retrace: 0.2
+  monthly_defensive_loss_pct: 5.0
+  monthly_defensive_pos_mult: 0.4
+  max_lot_size: 1.0
+
+v11-btc1-loop1:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP1
+  description: "loop single-var: bad_bounce 0.22-0.26 (from 0.28 tighter)"
+  magic_number: 207101
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.26
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+
+v11-btc1-loop2:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP2
+  description: "loop single-var: bad_bounce mult 0.5 (from 0.4)"
+  magic_number: 207102
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.5
+  max_lot_size: 1.0

@@ -725,6 +725,7 @@ InpBars=300
 InpOBScanDepth=200
 InpVersion=V11-BTC1-TREND531
 InpMagicNumber=206531
+InpEnableBTCProfile=true
 InpBTCAllowMonthlyProfitTargetStop=true
 InpBTCLowBalanceThreshold=2000.0
 InpBTCLowBalancePosMult=0.5
