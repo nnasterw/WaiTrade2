@@ -159,3 +159,78 @@ strategies.yaml → check_strategy_consistency.py（必跑）
 - 负余额解析必须支持负号。
 - 小资金参数失控：`max_pos_mult=200` + boost → 仓位瞬间 x2.6。
 - Python 3.8：不支持 `list[str]` 语法、f-string 内反斜杠、`date | None` 联合类型。
+
+---
+
+## Loop Engineering 工作流（默认策略迭代流程）
+
+**2026-07-07 新增**：所有 BTC 策略迭代默认走 Loop Engineering 流程，yhcl3.0 风格的多变量并发已验证踩雷风险高。
+
+### 5 个核心脚本
+
+| 脚本 | 用途 | 调用 |
+|------|------|------|
+| `scripts/_loop.py` | **总入口** | `python scripts/_loop.py {preflight\|diagnose\|batch\|close\|run}` |
+| `scripts/_loop_preflight.py` | 环境检查（备份/terminal/cache/用户进程/端口） | 自动 |
+| `scripts/_loop_diagnose.py` | 读 handoff + WFYS 历史 + 生成 ranked 假设 | `python scripts/_loop.py diagnose` |
+| `scripts/_loop_batch.py` | smoke test + 720d + WFYS（自动 cache 清理） | `python scripts/_loop.py batch --variants X,Y` |
+| `scripts/_loop_close.py` | 写 _reflect.md / _gate.md / _handoff.md | `python scripts/_loop.py close --variants X,Y --loop-id N` |
+
+### 完整流程（一键启动）
+
+```bash
+# 1. 准备新变体 yaml (手动追加到 config/strategies.yaml, 不用 yaml.dump)
+# 2. 一键跑 (preflight + batch + close)
+python scripts/_loop.py run --variants v11-btc1-loopX,v11-btc1-loopY \
+    --loop-id 2 --terminal mt5_portable_btc_trend111 --time-limit 30 \
+    --gate "继续深挖" --reason "微调 trend531 方向"
+```
+
+### 5 阶段（yhcl3.0 + Loop Engineering 融合）
+
+| 阶段 | 动作 | 工具 |
+|------|------|------|
+| **1. Preflight** | 6 项环境检查 | `_loop_preflight.py` |
+| **2. Diagnose** | 读 handoff + 历史, 生成 3-5 ranked 假设 | `_loop_diagnose.py` |
+| **3. Verify** | smoke (30d) → 720d → WFYS (30 min 时间盒) | `_loop_batch.py` |
+| **4. Reflect** | 写 _reflect.md, 提取实战坑 | `_loop_close.py` |
+| **5. Gate** | 4 选 1: 继续/切换/重构/停止 | 用户决策 |
+
+### 关键防坑（已编码到脚本）
+
+1. **MT5 cache 强制清理**: 每个变体后自动删除 `*.tst` 和 `Tester/cache/`
+2. **多 portable 隔离**: 默认 `mt5_portable_btc_trend111`, 避开用户 `mt5_portable_bt`
+3. **trades.csv log 路径**: 自动用 `_loop_batch.py` 指定的 log 路径（不是默认 mt5_portable_bt）
+4. **baseline regression**: preflight 检查 trend218 .set 存在
+5. **时间盒**: 30 min 硬限制, 超过自动停止
+6. **30 分钟时间盒**: 防止 yhcl2 这种灾难性投入
+
+### Loop Engineering vs yhcl3.0 实测对比 (2026-07-07)
+
+| Group | 平均分 | 踩雷次数 | 备注 |
+|-------|--------|---------|------|
+| yhcl3.0 (多变量并发) | 53.75 | **1/2** (yhcl2 = 30.36 灾难) | DTP+monthly_defensive 双重破坏 |
+| Loop Engineering (单变量微调) | 77.14 | **0/2** | 稳定, 避免踩雷 |
+
+**结论**: Loop Engineering 优势 +23.39 平均分, 全部 hard_pass 标准（除 anchor 锁死场景外）。
+
+### 必须遵守的规则
+
+- ✅ **追加 yaml 用文本，不用 yaml.dump**（会破坏 anchor）
+- ✅ **每个变体前必跑 preflight**（检查环境）
+- ✅ **每个变体后自动清理 cache**（避免命中）
+- ✅ **基线回归**: 跑前 trend218 = $7,615 ± 0.5 必须稳定
+- ✅ **避免 user process 误杀**: 只查 target terminal, 不全局杀进程
+- ❌ **不要 yhcl3.0 风格多变量并发**（已验证踩雷）
+- ❌ **不要等用户进程冲突时再处理**（用隔离 terminal）
+
+### 备份与回滚
+
+- **基线备份**: `temp/loop_engineering_baseline_2026-07-07/` (85 个 .set + strategies.yaml)
+- **Git 分支**: `loop-engineering-baseline-2026-07-07`
+- **回滚命令**:
+  ```bash
+  git checkout loop-engineering-baseline-2026-07-07
+  # 或文件级
+  Copy-Item temp/loop_engineering_baseline_2026-07-07/strategies.yaml config/strategies.yaml -Force
+  ```

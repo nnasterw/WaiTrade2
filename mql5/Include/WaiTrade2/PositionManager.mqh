@@ -982,6 +982,9 @@ bool CheckVirtualSL(PosTrack &track, const EAState &state)
 
 void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
 {
+    static int s_mp_count = 0;
+    s_mp_count++;
+    if(s_mp_count <= 3) Print("MPX ManagePositions call #", s_mp_count, " track_count=", track_count);
     if(CheckMonthlyLossStop(true))
     {
         CloseAllForMonthlyStop(tracks, track_count);
@@ -1240,19 +1243,15 @@ void CheckBigWinProtection(PosTrack &track, const EAState &state)
     double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
     double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
     if(current_r < trigger_r) return;
-    // 将 SL 移到 lock_to_r 位置 (锁利)
+    // 将 SL 移到 lock_to_r 位置 (锁利) - 强制执行, 跳过 IsSLImprovement 检查
     double new_sl = RToPrice(lock_to_r, track.entry_price, track.risk_price, track.direction);
-    if(!track.bigwin_locked)
-    {
-        if(ShouldSkipCloseAttempt(track)) return;
-        if(ApplyProtectiveSL(track, new_sl, "bigwin_lock", current_r))
-        {
-            track.bigwin_locked = true;
-            PrintExitDebug("bigwin_lock", track, current_r, state);
-        }
-        else
-            MarkCloseAttemptFailed(track);
-    }
+    if(!PositionSelectByTicket(track.ticket)) return;
+    if(!ModifySL(track.ticket, new_sl)) return;
+    track.virtual_sl = new_sl;
+    track.virtual_sl_reason = "bigwin_lock";
+    track.last_sl_reason = "bigwin_lock";
+    track.bigwin_locked = true;
+    if(InpEnableExitDebug) PrintExitDebug("bigwin_lock", track, current_r, state);
 }
 
 // BTC 月度最大单笔损失保护: 防止单笔损失超过 R 阈值 (月度风控)
