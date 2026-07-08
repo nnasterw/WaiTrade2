@@ -1018,6 +1018,7 @@ void ManagePositions(PosTrack &tracks[], int &track_count, const EAState &state)
         CheckFastSL(tracks[i], state, tracks, track_count);
          CheckLossCut(tracks[i], state, tracks, track_count);
          CheckMaxLossCap(tracks[i], state, tracks, track_count);
+         CheckSmartLock(tracks[i], state);
          CheckBigWinProtection(tracks[i], state);
          CheckMonthlyLossGuard(tracks[i], state, tracks, track_count);
          CheckNoMFEExit(tracks[i], state, tracks, track_count);
@@ -1231,6 +1232,31 @@ void CheckMaxLossCap(PosTrack &track, const EAState &state,
 
 // BTC 大赢单保护器: 当 R 达到 InpBTCBigWinTriggerR 时, 主动锁定到 InpBTCBigWinLockToR
 // 目的: 让 >3R 单子数量增加 (锁住大赢单防回吐)
+// SmartLock: dynamic big-win protection
+// When R >= InpSmartLockTriggerR, lock SL at InpSmartLockPct * peak_r (R-based)
+// Designed to protect winners from reversal
+void CheckSmartLock(PosTrack &track, const EAState &state)
+{
+    if(!InpSmartLockEnable) return;
+    if(track.smart_locked) return;
+    if(!PositionSelectByTicket(track.ticket)) return;
+    double current_price = PositionGetDouble(POSITION_PRICE_CURRENT);
+    double current_r = PriceToR(current_price, track.entry_price, track.risk_price, track.direction);
+    if(current_r < InpSmartLockTriggerR) return;
+    // Calculate target lock R based on current peak R
+    double target_lock_r = current_r * InpSmartLockPct;
+    if(target_lock_r < 0.5) return;  // minimum lock at 0.5R
+    // Calculate new SL price
+    double new_sl = RToPrice(target_lock_r, track.entry_price, track.risk_price, track.direction);
+    // Force set SL
+    if(!ModifySL(track.ticket, new_sl)) return;
+    track.virtual_sl = new_sl;
+    track.virtual_sl_reason = "smart_lock";
+    track.last_sl_reason = "smart_lock";
+    track.smart_locked = true;
+    if(InpEnableExitDebug) PrintExitDebug("smart_lock", track, current_r, state);
+}
+
 void CheckBigWinProtection(PosTrack &track, const EAState &state)
 {
     if(!UseBTCProfile()) return;

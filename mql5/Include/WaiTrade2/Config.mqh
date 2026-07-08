@@ -865,7 +865,10 @@ input double InpBTCShallowConfirmPosMin = -0.6; // BTC娴呯‘璁ら槇鍊?
 input double InpBTCShallowConfirmPosMult = 0.45; // BTC娴呯‘璁ゅ€嶆暟
 input double InpBTCDTPPostPartialLockR = 0.0; // BTC DTP鍒嗘壒鍚庨攣瀹?
 input double InpBTCDTPPostPartialRetrace = 0.0; // BTC DTP鍒嗘壒鍚庡洖鎾?
-input bool   InpBTCDTPResetPeakAfterPartial = false; // BTC DTP鍒嗘壒鍚庨噸缃嘲鍊?
+input bool   InpBTCDTPResetPeakAfterPartial = false;
+input bool   InpSmartLockEnable = true;
+input double InpSmartLockTriggerR = 2.0;
+input double InpSmartLockPct = 0.5; // BTC DTP鍒嗘壒鍚庨噸缃嘲鍊?
 input double InpBTCBigWinTriggerR = 0.0;        // BTC 大赢单保护触发R (0=禁用)
 input double InpBTCBigWinLockToR = 0.0;         // BTC 大赢单保护锁定到R (0=不锁)
 input bool   InpBTCBigWinOnlyHTFTarget = true;  // 大赢单保护仅用于 HTF target 单
