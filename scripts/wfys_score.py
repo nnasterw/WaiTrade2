@@ -35,8 +35,8 @@ SPECS = {
 
 
 HARD_GATES = {
-    'profitable_months_min': 21,
-    'loss_months_max': 3,
+    'profitable_months_min': 22,  # v2.0: 21->22
+    'loss_months_max': 2,  # v2.0: 3->2
     'big_loss_months_max': 0,
     'big_loss_monthly_dd_pct': 0.20,
     'max_loss_vs_initial_capital': 1.0,
@@ -56,6 +56,10 @@ HARD_GATES = {
     'avg_win_loss_min': 1.35,
     'big_win_ratio_min': 0.20,
     'micro_win_ratio_max': 0.55,
+    # WFYS v2.0: 3 new 720d hard gates
+    'weekly_trades_min': 2.0,    # v2.0: week avg >= 2 trades
+    'win_rate_min': 0.35,           # v2.0: win rate >= 35%
+    'avg_win_loss_v2_min': 3.0,    # v2.0: avg_W/|avg_L| >= 3.0
 }
 
 
@@ -439,6 +443,11 @@ def compute_r_metrics(trades: List[Dict[str, object]]) -> Dict[str, object]:
         'has_r_metrics': True,
         'big_win_ratio': big_wins / float(len(win_rs)),
         'micro_win_ratio': micro_wins / float(len(win_rs)),
+        # v2.0: 720d hard gates support
+        'win_count': len(win_rs),
+        'loss_count': len(valid_r) - len(win_rs),
+        'total_count': len(valid_r),
+        'win_rate': len(win_rs) / float(len(valid_r)) if valid_r else 0.0,
     }
 
 
@@ -466,6 +475,10 @@ def evaluate_hard_gates(metrics: Dict[str, object]) -> Tuple[Dict[str, bool], Li
         'avg_W/|avg_L|': cont['avg_win_loss'] is not None and cont['avg_win_loss'] >= HARD_GATES['avg_win_loss_min'],
         '>3R大赢单占比': r_metrics['big_win_ratio'] is not None and r_metrics['big_win_ratio'] >= HARD_GATES['big_win_ratio_min'],
         '<0.5R微利单占比': r_metrics['micro_win_ratio'] is not None and r_metrics['micro_win_ratio'] <= HARD_GATES['micro_win_ratio_max'],
+        # WFYS v2.0: 3 new 720d gates (from continuous_report)
+        '720d周均单数': cont['trade_count'] is not None and (cont['trade_count'] / 103.0) >= HARD_GATES['weekly_trades_min'],
+        '720d胜率': r_metrics.get('win_rate') is not None and r_metrics['win_rate'] >= HARD_GATES['win_rate_min'],
+        '720d盈亏比': cont.get('avg_win_loss') is not None and cont['avg_win_loss'] >= HARD_GATES['avg_win_loss_v2_min'],
     }
     failures = [name for name, ok in gates.items() if not ok]
     if not r_metrics['has_r_metrics']:
@@ -499,14 +512,17 @@ def score_metrics(metrics: Dict[str, object], spec_name: str) -> Dict[str, objec
     }
 
     risk_ratio_score = 0.0
-    risk_ratio_score += _linear_score(cont['sharpe'], 0.0, 3.0, 2.0)
-    risk_ratio_score += _linear_score(cont['sortino'], 0.0, 4.0, 1.5)
-    risk_ratio_score += _linear_score(cont['calmar'], 0.0, 3.0, 1.5)
+    risk_ratio_score += _linear_score(cont['sharpe'], 0.0, 3.0, 1.0)
+    risk_ratio_score += _linear_score(cont['sortino'], 0.0, 4.0, 1.0)
+    risk_ratio_score += _linear_score(cont['calmar'], 0.0, 3.0, 1.0)
     risk_parts = {
         '720d回撤': _reverse_linear_score(cont['max_drawdown_pct'], 0.40, 0.18, 8.0),
         'Recovery Factor': _linear_score(cont['recovery_factor'], 0.0, 5.0, 7.0),
         'Profit Factor': _linear_score(cont['profit_factor'], 0.0, 2.10, 5.0),
-        'Sharpe/Sortino/Calmar': min(5.0, risk_ratio_score),
+        # v2.0: 3 new sub-items
+        '720d周均单数': _linear_score(cont['trade_count'] / 103.0 if cont['trade_count'] else 0.0, 0.0, 2.5, 2.0),
+        '720d胜率': _linear_score(r_metrics.get('win_rate', 0.0), 0.20, 0.50, 2.0),
+        '720d盈亏比': _linear_score(cont['avg_win_loss'], 0.0, 6.0, 1.0),
     }
 
     trend_parts = {
@@ -535,7 +551,7 @@ def score_metrics(metrics: Dict[str, object], spec_name: str) -> Dict[str, objec
             elif group_name == '利润能力':
                 max_score = {'24月总收益能力': 12.0, '720d净利能力': 10.0, '强利润月/大趋势月': 8.0}[part_name]
             elif group_name == '风险质量':
-                max_score = {'720d回撤': 8.0, 'Recovery Factor': 7.0, 'Profit Factor': 5.0, 'Sharpe/Sortino/Calmar': 5.0}[part_name]
+                max_score = {'720d回撤': 8.0, 'Recovery Factor': 7.0, 'Profit Factor': 5.0, '720d周均单数': 2.0, '720d胜率': 2.0, '720d盈亏比': 1.0}[part_name]
             else:
                 max_score = {'avg_W/|avg_L|': 5.0, '>3R大赢单占比': 6.0, '<0.5R微利单占比': 4.0}[part_name]
             drags.append({
