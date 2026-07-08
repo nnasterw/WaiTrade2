@@ -65,7 +65,7 @@ HARD_GATES = {
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='WFYS 统一验收评分')
-    parser.add_argument('--monthly-csv', required=True, help='24独立月 CSV')
+    parser.add_argument('--monthly-csv', required=True, help='720d 拆分 24 月 CSV (trades.csv 按 close_time 归类 PnL, v1.0 标准; v2.0 24独立月回测已回退)')
     parser.add_argument('--continuous-report', required=True, help='720d 聚合 txt 报告')
     parser.add_argument('--trades-csv', required=True, help='720d 明细成交 CSV，优先使用 backtest_digest 导出的 .trades.csv')
     parser.add_argument('--strategy-prefix', help='对比 CSV 时使用的策略前缀，例如 v12xau1')
@@ -195,7 +195,7 @@ def load_monthly_rows(path: Path, strategy_prefix: Optional[str]) -> List[Dict[s
     rows = [r for r in rows if r['month']]
     rows.sort(key=lambda item: item['month'])
     if len(rows) != 24:
-        raise ValueError('24独立月 CSV 需要正好 24 条月度记录，当前=%s' % len(rows))
+        raise ValueError('720d 拆分 24 月 CSV (trades.csv 按 close_time 归类 PnL, v1.0 标准; v2.0 24独立月回测已回退) 需要正好 24 条月度记录，当前=%s' % len(rows))
     return rows
 
 
