@@ -44614,3 +44614,495 @@ v11-btc1-loop90:
   fvg_min_gap_atr: 0.1
   enable_micro_bos_retest: true
   micro_bos_min_net_atr: 0.2
+
+
+v11-btc1-loop91:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP91
+  description: "BV1 + SmartLock 2.0/0.4 (推迟锁 1.8->2.0, 紧锁 0.5->0.4) 让大赢单突破 3R"
+  magic_number: 207145
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.0
+  smart_lock_pct: 0.4
+
+v11-btc1-loop92:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP92
+  description: "BV1 + SmartLock 2.5/0.5 (大幅推迟锁) 让大赢单突破 3R"
+  magic_number: 207146
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.5
+  smart_lock_pct: 0.5
+
+v11-btc1-loop93:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP93
+  description: "BV1 + SmartLock 1.5/0.3 (更早更紧锁) 减少微亏单"
+  magic_number: 207147
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.5
+  smart_lock_pct: 0.3
+
+v11-btc1-loop94:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP94
+  description: "BV1 + DTP 1.5 (提前 DTP) 减少持仓时间提频次"
+  magic_number: 207148
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  buy_dtp_trigger_r: 1.5
+  sell_dtp_trigger_r: 1.5
+
+v11-btc1-loop95:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP95
+  description: "BV1 + DTP 2.5 (推迟 DTP) 让大赢单突破 3R"
+  magic_number: 207149
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  buy_dtp_trigger_r: 2.5
+  sell_dtp_trigger_r: 2.5
+
+v11-btc1-loop96:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP96
+  description: "BV1 + DTP 3.0 (大幅推迟 DTP) 让大赢单突破 3R"
+  magic_number: 207150
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  buy_dtp_trigger_r: 3.0
+  sell_dtp_trigger_r: 3.0
+
+v11-btc1-loop97:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP97
+  description: "BV1 + DTP retrace 0.3 (更紧 DTP 跟踪) 提频次"
+  magic_number: 207151
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  buy_dtp_retrace: 0.3
+  sell_dtp_retrace: 0.3
+
+v11-btc1-loop98:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP98
+  description: "BV1 + SmartLock 2.0/0.4 + DTP 2.5 (双向优化大赢单)"
+  magic_number: 207152
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.0
+  smart_lock_pct: 0.4
+  buy_dtp_trigger_r: 2.5
+  sell_dtp_trigger_r: 2.5
+
+v11-btc1-loop99:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP99
+  description: "BV1 + SmartLock 1.5/0.5 + DTP 2.0 (中庸优化)"
+  magic_number: 207153
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.5
+  smart_lock_pct: 0.5
+  buy_dtp_trigger_r: 2.0
+  sell_dtp_trigger_r: 2.0
+
+v11-btc1-loop100:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP100
+  description: "BV1 + SmartLock 1.8/0.3 (更紧 SmartLock) 减少微亏单"
+  magic_number: 207154
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.3
+
+
+v11-btc1-loop101:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP101
+  description: "BV1 + bad_cluster1 hours 4,9,14 mult=0 (精确禁大亏时段)"
+  magic_number: 207155
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bad_cluster1_hours: "4,9,14"
+  bad_cluster1_risk_min: 0
+  bad_cluster1_risk_max: 0
+  bad_cluster1_mult: 0.0
+  bad_cluster1_signal: "OB"
+
+v11-btc1-loop102:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP102
+  description: "BV1 + bad_cluster1 hours 2,3,4,7,8,9,12,15,18,22 mult=0 (禁所有 avgR<=0 小时)"
+  magic_number: 207156
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bad_cluster1_hours: "2,3,4,7,8,9,12,15,18,22"
+  bad_cluster1_risk_min: 0
+  bad_cluster1_risk_max: 0
+  bad_cluster1_mult: 0.0
+  bad_cluster1_signal: "OB"
+
+v11-btc1-loop103:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP103
+  description: "BV1 + bounce_close_confirm_bars=2 (等 2 K 线确认, 让持仓更久)"
+  magic_number: 207157
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_close_confirm_bars: 2
+
+v11-btc1-loop104:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP104
+  description: "BV1 + bounce_close_confirm_bars=3 (等 3 K 线确认, 大幅减少 <15min 交易)"
+  magic_number: 207158
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_close_confirm_bars: 3
+
+v11-btc1-loop105:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP105
+  description: "BV1 + bad_cluster 4,9,14 + bounce_close_confirm 1 + FVG 启用"
+  magic_number: 207159
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bad_cluster1_hours: "4,9,14"
+  bad_cluster1_risk_min: 0
+  bad_cluster1_risk_max: 0
+  bad_cluster1_mult: 0.0
+  bad_cluster1_signal: "OB"
+  bounce_close_confirm_bars: 1
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+
+
+v11-btc1-loop106:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP106
+  description: "BV1 + bad_bounce_mult 0.5 (更宽松坏区间, 多交易)"
+  magic_number: 207160
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.5
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+
+v11-btc1-loop107:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP107
+  description: "BV1 + bad_bounce_mult 0.3 (更严格坏区间, 少亏单)"
+  magic_number: 207161
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.3
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+
+v11-btc1-loop108:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP108
+  description: "BV1 + min_risk_spread_ratio 3.0 (更宽松风险比, 多交易)"
+  magic_number: 207162
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 3.0
+
+v11-btc1-loop109:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP109
+  description: "BV1 + DTP trigger 1.5 (更早 DTP, 提频次)"
+  magic_number: 207163
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  buy_dtp_trigger_r: 1.5
+  sell_dtp_trigger_r: 1.5
+
+v11-btc1-loop110:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP110
+  description: "BV1 + bounce_close_confirm_bars=1 (K 线确认, 略严格)"
+  magic_number: 207164
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_close_confirm_bars: 1
+
+v11-btc1-loop111:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP111
+  description: "BV1 + free_run_min_r 3.0 (更早 free run, 让大赢更久)"
+  magic_number: 207165
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  free_run_min_r: 3.0
+
+v11-btc1-loop112:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP112
+  description: "BV1 + bounce_pct 0.20 + min_risk_spread_ratio 3.0 (更宽松 OB 准入)"
+  magic_number: 207166
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_pct: 0.20
+  min_risk_spread_ratio: 3.0
+
+v11-btc1-loop113:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP113
+  description: "BV1 + sl_buffer 1.0 (紧凑 SL, 多触发频次)"
+  magic_number: 207167
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sl_buffer_atr: 1.0
+
+v11-btc1-loop114:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP114
+  description: "BV1 + sl_buffer 1.0 + min_risk_spread_ratio 3.0 (双宽松)"
+  magic_number: 207168
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sl_buffer_atr: 1.0
+  min_risk_spread_ratio: 3.0
+
+v11-btc1-loop115:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP115
+  description: "BV1 + bounce_pct 0.20 + sl_buffer 1.0 + min_risk_spread_ratio 3.0 (三宽松多交易)"
+  magic_number: 207169
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_pct: 0.20
+  min_risk_spread_ratio: 3.0
+  sl_buffer_atr: 1.0
+
+
+v11-btc1-loop116:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP116
+  description: "BV1 + bounce_pct 0.20 (单独放宽 OB 准入)"
+  magic_number: 207170
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_pct: 0.20
+
+v11-btc1-loop117:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP117
+  description: "BV1 + min_risk_spread_ratio 3.0 (单独放宽风险比)"
+  magic_number: 207171
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 3.0
+
+v11-btc1-loop118:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP118
+  description: "BV1 + sl_buffer_atr 1.0 (单独紧凑 SL)"
+  magic_number: 207172
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sl_buffer_atr: 1.0
+
+v11-btc1-loop119:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP119
+  description: "BV1 + bounce_pct 0.20 + sl_buffer_atr 1.0 (双放宽 OB+SL)"
+  magic_number: 207173
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_pct: 0.20
+  sl_buffer_atr: 1.0
+
+v11-btc1-loop120:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP120
+  description: "BV1 + min_risk_spread 3.0 + sl_buffer 1.0 (双放宽风险比+SL)"
+  magic_number: 207174
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 3.0
+  sl_buffer_atr: 1.0
+
+v11-btc1-loop121:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP121
+  description: "BV1 + bounce_pct 0.20 + min_risk_spread 3.0 (双放宽 OB+风险比)"
+  magic_number: 207175
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_pct: 0.20
+  min_risk_spread_ratio: 3.0
