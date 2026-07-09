@@ -1,4 +1,4 @@
-﻿#ifndef __WAITRADE_CONFIG_MQH__
+#ifndef __WAITRADE_CONFIG_MQH__
 #define __WAITRADE_CONFIG_MQH__
 
 bool IsMonthlyDefensiveModeActive();
@@ -794,7 +794,7 @@ input double InpBTCRiskPercent = 5.4;        // BTC椋庨櫓%
 input double InpBTCMaxPosMult = 300.0;       // BTC鏈€澶т粨浣嶄箻鏁?
 input double InpBTCMaxLotSize = 9.0;         // BTC鏈€澶ф墜鏁?
 input int    InpBTCMaxConcurrent = 8;        // BTC鏈€澶у苟鍙?
-input double InpBTCMinRiskSpreadRatio = 5.0; // BTC鏈€灏弐isk/spread
+input double InpBTCMinRiskSpreadRatio = 2.0; // BTC鏈€灏弐isk/spread
 input double InpBTCSweepPosMult = 0.1;       // BTC Sweep浠撲綅鍊嶆暟
 input double InpBTCSweepMaxLotSize = 0.01;   // BTC Sweep鏈€澶ф墜鏁?
 input double InpBTCLowBalanceThreshold = 1000.0; // BTC浣庝綑棰濋槇鍊?
@@ -1715,3 +1715,5 @@ double CfgContextFilter5Mult() { return UseXAUFageAltProfile() ? InpXAUAltContex
 string CfgMonthlyProfitTargetStopMonths() { return UseXAUFageAltProfile() ? InpXAUAltMonthlyProfitTargetStopMonths : InpMonthlyProfitTargetStopMonths; }
 
 #endif
+
+
