@@ -43963,3 +43963,262 @@ v11-btc1-loop55:
   bad_cluster1_mult: 0.0
   htf_partial_r: 0.8
   htf_partial_pct: 30
+
+
+v11-btc1-loop56:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP56
+  description: "BV1 + sl_buffer 2.0 (大 broker SL 缓冲) 减少 22.86% <-1R 大亏"
+  magic_number: 207110
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sl_buffer_atr: 2.0
+
+v11-btc1-loop57:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP57
+  description: "BV1 + no_ob 4/9/14 亏损时段过滤 减少 24 笔大亏"
+  magic_number: 207111
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  no_ob_start_hour: 4
+  no_ob_end_hour: 14
+
+v11-btc1-loop58:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP58
+  description: "BV1 + SmartLock 1.5/0.3 (更早锁更紧) 减少微亏"
+  magic_number: 207112
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.5
+  smart_lock_pct: 0.3
+
+v11-btc1-loop59:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP59
+  description: "BV1 + 启用 FVG 增信号源 解决周单数 hard_fail"
+  magic_number: 207113
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+  fvg_max_gap_atr: 1.0
+
+v11-btc1-loop60:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP60
+  description: "BV1 + sl_buffer 2.0 + no_ob 4/9/14 联合优化"
+  magic_number: 207114
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sl_buffer_atr: 2.0
+  no_ob_start_hour: 4
+  no_ob_end_hour: 14
+
+v11-btc1-loop61:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP61
+  description: "BV1 + 启用 MicroBOS 增信号源 解决周单数 hard_fail"
+  magic_number: 207115
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  enable_micro_bos_retest: true
+  micro_bos_min_net_atr: 0.2
+  micro_bos_extension_atr: 0.3
+
+v11-btc1-loop62:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP62
+  description: "BV1 + 启用 FVG + MicroBOS 双信号源"
+  magic_number: 207116
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+  enable_micro_bos_retest: true
+  micro_bos_min_net_atr: 0.2
+  bounce_close_confirm_bars: 1
+
+
+v11-btc1-loop63:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP63
+  description: "BV1 + 启用 FVG 增信号源 (周单数 hard_fail 解决)"
+  magic_number: 207117
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+  fvg_max_gap_atr: 1.0
+  fvg_timeout_min: 60
+
+v11-btc1-loop64:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP64
+  description: "BV1 + 启用 MicroBOS 增信号源"
+  magic_number: 207118
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  enable_micro_bos_retest: true
+  micro_bos_min_net_atr: 0.2
+  micro_bos_extension_atr: 0.3
+  micro_bos_max_bars: 72
+
+v11-btc1-loop65:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP65
+  description: "BV1 + 启用 FVG + MicroBOS 双信号源"
+  magic_number: 207119
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+  enable_micro_bos_retest: true
+  micro_bos_min_net_atr: 0.2
+  bounce_close_confirm_bars: 1
+
+v11-btc1-loop66:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP66
+  description: "BV1 + 启用 FVG + MicroBOS + lower OB + lower bounce - max freq"
+  magic_number: 207120
+  bad_bounce_min_pct: 0.20
+  bad_bounce_max_pct: 0.26
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  entry_depth_pct: 0.5
+  min_ob_strength: 0.3
+  min_impulse_body_pct: 50
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+  enable_micro_bos_retest: true
+  micro_bos_min_net_atr: 0.2
+  bounce_pct: 0.22
+  min_risk_spread_ratio: 3.0
+
+v11-btc1-loop67:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP67
+  description: "BV1 + sl_buffer 1.0 (紧凑 SL) + FVG 增信号"
+  magic_number: 207121
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sl_buffer_atr: 1.0
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+
+v11-btc1-loop68:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP68
+  description: "BV1 + SmartLock 2.5/0.5 (大幅推迟锁) 让大赢单突破 3R"
+  magic_number: 207122
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.5
+  smart_lock_pct: 0.5
+
+v11-btc1-loop69:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP69
+  description: "BV1 + SmartLock 1.5/0.4 + FVG - 早锁 + 增信号"
+  magic_number: 207123
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.5
+  smart_lock_pct: 0.4
+  enable_fvg: true
+  fvg_min_gap_atr: 0.1
+
+v11-btc1-loop70:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP70
+  description: "BV1 + HTF Target 启用 + 部分止盈 让大赢单突破 3R"
+  magic_number: 207124
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  htf_min_target_r: 2.5
+  htf_max_target_r: 8.0
+  htf_measured_move_r: 3.5
