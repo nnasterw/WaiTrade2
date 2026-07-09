@@ -145,6 +145,28 @@ def _reverse_linear_score(value: Optional[float], high: float, low: float, point
     return float(points) * (high - clipped) / (high - low)
 
 
+def _weekly_trade_score(value):
+    """周单数阶梯式评分 (v2.2 三档).
+
+    < 2.0  -> 0 分 (不达硬门槛)
+    2.0-3.0 -> 1 分 (及格)
+    3.0-4.0 -> 2 分 (良好)
+    >= 4.0 -> 3 分 (优秀)
+
+    与硬门槛 weekly_trades_min=2.0 配套: 不达 2.0 直接淘汰, 但阶梯式评分
+    让 2-3 (及格) / 3-4 (良好) / >=4 (优秀) 拉开差距.
+    """
+    if value is None:
+        return 0.0
+    if value >= 4.0:
+        return 3.0
+    if value >= 3.0:
+        return 2.0
+    if value >= 2.0:
+        return 1.0
+    return 0.0
+
+
 def _fmt_pct(value: Optional[float], digits: int = 1) -> str:
     if value is None:
         return 'N/A'
@@ -519,9 +541,9 @@ def score_metrics(metrics: Dict[str, object], spec_name: str) -> Dict[str, objec
         '720d回撤': _reverse_linear_score(cont['max_drawdown_pct'], 0.40, 0.18, 8.0),
         'Recovery Factor': _linear_score(cont['recovery_factor'], 0.0, 5.0, 7.0),
         'Profit Factor': _linear_score(cont['profit_factor'], 0.0, 2.10, 5.0),
-        # v2.0: 3 new sub-items
-        '720d周均单数': _linear_score(cont['trade_count'] / 103.0 if cont['trade_count'] else 0.0, 0.0, 2.5, 2.0),
-        '720d胜率': _linear_score(r_metrics.get('win_rate', 0.0), 0.20, 0.50, 2.0),
+        # v2.2: 周单数改为阶梯式分级 (及格/良好/优秀)
+        '周单数分级': _weekly_trade_score(cont['trade_count'] / 103.0 if cont['trade_count'] else 0.0),
+        '720d胜率': _linear_score(r_metrics.get('win_rate', 0.0), 0.20, 0.50, 1.0),  # v2.2: 2->1 分 (腾给周单数分级)
         '720d盈亏比': _linear_score(cont['avg_win_loss'], 0.0, 6.0, 1.0),
     }
 
@@ -551,7 +573,7 @@ def score_metrics(metrics: Dict[str, object], spec_name: str) -> Dict[str, objec
             elif group_name == '利润能力':
                 max_score = {'24月总收益能力': 12.0, '720d净利能力': 10.0, '强利润月/大趋势月': 8.0}[part_name]
             elif group_name == '风险质量':
-                max_score = {'720d回撤': 8.0, 'Recovery Factor': 7.0, 'Profit Factor': 5.0, '720d周均单数': 2.0, '720d胜率': 2.0, '720d盈亏比': 1.0}[part_name]
+                max_score = {'720d回撤': 8.0, 'Recovery Factor': 7.0, 'Profit Factor': 5.0, '周单数分级': 3.0, '720d胜率': 1.0, '720d盈亏比': 1.0}[part_name]
             else:
                 max_score = {'avg_W/|avg_L|': 5.0, '>3R大赢单占比': 6.0, '<0.5R微利单占比': 4.0}[part_name]
             drags.append({
