@@ -1,0 +1,6 @@
+interface:
+  display_name: "WaiTrade2 wf-yhcl"
+  short_description: "持续受控地诊断、改进并验证量化策略"
+  default_prompt: "Use $wf-yhcl to continue the current WaiTrade2 governed strategy iteration loop."
+policy:
+  allow_implicit_invocation: true

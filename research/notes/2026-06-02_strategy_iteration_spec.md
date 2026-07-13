@@ -32,6 +32,7 @@
 | 2026-06-25 | v1.1 | 新增 `WFYS` 统一验收标准，研究版策略结论改为“硬门槛 + 评分 + 分级” | ✅ 已发布 |
 | 2026-07-04 | v1.2 | P0 修复: WFYS 评分 month_return 用错分母 (初始 deposit vs 月初余额). 重评分 12 变体: trend29 79.55, trend44/50/61 79.05-79.10, trend60 76.84 | ✅ 已提交 |
 | 2026-07-04 | — | P0 修复: backtest_digest.py 24m 归因用 entry_time 而非 close_time. 新建 rebuild_24m.py 独立工具 | ✅ 已提交 |
+| 2026-07-13 | v1.3 | P0 Token 事故：长上下文 + 高频回测轮询导致今日 84.94M raw / 1.72M 非缓存等效；新增真实审计与轮询纪律 | ✅ 已修复 |
 
 
 ---
@@ -680,6 +681,47 @@ python scripts/pre_deploy_check.py --strategy <策略名> --balance 200
 - 只看单一利润榜、单一盈利月数、或只看某两个月目标，不再作为最终毕业依据
 - 这些指标仍可用于阶段性研究，但不能替代统一验收
 - 详细标准见 `research/notes/2026-06-25_wfys_acceptance_standard.md`
+
+---
+
+## 十、Agent Token 与长回测纪律
+
+> 2026-07-13 事故结论：MT5 回测不直接消耗 LLM token。Token 剧增来自 Agent 在已膨胀到 50 万级上下文的任务中高频调用工具，尤其是为等待 720d 回测反复启动新的 `Start-Sleep` 命令。
+
+### 真实计量口径
+
+- **Raw token**：Codex rollout `token_count.total_token_usage.total_tokens`，包含缓存输入。
+- **非缓存等效 token**：`input_tokens - cached_input_tokens + output_tokens`，与 Codex goal 计量一致。
+- 回测次数、回测天数、结果文件数只能称为**回测工作量**，不得称为“实际 token”。
+- 只允许定向解析 `token_count` 和工具元数据；禁止整份读取原始 Agent 日志。
+- 审计命令：
+
+```bash
+python scripts/codex_token_audit.py <rollout.jsonl> --date YYYY-MM-DD --tz-offset 8
+```
+
+### 长回测等待
+
+1. 首次用一个 `exec_command` 启动回测；命令优先 `--background --brief`。
+2. 若返回 session id，后续只调用同一 session 的 `write_stdin`。
+3. `write_stdin` 使用 `yield_time_ms=300000`，最多每 5 分钟检查一次；禁止每 30–60 秒轮询。
+4. 禁止新建 `Start-Sleep` 命令充当轮询器；这会制造重复 PTY、重复 Agent 轮次和完整上下文回放。
+5. 等待期间不重复读取相同结果目录、进程表或日志；完成后只读 brief/digest。
+
+### 上下文熔断
+
+- 单次调用输入达到 **200K**：本阶段完成后写 handoff，在新任务继续。
+- 单次调用输入达到 **400K**：禁止启动新实验，只允许收尾、提交、handoff。
+- 每个 Loop 的 `Reflect + Gate + commit` 是默认任务边界，不在一个任务内无限追加 Loop。
+- 任务恢复出现冷缓存时，50 万级上下文会一次性形成约 50 万非缓存 token；长任务重开前必须优先换新任务。
+
+### 2026-07-13 基准
+
+- 目标任务累计：354.41M raw / 5.20M 非缓存等效。
+- 当日新增：84.94M raw / 1.72M 非缓存等效。
+- 当日 54.1 分钟内：156 次函数调用，152 次 `exec_command`，88 次回测轮询，0 次 `write_stdin`。
+- 三次冷缓存事件合计 1.58M 非缓存等效，占当日非缓存等效约 91.8%。
+- 详细证据：`research/notes/2026-07-13_codex_token_usage_diagnosis.md`。
 
 ---
 

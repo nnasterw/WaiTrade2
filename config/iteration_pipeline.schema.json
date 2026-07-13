@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WaiTrade2 Loop Pipeline Manifest",
+  "type": "object",
+  "required": [
+    "schema_version", "pipeline_id", "loop_id", "loop_type", "status",
+    "baseline_before", "objective", "plan", "gate", "evidence_manifest",
+    "token_attribution", "next_loop"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "pipeline_id": {"type": "string", "minLength": 1},
+    "loop_id": {"type": "integer", "minimum": 1},
+    "loop_type": {
+      "enum": ["governed_iteration", "profit_structure_discovery", "structure_verification", "repair"]
+    },
+    "status": {"enum": ["planned", "running", "repair", "completed"]},
+    "baseline_before": {"type": "object"},
+    "baseline_after": {"type": ["object", "null"]},
+    "objective": {"type": "object"},
+    "plan": {"type": "object"},
+    "variants": {"type": "array"},
+    "gate": {"type": "object"},
+    "evidence_manifest": {"type": "array"},
+    "token_attribution": {"type": "object"},
+    "git": {"type": "object"},
+    "next_loop": {"type": "object"}
+  },
+  "additionalProperties": true
+}

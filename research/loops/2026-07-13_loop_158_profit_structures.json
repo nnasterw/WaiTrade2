@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "source": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv",
+  "analysis": {
+    "all": {
+      "trades": 105,
+      "pnl": 8094.9545,
+      "win_rate": 40.0,
+      "avg_r": 0.371874,
+      "big_wins": 9,
+      "losses": 63
+    },
+    "campaign_count": 71,
+    "multi_entry_campaigns": 19,
+    "campaign_first": {
+      "trades": 71,
+      "pnl": 6425.4925,
+      "win_rate": 36.6197,
+      "avg_r": 0.347133,
+      "big_wins": 7,
+      "losses": 45
+    },
+    "campaign_later": {
+      "trades": 34,
+      "pnl": 1669.462,
+      "win_rate": 47.0588,
+      "avg_r": 0.42354,
+      "big_wins": 2,
+      "losses": 18
+    },
+    "later_independent": {
+      "trades": 21,
+      "pnl": 1194.0376,
+      "win_rate": 57.1429,
+      "avg_r": 0.53189,
+      "big_wins": 2,
+      "losses": 9
+    },
+    "later_addon": {
+      "trades": 13,
+      "pnl": 475.4244,
+      "win_rate": 30.7692,
+      "avg_r": 0.248514,
+      "big_wins": 0,
+      "losses": 9
+    },
+    "post_win_independent": {
+      "trades": 5,
+      "pnl": 433.2638,
+      "win_rate": 80.0,
+      "avg_r": 0.989185,
+      "big_wins": 1,
+      "losses": 1
+    },
+    "post_loss_independent": {
+      "trades": 16,
+      "pnl": 760.7738,
+      "win_rate": 50.0,
+      "avg_r": 0.388986,
+      "big_wins": 1,
+      "losses": 8
+    },
+    "post_win_addon": {
+      "trades": 9,
+      "pnl": 530.2404,
+      "win_rate": 44.4444,
+      "avg_r": 0.383065,
+      "big_wins": 0,
+      "losses": 5
+    },
+    "post_loss_addon": {
+      "trades": 4,
+      "pnl": -54.816,
+      "win_rate": 0.0,
+      "avg_r": -0.054226,
+      "big_wins": 0,
+      "losses": 4
+    }
+  },
+  "profit_structures": [
+    {
+      "id": "PS1",
+      "type": "baseline_seeded_trend_campaign",
+      "mechanism": "由已通过 baseline 入口播种方向 campaign，仅在新的 M5 结构突破与回踩形成新结构级别后独立再入，直到相反方向 CHoCH 结束 campaign；禁止全局 MicroBOS 扫描和同价即时加仓。",
+      "expected_edge": "把现有高质量后续独立信号扩展为可持续频次来源，同时避免全局 HTFPB/MicroBOS 的高频噪音。",
+      "invalid_if": "90d 交易频次未提升至少 30%，或 PF/回撤相对 baseline 退化超过 10%，或新增信号不能归因到新结构级别。",
+      "evidence_refs": [
+        "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv#query=later_independent",
+        "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv#query=multi_entry_campaigns",
+        "research/notes/2026-06-28_v11-btc1_wfys_iteration.md#L3486-L3543"
+      ]
+    },
+    {
+      "id": "PS2",
+      "type": "profit_confirmed_structural_reload",
+      "mechanism": "盈利交易确认趋势后不立即加仓，等待新的结构突破、回踩和新订单块后独立重载一次，并使用独立止损和 HTF Target。",
+      "expected_edge": "利用前一笔盈利后独立再入的高胜率样本，提高趋势 campaign 的复用率而不复制低质量即时 addon。",
+      "invalid_if": "90d 新增信号不足，或独立重载胜率低于 baseline，或大赢单比例明显下降。",
+      "evidence_refs": [
+        "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv#query=post_win_independent",
+        "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv#query=post_win_addon"
+      ]
+    },
+    {
+      "id": "PS3",
+      "type": "failure_reclaim_structure_entry",
+      "mechanism": "baseline 入口主动失败后，只有价格重新夺回原方向的微结构并形成新订单块时才允许独立恢复入场；同一订单块重入和失败后的即时 addon 均禁止。",
+      "expected_edge": "保留失败后最终转为大趋势的恢复机会，并过滤无新结构的连续失败。",
+      "invalid_if": "90d 恢复入场不能产生正期望，或新增交易主要来自同一订单块重复触发。",
+      "evidence_refs": [
+        "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv#query=post_loss_independent",
+        "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv#query=post_loss_addon"
+      ]
+    }
+  ]
+}

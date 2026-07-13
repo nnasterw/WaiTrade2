@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "hypotheses": [
+    {
+      "id": "PS1",
+      "strategy": "v11-btc1-bv1",
+      "changes": [
+        {
+          "key": "campaign_reload_gate",
+          "value": "ps1_reserved",
+          "source": "v3_extension_required"
+        }
+      ],
+      "prediction": "在 v3 新增 STRU_CAMPRLD 结构家族后，30d 中至少出现 1 次由 baseline OB/BOS 触发的趋势 campaign 重载，campaign 后续独立信号贡献 ≥ 0.2R 平均收益；如未实现结构家族，本变体只能验证 baseline 的 30d 稳定性。",
+      "falsify_if": "30d 中 campaign 后续独立信号贡献 ≤ 0，或 wfys_score 退化 > 0.5 分，或 30d smoke 出现 baseline 不允许的失败 (回测失败 / 缺结果 / 0 笔)。",
+      "evidence_required": [
+        "results/backtest/v11-btc1-bv1_20240601_20260531_20260709.trades.csv",
+        "results/backtest/v11-btc1-bv1_20240601_20260531_20260709.txt"
+      ]
+    }
+  ]
+}

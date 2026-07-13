@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "pipeline_id": "btc-bv1-continuous",
+  "enabled": true,
+  "same_codex_session": true,
+  "entrypoint": "wf-yhcl governed-iterate",
+  "baseline": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.57142857142857,
+    "hard_failures": ["720d周均单数"],
+    "weekly_trades": 1.07
+  },
+  "objective": {
+    "wfys_min": 93.0,
+    "weekly_trades_min": 2.0,
+    "hard_failures_max": 0,
+    "model": 4,
+    "deposit": 200,
+    "live_auto_deploy": false
+  },
+  "loop_limits": {
+    "max_hypotheses": 3,
+    "max_changed_variables_per_variant": 1,
+    "max_smoke_30d": 3,
+    "max_validate_90d": 3,
+    "max_full_720d": 1,
+    "max_wfys": 1,
+    "workload_budget": 12.0,
+    "time_limit_min": 30
+  },
+  "workload_points": {
+    "smoke_30d": 1.0,
+    "validate_90d": 1.0,
+    "full_720d": 5.0,
+    "wfys_extract": 0.5
+  },
+  "promotion": {
+    "same_hard_failures_min_score_delta": 0.3,
+    "fewer_hard_failures_max_score_drop": 1.0,
+    "max_full_720d_per_loop": 1
+  },
+  "structural_limit": {
+    "direct_architecture_evidence": true,
+    "consecutive_loops": 3,
+    "max_hypotheses": 9,
+    "independent_dimensions": 3
+  },
+  "initial_next_loop": {
+    "loop_id": 158,
+    "type": "profit_structure_discovery",
+    "focus": "寻找提高周均交易数且不破坏 WFYS 的趋势盈利结构"
+  },
+  "paths": {
+    "pipeline_pointer": "research/loops/current_pipeline.json",
+    "loops_dir": "research/loops",
+    "backtest_dir": "results/backtest"
+  }
+}

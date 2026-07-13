@@ -221,8 +221,12 @@ python scripts/_loop.py run --variants v11-btc1-loopX,v11-btc1-loopY \
 - ✅ **每个变体后自动清理 cache**（避免命中）
 - ✅ **基线回归**: 跑前 trend218 = $7,615 ± 0.5 必须稳定
 - ✅ **避免 user process 误杀**: 只查 target terminal, 不全局杀进程
+- ✅ **真实 token 只认 Codex `token_count`**：MT5 回测次数/天数只能称为“回测工作量”，禁止乘人工常数冒充 token
+- ✅ **长回测只启动一个 exec session**：首次 `exec_command` 返回 session id 后，只用 `write_stdin` 且 `yield_time_ms=300000` 等待；禁止反复新建 `Start-Sleep` 命令轮询
+- ✅ **Loop 阶段隔离任务**：单次上下文达到 200K 或完成阶段 commit 后，写 handoff 并在新任务继续，避免长上下文冷缓存重传
 - ❌ **不要 yhcl3.0 风格多变量并发**（已验证踩雷）
 - ❌ **不要等用户进程冲突时再处理**（用隔离 terminal）
+- ❌ **不要用回测产物估算 Codex token**：需要审计时运行 `python scripts/codex_token_audit.py <rollout.jsonl> --date YYYY-MM-DD`
 
 ### 备份与回滚
 
