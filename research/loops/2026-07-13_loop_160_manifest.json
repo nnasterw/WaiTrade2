@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "pipeline_id": "btc-bv1-continuous",
+  "loop_id": 160,
+  "loop_type": "profit_structure_discovery",
+  "status": "completed",
+  "started_at": "2026-07-14T00:00:00+08:00",
+  "baseline_before": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.5714285714286,
+    "hard_failures": [
+      "720d周均单数"
+    ],
+    "weekly_trades": 1.07
+  },
+  "baseline_after": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.5714285714286,
+    "hard_failures": [
+      "720d周均单数"
+    ],
+    "weekly_trades": 1.07,
+    "note": "loop160 v2 path = baseline bv1 (PS1 inactive because v2 .ex5 lacks STRU_CAMPRLD). 110 笔, $9224.61."
+  },
+  "objective": {
+    "wfys_min": 93.0,
+    "weekly_trades_min": 2.0,
+    "hard_failures_max": 0,
+    "model": 4,
+    "deposit": 200,
+    "live_auto_deploy": false
+  },
+  "plan": {
+    "focus": "v3 SMC PS1 STRU_CAMPRLD baseline-seeded trend campaign reload (v2 path equivalence test).",
+    "limits": {
+      "max_hypotheses": 1,
+      "max_changed_variables_per_variant": 0,
+      "max_smoke_30d": 1,
+      "max_validate_90d": 1,
+      "max_full_720d": 1,
+      "max_wfys": 1,
+      "workload_budget": 8.0,
+      "time_limit_min": 30
+    },
+    "candidate": {
+      "id": "PS1-v2-path",
+      "strategy": "v11-btc1-loop160",
+      "changes": [],
+      "prediction": "v2 path = baseline bv1 720d WFYS 89.57 (PS1 inputs ignored by v2 .ex5)",
+      "falsify_if": "v2 path WFYS != 89.57"
+    }
+  },
+  "variants": [
+    {
+      "id": "V1-loop160-v2path",
+      "strategy": "v11-btc1-loop160",
+      "config_path": "mql5/Presets/v11-btc1-loop160.set",
+      "magic_number": 207160,
+      "expert_path_attempted": "WaiTrade3\\WaiTrade_OB_SMC",
+      "expert_path_actual": "WaiTrade2\\WaiTrade_OB (fallback due to v3 .ex5 0xC0000409)",
+      "changes": []
+    }
+  ],
+  "gate": {
+    "decision": "方向关闭",
+    "reason": "v2 path = baseline (no PS1 effect). v3 .ex5 baseline 1d/7d smoke crashes with 0xC0000409 (STATUS_STACK_BUFFER_OVERRUN) on portable mt5_btc_bv1 - v3 SMC OnInit incompatibility prevents real PS1 validation. Need to either fix v3 EA OnInit or use a different portable with proper v3 support. PS1 source code (Types.mqh ENTRY_FAMILY_CAMPRLD=11, ConfigSMC.mqh 9 inputs, WaiTrade_OB_SMC.mq5 PS1CampaignState + 5 functions) compiled 0 errors but runtime crashed.",
+    "evidence_refs": [
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260613_20260713_20260713.txt",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260415_20260714_20260714.txt",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240707_20260714_20260714.txt",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.txt",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades.csv",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades_closetime_24m.csv",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_wfys_v22_20260714.json"
+    ],
+    "automatic": true
+  },
+  "evidence_manifest": [
+    {
+      "strategy": "v11-btc1-loop160",
+      "stage": "full_720d",
+      "artifacts": [
+        {
+          "type": "original_report",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.txt",
+          "sha256": "9fe31ae92bb31f5233b95d234d692f7d6e60df482a291e4a4d1312d27283a32b",
+          "size": 689,
+          "modified_at": "2026-07-14T00:23:23+08:00"
+        },
+        {
+          "type": "trades_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades.csv",
+          "sha256": "f97ced6c48295d570ed88c017bab4f44b34c075139fd17fd65b489f692ae8f3d",
+          "size": 30459,
+          "modified_at": "2026-07-14T00:24:13+08:00"
+        },
+        {
+          "type": "monthly_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades_closetime_24m.csv",
+          "sha256": "d932cb4f437e2fb2bf7eac917f2a5e752f574b9d56a00d855441e75d6bfc90b2",
+          "size": 636,
+          "modified_at": "2026-07-14T00:30:05+08:00"
+        },
+        {
+          "type": "wfys_json",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_wfys_v22_20260714.json",
+          "sha256": "c65aa914057ee9043c4c26ff5d90a71fe6b9c5ce1d983e6451f221d8661d3a57",
+          "size": 3353,
+          "modified_at": "2026-07-14T00:30:05+08:00"
+        },
+        {
+          "type": "pre_screening_30d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260613_20260713_20260713.txt",
+          "sha256": "35ef8533ce105ebd7c7140471e2a0d8b601179eda9c11b6dd2a5dfd1ed45394a",
+          "size": 606,
+          "modified_at": "2026-07-13T23:54:18+08:00"
+        },
+        {
+          "type": "pre_screening_90d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260416_20260714_20260714.txt",
+          "sha256": "7ce642323d4d1c13412e20b3f7909cf20be7b56ec7aa75c8017c67d10030492b",
+          "size": 686,
+          "modified_at": "2026-07-14T00:17:03+08:00"
+        },
+        {
+          "type": "pre_screening_7d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260707_20260714_20260714.txt",
+          "sha256": "e44de14a47da3e67725cbde165b2f1b41198b1875731baf4e3c2bc7231f8f2c6",
+          "size": 605,
+          "modified_at": "2026-07-14T00:12:27+08:00"
+        },
+        {
+          "type": "pre_screening_1d_v3",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260713_20260714_20260714.txt",
+          "sha256": "9cdec934ada83df8ef6cfdee28159558738f8c85018f67636e896be030dd8baf",
+          "size": 605,
+          "modified_at": "2026-07-14T00:26:59+08:00"
+        }
+      ],
+      "provenance": {
+        "model": 4,
+        "deposit": 200,
+        "date_from": "2024.06.01",
+        "date_to": "2026.05.31",
+        "wfys_standard": "BTC-v2.2",
+        "real_expert": "WaiTrade2\\WaiTrade_OB (v3 .ex5 incompatible with current portable)"
+      }
+    }
+  ],
+  "token_attribution": {
+    "source": "codex_token_count",
+    "rollout": "C:\\Users\\Gnef\\.codex\\sessions\\2026\\07\\13\\rollout-2026-07-13T16-21-18-019f5a90-ee7b-73e3-86e5-1466d141e7fa.jsonl",
+    "delta": {
+      "raw_total": 0,
+      "input": 0,
+      "cached_input": 0,
+      "output": 0,
+      "reasoning_output": 0,
+      "non_cached_effective": 0
+    },
+    "context": {
+      "start_last_input": 0,
+      "end_last_input": 0,
+      "max_call_input": 0,
+      "cold_cache_events": 0
+    },
+    "tools": {
+      "function_calls": 0,
+      "exec_calls": 0,
+      "write_stdin_calls": 0,
+      "poll_calls": 0,
+      "tool_output_bytes": 0,
+      "mt5_backtest_calls": 6,
+      "mt5_total_runtime_min": 7.5,
+      "compile_calls": 3,
+      "ps1_code_lines_added": 140
+    },
+    "by_stage": {
+      "smoke_30d": {
+        "runtime_min": 0.5,
+        "trades": 11,
+        "result": "PASS (v2 path)",
+        "pnl": 87.96
+      },
+      "validate_90d": {
+        "runtime_min": 0.5,
+        "trades": 36,
+        "result": "PASS (v2 path)",
+        "pnl": 262.19
+      },
+      "full_720d": {
+        "runtime_min": 5.6,
+        "trades": 110,
+        "result": "COMPLETED (v2 path)",
+        "pnl": 9224.61
+      },
+      "wfys_score": {
+        "runtime_min": 0.05,
+        "score": 89.57,
+        "result": "EQUAL_TO_BASELINE (v2 path)"
+      }
+    },
+    "causes": [
+      {
+        "type": "v3_smc_incompatible",
+        "metric": "mt5_0xC0000409",
+        "description": "WaiTrade3\\WaiTrade_OB_SMC.ex5 OnInit crashes STATUS_STACK_BUFFER_OVERRUN on portable mt5_btc_bv1 in both 1d and 7d windows; PS1 inputs v3 modification not runnable in current environment"
+      },
+      {
+        "type": "ps1_inactive_v2",
+        "metric": "wfys_89.57",
+        "description": "In v2 path PS1 inputs InpPS1* are ignored by WaiTrade2\\WaiTrade_OB.ex5 (no STRU_CAMPRLD support); v3 modification has 0 effective impact in current portable"
+      }
+    ]
+  },
+  "git": {},
+  "next_loop": {
+    "loop_id": 161,
+    "type": "repair_state",
+    "focus": "v3 SMC .ex5 OnInit 0xC0000409 修复或换用 v3 兼容的 portable. PS1 v2 path 实际等价 baseline (无效益). 在 v3 路径修好前不应继续 PS1 探索."
+  },
+  "completed_at": "2026-07-14T01:00:00+08:00"
+}

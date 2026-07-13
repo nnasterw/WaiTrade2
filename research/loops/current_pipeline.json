@@ -6,12 +6,10 @@
   "latest_handoff": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-13_loop_158_handoff.md",
   "latest_loop_id": 158,
   "next_loop": {
-    "loop_id": 159,
-    "type": "structure_verification",
-    "candidate_id": "PS1",
-    "focus": "完成 v3 STRU_CAMPRLD 结构家族后，对 v11-btc1-bv1 做 PS1 30d smoke；当前会话因 v3 代码未就绪，defer 到下一会话。",
-    "defer_reason": "v3 趋势 campaign 重载门控尚未实现，本会话先固化发现。",
-    "scheduled_at": "2026-07-13T21:24:12+08:00"
+    "loop_id": 161,
+    "type": "repair_state",
+    "candidate_id": "v3_smc_oninit_fix",
+    "focus": "v3 SMC .ex5 OnInit 0xC0000409 修复. PS1 v3 实现已写完, 但 portable 不能跑 v3."
   },
-  "updated_at": "2026-07-13T21:21:41+08:00"
+  "updated_at": "2026-07-14T00:31:15+08:00"
 }

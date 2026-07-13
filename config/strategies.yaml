@@ -28202,6 +28202,7 @@ v11xau-qs-hold-r4:
   breakeven_lock_r: 0.0
   max_entries_per_ob: 3
   ob_reentry_cooldown_min: 5
+
   magic_number: 204813
 
 v11xau-hour-safe-r1: &v11xau_hour_safe_r1
@@ -43792,6 +43793,22 @@ v11-btc1-bv1:
   smart_lock_pct: 0.5
 
 
+v11-btc1-loop159:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP159
+  description: 'bv1 + ob_reentry_cooldown 30->5 (PS1 核心机制试探)'
+  magic_number: 207159
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 5
+
 v11-btc1-loop46:
   <<: *v11_btc1_qual232
   version: V11-BTC1-LOOP46
@@ -45702,3 +45719,29 @@ v11-btc1-bv4:
   enable_state_filter: false
   enable_entry_structure_confirm: false
   enable_entry_htf_shape_filter: false
+
+v11-btc1-loop160:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP160
+  description: 'PS1 v3 实现: STRU_CAMPRLD 家族. baseline OB/BOS 入口播种趋势 campaign, M5 BOS 触发独立再入, 默认 PS1 关闭. 参数: 4h 窗口, R 范围 [-0.3, 8], 0.5 ATR 突破下限, 0.05 max lot, 每周 1 次.'
+  magic_number: 207160
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  max_entries_per_ob: 3
+  ob_reentry_cooldown_min: 30
+  expert: WaiTrade3\\WaiTrade_OB_SMC
+  enable_ps1_campaign: false
+  ps1_baseline_entry_window_min: 240
+  ps1_max_reload_per_week: 1
+  ps1_min_campaign_r: -0.3
+  ps1_max_campaign_r: 8.0
+  ps1_min_boss_confidence: 0.5
+  ps1_max_lot_size: 0.05
+  ps1_cooldown_bars: 12
+  ps1_log: true
