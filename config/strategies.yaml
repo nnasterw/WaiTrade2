@@ -45447,3 +45447,161 @@ v11-btc1-loop143:
   smart_lock_pct: 0.5
   buy_dtp_trigger_r: 1.8
   sell_dtp_trigger_r: 1.8
+
+
+v11-btc1-loop144:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP144
+  description: "BV1 baseline + min_risk 4.0 (baseline 显式放宽风险比)"
+  magic_number: 207200
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 4.0
+
+v11-btc1-loop145:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP145
+  description: "BV1 baseline + min_risk 3.5 (大幅放宽风险比)"
+  magic_number: 207201
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 3.5
+
+v11-btc1-loop146:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP146
+  description: "BV1 baseline + min_risk 3.0 (极大放宽风险比)"
+  magic_number: 207202
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 3.0
+
+v11-btc1-loop147:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP147
+  description: "BV1 baseline + min_risk 4.0 + sl_buffer 1.2 (双放宽风险比+SL)"
+  magic_number: 207203
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 4.0
+  sl_buffer_atr: 1.2
+
+v11-btc1-loop148:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP148
+  description: "BV1 baseline + min_risk 4.0 + bounce_pct 0.22 (双放宽风险比+OB准入)"
+  magic_number: 207204
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 4.0
+  bounce_pct: 0.22
+
+
+v11-btc1-loop149:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP149
+  description: "BV1 baseline + min_risk 3.0 (极大放宽风险比)"
+  magic_number: 207210
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 3.0
+
+v11-btc1-loop150:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP150
+  description: "BV1 baseline + sl_buffer_atr 1.0 + min_risk 3.5 (紧凑 SL+放宽风险比)"
+  magic_number: 207211
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sl_buffer_atr: 1.0
+  min_risk_spread_ratio: 3.5
+
+v11-btc1-loop151:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP151
+  description: "BV1 baseline + bounce_pct 0.20 + min_risk 3.5 (放宽 OB 准入+风险比)"
+  magic_number: 207212
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_pct: 0.20
+  min_risk_spread_ratio: 3.5
+
+v11-btc1-loop152:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP152
+  description: "BV1 baseline + bounce_close_confirm_bars 1 + min_risk 3.5 (K线确认+放宽)"
+  magic_number: 207213
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  bounce_close_confirm_bars: 1
+  min_risk_spread_ratio: 3.5
+
+
+v11-btc1-bv3:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-BV3
+  description: "bv3 = bv1 baseline + min_risk_spread_ratio 3.0 (永久放宽风险比提频次)"
+  magic_number: 207220
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  min_risk_spread_ratio: 3.0
