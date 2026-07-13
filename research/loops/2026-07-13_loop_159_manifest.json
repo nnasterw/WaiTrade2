@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "pipeline_id": "btc-bv1-continuous",
+  "loop_id": 159,
+  "loop_type": "profit_structure_discovery",
+  "status": "completed",
+  "started_at": "2026-07-13T23:00:00+08:00",
+  "baseline_before": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.57142857142857,
+    "hard_failures": [
+      "720d周均单数"
+    ],
+    "weekly_trades": 1.07
+  },
+  "baseline_after": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.57142857142857,
+    "hard_failures": [
+      "720d周均单数"
+    ],
+    "weekly_trades": 1.07,
+    "note": "v11-btc1-loop159 720d WFYS=76.71 < baseline 89.57; baseline 不升级."
+  },
+  "objective": {
+    "wfys_min": 93.0,
+    "weekly_trades_min": 2.0,
+    "hard_failures_max": 0,
+    "model": 4,
+    "deposit": 200,
+    "live_auto_deploy": false
+  },
+  "plan": {
+    "focus": "在 v2 上验证 PS1 核心机制 (ob_reentry_cooldown_min 30->5) 是否能在不破坏 WFYS 的前提下提升周均交易数",
+    "limits": {
+      "max_hypotheses": 1,
+      "max_changed_variables_per_variant": 1,
+      "max_smoke_30d": 1,
+      "max_validate_90d": 1,
+      "max_full_720d": 1,
+      "max_wfys": 1,
+      "workload_budget": 8.0,
+      "time_limit_min": 30
+    },
+    "candidate": {
+      "id": "PS1-simplified-v1",
+      "strategy": "v11-btc1-loop159",
+      "changes": [
+        {
+          "key": "ob_reentry_cooldown_min",
+          "baseline": 30,
+          "candidate": 5
+        }
+      ],
+      "prediction": "30d 交易数 >= 12, 90d 交易数 >= 24, 720d 周均 >= 1.3, 720d WFYS 退化 < 3.0 分, 无新增硬失败",
+      "falsify_if": "720d WFYS 退化 > 5 分, 或新增任何硬失败 (除周均单数外)"
+    }
+  },
+  "variants": [
+    {
+      "id": "V1-loop159",
+      "strategy": "v11-btc1-loop159",
+      "config_path": "mql5/Presets/v11-btc1-loop159.set",
+      "magic_number": 207159,
+      "changes": [
+        {
+          "key": "ob_reentry_cooldown_min",
+          "baseline": 30,
+          "candidate": 5
+        }
+      ]
+    }
+  ],
+  "gate": {
+    "decision": "方向关闭",
+    "reason": "v11-btc1-loop159 720d WFYS 76.71 (退化 12.86 分), 月度稳定性崩溃 (24月盈利月 FAIL, 亏损月 FAIL, 720d回撤 FAIL). 单变量放宽冷却未实现 PS1 预期; 下一步需进入结构探索 (PS1 v3 源码实现) 或重新选择候选.",
+    "evidence_refs": [
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20240601_20260531_20260713.txt",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20240601_20260531_20260713.trades.csv",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20240601_20260531_20260713.trades_closetime_24m.csv",
+      "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_wfys_v22_20260713.json"
+    ],
+    "automatic": true
+  },
+  "evidence_manifest": [
+    {
+      "strategy": "v11-btc1-loop159",
+      "stage": "full_720d",
+      "artifacts": [
+        {
+          "type": "original_report",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20240601_20260531_20260713.txt",
+          "sha256": "eae0167390451517a8d9f3c197d0038579702bbb223299da7e8fa79f75b725d8",
+          "size": 689,
+          "modified_at": "2026-07-13T23:23:25+08:00"
+        },
+        {
+          "type": "trades_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20240601_20260531_20260713.trades.csv",
+          "sha256": "2487c0247c5e0a5bb7dc7bb37c36acc1e0fe69e5fa64e197175e088ab8563725",
+          "size": 40587,
+          "modified_at": "2026-07-13T23:24:26+08:00"
+        },
+        {
+          "type": "monthly_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20240601_20260531_20260713.trades_closetime_24m.csv",
+          "sha256": "996f9655ae09cadfcb059b84855779f2b8f42dbc95c5190d10393a231205d860",
+          "size": 628,
+          "modified_at": "2026-07-13T23:24:34+08:00"
+        },
+        {
+          "type": "wfys_json",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_wfys_v22_20260713.json",
+          "sha256": "8e5147671785c215d85d05e8a3d38a3395714f1dfba71379ecf0830ad0ed8777",
+          "size": 3412,
+          "modified_at": "2026-07-13T23:24:35+08:00"
+        },
+        {
+          "type": "pre_screening_30d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20260613_20260713_20260713.txt",
+          "sha256": "f90f5a30cff879018a82bbc7c5d6f9302ddb4749466523f5b66071b267e5c920",
+          "size": 686,
+          "modified_at": "2026-07-13T23:16:38+08:00"
+        },
+        {
+          "type": "pre_screening_90d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop159_20260415_20260713_20260713.txt",
+          "sha256": "8c05b4b55850576ffc91d6f435527c1cf81560a2753a915f98d2fe5959bb4ce7",
+          "size": 686,
+          "modified_at": "2026-07-13T23:17:22+08:00"
+        }
+      ],
+      "provenance": {
+        "model": 4,
+        "deposit": 200,
+        "date_from": "2024.06.01",
+        "date_to": "2026.05.31",
+        "wfys_standard": "BTC-v2.2"
+      }
+    }
+  ],
+  "token_attribution": {
+    "source": "unavailable",
+    "reason": "本会话运行 MT5 回测不进入 Codex token_count 事件, 仅记录实际回测成本",
+    "delta": {},
+    "context": {},
+    "tools": {
+      "function_calls": 8,
+      "exec_calls": 7,
+      "write_stdin_calls": 5,
+      "poll_calls": 0,
+      "tool_output_bytes": 0,
+      "mt5_backtest_calls": 3,
+      "mt5_total_runtime_min": 7.0
+    },
+    "by_stage": {
+      "smoke_30d": {
+        "runtime_min": 0.5,
+        "trades": 13,
+        "result": "PASS",
+        "pnl": "$303.76"
+      },
+      "validate_90d": {
+        "runtime_min": 0.4,
+        "trades": 27,
+        "result": "PASS",
+        "pnl": "$518.85"
+      },
+      "full_720d": {
+        "runtime_min": 5.6,
+        "trades": 149,
+        "result": "COMPLETED",
+        "pnl": "$6207.65"
+      },
+      "wfys_score": {
+        "runtime_min": 0.05,
+        "score": 76.71,
+        "result": "FAIL_below_baseline"
+      }
+    },
+    "causes": [
+      {
+        "type": "parameter_relaxation_degrades_stability",
+        "metric": "24_profitable_months",
+        "baseline": "PASS",
+        "candidate": "FAIL"
+      },
+      {
+        "type": "parameter_relaxation_degrades_stability",
+        "metric": "720d_max_drawdown",
+        "baseline": "PASS",
+        "candidate": "FAIL"
+      }
+    ]
+  },
+  "git": {},
+  "next_loop": {
+    "loop_id": 160,
+    "type": "profit_structure_discovery",
+    "candidate_id": "PS1-v3-implementation",
+    "focus": "v2 参数单变量放宽无法达到 93+ / 周均 2+. 转入结构探索: 需实现 WaiTrade3 STRU_CAMPRLD 家族, 记录基线播种的方向 campaign, 在新结构级别独立再入."
+  },
+  "completed_at": "2026-07-13T23:30:00+08:00"
+}
