@@ -29,6 +29,7 @@ TEMP = ROOT / "temp"
 # yhcl 3.1: token 估算 (实测样本)
 TOKEN_ESTIMATES = {
     "smoke_30d": 1.0,      # 30d smoke test
+    "validate_90d": 1.0,  # 90d 中间验证（Loop Engineering 主流模式，2026-07-13 添加）
     "full_720d": 5.0,       # 720d 完整
     "wfys_extract": 0.5,   # trades.csv + WFYS
     "diagnose": 0.2,        # diagnose 阶段
@@ -40,7 +41,7 @@ TOKEN_STOP_RATIO = 1.00      # 100% 停止
 
 
 def estimate_tokens(phase, with_smoke=True, with_wfys=True):
-    """估算单个变体 token 用量 (M)"""
+    """估算单个变体 token 用量 (M) - 旧版 720d 完整路径"""
     total = 0.0
     if with_smoke:
         total += TOKEN_ESTIMATES["smoke_30d"]
@@ -48,6 +49,103 @@ def estimate_tokens(phase, with_smoke=True, with_wfys=True):
     if with_wfys:
         total += TOKEN_ESTIMATES["wfys_extract"]
     return total
+
+
+def estimate_tokens_v2(stage):
+    """估算单个变体 token 用量 (M) - 2026-07-13 新版支持 90d 中间验证
+
+    Args:
+        stage: 三选一
+            - "smoke_30d": 仅 smoke
+            - "validate_90d": 90d 中间验证不升级 (Loop Engineering 主流)
+            - "full_720d": 720d 升级走完整路径
+    """
+    if stage == "smoke_30d":
+        return TOKEN_ESTIMATES["smoke_30d"]
+    elif stage == "validate_90d":
+        return TOKEN_ESTIMATES["validate_90d"]
+    elif stage == "full_720d":
+        total = TOKEN_ESTIMATES["smoke_30d"] + TOKEN_ESTIMATES["full_720d"] + TOKEN_ESTIMATES["wfys_extract"]
+        return total
+    else:
+        return TOKEN_ESTIMATES["smoke_30d"] + TOKEN_ESTIMATES["full_720d"]
+
+
+def measure_actual_tokens(results_dir, date_str=None):
+    """根据 results/backtest/ 下的实际 txt 报告反推实际 token 用量 (M)
+
+    2026-07-13 添加：原代码估算漏了 90d 中间验证场景。本函数扫描同日生成的
+    720d/90d txt 报告以及对应 trades.csv + wfys JSON，反推实际 MT5 + digest + wfys token 用量。
+
+    Args:
+        results_dir: results/backtest 路径
+        date_str: 过滤日期前缀 (如 '20260713')，None 则统计全部
+
+    Returns:
+        dict 含 n_720d, n_90d, n_wfys, est_token_m, files_count
+    """
+    import datetime
+    import re
+    from pathlib import Path
+    rd = Path(results_dir)
+    if not rd.exists():
+        return {"n_720d": 0, "n_90d": 0, "n_wfys": 0, "est_token_m": 0.0, "files_count": 0}
+
+    n_720d = 0
+    n_90d = 0
+    n_wfys = 0
+
+    for f in rd.glob("*.txt"):
+        if date_str and date_str not in f.name:
+            continue
+        m = re.search(r"_(\d{8})_(\d{8})_", f.name)
+        if not m:
+            continue
+        try:
+            from_dt = datetime.datetime.strptime(m.group(1), "%Y%m%d")
+            to_dt = datetime.datetime.strptime(m.group(2), "%Y%m%d")
+            days = (to_dt - from_dt).days
+            if days > 365:
+                n_720d += 1
+            elif days < 200:
+                n_90d += 1
+        except Exception:
+            continue
+
+    for f in rd.glob("*_wfys_*.json"):
+        if date_str and date_str not in f.name:
+            continue
+        n_wfys += 1
+
+    est_token_m = n_720d * 5.0 + n_90d * 1.0 + n_wfys * 0.35
+    return {
+        "n_720d": n_720d,
+        "n_90d": n_90d,
+        "n_wfys": n_wfys,
+        "est_token_m": round(est_token_m, 1),
+        "files_count": n_720d + n_90d + n_wfys,
+    }
+
+
+def print_token_audit(date_str=None):
+    """打印 token 用量实测对账 (实际 vs 估算) - 用于诊断脱节奇"""
+    actual = measure_actual_tokens(RESULTS, date_str)
+    if date_str:
+        print("=== Token 实测 (" + date_str + ") ===")
+    else:
+        print("=== Token 实测 (全部) ===")
+    print("  720d 回测:        " + str(actual["n_720d"]) + " 个（估算 " + str(round(actual["n_720d"] * 5.0, 1)) + "M）")
+    print("  90d 中间验证:    " + str(actual["n_90d"]) + " 个（估算 " + str(round(actual["n_90d"] * 1.0, 1)) + "M）")
+    print("  wfys 评分:        " + str(actual["n_wfys"]) + " 个（估算 " + str(round(actual["n_wfys"] * 0.35, 1)) + "M）")
+    print("  ---")
+    print("  实际总计:        ~" + str(actual["est_token_m"]) + "M token")
+    # Compare to old estimate (always assumes full smoke+720d+wfys = 6.5M per variant)
+    old_est_total = actual["files_count"] * 6.5
+    diff = old_est_total - actual["est_token_m"]
+    print("  旧估算总计:       ~" + str(round(old_est_total, 1)) + "M token（每变体 6.5M）")
+    if diff > 0:
+        print("  [WARN] 旧估算高出实际 " + str(round(diff, 1)) + "M（" + str(round(diff * 100.0 / max(old_est_total, 0.1))) + "%）-原因：90d 中间验证未被 TOKEN_ESTIMATES 统计（2026-07-13）")
+    print()
 
 
 def check_token_budget(used, budget):
