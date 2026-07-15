@@ -3289,7 +3289,8 @@ double CalcEntryLot(string symbol, double risk_pct, double risk_price, double po
    double lot = base_lot * pos_mult;
    if(CfgMaxLotSize() > 0 && lot > CfgMaxLotSize())
       lot = CfgMaxLotSize();
-   lot = ApplyBalanceTierLotCap(lot, pos_mult);
+   // CalcEntryLot 没有 signal family；余额阶梯在调用方按信号类型继续处理，默认走 Other。
+   lot = ApplyBalanceTierLotCap(lot, -1);
    return lot;
 }
 

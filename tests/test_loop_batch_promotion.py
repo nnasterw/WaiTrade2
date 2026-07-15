@@ -16,7 +16,7 @@ def test_three_variants_promote_only_best_90d_to_720d(monkeypatch, tmp_path):
     balances = {"a": 210.0, "b": 250.0, "c": 230.0}
 
     monkeypatch.setattr(_loop_batch, "TEMP", tmp_path)
-    monkeypatch.setattr(_loop_batch, "prepare_strategy", lambda strategy: (True, "set"))
+    monkeypatch.setattr(_loop_batch, "prepare_strategy", lambda strategy, terminal_path: (True, "set"))
     monkeypatch.setattr(_loop_batch, "clear_mt5_cache", lambda path: 0)
 
     def fake_run(strategy, terminal_path, env, stage, timeout=1200):
@@ -62,7 +62,7 @@ def test_no_90d_survivor_skips_720d(monkeypatch, tmp_path):
     (tmp_path / "terminal").mkdir()
     calls = []
     monkeypatch.setattr(_loop_batch, "TEMP", tmp_path)
-    monkeypatch.setattr(_loop_batch, "prepare_strategy", lambda strategy: (True, "set"))
+    monkeypatch.setattr(_loop_batch, "prepare_strategy", lambda strategy, terminal_path: (True, "set"))
     monkeypatch.setattr(_loop_batch, "clear_mt5_cache", lambda path: 0)
 
     def fake_run(strategy, terminal_path, env, stage, timeout=1200):

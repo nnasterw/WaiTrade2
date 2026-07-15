@@ -21,6 +21,7 @@
 #define ENTRY_FAMILY_MTF     8
 #define ENTRY_FAMILY_REV     9
 #define ENTRY_FAMILY_REVSWP  10
+#define ENTRY_FAMILY_CAMPRLD 11  // PS1: baseline-seeded trend campaign reload
 
 struct OBZone
 {

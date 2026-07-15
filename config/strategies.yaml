@@ -981,6 +981,218 @@ defaults: &defaults
 
 # === 绛栫暐鐗堟湰 ===
 
+
+  # 自动补齐 Config.mqh 已声明但历史 YAML 漏失的默认值；值与 EA 编译默认一致。
+  entry_structure_require_break: true
+  enable_entry_context_filter: false
+  entry_context_tf: 60
+  entry_context_bars: 6
+  entry_context_min_net: -999999.0
+  entry_context_max_net: 999999.0
+  entry_context_min_efficiency: 0.0
+  entry_context_tf2: 0
+  entry_context_bars2: 1
+  entry_context_min_net2: -999999.0
+  entry_context_max_net2: 999999.0
+  entry_context_min_efficiency2: 0.0
+  adaptive_noise_def_cooldown_bars: 0
+  enable_htf_direction_gate: false
+  virtual_sl_breach_sec: 0
+  enable_balance_tier_lot_cap: false
+  balance_tier1_threshold: 5000.0
+  balance_tier1_max_lot_size: 1.0
+  balance_tier1_ob_signal_max_lot_size: 1.0
+  balance_tier1_swp_max_lot_size: 1.0
+  balance_tier1_bos_max_lot_size: 1.0
+  balance_tier1_other_max_lot_size: 1.0
+  fixed_tp_r: 0.0
+  ob_height_tp_mult: 0.0
+  htf_bos_retest_entry: false
+  htf_bos_retest_direct_entry: false
+  htf_bos_retest_tf: 60
+  htf_bos_retest_tf2: 240
+  htf_bos_retest_lookback_bars: 96
+  htf_bos_retest_pivot_bars: 2
+  htf_bos_retest_break_buffer_atr: 0.05
+  htf_bos_retest_min_extension_atr: 0.5
+  htf_bos_retest_tolerance: 0.3
+  htf_bos_retest_max_bars: 720
+  htf_bos_retest_weight: 1.0
+  htf_bos_retest_sl_buffer: 0.5
+  htf_bos_retest_max_lot_size: 0.0
+  htf_bos_require_ob_confluence: false
+  htf_bos_ob_lookback_bars: 24
+  htf_bos_ob_tolerance_atr: 0.6
+  htf_bos_ob_min_impulse_atr: 0.6
+  strong_addon_use_risk_lot: false
+  strong_addon_risk_percent: 0.0
+  strong_addon_max_lot_size: 0.0
+  strong_addon_families: ''
+  version: V96b
+  enable_btc_profile: false
+  btc_profile_symbol: BTC
+  btc_bounce_pct: 0.25
+  btc_timeout_min: 120
+  btc_max_entry_offset_r: 0.5
+  btc_bar_period_min: 5
+  btc_enable_liquidity_sweep: true
+  btc_liquidity_sweep_only: false
+  btc_no_ob_start_hour: -1
+  btc_no_ob_end_hour: -1
+  btc_sl_buffer_atr: 1.5
+  btc_ob_height_tp_mult: 1.5
+  btc_time_exit_bars: 80
+  btc_cap_loss_r: 0.0
+  btc_cap_loss_hours: ''
+  btc_cap_loss_days: ''
+  btc_sweep_lookback_bars: 12
+  btc_sweep_max_range_atr: 2.5
+  btc_sweep_min_range_spread_mult: 4.0
+  btc_sweep_min_penetration_atr: 0.05
+  btc_sweep_min_wick_pct: 45.0
+  btc_sweep_tp_mult: 1.0
+  btc_breakeven_r: 1.0
+  btc_breakeven_lock_r: 0.2
+  btc_dtp_trigger_r: 3.0
+  btc_dtp_retrace: 0.25
+  btc_fixed_tp_r: 0.0
+  btc_allow_monthly_profit_target_stop: false
+  btc_risk_percent: 5.4
+  btc_max_pos_mult: 300.0
+  btc_max_lot_size: 9.0
+  btc_max_concurrent: 8
+  btc_min_risk_spread_ratio: 2.0
+  btc_sweep_pos_mult: 0.1
+  btc_sweep_max_lot_size: 0.01
+  btc_low_balance_threshold: 1000.0
+  btc_low_balance_pos_mult: 0.39
+  btc_low_balance_max_lot_size: 0.39
+  btc_entry_depth_pct: 0.67
+  btc_entry_depth_filter: true
+  btc_require_double_touch: false
+  btc_max_entries_per_ob: 4
+  btc_ob_reentry_cooldown_min: 30
+  btc_cooldown_bars: 1
+  btc_continuation_pos_mult: 1.0
+  btc_filter_cont_age_min_bars: 0
+  btc_filter_cont_age_max_bars: 0
+  btc_filter_cont_non_deep_only: false
+  btc_boost_in_1h_ob: 2.0
+  btc_late_bounce_sec: 30
+  btc_late_bounce_mult: 0.6
+  btc_bounce_sweet_min_pct: 0.26
+  btc_bounce_sweet_max_pct: 0.34
+  btc_outside_bounce_sweet_mult: 0.7
+  btc_bad_risk_min: 150.0
+  btc_bad_risk_max: 200.0
+  btc_bad_risk_mult: 0.6
+  btc_large_risk_min: 300.0
+  btc_large_risk_mult: 4.05
+  btc_no_entry_hours: 0,7,22,23
+  btc_no_buy_hours: ''
+  btc_no_sell_hours: '17'
+  btc_low_risk_hours: '17'
+  btc_low_risk_hour_mult: 0.35
+  btc_high_risk_hours: 12,13,20,23
+  btc_high_risk_hour_mult: 8.0
+  btc_enable_state_filter: true
+  btc_trend_lookback: 80
+  btc_swing_strength: 3
+  btc_range_be_r: 1.0
+  btc_range_time_exit: 20
+  btc_trend_be_r: 0.0
+  btc_trend_be_lock: 0.0
+  btc_trend_dtp_retrace: 0.0
+  btc_enable_scoring: true
+  btc_min_score: 0
+  btc_proximity_atr: 1.0
+  btc_enable_decay_exit: true
+  btc_decay_min_r: 1.0
+  btc_decay_bars: 3
+  btc_mfe_fail_min_r: 0.5
+  btc_mfe_fail_exit_r: -0.1
+  btc_no_mfe_exit_bars: 3
+  btc_no_mfe_min_peak_r: 0.1
+  btc_no_mfe_exit_r: -0.25
+  btc_fast_sl_peak_r: 0.0
+  btc_fast_sl_bars: 2
+  btc_fast_sl_exit_r: -0.5
+  btc_loss_cut_bars: 0
+  btc_loss_cut_r: -0.5
+  btc_enable_htf_net_push_filter: true
+  btc_htf_net_push_tf: 60
+  btc_htf_net_push_bars: 3
+  btc_htf_net_push_min_atr: 0.35
+  btc_htf_net_push_aligned_mult: 1.15
+  btc_htf_net_push_neutral_mult: 1.0
+  btc_htf_net_push_counter_mult: 0.6
+  btc_close_retry_cooldown_sec: 0
+  btc_free_run_min_r: 5.0
+  btc_shallow_confirm_pos_min: -0.6
+  btc_shallow_confirm_pos_mult: 0.45
+  btc_dtp_post_partial_lock_r: 0.0
+  btc_dtp_post_partial_retrace: 0.0
+  btc_dtp_reset_peak_after_partial: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.0
+  smart_lock_pct: 0.5
+  btc_big_win_trigger_r: 0.0
+  btc_big_win_lock_to_r: 0.0
+  btc_big_win_only_htf_target: true
+  btc_enable_monthly_loss_guard: false
+  btc_monthly_loss_guard_r: -1.5
+  btc_monthly_loss_guard_only_htf_target: true
+  enable_xau_fage_alt_profile: false
+  xau_fage_alt_profile_symbol: XAU
+  xau_fage_alt_profile_months: '10'
+  xau_fage_alt_use_month_filter: false
+  xau_fage_alt_adaptive_start_day: 5
+  xau_fage_alt_adaptive_max_balance: 230.0
+  xau_fage_alt_adaptive_min_price: 0.0
+  xau_fage_alt_adaptive_max_price: 0.0
+  xau_alt_context_filter1_months: '10'
+  xau_alt_context_filter1_no_hours: 10,11
+  xau_alt_context_filter1_mult: 1.0
+  xau_alt_context_filter2_max_month_start_balance: 0.0
+  xau_alt_context_filter2_months: ''
+  xau_alt_context_filter2_mult: 1.0
+  xau_alt_context_filter2_no_hours: ''
+  xau_alt_context_filter3_max_month_start_balance: 0.0
+  xau_alt_context_filter3_months: ''
+  xau_alt_context_filter3_mult: 1.0
+  xau_alt_context_filter3_no_hours: ''
+  xau_alt_context_filter4_max_month_start_balance: 0.0
+  xau_alt_context_filter4_months: ''
+  xau_alt_context_filter4_mult: 1.0
+  xau_alt_context_filter4_no_hours: ''
+  xau_alt_context_filter5_max_month_start_balance: 0.0
+  xau_alt_context_filter5_months: ''
+  xau_alt_context_filter5_mult: 1.0
+  xau_alt_context_filter5_no_hours: ''
+  xau_alt_monthly_profit_target_stop_months: '10'
+  trend_lookback: 80
+  swing_strength: 3
+  skip_state_filter_bars: 0
+  enable_state_filter: false
+  range_be_r: 0.0
+  range_time_exit: 999
+  trend_be_r: 0.0
+  trend_be_lock: 0.0
+  trend_dtp_retrace: 0.0
+  enable_scoring: false
+  proximity_atr: 1.0
+  min_score: 0
+  enable_decay_exit: false
+  decay_min_r: 1.0
+  decay_bars: 3
+  engulf_body_pct: 50
+  enable_entry_engine: false
+
+  # 自动补齐 Config.mqh 已声明但历史 YAML 漏失的默认值；值与 EA 编译默认一致。
+  adaptive_noise_def_buy_mult: 1.0
+  adaptive_noise_def_sell_mult: 1.0
+  adaptive_noise_def_ob_reentry_cd: 0
+  adaptive_noise_def_neutral_mult: 1.0
 v96b:
   <<: *defaults
   version: V96b
@@ -45745,3 +45957,65 @@ v11-btc1-loop160:
   ps1_max_lot_size: 0.05
   ps1_cooldown_bars: 12
   ps1_log: true
+
+
+v11-btc1-loop161: &v11_btc1_loop161
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP161
+  description: 'repair_state: BV1 合规净化 + 受控 v3 基线崩溃复现；移除全部时段/月度后视镜控制，不含 PS1。'
+  magic_number: 207161
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+  enable_ps1_campaign: false
+  ps1_baseline_entry_window_min: 240
+  ps1_max_reload_per_week: 1
+  ps1_min_campaign_r: -0.3
+  ps1_max_campaign_r: 8.0
+  ps1_min_boss_confidence: 0.5
+  ps1_max_lot_size: 0.05
+  ps1_cooldown_bars: 12
+  ps1_log: true
+  expert: WaiTrade3\WaiTrade_OB_BV1_Slim
+
+
+v11-btc1-loop162: &v11_btc1_loop162
+  <<: *v11_btc1_loop161
+  version: V11-BTC1-LOOP162
+  description: "loop162: clean BV1 + 单变量开启 HTF 方向门控"
+  magic_number: 207162
+  enable_htf_direction_gate: true
+
+
+v11-btc1-loop163-momentum:
+  <<: *v11_btc1_loop162
+  version: V11-BTC1-LOOP163-MOMENTUM
+  description: "loop163 A: clean + HTF gate + counter-strong momentum filter"
+  magic_number: 207163
+  enable_entry_momentum_filter: true
+
+v11-btc1-loop163-ps1: &v11_btc1_loop163_ps1
+  <<: *v11_btc1_loop162
+  version: V11-BTC1-LOOP163-PS1
+  description: "loop163 B: clean + HTF gate + baseline-seeded M5 BOS campaign reload"
+  magic_number: 207164
+  enable_ps1_campaign: true
+
+
+v11-btc1-loop164-ps1c01:
+  <<: *v11_btc1_loop163_ps1
+  version: V11-BTC1-LOOP164-PS1C01
+  description: "loop164 pre-screen: PS1 M5 BOS threshold 0.1 ATR"
+  magic_number: 207165
+  ps1_min_boss_confidence: 0.1

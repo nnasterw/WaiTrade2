@@ -125,6 +125,7 @@ def compile_portfolio_sources(
         mt5_data / "MQL5" / "Experts" / "WaiTrade2" / "WaiTrade_OB.mq5",
         mt5_data / "MQL5" / "Experts" / "WaiTrade2" / "PortfolioSetup.mq5",
         mt5_data / "MQL5" / "Experts" / "WaiTrade3" / "WaiTrade_OB_SMC.mq5",
+        mt5_data / "MQL5" / "Experts" / "WaiTrade3" / "WaiTrade_OB_BV1_Slim.mq5",
         mt5_data / "MQL5" / "Scripts" / "WaiTrade2" / "ClearSharedMonthlyGuard.mq5",
     ]
     results = [compile_file(metaeditor, source, logs) for source in sources]
@@ -137,7 +138,8 @@ def compile_portfolio_sources(
             continue
         compiled = result.source.with_suffix(".ex5")
         target = MQL5_SRC / rel.with_suffix(".ex5")
-        if compiled.exists() and target.exists():
+        if compiled.exists() and (target.exists() or result.source.name == "WaiTrade_OB_BV1_Slim.mq5"):
+            target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(compiled, target)
     return results
 

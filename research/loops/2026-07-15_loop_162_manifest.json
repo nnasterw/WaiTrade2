@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "pipeline_id": "btc-bv1-continuous",
+  "loop_id": 162,
+  "loop_type": "governed_iteration",
+  "status": "running",
+  "started_at": "2026-07-15T23:54:10+08:00",
+  "baseline_before": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.5714285714286,
+    "hard_failures": [
+      "720d周均单数"
+    ],
+    "weekly_trades": 1.07,
+    "note": "loop160 v2 path = baseline bv1 (PS1 inactive because v2 .ex5 lacks STRU_CAMPRLD). 110 笔, $9224.61."
+  },
+  "baseline_after": null,
+  "objective": {
+    "wfys_min": 93.0,
+    "weekly_trades_min": 2.0,
+    "hard_failures_max": 0,
+    "model": 4,
+    "deposit": 200,
+    "live_auto_deploy": false
+  },
+  "plan": {
+    "schema_version": 1,
+    "loop_id": 162,
+    "loop_type": "governed_iteration",
+    "hypotheses": [
+      {
+        "changes": [
+          "enable_htf_direction_gate"
+        ],
+        "falsify_if": "30d/90d fails, or 720d WFYS declines versus clean repair baseline / increases hard failures",
+        "prediction": "clean compliant BV1 quality improves through hard HTF direction alignment without losing the 2+ weekly frequency",
+        "id": "htf-direction-gate",
+        "strategy": "v11-btc1-loop162"
+      }
+    ]
+  },
+  "variants": [],
+  "gate": {
+    "decision": "待决定",
+    "reason": "晋级验证进行中",
+    "evidence_refs": []
+  },
+  "evidence_manifest": [
+    {
+      "strategy": "v11-btc1-loop160",
+      "stage": "full_720d",
+      "artifacts": [
+        {
+          "type": "original_report",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.txt",
+          "sha256": "9fe31ae92bb31f5233b95d234d692f7d6e60df482a291e4a4d1312d27283a32b",
+          "size": 689,
+          "modified_at": "2026-07-14T00:23:23+08:00"
+        },
+        {
+          "type": "trades_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades.csv",
+          "sha256": "f97ced6c48295d570ed88c017bab4f44b34c075139fd17fd65b489f692ae8f3d",
+          "size": 30459,
+          "modified_at": "2026-07-14T00:24:13+08:00"
+        },
+        {
+          "type": "monthly_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades_closetime_24m.csv",
+          "sha256": "d932cb4f437e2fb2bf7eac917f2a5e752f574b9d56a00d855441e75d6bfc90b2",
+          "size": 636,
+          "modified_at": "2026-07-14T00:30:05+08:00"
+        },
+        {
+          "type": "wfys_json",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_wfys_v22_20260714.json",
+          "sha256": "c65aa914057ee9043c4c26ff5d90a71fe6b9c5ce1d983e6451f221d8661d3a57",
+          "size": 3353,
+          "modified_at": "2026-07-14T00:30:05+08:00"
+        },
+        {
+          "type": "pre_screening_30d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260613_20260713_20260713.txt",
+          "sha256": "35ef8533ce105ebd7c7140471e2a0d8b601179eda9c11b6dd2a5dfd1ed45394a",
+          "size": 606,
+          "modified_at": "2026-07-13T23:54:18+08:00"
+        },
+        {
+          "type": "pre_screening_90d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260416_20260714_20260714.txt",
+          "sha256": "7ce642323d4d1c13412e20b3f7909cf20be7b56ec7aa75c8017c67d10030492b",
+          "size": 686,
+          "modified_at": "2026-07-14T00:17:03+08:00"
+        },
+        {
+          "type": "pre_screening_7d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260707_20260714_20260714.txt",
+          "sha256": "e44de14a47da3e67725cbde165b2f1b41198b1875731baf4e3c2bc7231f8f2c6",
+          "size": 605,
+          "modified_at": "2026-07-14T00:12:27+08:00"
+        },
+        {
+          "type": "pre_screening_1d_v3",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260713_20260714_20260714.txt",
+          "sha256": "9cdec934ada83df8ef6cfdee28159558738f8c85018f67636e896be030dd8baf",
+          "size": 605,
+          "modified_at": "2026-07-14T00:26:59+08:00"
+        }
+      ],
+      "provenance": {
+        "model": 4,
+        "deposit": 200,
+        "date_from": "2024.06.01",
+        "date_to": "2026.05.31",
+        "wfys_standard": "BTC-v2.2",
+        "real_expert": "WaiTrade2\\WaiTrade_OB (v3 .ex5 incompatible with current portable)"
+      }
+    },
+    {
+      "strategy": "v11-btc1-loop161",
+      "stage": "full_720d",
+      "artifacts": [
+        {
+          "type": "original_report",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_20240601_20260531_20260715.txt",
+          "sha256": "37c53fe73a272357f9c287fcd55baf715bc5ff8c75954c2cc623a40377403ffd",
+          "size": 687,
+          "modified_at": "2026-07-15T23:46:58+08:00"
+        },
+        {
+          "type": "trades_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_20240601_20260531_20260715.trades.csv",
+          "sha256": "829ee8eb1962c52ee62a81dc235f2a2faf75b2dafb54ea4b54cd25e62f68aefe",
+          "size": 65270,
+          "modified_at": "2026-07-15T23:47:07+08:00"
+        },
+        {
+          "type": "monthly_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_20240601_20260531_20260715.trades_closetime_24m.csv",
+          "sha256": "eafbc16ea7ffe109b2576efca10aaa0bc019b55dab4247021dc22021852d15da",
+          "size": 630,
+          "modified_at": "2026-07-15T23:47:07+08:00"
+        },
+        {
+          "type": "wfys_json",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_wfys_v22_20260715.json",
+          "sha256": "3fd1a690565f17389f3f0bb1f74a7f8307dc63a3c291451b902289c473764df3",
+          "size": 3673,
+          "modified_at": "2026-07-15T23:47:07+08:00"
+        }
+      ],
+      "provenance": {
+        "model": 4,
+        "deposit": 200,
+        "date_from": "2024.06.01",
+        "date_to": "2026.05.31",
+        "wfys_standard": "BTC-v2.2"
+      }
+    }
+  ],
+  "token_attribution": {
+    "source": "unavailable",
+    "reason": "rollout 未提供",
+    "delta": {},
+    "context": {},
+    "tools": {},
+    "by_stage": {},
+    "causes": []
+  },
+  "token_snapshot_start": {
+    "rollout": "C:\\Users\\Gnef\\.codex\\sessions\\2026\\07\\13\\rollout-2026-07-13T16-21-18-019f5a90-ee7b-73e3-86e5-1466d141e7fa.jsonl",
+    "raw_tokens": {
+      "input_tokens": 398419464,
+      "cached_input_tokens": 378336307,
+      "output_tokens": 582409,
+      "reasoning_output_tokens": 111685,
+      "total_tokens": 399001873
+    },
+    "effective_tokens": 20665566,
+    "usage_events": 829,
+    "function_calls": 918,
+    "exec_calls": 837,
+    "write_stdin_calls": 57,
+    "poll_calls": 9,
+    "tool_output_bytes": 1838009,
+    "last_input_tokens": 298471,
+    "max_input_tokens": 900860,
+    "cold_cache_events": 32,
+    "actions": [
+      {
+        "input_tokens": 132752862,
+        "cached_input_tokens": 123030789,
+        "output_tokens": 145913,
+        "reasoning_output_tokens": 21491,
+        "total_tokens": 132898775,
+        "action": "其他Shell",
+        "effective_tokens": 9867986
+      },
+      {
+        "input_tokens": 86284418,
+        "cached_input_tokens": 82744787,
+        "output_tokens": 152885,
+        "reasoning_output_tokens": 39777,
+        "total_tokens": 86437303,
+        "action": "读取/搜索",
+        "effective_tokens": 3692516
+      },
+      {
+        "input_tokens": 58826597,
+        "cached_input_tokens": 56610871,
+        "output_tokens": 9503,
+        "reasoning_output_tokens": 380,
+        "total_tokens": 58836100,
+        "action": "write_stdin",
+        "effective_tokens": 2225229
+      },
+      {
+        "input_tokens": 34387481,
+        "cached_input_tokens": 33552323,
+        "output_tokens": 32835,
+        "reasoning_output_tokens": 2344,
+        "total_tokens": 34420316,
+        "action": "启动MT5回测",
+        "effective_tokens": 867993
+      },
+      {
+        "input_tokens": 33257538,
+        "cached_input_tokens": 31465559,
+        "output_tokens": 50089,
+        "reasoning_output_tokens": 3634,
+        "total_tokens": 33307627,
+        "action": "Git",
+        "effective_tokens": 1842068
+      },
+      {
+        "input_tokens": 22923074,
+        "cached_input_tokens": 22544719,
+        "output_tokens": 74087,
+        "reasoning_output_tokens": 15319,
+        "total_tokens": 22997161,
+        "action": "WFYS",
+        "effective_tokens": 452442
+      },
+      {
+        "input_tokens": 13981753,
+        "cached_input_tokens": 13671770,
+        "output_tokens": 22768,
+        "reasoning_output_tokens": 4302,
+        "total_tokens": 14004521,
+        "action": "生成SET",
+        "effective_tokens": 332751
+      },
+      {
+        "input_tokens": 7875098,
+        "cached_input_tokens": 7304865,
+        "output_tokens": 61504,
+        "reasoning_output_tokens": 15565,
+        "total_tokens": 7936602,
+        "action": "update_plan",
+        "effective_tokens": 631737
+      },
+      {
+        "input_tokens": 2901309,
+        "cached_input_tokens": 2897999,
+        "output_tokens": 5573,
+        "reasoning_output_tokens": 1093,
+        "total_tokens": 2906882,
+        "action": "策略检查",
+        "effective_tokens": 8883
+      },
+      {
+        "input_tokens": 2157587,
+        "cached_input_tokens": 1447875,
+        "output_tokens": 20927,
+        "reasoning_output_tokens": 4465,
+        "total_tokens": 2178514,
+        "action": "回测轮询",
+        "effective_tokens": 730639
+      },
+      {
+        "input_tokens": 1350089,
+        "cached_input_tokens": 1344473,
+        "output_tokens": 5056,
+        "reasoning_output_tokens": 3315,
+        "total_tokens": 1355145,
+        "action": "mcp__node_repl__js",
+        "effective_tokens": 10672
+      },
+      {
+        "input_tokens": 1133663,
+        "cached_input_tokens": 1133411,
+        "output_tokens": 685,
+        "reasoning_output_tokens": 0,
+        "total_tokens": 1134348,
+        "action": "update_goal",
+        "effective_tokens": 937
+      },
+      {
+        "input_tokens": 572061,
+        "cached_input_tokens": 572018,
+        "output_tokens": 20,
+        "reasoning_output_tokens": 0,
+        "total_tokens": 572081,
+        "action": "list_mcp_resources",
+        "effective_tokens": 63
+      },
+      {
+        "input_tokens": 15934,
+        "cached_input_tokens": 14848,
+        "output_tokens": 564,
+        "reasoning_output_tokens": 0,
+        "total_tokens": 16498,
+        "action": "get_goal",
+        "effective_tokens": 1650
+      }
+    ]
+  },
+  "git": {},
+  "next_loop": {
+    "loop_id": 162,
+    "type": "running"
+  }
+}

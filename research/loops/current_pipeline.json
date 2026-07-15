@@ -2,14 +2,13 @@
   "schema_version": 1,
   "pipeline_id": "btc-bv1-continuous",
   "same_codex_session": true,
-  "latest_manifest": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-13_loop_158_manifest.json",
-  "latest_handoff": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-13_loop_158_handoff.md",
-  "latest_loop_id": 158,
+  "latest_manifest": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-16_loop_164_manifest.json",
+  "latest_handoff": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-16_loop_164_handoff.md",
+  "latest_loop_id": 164,
   "next_loop": {
-    "loop_id": 161,
-    "type": "repair_state",
-    "candidate_id": "v3_smc_oninit_fix",
-    "focus": "v3 SMC .ex5 OnInit 0xC0000409 修复. PS1 v3 实现已写完, 但 portable 不能跑 v3."
+    "loop_id": 165,
+    "type": "governed_iteration",
+    "focus": "切换假设"
   },
-  "updated_at": "2026-07-14T00:31:15+08:00"
+  "updated_at": "2026-07-16T00:36:30+08:00"
 }

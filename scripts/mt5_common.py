@@ -448,9 +448,11 @@ def _signal_type_from_comment(comment):
     tokens = set(comment.split())
     if 'LSWP' in tokens:
         return 'loose_sweep'
+    if 'CAMPRLD' in tokens or 'PS1_BUY_M5BOS' in tokens or 'PS1_SELL_M5BOS' in tokens:
+        return 'campaign_reload'
+    if comment and '-PS1' in comment and any(t.endswith('x') or t.startswith('x') for t in tokens) and ('B' in tokens or 'S' in tokens):
+        return 'campaign_reload'
     if 'SWP' in tokens:
-        return 'sweep'
-    if 'RB' in tokens:
         return 'range'
     if 'HTFPB' in tokens:
         return 'htf_pullback'

@@ -1,0 +1,348 @@
+{
+  "schema_version": 1,
+  "pipeline_id": "btc-bv1-continuous",
+  "loop_id": 162,
+  "loop_type": "governed_iteration",
+  "status": "completed",
+  "started_at": "2026-07-15T23:54:10+08:00",
+  "baseline_before": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.5714285714286,
+    "hard_failures": [
+      "720d周均单数"
+    ],
+    "weekly_trades": 1.07,
+    "note": "loop160 v2 path = baseline bv1 (PS1 inactive because v2 .ex5 lacks STRU_CAMPRLD). 110 笔, $9224.61."
+  },
+  "baseline_after": {
+    "strategy": "v11-btc1-bv1",
+    "wfys_standard": "BTC-v2.2",
+    "score": 89.5714285714286,
+    "hard_failures": [
+      "720d周均单数"
+    ],
+    "weekly_trades": 1.07,
+    "note": "loop160 v2 path = baseline bv1 (PS1 inactive because v2 .ex5 lacks STRU_CAMPRLD). 110 笔, $9224.61."
+  },
+  "objective": {
+    "wfys_min": 93.0,
+    "weekly_trades_min": 2.0,
+    "hard_failures_max": 0,
+    "model": 4,
+    "deposit": 200,
+    "live_auto_deploy": false
+  },
+  "plan": {
+    "schema_version": 1,
+    "loop_id": 162,
+    "loop_type": "governed_iteration",
+    "hypotheses": [
+      {
+        "changes": [
+          "enable_htf_direction_gate"
+        ],
+        "falsify_if": "30d/90d fails, or 720d WFYS declines versus clean repair baseline / increases hard failures",
+        "prediction": "clean compliant BV1 quality improves through hard HTF direction alignment without losing the 2+ weekly frequency",
+        "id": "htf-direction-gate",
+        "strategy": "v11-btc1-loop162"
+      }
+    ]
+  },
+  "variants": [
+    {
+      "strategy": "v11-btc1-loop162",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop162.set; expert=WaiTrade3\\WaiTrade_OB_BV1_Slim sha256=425275817316a7b37fcc37703bbbc606fab7e253ba234bd9100f6b711bf12a7f",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 21.691,
+        "balance": 206.65,
+        "trades": 12,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20260615_20260715_20260715.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 30.359,
+        "balance": 384.19,
+        "trades": 41,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20260416_20260715_20260715.txt",
+        "error_tail": ""
+      },
+      "status": "completed",
+      "full_720d": {
+        "stage": "full_720d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 329.19,
+        "balance": 859.89,
+        "trades": 195,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20240601_20260531_20260716.txt",
+        "error_tail": ""
+      },
+      "artifacts": {
+        "success": true,
+        "original_report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20240601_20260531_20260716.txt",
+        "trades_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20240601_20260531_20260716.trades.csv",
+        "monthly_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20240601_20260531_20260716.trades_closetime_24m.csv",
+        "wfys_json": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_wfys_v22_20260716.json",
+        "log_path": "D:\\Code\\codexProject\\WaiTrade2\\temp\\loop162_agent_combined.log"
+      }
+    }
+  ],
+  "gate": {
+    "decision": "切换假设",
+    "reason": "候选增加硬失败",
+    "evidence_refs": [
+      "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_wfys_v22_20260716.json"
+    ],
+    "automatic": true,
+    "graduated": false
+  },
+  "evidence_manifest": [
+    {
+      "strategy": "v11-btc1-loop160",
+      "stage": "full_720d",
+      "artifacts": [
+        {
+          "type": "original_report",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.txt",
+          "sha256": "9fe31ae92bb31f5233b95d234d692f7d6e60df482a291e4a4d1312d27283a32b",
+          "size": 689,
+          "modified_at": "2026-07-14T00:23:23+08:00"
+        },
+        {
+          "type": "trades_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades.csv",
+          "sha256": "f97ced6c48295d570ed88c017bab4f44b34c075139fd17fd65b489f692ae8f3d",
+          "size": 30459,
+          "modified_at": "2026-07-14T00:24:13+08:00"
+        },
+        {
+          "type": "monthly_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20240601_20260531_20260714.trades_closetime_24m.csv",
+          "sha256": "d932cb4f437e2fb2bf7eac917f2a5e752f574b9d56a00d855441e75d6bfc90b2",
+          "size": 636,
+          "modified_at": "2026-07-14T00:30:05+08:00"
+        },
+        {
+          "type": "wfys_json",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_wfys_v22_20260714.json",
+          "sha256": "c65aa914057ee9043c4c26ff5d90a71fe6b9c5ce1d983e6451f221d8661d3a57",
+          "size": 3353,
+          "modified_at": "2026-07-14T00:30:05+08:00"
+        },
+        {
+          "type": "pre_screening_30d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260613_20260713_20260713.txt",
+          "sha256": "35ef8533ce105ebd7c7140471e2a0d8b601179eda9c11b6dd2a5dfd1ed45394a",
+          "size": 606,
+          "modified_at": "2026-07-13T23:54:18+08:00"
+        },
+        {
+          "type": "pre_screening_90d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260416_20260714_20260714.txt",
+          "sha256": "7ce642323d4d1c13412e20b3f7909cf20be7b56ec7aa75c8017c67d10030492b",
+          "size": 686,
+          "modified_at": "2026-07-14T00:17:03+08:00"
+        },
+        {
+          "type": "pre_screening_7d",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260707_20260714_20260714.txt",
+          "sha256": "e44de14a47da3e67725cbde165b2f1b41198b1875731baf4e3c2bc7231f8f2c6",
+          "size": 605,
+          "modified_at": "2026-07-14T00:12:27+08:00"
+        },
+        {
+          "type": "pre_screening_1d_v3",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop160_20260713_20260714_20260714.txt",
+          "sha256": "9cdec934ada83df8ef6cfdee28159558738f8c85018f67636e896be030dd8baf",
+          "size": 605,
+          "modified_at": "2026-07-14T00:26:59+08:00"
+        }
+      ],
+      "provenance": {
+        "model": 4,
+        "deposit": 200,
+        "date_from": "2024.06.01",
+        "date_to": "2026.05.31",
+        "wfys_standard": "BTC-v2.2",
+        "real_expert": "WaiTrade2\\WaiTrade_OB (v3 .ex5 incompatible with current portable)"
+      }
+    },
+    {
+      "strategy": "v11-btc1-loop161",
+      "stage": "full_720d",
+      "artifacts": [
+        {
+          "type": "original_report",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_20240601_20260531_20260715.txt",
+          "sha256": "37c53fe73a272357f9c287fcd55baf715bc5ff8c75954c2cc623a40377403ffd",
+          "size": 687,
+          "modified_at": "2026-07-15T23:46:58+08:00"
+        },
+        {
+          "type": "trades_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_20240601_20260531_20260715.trades.csv",
+          "sha256": "829ee8eb1962c52ee62a81dc235f2a2faf75b2dafb54ea4b54cd25e62f68aefe",
+          "size": 65270,
+          "modified_at": "2026-07-15T23:47:07+08:00"
+        },
+        {
+          "type": "monthly_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_20240601_20260531_20260715.trades_closetime_24m.csv",
+          "sha256": "eafbc16ea7ffe109b2576efca10aaa0bc019b55dab4247021dc22021852d15da",
+          "size": 630,
+          "modified_at": "2026-07-15T23:47:07+08:00"
+        },
+        {
+          "type": "wfys_json",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop161_wfys_v22_20260715.json",
+          "sha256": "3fd1a690565f17389f3f0bb1f74a7f8307dc63a3c291451b902289c473764df3",
+          "size": 3673,
+          "modified_at": "2026-07-15T23:47:07+08:00"
+        }
+      ],
+      "provenance": {
+        "model": 4,
+        "deposit": 200,
+        "date_from": "2024.06.01",
+        "date_to": "2026.05.31",
+        "wfys_standard": "BTC-v2.2"
+      }
+    },
+    {
+      "strategy": "v11-btc1-loop162",
+      "stage": "full_720d",
+      "artifacts": [
+        {
+          "type": "original_report",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop162_20240601_20260531_20260716.txt",
+          "sha256": "8824d12053dc2492f7d2ab743ff517330f9af1ca66caf5a651c3e675ae678280",
+          "size": 687,
+          "modified_at": "2026-07-16T00:00:53+08:00"
+        },
+        {
+          "type": "trades_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop162_20240601_20260531_20260716.trades.csv",
+          "sha256": "76dbd1fa89f7087e36f8995a653fe4576e4e052ffa2cc692129c80cd920ab39e",
+          "size": 52561,
+          "modified_at": "2026-07-16T00:07:35+08:00"
+        },
+        {
+          "type": "monthly_csv",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop162_20240601_20260531_20260716.trades_closetime_24m.csv",
+          "sha256": "b806b0e4671f3421667c48f594573649d31254a3701e89294f02acea15cafae9",
+          "size": 631,
+          "modified_at": "2026-07-16T00:07:35+08:00"
+        },
+        {
+          "type": "wfys_json",
+          "path": "D:/Code/codexProject/WaiTrade2/results/backtest/v11-btc1-loop162_wfys_v22_20260716.json",
+          "sha256": "54c86da34a63ac0c0d8b113b0b1050245622ef6efcab1640876a8f32722131bf",
+          "size": 3660,
+          "modified_at": "2026-07-16T00:07:35+08:00"
+        }
+      ],
+      "provenance": {
+        "model": 4,
+        "deposit": 200,
+        "date_from": "2024.06.01",
+        "date_to": "2026.05.31",
+        "wfys_standard": "BTC-v2.2",
+        "real_expert": "WaiTrade3\\WaiTrade_OB_BV1_Slim"
+      }
+    }
+  ],
+  "token_attribution": {
+    "source": "codex_token_count",
+    "rollout": "C:\\Users\\Gnef\\.codex\\sessions\\2026\\07\\13\\rollout-2026-07-13T16-21-18-019f5a90-ee7b-73e3-86e5-1466d141e7fa.jsonl",
+    "delta": {
+      "raw_total": 599070,
+      "input": 598583,
+      "cached_input": 595968,
+      "output": 487,
+      "reasoning_output": 64,
+      "non_cached_effective": 3102
+    },
+    "context": {
+      "start_last_input": 298471,
+      "end_last_input": 299626,
+      "max_call_input": 900860,
+      "cold_cache_events": 0
+    },
+    "tools": {
+      "function_calls": 2,
+      "exec_calls": 0,
+      "write_stdin_calls": 2,
+      "poll_calls": 0,
+      "tool_output_bytes": 692
+    },
+    "by_stage": {},
+    "causes": [
+      {
+        "type": "context_replay",
+        "raw_tokens": 595968
+      }
+    ],
+    "actions": [
+      {
+        "action": "write_stdin",
+        "input_tokens": 299626,
+        "cached_input_tokens": 298496,
+        "output_tokens": 45,
+        "reasoning_output_tokens": 6,
+        "total_tokens": 299671,
+        "effective_tokens": 1175
+      },
+      {
+        "action": "WFYS",
+        "input_tokens": 298957,
+        "cached_input_tokens": 297472,
+        "output_tokens": 442,
+        "reasoning_output_tokens": 58,
+        "total_tokens": 299399,
+        "effective_tokens": 1927
+      }
+    ]
+  },
+  "git": {},
+  "next_loop": {
+    "loop_id": 163,
+    "type": "governed_iteration",
+    "focus": "切换假设"
+  },
+  "completed_at": "2026-07-16T00:07:49+08:00",
+  "workload": {
+    "budget": 12.0,
+    "used": 7.5,
+    "elapsed_min": 6.846
+  },
+  "candidate": {
+    "strategy": "v11-btc1-loop162",
+    "score": 31.039198061083027,
+    "hard_failures": [
+      "24月盈利月数",
+      "亏损月数量",
+      "大亏月",
+      "单月亏损绝对保护",
+      "月收益中位数",
+      "Top3集中度",
+      "Top5集中度",
+      "720d最大回撤",
+      "720dRecovery",
+      "720dPF",
+      "Sharpe",
+      ">3R大赢单占比",
+      "720d周均单数",
+      "720d盈亏比"
+    ],
+    "weekly_trades": 1.7378640776699028,
+    "grade": "淘汰"
+  }
+}

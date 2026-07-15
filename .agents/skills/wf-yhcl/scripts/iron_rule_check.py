@@ -142,7 +142,11 @@ def check_violations(params: Dict[str, str]) -> List[Dict[str, str]]:
             continue
         value = params[key]
         try:
-            if float(value) > 0:
+            numeric_value = float(value)
+            # 仓位倍率 1.0 是中性值；只有偏离 1.0 才代表月度防御在改变仓位。
+            if key == "InpMonthlyDefensivePosMult" and numeric_value == 1.0:
+                continue
+            if numeric_value > 0:
                 violations.append({
                     "key": key,
                     "value": value,

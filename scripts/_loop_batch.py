@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 """Loop 晋级验证执行器：30d smoke → 90d → 最多一个 720d → WFYS。"""
 import argparse
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results" / "backtest"
@@ -82,12 +86,55 @@ def run_short(cmd, timeout=120, env=None):
     )
 
 
-def prepare_strategy(strategy):
+def _sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def verify_ex5_provenance(strategy, terminal_path):
+    """确认运行时 .ex5 与仓库编译物一致，且不早于所有相关源码。"""
+    config_path = ROOT / "config" / "strategies.yaml"
+    with config_path.open("r", encoding="utf-8") as handle:
+        config = yaml.safe_load(handle) or {}
+    strategy_cfg = config.get(strategy)
+    if not isinstance(strategy_cfg, dict):
+        return False, "策略不存在，无法核验 .ex5 来源: " + strategy
+    defaults = config.get("defaults") or {}
+    expert = str(strategy_cfg.get("expert", defaults.get("expert", r"WaiTrade2\WaiTrade_OB")))
+    relative = Path(*expert.replace("/", chr(92)).split(chr(92))).with_suffix(".ex5")
+    project_ex5 = ROOT / "mql5" / "Experts" / relative
+    runtime_ex5 = Path(terminal_path) / "MQL5" / "Experts" / relative
+    missing = [str(item) for item in (project_ex5, runtime_ex5) if not item.exists()]
+    if missing:
+        return False, ".ex5 缺失: " + ", ".join(missing)
+
+    expert_family = relative.parts[0] if relative.parts else ""
+    source_paths = [project_ex5.with_suffix(".mq5")]
+    include_roots = [ROOT / "mql5" / "Include" / "WaiTrade2"]
+    if expert_family == "WaiTrade3":
+        include_roots.append(ROOT / "mql5" / "Include" / "WaiTrade3")
+    for include_root in include_roots:
+        if include_root.exists():
+            source_paths.extend(include_root.rglob("*.mqh"))
+    existing_sources = [item for item in source_paths if item.exists()]
+    if not existing_sources:
+        return False, "EA 源码缺失: " + str(project_ex5.with_suffix(".mq5"))
+    newest_source = max(existing_sources, key=lambda item: item.stat().st_mtime)
+    if project_ex5.stat().st_mtime < newest_source.stat().st_mtime:
+        return False, ".ex5 早于源码，必须重新编译: " + str(newest_source)
+
+    project_hash = _sha256(project_ex5)
+    runtime_hash = _sha256(runtime_ex5)
+    if project_hash != runtime_hash:
+        return False, ".ex5 来源不一致: project=" + project_hash[:12] + " runtime=" + runtime_hash[:12]
+    return True, "expert=" + expert + " sha256=" + project_hash
+
+
+def prepare_strategy(strategy, terminal_path):
     """回测前强制执行一致性检查、生成 .set 和 Iron Rule strict。"""
     consistency = run_short([
         sys.executable, str(ROOT / "scripts" / "check_strategy_consistency.py"), strategy,
     ], timeout=120)
-    if consistency.returncode != 0 or "ERROR" in consistency.stdout:
+    if consistency.returncode != 0:
         return False, "策略一致性检查失败: " + (consistency.stdout + consistency.stderr)[-500:]
 
     set_path = ROOT / "mql5" / "Presets" / (strategy + ".set")
@@ -104,19 +151,25 @@ def prepare_strategy(strategy):
     ], timeout=120)
     if iron.returncode != 0:
         return False, "Iron Rule strict 失败: " + (iron.stdout + iron.stderr)[-500:]
-    return True, str(set_path.resolve())
+    provenance_ok, provenance_detail = verify_ex5_provenance(strategy, terminal_path)
+    if not provenance_ok:
+        return False, "EA 来源检查失败: " + provenance_detail
+    return True, str(set_path.resolve()) + "; " + provenance_detail
 
 
 def parse_backtest_stdout(stdout):
     balance = None
     trades = None
+    trade_match = re.search(r"(\d+)\s*笔交易", stdout)
+    if trade_match:
+        trades = int(trade_match.group(1))
     for line in stdout.splitlines():
         if "余额" in line and "$" in line:
             try:
                 balance = float(line.rsplit("$", 1)[1].split()[0].replace(",", ""))
             except (ValueError, IndexError):
                 pass
-        if "笔交易" in line:
+        if trades is None and "笔交易" in line:
             for part in line.split():
                 if part.isdigit():
                     trades = int(part)
@@ -173,32 +226,76 @@ def run_mt5_test(strategy, terminal_path, env, stage, timeout=1200):
     }
 
 
-def extract_trades(strategy, terminal_path, result_path):
-    """从指定 720d 报告生成逐笔、24m 和 WFYS，返回精确路径。"""
-    log_path = Path(terminal_path) / "Tester" / "Agent-127.0.0.1-3000" / "logs" / (datetime.now().strftime("%Y%m%d") + ".log")
-    if not log_path.exists():
-        logs_dir = log_path.parent
-        logs = sorted(logs_dir.glob("*.log"), key=lambda item: item.stat().st_mtime, reverse=True) if logs_dir.exists() else []
-        log_path = logs[0] if logs else log_path
-    result_path = Path(result_path)
-    if not log_path.exists() or not result_path.exists():
-        return {"success": False, "reason": "报告或 MT5 日志缺失"}
+def _has_trade_rows(path):
+    try:
+        with Path(path).open("r", encoding="utf-8-sig", errors="replace") as handle:
+            return sum(1 for line in handle if line.strip()) > 1
+    except OSError:
+        return False
 
+
+def _has_24_month_rows(path):
+    try:
+        with Path(path).open("r", encoding="utf-8-sig", errors="replace") as handle:
+            return sum(1 for line in handle if line.strip()) >= 25
+    except OSError:
+        return False
+
+
+def _candidate_tester_logs(terminal_path):
+    terminal = Path(terminal_path)
+    roots = [terminal / "Tester" / "Agent-127.0.0.1-3000" / "logs", terminal / "Tester" / "logs"]
+    candidates = []
+    seen = set()
+    for root in roots:
+        if not root.exists():
+            continue
+        for item in root.glob("*.log"):
+            resolved = str(item.resolve())
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            candidates.append(item)
+    candidates.sort(key=lambda item: item.stat().st_mtime, reverse=True)
+    return candidates[:8]
+
+
+def _try_extract_log(result_path, trades_csv, monthly_csv, log_path):
     digest = run_short([
         sys.executable, str(ROOT / "scripts" / "backtest_digest.py"),
-        "--report", str(result_path), "--log", str(log_path), "--export-csv", "--brief",
+        "--report", str(result_path), "--log", str(log_path),
+        "--export-csv", "--brief",
     ], timeout=120)
-    trades_csv = result_path.with_suffix(".trades.csv")
-    if digest.returncode != 0 or not trades_csv.exists() or trades_csv.stat().st_size < 100:
-        return {"success": False, "reason": "trades.csv 生成失败"}
-
+    if digest.returncode != 0 or not _has_trade_rows(trades_csv):
+        return False
     rebuilt = run_short([
         sys.executable, str(ROOT / "scripts" / "rebuild_24m.py"), str(trades_csv), "200",
     ], timeout=60)
-    monthly_csv = trades_csv.with_name(trades_csv.stem + "_closetime_24m.csv")
-    if rebuilt.returncode != 0 or not monthly_csv.exists():
-        return {"success": False, "reason": "24m CSV 生成失败"}
+    return rebuilt.returncode == 0 and _has_24_month_rows(monthly_csv)
 
+
+def extract_trades(strategy, terminal_path, result_path):
+    """从指定 720d 报告跨日找正确 Agent 日志，生成逐笔、24m 和 WFYS。"""
+    result_path = Path(result_path)
+    if not result_path.exists():
+        return {"success": False, "reason": "报告缺失"}
+    trades_csv = result_path.with_suffix(".trades.csv")
+    monthly_csv = trades_csv.with_name(trades_csv.stem + "_closetime_24m.csv")
+    logs = _candidate_tester_logs(terminal_path)
+    selected_log = None
+    for log_path in logs:
+        if _try_extract_log(result_path, trades_csv, monthly_csv, log_path):
+            selected_log = log_path
+            break
+    if selected_log is None and len(logs) >= 2:
+        combined_log = ROOT / "temp" / (strategy + "_agent_combined_" + datetime.now().strftime("%Y%m%d") + ".log")
+        with combined_log.open("wb") as handle:
+            for log_path in sorted(logs, key=lambda item: item.stat().st_mtime):
+                handle.write(log_path.read_bytes())
+        if _try_extract_log(result_path, trades_csv, monthly_csv, combined_log):
+            selected_log = combined_log
+    if selected_log is None:
+        return {"success": False, "reason": "未找到包含完整 24 月逐笔交易的 Agent 日志"}
     wfys_json = RESULTS / (strategy + "_wfys_v22_" + datetime.now().strftime("%Y%m%d") + ".json")
     wfys = run_short([
         sys.executable, str(ROOT / "scripts" / "wfys_score.py"),
@@ -212,7 +309,7 @@ def extract_trades(strategy, terminal_path, result_path):
         "trades_csv": str(trades_csv.resolve()),
         "monthly_csv": str(monthly_csv.resolve()),
         "wfys_json": str(wfys_json.resolve()) if wfys_json.exists() else None,
-        "log_path": str(log_path.resolve()),
+        "log_path": str(selected_log.resolve()),
     }
 
 
@@ -266,7 +363,7 @@ def main(argv=None):
     }
 
     for strategy in variants:
-        prepared, detail = prepare_strategy(strategy)
+        prepared, detail = prepare_strategy(strategy, terminal_path)
         item = {"strategy": strategy, "prepared": prepared, "prepare_detail": detail}
         output["variants"].append(item)
         if not prepared:

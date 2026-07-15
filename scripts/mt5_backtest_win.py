@@ -76,7 +76,9 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
     defaults = config.get('backtest_defaults', {})
     account = config.get('mt5_account', {})
 
-    period = strategy_cfg.get('period', defaults.get('period', 'M5'))
+    # 回测 Period 必须匹配 EA InpBarTF；策略周期优先于旧 period 字段。
+    bar_min = strategy_cfg.get("bar_period_min", strategy_cfg.get("bar_tf"))
+    period = "M" + str(bar_min) if bar_min is not None else strategy_cfg.get("period", defaults.get("period", "M5"))
     model = strategy_cfg.get('model', defaults.get('model', '1'))
     deposit = strategy_cfg.get('deposit', defaults.get('deposit', 200))
     currency = strategy_cfg.get('currency', defaults.get('currency', 'USD'))
@@ -197,7 +199,7 @@ def run_mt5(timeout_sec=300):
             f'$p = Start-Process -FilePath "{MT5_TERMINAL}" '
             f'-ArgumentList {_ps_array(mt5_args)} '
             f'-WorkingDirectory "{MT5_HOME}" '
-            f'-Wait -PassThru -WindowStyle Minimized -Verb RunAs; '
+            f'-Wait -PassThru -WindowStyle Hidden -Verb RunAs; '
             f'exit $p.ExitCode'
         )
 

@@ -165,6 +165,13 @@ def run_iteration(config, plan_path, terminal, dry_run=False):
     ]
     if dry_run:
         return {"loop_id": loop_id, "command": cmd, "variants": variants}
+    preflight_cmd = [
+        sys.executable, str(ROOT / "scripts" / "_loop_preflight.py"),
+        "--terminal", terminal, "--cleanup-cache",
+    ]
+    preflight = subprocess.run(preflight_cmd, cwd=str(ROOT), capture_output=True, text=True, check=False)
+    if preflight.returncode != 0:
+        raise RuntimeError("Loop preflight 失败: " + (preflight.stdout + preflight.stderr)[-1200:])
     manifest = start_validation_manifest(config, pointer, current, plan, loop_id)
     rc = subprocess.run(cmd, cwd=str(ROOT), check=False).returncode
     if rc != 0:

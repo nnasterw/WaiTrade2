@@ -29,8 +29,8 @@
 #include <WaiTrade3/MultiTFOB.mqh>
 #include <WaiTrade3/RegimeDetector.mqh>
 // ── BD08双轨制: PathA(震荡/趋势自适应) + PathB(纯BOS驱动) ──
-input bool InpEnableRegimeDetector  = false;  // 启用体制检测(PathA)
-input bool InpEnableBOSOnlyMode     = false;  // 启用纯BOS模式(PathB)
+WT3_INPUT bool InpEnableRegimeDetector  = false;  // 启用体制检测(PathA)
+WT3_INPUT bool InpEnableBOSOnlyMode     = false;  // 启用纯BOS模式(PathB)
 // ── BOS Retest内联: swing突破检测+回踩入场 ──
 // 状态机: IDLE → BREAK_DETECTED(突破) → RETEST_READY(价格已远离,等回踩) → 入场 → EXECUTED
 enum ENUM_BOS_STATE {
@@ -75,6 +75,9 @@ void InitSwingBreak()
 bool FinalizeEntryEngineSignal(string symbol, const OBZone &zone, const EAState &state,
                                TradeSignal &signal);
 bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_count, bool allow_layered);
+void PS1RecordBaselineEntry(int direction, double entry_price, double risk_price, datetime time, ulong deal_ticket);
+void PS1RecordBaselineExit(double r_multiple);
+bool PS1TryEnter(string symbol, double bid, double ask);
 
 int EntryFamilyFromSignal(const TradeSignal &sig, const OBZone &zone)
 {
@@ -3686,8 +3689,42 @@ void ExecuteChannelConfirmed(OBZone& zones[], EAState& state,
 }
 
 // ── OnInit ──
+// ════════════════════════════════════════════════
+// PS1: Baseline-Seeded Trend Campaign State Machine
+// ════════════════════════════════════════════════
+struct PS1CampaignState
+  {
+   int      active;
+   int      direction;
+   double   baseline_entry_price;
+   double   baseline_risk_price;
+   ulong    baseline_position_id;
+   ulong    baseline_deal_id;
+   double   baseline_exit_r;
+   datetime baseline_entry_time;
+   datetime baseline_exit_time;
+   datetime last_reload_time;
+   int      reload_count_week;
+   datetime week_start;
+  };
+PS1CampaignState g_ps1_camp;
+
 int OnInit()
 {
+   // PS1 init
+   g_ps1_camp.active=0;
+   g_ps1_camp.direction=0;
+   g_ps1_camp.baseline_entry_price=0.0;
+   g_ps1_camp.baseline_risk_price=0.0;
+   g_ps1_camp.baseline_position_id=0;
+   g_ps1_camp.baseline_deal_id=0;
+   g_ps1_camp.baseline_exit_r=0.0;
+   g_ps1_camp.baseline_entry_time=0;
+   g_ps1_camp.baseline_exit_time=0;
+   g_ps1_camp.last_reload_time=0;
+   g_ps1_camp.reload_count_week=0;
+   g_ps1_camp.week_start=0;
+
     ZeroMemory(g_state);
     ZeroMemory(g_zones);
     ZeroMemory(g_htf_zones);
@@ -4552,6 +4589,10 @@ void OnTick()
     else
         g_state.pos_count = CountActivePositionsForMainConcurrency();
 
+    // PS1 runs only on a completed work-TF bar and is independent from OB re-entry.
+    if(!g_osc_active && new_active_bar && InpEnablePS1Campaign)
+        PS1TryEnter(symbol, bid, ask);
+
     if(InpEnableEntryEngine)
     {
         if(g_osc_active)
@@ -4950,6 +4991,8 @@ bool ExecuteSignalMTF(const TradeSignal &sig)
         RegisterPosition(result.order, sig.direction, result.price, sig.sl, sig.risk_price,
                          false, 0, 0.0, sig.pos_mult, 0, 0, 0, false, false, g_tracks, g_track_count,
                          is_bos ? ENTRY_FAMILY_BOS : ENTRY_FAMILY_MTF);
+        if(InpEnablePS1Campaign)
+            PS1RecordBaselineEntry(sig.direction, result.price, sig.risk_price, TimeCurrent(), result.deal);
 
         if(g_track_count > 0)
         {
@@ -5056,6 +5099,8 @@ bool ExecuteSignalFromZone(const TradeSignal &sig, OBZone &zones[], int zone_cou
                          sig.trend_release,
                          sig.failure_reverse,
                          g_tracks, g_track_count, entry_family);
+        if(InpEnablePS1Campaign && entry_family != ENTRY_FAMILY_CAMPRLD)
+            PS1RecordBaselineEntry(sig.direction, result.price, sig.risk_price, TimeCurrent(), result.deal);
 
         if(g_track_count > 0)
         {
@@ -5200,3 +5245,227 @@ bool ExecuteMicroEntryOrders(const TradeSignal &sig)
 
     return placed;
 }
+
+// ════════════════════════════════════════════════
+// PS1: Baseline-Seeded Trend Campaign Reload (v1.0, 2026-07-13)
+// 设计: 由最近一次 baseline OB/BOS 入场方向播种 trend campaign,
+//   监控: 在 baseline 出场后 0~4h 内的 M5 BOS/CHOCH 突破
+//   门控: 出场 R 必须在 [InpPS1MinCampaignR, InpPS1MaxCampaignR] 区间
+//   频次: 每周最多 InpPS1MaxReloadPerWeek 次
+//   仓位: 不超过 InpPS1MaxLotSize (0.05 = $5-10 风险)
+//   SL: 0.5 ATR (PS1 自身, 不复用 baseline SL)
+//   核心: 不调普通 OB 信号, 仅在 M5 结构突破触发 PS1 独立再入
+// ════════════════════════════════════════════════
+// PS1: baseline-seeded trend campaign state machine (wired, not a dead-code probe)
+struct PS1DetectResult
+  {
+   int      fire;
+   int      direction;
+   double   level;
+   double   sl;
+   double   risk_price;
+   double   size;
+   string   note;
+  };
+
+void PS1WeekRollIfNeeded();
+
+void PS1RecordBaselineEntry(int direction, double entry_price, double risk_price, datetime time, ulong deal_ticket)
+  {
+   g_ps1_camp.active = 1;
+   g_ps1_camp.direction = direction;
+   g_ps1_camp.baseline_entry_price = entry_price;
+   g_ps1_camp.baseline_risk_price = MathMax(risk_price, _Point);
+   g_ps1_camp.baseline_exit_r = 0.0;
+   g_ps1_camp.baseline_entry_time = time;
+   g_ps1_camp.baseline_exit_time = 0;
+   g_ps1_camp.baseline_position_id = 0;
+   g_ps1_camp.baseline_deal_id = deal_ticket;
+   if(deal_ticket > 0)
+      g_ps1_camp.baseline_position_id = (ulong)HistoryDealGetInteger(deal_ticket, DEAL_POSITION_ID);
+   PS1WeekRollIfNeeded();
+   if(InpPS1Log)
+      Print("PS1 baseline recorded dir=", direction, " entry=", entry_price, " risk=", risk_price);
+  }
+
+void PS1RecordBaselineExit(double r_multiple)
+  {
+   if(g_ps1_camp.active == 0) return;
+   g_ps1_camp.baseline_exit_r = r_multiple;
+   g_ps1_camp.baseline_exit_time = TimeCurrent();
+   if(InpPS1Log)
+      Print("PS1 baseline exit R=", DoubleToString(r_multiple, 2));
+  }
+
+void PS1WeekRollIfNeeded()
+  {
+   datetime now = TimeCurrent();
+   if(g_ps1_camp.week_start == 0) g_ps1_camp.week_start = now;
+   if(now - g_ps1_camp.week_start >= 7 * 24 * 60 * 60)
+     {
+      g_ps1_camp.week_start = now;
+      g_ps1_camp.reload_count_week = 0;
+     }
+  }
+
+int PS1HasFreshBaselineInWindow()
+  {
+   if(g_ps1_camp.active == 0 || g_ps1_camp.baseline_exit_time == 0) return 0;
+   int elapsed_min = (int)((TimeCurrent() - g_ps1_camp.baseline_exit_time) / 60);
+   if(elapsed_min < 0 || elapsed_min > InpPS1BaselineEntryWindowMin) return 0;
+   if(g_ps1_camp.baseline_exit_r < InpPS1MinCampaignR) return 0;
+   if(g_ps1_camp.baseline_exit_r > InpPS1MaxCampaignR) return 0;
+   PS1WeekRollIfNeeded();
+   return g_ps1_camp.reload_count_week < InpPS1MaxReloadPerWeek;
+  }
+
+PS1DetectResult PS1DetectM5BOS(string symbol, MqlRates &rates_m5[], int count)
+  {
+   PS1DetectResult r;
+   r.fire = 0; r.direction = 0; r.level = 0; r.sl = 0; r.risk_price = 0; r.size = 0; r.note = "";
+   if(count < 8) return r;
+   int dir = g_ps1_camp.direction;
+   int swing_lookback = MathMax(3, InpStructureLookbackBars / 3);
+   swing_lookback = MathMin(swing_lookback, count - 3);
+   double last_close = rates_m5[1].close;
+   double swing_high = 0.0;
+   double swing_low = 1.0e100;
+   for(int i = 2; i < 2 + swing_lookback && i < count; i++)
+     {
+      if(rates_m5[i].high > swing_high) swing_high = rates_m5[i].high;
+      if(rates_m5[i].low < swing_low) swing_low = rates_m5[i].low;
+     }
+   MqlRates h1rates[];
+   ArraySetAsSeries(h1rates, true);
+   int h1n = CopyRates(symbol, PERIOD_H1, 0, 30, h1rates);
+   double atr_h1 = 0.0;
+   if(h1n > 14) atr_h1 = CalcATR(h1rates, h1n, 14);
+   if(atr_h1 <= 0) atr_h1 = 10.0;
+   double min_break = InpPS1MinBossConfidence * atr_h1;
+   if(dir > 0 && last_close > swing_high + min_break)
+     {
+      r.fire = 1; r.direction = 1; r.level = SymbolInfoDouble(symbol, SYMBOL_ASK);
+      r.sl = swing_high - 0.10 * atr_h1;
+      r.risk_price = MathAbs(r.level - r.sl);
+      r.size = MathMin(InpPS1MaxLotSize, 0.05);
+      r.note = StringFormat("PS1_BUY_M5BOS sl=%.2f risk=%.2f", r.sl, r.risk_price);
+     }
+   else if(dir < 0 && last_close < swing_low - min_break)
+     {
+      r.fire = 1; r.direction = -1; r.level = SymbolInfoDouble(symbol, SYMBOL_BID);
+      r.sl = swing_low + 0.10 * atr_h1;
+      r.risk_price = MathAbs(r.level - r.sl);
+      r.size = MathMin(InpPS1MaxLotSize, 0.05);
+      r.note = StringFormat("PS1_SELL_M5BOS sl=%.2f risk=%.2f", r.sl, r.risk_price);
+     }
+   if(r.fire && r.risk_price <= _Point * 5) r.fire = 0;
+   return r;
+  }
+
+void PS1RefreshBaselineExit()
+  {
+   if(g_ps1_camp.active == 0 || g_ps1_camp.baseline_exit_time != 0) return;
+   if(g_ps1_camp.baseline_position_id > 0 && PositionSelectByTicket(g_ps1_camp.baseline_position_id)) return;
+   datetime from_time = g_ps1_camp.baseline_entry_time;
+   if(!HistorySelect(from_time, TimeCurrent() + 60)) return;
+   ulong best_deal = 0;
+   datetime best_time = 0;
+   double best_price = 0.0;
+   int total = HistoryDealsTotal();
+   for(int i = 0; i < total; i++)
+     {
+      ulong deal = HistoryDealGetTicket(i);
+      if(deal == 0) continue;
+      if(g_ps1_camp.baseline_position_id > 0 &&
+         (ulong)HistoryDealGetInteger(deal, DEAL_POSITION_ID) != g_ps1_camp.baseline_position_id)
+         continue;
+      if(HistoryDealGetInteger(deal, DEAL_ENTRY) != DEAL_ENTRY_OUT &&
+         HistoryDealGetInteger(deal, DEAL_ENTRY) != DEAL_ENTRY_OUT_BY)
+         continue;
+      datetime deal_time = (datetime)HistoryDealGetInteger(deal, DEAL_TIME);
+      if(deal_time < from_time || deal_time < best_time) continue;
+      double price = HistoryDealGetDouble(deal, DEAL_PRICE);
+      if(price <= 0) continue;
+      best_deal = deal;
+      best_time = deal_time;
+      best_price = price;
+     }
+   if(best_deal == 0 || g_ps1_camp.baseline_risk_price <= 0) return;
+   double r = (best_price - g_ps1_camp.baseline_entry_price)
+             / g_ps1_camp.baseline_risk_price * g_ps1_camp.direction;
+   PS1RecordBaselineExit(r);
+  }
+
+bool PS1TryEnter(string symbol, double bid, double ask)
+  {
+   if(!InpEnablePS1Campaign || g_state.pos_count >= CfgMaxConcurrent()) return false;
+   PS1RefreshBaselineExit();
+   if(!PS1HasFreshBaselineInWindow()) return false;
+   MqlRates m5[];
+   ArraySetAsSeries(m5, true);
+   int m5n = CopyRates(symbol, PERIOD_M5, 0, 30, m5);
+   if(m5n < 10) return false;
+   PS1DetectResult det = PS1DetectM5BOS(symbol, m5, m5n);
+   if(det.fire == 0) return false;
+   double lots = MathMin(det.size, InpPS1MaxLotSize);
+   double min_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+   double max_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+   double step = SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP);
+   if(step <= 0) step = 0.01;
+   if(lots < min_lot) lots = min_lot;
+   if(max_lot > 0 && lots > max_lot) lots = max_lot;
+   lots = MathFloor(lots / step) * step;
+   if(lots < min_lot) return false;
+   double price = det.direction > 0 ? ask : bid;
+   MqlTradeRequest req = {};
+   MqlTradeResult res = {};
+   req.action = TRADE_ACTION_DEAL;
+   req.symbol = symbol;
+   req.volume = NormalizeDouble(lots, 2);
+   req.type = det.direction > 0 ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
+   req.price = price;
+   req.sl = BrokerStopFromVirtualSL(det.sl, price, det.risk_price, det.direction);
+   req.tp = 0.0;
+   req.magic = InpMagicNumber;
+   req.comment = det.note;
+   req.deviation = 20;
+   req.type_filling = ORDER_FILLING_IOC;
+   req.type_time = ORDER_TIME_GTC;
+   if(!OrderSend(req, res) || res.retcode != TRADE_RETCODE_DONE)
+     {
+      if(InpPS1Log) Print("PS1 order rejected retcode=", res.retcode, " comment=", res.comment);
+      return false;
+     }
+   RecordMonthlyEntry();
+   RecordRuntimeEntry();
+   RegisterPosition(res.order, det.direction, res.price, det.sl, det.risk_price,
+                    false, 0, 0.0, 1.0, false, 0, 0, false, false,
+                    g_tracks, g_track_count, ENTRY_FAMILY_CAMPRLD);
+   if(g_track_count > 0) g_tracks[g_track_count - 1].open_bar = g_state.bar_count;
+   g_state.last_entry_bar = g_state.bar_count;
+   g_state.pos_count++;
+   g_ps1_camp.active = 0;
+   g_ps1_camp.last_reload_time = TimeCurrent();
+   g_ps1_camp.reload_count_week++;
+   if(InpPS1Log) Print("PS1 entry dir=", det.direction, " price=", res.price, " lots=", req.volume, " r=", DoubleToString(g_ps1_camp.baseline_exit_r, 2));
+   return true;
+  }
+
+// Capture only the final close of the baseline position; partial exits stay in the campaign.
+void OnTradeTransaction(const MqlTradeTransaction &trans,
+                        const MqlTradeRequest &request,
+                        const MqlTradeResult &result)
+  {
+   if(!InpEnablePS1Campaign || g_ps1_camp.active == 0 || trans.deal == 0) return;
+   if(trans.symbol != _Symbol) return;
+   long deal_entry = HistoryDealGetInteger(trans.deal, DEAL_ENTRY);
+   if(deal_entry != DEAL_ENTRY_OUT && deal_entry != DEAL_ENTRY_OUT_BY) return;
+   ulong position_id = trans.position;
+   if(g_ps1_camp.baseline_position_id > 0 && position_id > 0 && position_id != g_ps1_camp.baseline_position_id) return;
+   if(position_id > 0 && PositionSelectByTicket(position_id)) return;
+   double exit_price = HistoryDealGetDouble(trans.deal, DEAL_PRICE);
+   if(exit_price <= 0 || g_ps1_camp.baseline_risk_price <= 0) return;
+   double r = (exit_price - g_ps1_camp.baseline_entry_price)
+             / g_ps1_camp.baseline_risk_price * g_ps1_camp.direction;
+   PS1RecordBaselineExit(r);
+  }

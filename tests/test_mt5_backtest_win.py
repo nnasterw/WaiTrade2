@@ -318,3 +318,21 @@ def test_run_mt5_uac_branch_sets_working_directory_and_portable_args(tmp_path):
     assert str(tmp_path) in ps_cmd
     assert "/portable" in ps_cmd
     assert "/config:bt.ini" in ps_cmd
+
+
+def test_ini_period_matches_strategy_bar_period_min():
+    config = {
+        "backtest_defaults": dict(BASE_CONFIG["backtest_defaults"]),
+        "mt5_account": {},
+        "v99g1": {"period": "M1", "bar_period_min": 5},
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        original = win.INI_DIR
+        win.INI_DIR = Path(tmp)
+        try:
+            ini_path = win.generate_ini("v99g1", "BTCUSDm", "2026.07.14", "2026.07.15", config)
+            content = ini_path.read_text(encoding="utf-8")
+        finally:
+            win.INI_DIR = original
+    assert "Period=M5" in content
+    assert "Period=M1" not in content

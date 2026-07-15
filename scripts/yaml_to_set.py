@@ -18,6 +18,19 @@ NON_STRATEGY_KEYS = {'defaults', 'symbols', 'backtest_defaults', 'mt5_account'}
 
 # YAML key → .set INP 名称映射
 FLAT_MAP = {
+    "enable_ps1_campaign": "InpEnablePS1Campaign",
+    "ps1_baseline_entry_window_min": "InpPS1BaselineEntryWindowMin",
+    "ps1_max_reload_per_week": "InpPS1MaxReloadPerWeek",
+    "ps1_min_campaign_r": "InpPS1MinCampaignR",
+    "ps1_max_campaign_r": "InpPS1MaxCampaignR",
+    "ps1_min_boss_confidence": "InpPS1MinBossConfidence",
+    "ps1_max_lot_size": "InpPS1MaxLotSize",
+    "ps1_cooldown_bars": "InpPS1CooldownBars",
+    "ps1_log": "InpPS1Log",
+    "adaptive_noise_def_buy_mult": "InpAdaptiveNoiseDefBuyMult",
+    "adaptive_noise_def_sell_mult": "InpAdaptiveNoiseDefSellMult",
+    "adaptive_noise_def_ob_reentry_cd": "InpAdaptiveNoiseDefOBReentryCd",
+    "adaptive_noise_def_neutral_mult": "InpAdaptiveNoiseDefNeutralMult",
     "bounce_pct": "InpBouncePct",
     "timeout_min": "InpTimeoutMin",
     "max_entry_offset_r": "InpMaxEntryOffsetR",
