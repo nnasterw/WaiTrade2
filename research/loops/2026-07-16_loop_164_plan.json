@@ -1,0 +1,16 @@
+{
+    "schema_version":  1,
+    "loop_id":  164,
+    "loop_type":  "governed_iteration",
+    "hypotheses":  [
+                       {
+                           "changes":  [
+                                           "ps1_min_boss_confidence"
+                                       ],
+                           "falsify_if":  "30d/90d fails, or 720d WFYS/hard gates degrade versus BV1 baseline",
+                           "prediction":  "PS1 baseline-seeded M5 BOS reload (0.1 ATR) adds independent continuation entries without sacrificing WFYS stability; weekly trades \u003e=2 with quality",
+                           "id":  "ps1-conf-low",
+                           "strategy":  "v11-btc1-loop164-ps1c01"
+                       }
+                   ]
+}

@@ -1,0 +1,8 @@
+﻿git : To github.com:nnasterw/WaiTrade2.git
+At line:2 char:1
++ git push origin main 2>&1 | Out-File -Encoding UTF8 research\loops\20 ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (To github.com:nnasterw/WaiTrade2.git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   c8e9100e..55ee56db  main -> main

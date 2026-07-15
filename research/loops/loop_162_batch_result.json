@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-07-15T23:54:10+08:00",
+  "terminal": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1",
+  "variants": [
+    {
+      "strategy": "v11-btc1-loop162",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop162.set; expert=WaiTrade3\\WaiTrade_OB_BV1_Slim sha256=425275817316a7b37fcc37703bbbc606fab7e253ba234bd9100f6b711bf12a7f",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 21.691,
+        "balance": 206.65,
+        "trades": 12,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20260615_20260715_20260715.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 30.359,
+        "balance": 384.19,
+        "trades": 41,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20260416_20260715_20260715.txt",
+        "error_tail": ""
+      },
+      "status": "wfys_fail",
+      "full_720d": {
+        "stage": "full_720d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 329.19,
+        "balance": 859.89,
+        "trades": 195,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop162_20240601_20260531_20260716.txt",
+        "error_tail": ""
+      },
+      "artifacts": {
+        "success": false,
+        "reason": "24m CSV 生成失败"
+      }
+    }
+  ],
+  "promoted": "v11-btc1-loop162",
+  "workload_budget": 12.0,
+  "workload_used": 7.5,
+  "elapsed_min": 6.846,
+  "completed_at": "2026-07-16T00:01:01+08:00"
+}

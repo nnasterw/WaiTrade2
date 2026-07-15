@@ -1,0 +1,16 @@
+{
+    "schema_version":  1,
+    "loop_id":  162,
+    "loop_type":  "governed_iteration",
+    "hypotheses":  [
+                       {
+                           "changes":  [
+                                           "enable_htf_direction_gate"
+                                       ],
+                           "falsify_if":  "30d/90d fails, or 720d WFYS declines versus clean repair baseline / increases hard failures",
+                           "prediction":  "clean compliant BV1 quality improves through hard HTF direction alignment without losing the 2+ weekly frequency",
+                           "id":  "htf-direction-gate",
+                           "strategy":  "v11-btc1-loop162"
+                       }
+                   ]
+}

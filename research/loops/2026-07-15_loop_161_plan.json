@@ -1,0 +1,16 @@
+{
+    "schema_version":  1,
+    "loop_id":  161,
+    "loop_type":  "repair_state",
+    "hypotheses":  [
+                       {
+                           "changes":  [
+                                           "expert_input_surface"
+                                       ],
+                           "falsify_if":  "tester rejects input parameters, Period differs from M5, or .ex5 provenance check fails",
+                           "prediction":  "slim v3 input surface starts Model 4 tester and preserves BV1 default path; 30d and 90d produce valid reports",
+                           "id":  "v3-input-budget-slim",
+                           "strategy":  "v11-btc1-loop161"
+                       }
+                   ]
+}

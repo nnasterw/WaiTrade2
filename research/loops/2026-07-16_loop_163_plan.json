@@ -1,0 +1,25 @@
+{
+    "schema_version":  1,
+    "loop_id":  163,
+    "loop_type":  "governed_iteration",
+    "hypotheses":  [
+                       {
+                           "changes":  [
+                                           "enable_entry_momentum_filter"
+                                       ],
+                           "falsify_if":  "30d/90d fails, or quality improves only by dropping weekly trades below target with no WFYS gain",
+                           "prediction":  "counter-strong momentum filter reduces SL clusters and raises PF/WFYS without relying on hour/month rules",
+                           "id":  "entry-momentum-filter",
+                           "strategy":  "v11-btc1-loop163-momentum"
+                       },
+                       {
+                           "changes":  [
+                                           "enable_ps1_campaign"
+                                       ],
+                           "falsify_if":  "30d/90d fails, PS1 produces no effective entries, or 720d degrades WFYS/hard gates",
+                           "prediction":  "baseline-seeded independent M5 BOS reload adds profitable continuation trades and restores weekly frequency without harming clean baseline stability",
+                           "id":  "ps1-campaign-reload",
+                           "strategy":  "v11-btc1-loop163-ps1"
+                       }
+                   ]
+}

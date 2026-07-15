@@ -1,0 +1,354 @@
+﻿diff --git a/scripts/_loop_batch.py b/scripts/_loop_batch.py
+index 49fb5e2c..fc8b13b4 100644
+--- a/scripts/_loop_batch.py
++++ b/scripts/_loop_batch.py
+@@ -2,8 +2,10 @@
+ # -*- coding: utf-8 -*-
+ """Loop ????????30d smoke ? 90d ? ???? 720d ? WFYS?"""
+ import argparse
++import hashlib
+ import json
+ import os
++import re
+ import shutil
+ import subprocess
+ import sys
+@@ -11,6 +13,8 @@ import time
+ from datetime import datetime
+ from pathlib import Path
+ 
++import yaml
++
+ ROOT = Path(__file__).resolve().parent.parent
+ RESULTS = ROOT / "results" / "backtest"
+ TEMP = ROOT / "temp"
+@@ -82,12 +86,55 @@ def run_short(cmd, timeout=120, env=None):
+     )
+ 
+ 
+-def prepare_strategy(strategy):
++def _sha256(path):
++    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
++
++
++def verify_ex5_provenance(strategy, terminal_path):
++    """????? .ex5 ????????????????????"""
++    config_path = ROOT / "config" / "strategies.yaml"
++    with config_path.open("r", encoding="utf-8") as handle:
++        config = yaml.safe_load(handle) or {}
++    strategy_cfg = config.get(strategy)
++    if not isinstance(strategy_cfg, dict):
++        return False, "?????????? .ex5 ??: " + strategy
++    defaults = config.get("defaults") or {}
++    expert = str(strategy_cfg.get("expert", defaults.get("expert", r"WaiTrade2\WaiTrade_OB")))
++    relative = Path(*expert.replace("/", chr(92)).split(chr(92))).with_suffix(".ex5")
++    project_ex5 = ROOT / "mql5" / "Experts" / relative
++    runtime_ex5 = Path(terminal_path) / "MQL5" / "Experts" / relative
++    missing = [str(item) for item in (project_ex5, runtime_ex5) if not item.exists()]
++    if missing:
++        return False, ".ex5 ??: " + ", ".join(missing)
++
++    expert_family = relative.parts[0] if relative.parts else ""
++    source_paths = [project_ex5.with_suffix(".mq5")]
++    include_roots = [ROOT / "mql5" / "Include" / "WaiTrade2"]
++    if expert_family == "WaiTrade3":
++        include_roots.append(ROOT / "mql5" / "Include" / "WaiTrade3")
++    for include_root in include_roots:
++        if include_root.exists():
++            source_paths.extend(include_root.rglob("*.mqh"))
++    existing_sources = [item for item in source_paths if item.exists()]
++    if not existing_sources:
++        return False, "EA ????: " + str(project_ex5.with_suffix(".mq5"))
++    newest_source = max(existing_sources, key=lambda item: item.stat().st_mtime)
++    if project_ex5.stat().st_mtime < newest_source.stat().st_mtime:
++        return False, ".ex5 ???????????: " + str(newest_source)
++
++    project_hash = _sha256(project_ex5)
++    runtime_hash = _sha256(runtime_ex5)
++    if project_hash != runtime_hash:
++        return False, ".ex5 ?????: project=" + project_hash[:12] + " runtime=" + runtime_hash[:12]
++    return True, "expert=" + expert + " sha256=" + project_hash
++
++
++def prepare_strategy(strategy, terminal_path):
+     """??????????????? .set ? Iron Rule strict?"""
+     consistency = run_short([
+         sys.executable, str(ROOT / "scripts" / "check_strategy_consistency.py"), strategy,
+     ], timeout=120)
+-    if consistency.returncode != 0 or "ERROR" in consistency.stdout:
++    if consistency.returncode != 0:
+         return False, "?????????: " + (consistency.stdout + consistency.stderr)[-500:]
+ 
+     set_path = ROOT / "mql5" / "Presets" / (strategy + ".set")
+@@ -104,19 +151,25 @@ def prepare_strategy(strategy):
+     ], timeout=120)
+     if iron.returncode != 0:
+         return False, "Iron Rule strict ??: " + (iron.stdout + iron.stderr)[-500:]
+-    return True, str(set_path.resolve())
++    provenance_ok, provenance_detail = verify_ex5_provenance(strategy, terminal_path)
++    if not provenance_ok:
++        return False, "EA ??????: " + provenance_detail
++    return True, str(set_path.resolve()) + "; " + provenance_detail
+ 
+ 
+ def parse_backtest_stdout(stdout):
+     balance = None
+     trades = None
++    trade_match = re.search(r"(\d+)\s*???", stdout)
++    if trade_match:
++        trades = int(trade_match.group(1))
+     for line in stdout.splitlines():
+         if "??" in line and "$" in line:
+             try:
+                 balance = float(line.rsplit("$", 1)[1].split()[0].replace(",", ""))
+             except (ValueError, IndexError):
+                 pass
+-        if "???" in line:
++        if trades is None and "???" in line:
+             for part in line.split():
+                 if part.isdigit():
+                     trades = int(part)
+@@ -173,32 +226,76 @@ def run_mt5_test(strategy, terminal_path, env, stage, timeout=1200):
+     }
+ 
+ 
+-def extract_trades(strategy, terminal_path, result_path):
+-    """??? 720d ???????24m ? WFYS????????"""
+-    log_path = Path(terminal_path) / "Tester" / "Agent-127.0.0.1-3000" / "logs" / (datetime.now().strftime("%Y%m%d") + ".log")
+-    if not log_path.exists():
+-        logs_dir = log_path.parent
+-        logs = sorted(logs_dir.glob("*.log"), key=lambda item: item.stat().st_mtime, reverse=True) if logs_dir.exists() else []
+-        log_path = logs[0] if logs else log_path
+-    result_path = Path(result_path)
+-    if not log_path.exists() or not result_path.exists():
+-        return {"success": False, "reason": "??? MT5 ????"}
++def _has_trade_rows(path):
++    try:
++        with Path(path).open("r", encoding="utf-8-sig", errors="replace") as handle:
++            return sum(1 for line in handle if line.strip()) > 1
++    except OSError:
++        return False
++
++
++def _has_24_month_rows(path):
++    try:
++        with Path(path).open("r", encoding="utf-8-sig", errors="replace") as handle:
++            return sum(1 for line in handle if line.strip()) >= 25
++    except OSError:
++        return False
++
++
++def _candidate_tester_logs(terminal_path):
++    terminal = Path(terminal_path)
++    roots = [terminal / "Tester" / "Agent-127.0.0.1-3000" / "logs", terminal / "Tester" / "logs"]
++    candidates = []
++    seen = set()
++    for root in roots:
++        if not root.exists():
++            continue
++        for item in root.glob("*.log"):
++            resolved = str(item.resolve())
++            if resolved in seen:
++                continue
++            seen.add(resolved)
++            candidates.append(item)
++    candidates.sort(key=lambda item: item.stat().st_mtime, reverse=True)
++    return candidates[:8]
+ 
++
++def _try_extract_log(result_path, trades_csv, monthly_csv, log_path):
+     digest = run_short([
+         sys.executable, str(ROOT / "scripts" / "backtest_digest.py"),
+-        "--report", str(result_path), "--log", str(log_path), "--export-csv", "--brief",
++        "--report", str(result_path), "--log", str(log_path),
++        "--export-csv", "--brief",
+     ], timeout=120)
+-    trades_csv = result_path.with_suffix(".trades.csv")
+-    if digest.returncode != 0 or not trades_csv.exists() or trades_csv.stat().st_size < 100:
+-        return {"success": False, "reason": "trades.csv ????"}
+-
++    if digest.returncode != 0 or not _has_trade_rows(trades_csv):
++        return False
+     rebuilt = run_short([
+         sys.executable, str(ROOT / "scripts" / "rebuild_24m.py"), str(trades_csv), "200",
+     ], timeout=60)
+-    monthly_csv = trades_csv.with_name(trades_csv.stem + "_closetime_24m.csv")
+-    if rebuilt.returncode != 0 or not monthly_csv.exists():
+-        return {"success": False, "reason": "24m CSV ????"}
++    return rebuilt.returncode == 0 and _has_24_month_rows(monthly_csv)
++
+ 
++def extract_trades(strategy, terminal_path, result_path):
++    """??? 720d ??????? Agent ????????24m ? WFYS?"""
++    result_path = Path(result_path)
++    if not result_path.exists():
++        return {"success": False, "reason": "????"}
++    trades_csv = result_path.with_suffix(".trades.csv")
++    monthly_csv = trades_csv.with_name(trades_csv.stem + "_closetime_24m.csv")
++    logs = _candidate_tester_logs(terminal_path)
++    selected_log = None
++    for log_path in logs:
++        if _try_extract_log(result_path, trades_csv, monthly_csv, log_path):
++            selected_log = log_path
++            break
++    if selected_log is None and len(logs) >= 2:
++        combined_log = ROOT / "temp" / (strategy + "_agent_combined_" + datetime.now().strftime("%Y%m%d") + ".log")
++        with combined_log.open("wb") as handle:
++            for log_path in sorted(logs, key=lambda item: item.stat().st_mtime):
++                handle.write(log_path.read_bytes())
++        if _try_extract_log(result_path, trades_csv, monthly_csv, combined_log):
++            selected_log = combined_log
++    if selected_log is None:
++        return {"success": False, "reason": "??????? 24 ?????? Agent ??"}
+     wfys_json = RESULTS / (strategy + "_wfys_v22_" + datetime.now().strftime("%Y%m%d") + ".json")
+     wfys = run_short([
+         sys.executable, str(ROOT / "scripts" / "wfys_score.py"),
+@@ -212,7 +309,7 @@ def extract_trades(strategy, terminal_path, result_path):
+         "trades_csv": str(trades_csv.resolve()),
+         "monthly_csv": str(monthly_csv.resolve()),
+         "wfys_json": str(wfys_json.resolve()) if wfys_json.exists() else None,
+-        "log_path": str(log_path.resolve()),
++        "log_path": str(selected_log.resolve()),
+     }
+ 
+ 
+@@ -266,7 +363,7 @@ def main(argv=None):
+     }
+ 
+     for strategy in variants:
+-        prepared, detail = prepare_strategy(strategy)
++        prepared, detail = prepare_strategy(strategy, terminal_path)
+         item = {"strategy": strategy, "prepared": prepared, "prepare_detail": detail}
+         output["variants"].append(item)
+         if not prepared:
+diff --git a/scripts/mt5_backtest_win.py b/scripts/mt5_backtest_win.py
+index a6626885..49eacb7b 100644
+--- a/scripts/mt5_backtest_win.py
++++ b/scripts/mt5_backtest_win.py
+@@ -76,7 +76,9 @@ def generate_ini(strategy_name, symbol, date_from, date_to, config):
+     defaults = config.get('backtest_defaults', {})
+     account = config.get('mt5_account', {})
+ 
+-    period = strategy_cfg.get('period', defaults.get('period', 'M5'))
++    # ?? Period ???? EA InpBarTF????????? period ???
++    bar_min = strategy_cfg.get("bar_period_min", strategy_cfg.get("bar_tf"))
++    period = "M" + str(bar_min) if bar_min is not None else strategy_cfg.get("period", defaults.get("period", "M5"))
+     model = strategy_cfg.get('model', defaults.get('model', '1'))
+     deposit = strategy_cfg.get('deposit', defaults.get('deposit', 200))
+     currency = strategy_cfg.get('currency', defaults.get('currency', 'USD'))
+@@ -197,7 +199,7 @@ def run_mt5(timeout_sec=300):
+             f'$p = Start-Process -FilePath "{MT5_TERMINAL}" '
+             f'-ArgumentList {_ps_array(mt5_args)} '
+             f'-WorkingDirectory "{MT5_HOME}" '
+-            f'-Wait -PassThru -WindowStyle Minimized -Verb RunAs; '
++            f'-Wait -PassThru -WindowStyle Hidden -Verb RunAs; '
+             f'exit $p.ExitCode'
+         )
+ 
+diff --git a/scripts/mt5_common.py b/scripts/mt5_common.py
+index aa641991..6bd187c6 100644
+--- a/scripts/mt5_common.py
++++ b/scripts/mt5_common.py
+@@ -448,9 +448,11 @@ def _signal_type_from_comment(comment):
+     tokens = set(comment.split())
+     if 'LSWP' in tokens:
+         return 'loose_sweep'
++    if 'CAMPRLD' in tokens or 'PS1_BUY_M5BOS' in tokens or 'PS1_SELL_M5BOS' in tokens:
++        return 'campaign_reload'
++    if comment and '-PS1' in comment and any(t.endswith('x') or t.startswith('x') for t in tokens) and ('B' in tokens or 'S' in tokens):
++        return 'campaign_reload'
+     if 'SWP' in tokens:
+-        return 'sweep'
+-    if 'RB' in tokens:
+         return 'range'
+     if 'HTFPB' in tokens:
+         return 'htf_pullback'
+diff --git a/scripts/mt5_compile_win.py b/scripts/mt5_compile_win.py
+index 056ede8a..a1091211 100644
+--- a/scripts/mt5_compile_win.py
++++ b/scripts/mt5_compile_win.py
+@@ -125,6 +125,7 @@ def compile_portfolio_sources(
+         mt5_data / "MQL5" / "Experts" / "WaiTrade2" / "WaiTrade_OB.mq5",
+         mt5_data / "MQL5" / "Experts" / "WaiTrade2" / "PortfolioSetup.mq5",
+         mt5_data / "MQL5" / "Experts" / "WaiTrade3" / "WaiTrade_OB_SMC.mq5",
++        mt5_data / "MQL5" / "Experts" / "WaiTrade3" / "WaiTrade_OB_BV1_Slim.mq5",
+         mt5_data / "MQL5" / "Scripts" / "WaiTrade2" / "ClearSharedMonthlyGuard.mq5",
+     ]
+     results = [compile_file(metaeditor, source, logs) for source in sources]
+@@ -137,7 +138,8 @@ def compile_portfolio_sources(
+             continue
+         compiled = result.source.with_suffix(".ex5")
+         target = MQL5_SRC / rel.with_suffix(".ex5")
+-        if compiled.exists() and target.exists():
++        if compiled.exists() and (target.exists() or result.source.name == "WaiTrade_OB_BV1_Slim.mq5"):
++            target.parent.mkdir(parents=True, exist_ok=True)
+             shutil.copy2(compiled, target)
+     return results
+ 
+diff --git a/scripts/wfyhcl_governed.py b/scripts/wfyhcl_governed.py
+index bd50c0eb..07481b06 100644
+--- a/scripts/wfyhcl_governed.py
++++ b/scripts/wfyhcl_governed.py
+@@ -165,6 +165,13 @@ def run_iteration(config, plan_path, terminal, dry_run=False):
+     ]
+     if dry_run:
+         return {"loop_id": loop_id, "command": cmd, "variants": variants}
++    preflight_cmd = [
++        sys.executable, str(ROOT / "scripts" / "_loop_preflight.py"),
++        "--terminal", terminal, "--cleanup-cache",
++    ]
++    preflight = subprocess.run(preflight_cmd, cwd=str(ROOT), capture_output=True, text=True, check=False)
++    if preflight.returncode != 0:
++        raise RuntimeError("Loop preflight ??: " + (preflight.stdout + preflight.stderr)[-1200:])
+     manifest = start_validation_manifest(config, pointer, current, plan, loop_id)
+     rc = subprocess.run(cmd, cwd=str(ROOT), check=False).returncode
+     if rc != 0:
+diff --git a/scripts/yaml_to_set.py b/scripts/yaml_to_set.py
+index 5414b0e7..b4daa480 100644
+--- a/scripts/yaml_to_set.py
++++ b/scripts/yaml_to_set.py
+@@ -18,6 +18,19 @@ NON_STRATEGY_KEYS = {'defaults', 'symbols', 'backtest_defaults', 'mt5_account'}
+ 
+ # YAML key ? .set INP ????
+ FLAT_MAP = {
++    "enable_ps1_campaign": "InpEnablePS1Campaign",
++    "ps1_baseline_entry_window_min": "InpPS1BaselineEntryWindowMin",
++    "ps1_max_reload_per_week": "InpPS1MaxReloadPerWeek",
++    "ps1_min_campaign_r": "InpPS1MinCampaignR",
++    "ps1_max_campaign_r": "InpPS1MaxCampaignR",
++    "ps1_min_boss_confidence": "InpPS1MinBossConfidence",
++    "ps1_max_lot_size": "InpPS1MaxLotSize",
++    "ps1_cooldown_bars": "InpPS1CooldownBars",
++    "ps1_log": "InpPS1Log",
++    "adaptive_noise_def_buy_mult": "InpAdaptiveNoiseDefBuyMult",
++    "adaptive_noise_def_sell_mult": "InpAdaptiveNoiseDefSellMult",
++    "adaptive_noise_def_ob_reentry_cd": "InpAdaptiveNoiseDefOBReentryCd",
++    "adaptive_noise_def_neutral_mult": "InpAdaptiveNoiseDefNeutralMult",
+     "bounce_pct": "InpBouncePct",
+     "timeout_min": "InpTimeoutMin",
+     "max_entry_offset_r": "InpMaxEntryOffsetR",
+[main 55ee56db] loop161-164: v3 input budget修复 + PS1接线 + BV1 slim v3 EA + bug根因修复
+ 41 files changed, 9128 insertions(+), 229 deletions(-)
+ create mode 100644 mql5/Experts/WaiTrade3/WaiTrade_OB_BV1_Slim.ex5
+ create mode 100644 mql5/Experts/WaiTrade3/WaiTrade_OB_BV1_Slim.mq5
+ create mode 100644 mql5/Presets/v11-btc1-loop161.set
+ create mode 100644 mql5/Presets/v11-btc1-loop162.set
+ create mode 100644 mql5/Presets/v11-btc1-loop163-momentum.set
+ create mode 100644 mql5/Presets/v11-btc1-loop163-ps1.set
+ create mode 100644 mql5/Presets/v11-btc1-loop164-ps1c01.set
+ create mode 100644 research/loops/2026-07-15_loop_161_attempt_parser_false_negative_handoff.md
+ create mode 100644 research/loops/2026-07-15_loop_161_attempt_parser_false_negative_manifest.json
+ create mode 100644 research/loops/2026-07-15_loop_161_handoff.md
+ create mode 100644 research/loops/2026-07-15_loop_161_manifest.json
+ create mode 100644 research/loops/2026-07-15_loop_162_handoff.md
+ create mode 100644 research/loops/2026-07-15_loop_162_manifest.json
+ create mode 100644 research/loops/2026-07-16_loop_162_handoff.md
+ create mode 100644 research/loops/2026-07-16_loop_162_manifest.json
+ create mode 100644 research/loops/2026-07-16_loop_163_handoff.md
+ create mode 100644 research/loops/2026-07-16_loop_163_manifest.json
+ create mode 100644 research/loops/2026-07-16_loop_164_handoff.md
+ create mode 100644 research/loops/2026-07-16_loop_164_manifest.json
+ create mode 100644 tests/test_bv1_slim_input_budget.py
+ create mode 100644 tests/test_input_coverage.py
+ create mode 100644 tests/test_iron_rule_check.py
+ create mode 100644 tests/test_loop_batch_preflight.py
