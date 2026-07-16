@@ -2,13 +2,13 @@
   "schema_version": 1,
   "pipeline_id": "btc-bv1-continuous",
   "same_codex_session": true,
-  "latest_manifest": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-16_loop_164_manifest.json",
-  "latest_handoff": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-16_loop_164_handoff.md",
-  "latest_loop_id": 164,
+  "latest_manifest": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-16_loop_165_manifest.json",
+  "latest_handoff": "D:/Code/codexProject/WaiTrade2/research/loops/2026-07-16_loop_165_handoff.md",
+  "latest_loop_id": 165,
   "next_loop": {
-    "loop_id": 165,
+    "loop_id": 166,
     "type": "governed_iteration",
     "focus": "切换假设"
   },
-  "updated_at": "2026-07-16T00:36:30+08:00"
+  "updated_at": "2026-07-16T01:54:01+08:00"
 }

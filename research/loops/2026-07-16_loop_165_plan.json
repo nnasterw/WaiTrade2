@@ -1,0 +1,16 @@
+{
+    "schema_version":  1,
+    "loop_id":  165,
+    "loop_type":  "governed_iteration",
+    "hypotheses":  [
+                       {
+                           "changes":  [
+                                           "ps1_max_campaign_r"
+                                       ],
+                           "falsify_if":  "720d WFYS drops by more than 1 point OR weekly trades fall below 1.5 OR a new hard gate opens vs loop164",
+                           "prediction":  "Tightening PS1 max_campaign_r (8.0-\u003e2.0) reduces \u003e2R outlier entries while keeping healthy continuation reloads; 720d WFYS does not regress versus loop164 baseline; weekly trades stay \u003e= 2",
+                           "id":  "ps1-tighten-maxr",
+                           "strategy":  "v11-btc1-loop165-ps1mr"
+                       }
+                   ]
+}

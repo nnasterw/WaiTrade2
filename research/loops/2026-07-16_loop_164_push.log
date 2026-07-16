@@ -6,3 +6,11 @@ At line:2 char:1
     + FullyQualifiedErrorId : NativeCommandError
  
    c8e9100e..55ee56db  main -> main
+git : To github.com:nnasterw/WaiTrade2.git
+At line:2 char:449
++ ...  (parent 55ee56d)" 2>&1 | Out-Null; git push origin main 2>&1 | Out-F ...
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (To github.com:nnasterw/WaiTrade2.git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   55ee56db..0bb8414d  main -> main

@@ -46013,9 +46013,21 @@ v11-btc1-loop163-ps1: &v11_btc1_loop163_ps1
   enable_ps1_campaign: true
 
 
-v11-btc1-loop164-ps1c01:
+v11-btc1-loop164-ps1c01: &v11_btc1_loop164_ps1c01
   <<: *v11_btc1_loop163_ps1
   version: V11-BTC1-LOOP164-PS1C01
   description: "loop164 pre-screen: PS1 M5 BOS threshold 0.1 ATR"
   magic_number: 207165
   ps1_min_boss_confidence: 0.1
+v11-btc1-loop165-ps1mr:
+  <<: *v11_btc1_loop164_ps1c01
+  version: V11-BTC1-LOOP165-PS1MR
+  description: "loop165: single-variable tighten max_campaign_r 8.0->2.0 (avoid >2R outlier entries)"
+  magic_number: 207166
+  ps1_max_campaign_r: 2.0
+v11-btc1-loop165-ps1mr:
+  <<: *v11_btc1_loop164_ps1c01
+  version: V11-BTC1-LOOP165-PS1MR
+  description: "loop165: tighten max_campaign_r 8.0->2.0 (avoid >2R outlier entries)"
+  magic_number: 207166
+  ps1_max_campaign_r: 2.0
