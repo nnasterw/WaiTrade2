@@ -1,0 +1,16 @@
+{
+    "schema_version":  1,
+    "loop_id":  166,
+    "loop_type":  "governed_iteration",
+    "hypotheses":  [
+                       {
+                           "changes":  [
+                                           "ps1_min_campaign_r"
+                                       ],
+                           "falsify_if":  "720d WFYS drops by more than 1 point OR weekly trades fall below 1.5 OR trade_count drops below 150",
+                           "prediction":  "Only fire PS1 reload when baseline exit R \u003e= 0; this filters out loss-reload cascades and concentrates on winning continuation entries; 720d WFYS does not regress vs loop164 (244 trades, $1237, 33.68 score) and may improve 24m win-month count",
+                           "id":  "ps1-minr-zero",
+                           "strategy":  "v11-btc1-loop166-ps1mr0"
+                       }
+                   ]
+}

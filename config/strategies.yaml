@@ -46031,3 +46031,11 @@ v11-btc1-loop165-ps1mr:
   description: "loop165: tighten max_campaign_r 8.0->2.0 (avoid >2R outlier entries)"
   magic_number: 207166
   ps1_max_campaign_r: 2.0
+
+
+v11-btc1-loop166-ps1mr0:
+  <<: *v11_btc1_loop164_ps1c01
+  version: V11-BTC1-LOOP166-PS1MR0
+  description: "loop166: only fire PS1 reloads when baseline exit R >= 0 (filter out loss-reloads)"
+  magic_number: 207167
+  ps1_min_campaign_r: 0.0
