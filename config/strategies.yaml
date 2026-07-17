@@ -46526,3 +46526,26 @@ v11-btc1-loop188-score60: &v11_btc1_loop188_score60
   description: "loop188-c: loop170-sl18p3 + ob_score_min_pass 55->60 (略收紧 OB 评分)"
   magic_number: 207235
   ob_score_min_pass: 60
+v11-btc1-loop189-score-1: &v11_btc1_loop189_score_1
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP189-SCORE-1
+  description: "loop189-a: loop170-sl18p3 + enable_scoring=true + min_score=1 (启用 OB 评分系统, 期望过滤低质 OB)"
+  magic_number: 207236
+  enable_scoring: true
+  min_score: 1
+
+v11-btc1-loop189-score-3: &v11_btc1_loop189_score_3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP189-SCORE-3
+  description: "loop189-b: loop170-sl18p3 + enable_scoring=true + min_score=3 (高质量 OB 过滤)"
+  magic_number: 207237
+  enable_scoring: true
+  min_score: 3
+
+v11-btc1-loop189-score-5: &v11_btc1_loop189_score_5
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP189-SCORE-5
+  description: "loop189-c: loop170-sl18p3 + enable_scoring=true + min_score=5 (极高 OB 质量)"
+  magic_number: 207238
+  enable_scoring: true
+  min_score: 5
