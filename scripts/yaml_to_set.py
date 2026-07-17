@@ -204,7 +204,7 @@ FLAT_MAP = {
     "require_double_touch": "InpRequireDoubleTch",
     "double_touch_window_min": "InpDoubleTchWindowMin",
     "min_ob_spread_mult": "InpMinOBSpreadMult",
-    "min_risk_spread_ratio": "InpMinRiskSpreadRatio",
+    "btc_min_ob_spread_mult": "InpBtcMinOBSpreadMult",    "min_risk_spread_ratio": "InpMinRiskSpreadRatio",
     "min_abs_risk_usd": "InpMinAbsRiskUSD",
     "min_ob_body_pct": "InpMinOBBodyPct",
     "min_impulse_body_pct": "InpMinImpulseBodyPct",

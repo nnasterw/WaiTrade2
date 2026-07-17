@@ -46590,3 +46590,26 @@ v11-btc1-loop191-sp10-rsr3: &v11_btc1_loop191_sp10_rsr3
   magic_number: 207244
   min_ob_spread_mult: 1.0
   min_risk_spread_ratio: 3.0
+v11-btc1-loop192-btc-spread1: &v11_btc1_loop192_btc_spread1
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP192-BTC-SPREAD1
+  description: "loop192-a: loop170-sl18p3 + enable_btc_profile=true + btc_min_ob_spread_mult=1.0 (EA 源码级改动: BTC profile OB 放宽, 期望 +60-100 单)"
+  magic_number: 207245
+  enable_btc_profile: true
+  btc_min_ob_spread_mult: 1.0
+
+v11-btc1-loop192-btc-spread05: &v11_btc1_loop192_btc_spread05
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP192-BTC-SPREAD05
+  description: "loop192-b: loop170-sl18p3 + enable_btc_profile=true + btc_min_ob_spread_mult=0.5 (极度放宽)"
+  magic_number: 207246
+  enable_btc_profile: true
+  btc_min_ob_spread_mult: 0.5
+
+v11-btc1-loop192-btc-spread15: &v11_btc1_loop192_btc_spread15
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP192-BTC-SPREAD15
+  description: "loop192-c: loop170-sl18p3 + enable_btc_profile=true + btc_min_ob_spread_mult=1.5 (略放宽)"
+  magic_number: 207247
+  enable_btc_profile: true
+  btc_min_ob_spread_mult: 1.5
