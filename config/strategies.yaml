@@ -46258,3 +46258,26 @@ v11-btc1-loop177-dual: &v11_btc1_loop177_dual
   description: "loop177-c: loop170-sl18p3 + enable_dual_zone_channel=true (双 zone 通道)"
   magic_number: 207196
   enable_dual_zone_channel: true
+v11-btc1-loop178-loose+slp25: &v11_btc1_loop178_loose_slp25
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP178-LOOSE+SLP25
+  description: "loop178-a: loose_sweep (增单数) + SmartLock pct 0.25 (锁更紧, 期望保留 WR)"
+  magic_number: 207197
+  enable_loose_sweep: true
+  smart_lock_pct: 0.25
+
+v11-btc1-loop178-loose+slp30: &v11_btc1_loop178_loose_slp30
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP178-LOOSE+SLP30
+  description: "loop178-b: loose_sweep (增单数) + SmartLock pct 0.30 (默认锁, 验证基线)"
+  magic_number: 207198
+  enable_loose_sweep: true
+  smart_lock_pct: 0.30
+
+v11-btc1-loop178-loose+sl20: &v11_btc1_loop178_loose_sl20
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP178-LOOSE+SL20
+  description: "loop178-c: loose_sweep (增单数) + SmartLock trigger 2.0 (推迟锁保留大赢)"
+  magic_number: 207199
+  enable_loose_sweep: true
+  smart_lock_trigger_r: 2.0
