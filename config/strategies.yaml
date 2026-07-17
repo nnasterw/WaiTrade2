@@ -46485,3 +46485,44 @@ v11-btc1-loop186-all-7: &v11_btc1_loop186_all_7
   enable_loose_sweep: true
   enable_strong_sweep_reversal: true
   enable_swp_continuation_confirm: true
+v11-btc1-loop187-body30: &v11_btc1_loop187_body30
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP187-BODY30
+  description: "loop187-a: loop170-sl18p3 + min_ob_body_pct 50->30 (放宽 OB 实体最小占比, 期望 +30-50 单)"
+  magic_number: 207230
+  min_ob_body_pct: 30.0
+
+v11-btc1-loop187-body20: &v11_btc1_loop187_body20
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP187-BODY20
+  description: "loop187-b: loop170-sl18p3 + min_ob_body_pct 50->20 (更大放宽 OB 实体)"
+  magic_number: 207231
+  min_ob_body_pct: 20.0
+
+v11-btc1-loop187-body30-sl4: &v11_btc1_loop187_body30_sl4
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP187-BODY30-SL4
+  description: "loop187-c: loop170-sl18p3 + min_ob_body_pct 50->30 + smart_lock_pct 0.3->0.4 (放宽 OB + 略松锁保留大赢)"
+  magic_number: 207232
+  min_ob_body_pct: 30.0
+  smart_lock_pct: 0.4
+v11-btc1-loop188-score40: &v11_btc1_loop188_score40
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP188-SCORE40
+  description: "loop188-a: loop170-sl18p3 + ob_score_min_pass 55->40 (放宽 OB 评分, 期望 +10-20 单)"
+  magic_number: 207233
+  ob_score_min_pass: 40
+
+v11-btc1-loop188-score70: &v11_btc1_loop188_score70
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP188-SCORE70
+  description: "loop188-b: loop170-sl18p3 + ob_score_min_pass 55->70 (收紧 OB 评分提高质量)"
+  magic_number: 207234
+  ob_score_min_pass: 70
+
+v11-btc1-loop188-score60: &v11_btc1_loop188_score60
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP188-SCORE60
+  description: "loop188-c: loop170-sl18p3 + ob_score_min_pass 55->60 (略收紧 OB 评分)"
+  magic_number: 207235
+  ob_score_min_pass: 60
