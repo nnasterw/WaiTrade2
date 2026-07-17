@@ -118,7 +118,8 @@ input double InpSWPContinuationFailMult = 0.0; // SWP延续确认失败仓位倍
 input bool   InpRequireDoubleTch = true;     // 瑕佹眰浜屾瑙︾
 input int    InpDoubleTchWindowMin = 60;     // 浜屾瑙︾绐楀彛(鍒嗛挓)
 input double InpMinOBSpreadMult  = 2.0;
-input double InpBtcMinOBSpreadMult = 2.0;   // BTC profile 启用时 OB 跨度倍数 (0=跟随 InpMinOBSpreadMult)
+input double InpBtcMinOBSpreadMult = 2.0;
+
 input double InpMinRiskSpreadRatio = 3.0;    // 鏈€灏忛闄?鐐瑰樊姣?
 input double InpMinAbsRiskUSD    = 0.0;      // 鏈€灏忕粷瀵归闄?USD)
 // --- 入场噪声自适应 (Noise-Adaptive Entry, 全部opt-in) ---

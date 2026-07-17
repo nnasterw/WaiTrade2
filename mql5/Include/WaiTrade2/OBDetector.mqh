@@ -1043,6 +1043,7 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
       spread = InpSpreadFloor;
    double min_ob_range = spread * (UseBTCProfile() && InpBtcMinOBSpreadMult > 0 ? InpBtcMinOBSpreadMult : InpMinOBSpreadMult);
 
+
    DetectRangeBreakouts(rates, count, zones, zone_count, state, atr, spread);
    if(InpHTFPullbackOnly)
    {

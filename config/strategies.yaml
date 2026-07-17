@@ -46633,3 +46633,23 @@ v11-btc1-loop193-sp1-btc-max05: &v11_btc1_loop193_sp1_btc_max05
   description: "loop193-c: loop192-btc-spread1 + btc_max_lot_size 9.0->0.5 (限制 BTC profile 加仓, 期望月度稳定)"
   magic_number: 207250
   btc_max_lot_size: 0.5
+v11-btc1-loop194-month20: &v11_btc1_loop194_month20
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP194-MONTH20
+  description: "loop194-a: loop192-btc-spread1 + btc_max_monthly_entries=20 (EA 源码改动: 月度 OB 限制 20, 期望月度稳定 + WFYS 提升)"
+  magic_number: 207251
+  btc_max_monthly_entries: 20
+
+v11-btc1-loop194-month30: &v11_btc1_loop194_month30
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP194-MONTH30
+  description: "loop194-b: loop192-btc-spread1 + btc_max_monthly_entries=30 (月度 OB 限制 30)"
+  magic_number: 207252
+  btc_max_monthly_entries: 30
+
+v11-btc1-loop194-month40: &v11_btc1_loop194_month40
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP194-MONTH40
+  description: "loop194-c: loop192-btc-spread1 + btc_max_monthly_entries=40 (月度 OB 限制 40)"
+  magic_number: 207253
+  btc_max_monthly_entries: 40
