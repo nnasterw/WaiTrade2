@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-07-17T09:08:51+08:00",
+  "terminal": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1",
+  "variants": [
+    {
+      "strategy": "v11-btc1-loop168-origEA",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop168-origEA.set; expert=WaiTrade2\\WaiTrade_OB sha256=7f94c66943e03725c270413842c7abc05db01d8a8f16958b6a350589d95d25a9",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 24.86,
+        "balance": 287.96,
+        "trades": 11,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop168-origEA_20260617_20260717_20260717.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 32.862,
+        "balance": 203.46,
+        "trades": 46,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop168-origEA_20260418_20260717_20260717.txt",
+        "error_tail": ""
+      },
+      "status": "completed",
+      "full_720d": {
+        "stage": "full_720d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 351.274,
+        "balance": 2289.83,
+        "trades": 189,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop168-origEA_20240601_20260531_20260717.txt",
+        "error_tail": ""
+      },
+      "artifacts": {
+        "success": true,
+        "original_report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop168-origEA_20240601_20260531_20260717.txt",
+        "trades_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop168-origEA_20240601_20260531_20260717.trades.csv",
+        "monthly_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop168-origEA_20240601_20260531_20260717.trades_closetime_24m.csv",
+        "wfys_json": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop168-origEA_wfys_v22_20260717.json",
+        "log_path": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1\\Tester\\Agent-127.0.0.1-3000\\logs\\20260717.log"
+      }
+    }
+  ],
+  "promoted": "v11-btc1-loop168-origEA",
+  "workload_budget": 12.0,
+  "workload_used": 7.5,
+  "elapsed_min": 7.35,
+  "completed_at": "2026-07-17T09:16:12+08:00"
+}

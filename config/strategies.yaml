@@ -46039,3 +46039,106 @@ v11-btc1-loop166-ps1mr0:
   description: "loop166: only fire PS1 reloads when baseline exit R >= 0 (filter out loss-reloads)"
   magic_number: 207167
   ps1_min_campaign_r: 0.0
+
+v11-btc1-loop167-ps1off: &v11_btc1_loop167_ps1off
+  <<: *v11_btc1_loop164_ps1c01
+  version: V11-BTC1-LOOP167-PS1OFF
+  description: "loop167: baseline regression - disable PS1 campaign, verify if PS1 was net-negative (173 reloads: 67 losses -14R vs 13 >3R +42R, net wash but massive dilution)"
+  magic_number: 207168
+  enable_ps1_campaign: false
+v11-btc1-loop168-origEA: &v11_btc1_loop168_origEA
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP168-ORIGEA
+  description: "loop168: 切回 WaiTrade_OB 原版 EA. bv1 anchor 完全相同 + expert 切换 + magic=207169. 验证基线回归 ~89.57."
+  magic_number: 207169
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  enable_btc_profile: false
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  expert: WaiTrade2\WaiTrade_OB
+
+v11-btc1-loop169-fvg: &v11_btc1_loop169_fvg
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP169-FVG
+  description: "loop169-a: bv1 baseline 89.57 + enable_fvg=true (FVG 信号源, 单变量, 期望 +30-50 单)"
+  magic_number: 207170
+  enable_fvg: true
+  fvg_min_gap_atr: 0.05
+
+v11-btc1-loop169-mbos: &v11_btc1_loop169_mbos
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP169-MBOS
+  description: "loop169-b: bv1 baseline 89.57 + enable_micro_bos_retest=true (MicroBOS 信号源, 单变量)"
+  magic_number: 207171
+  enable_micro_bos_retest: true
+
+v11-btc1-loop169-bcc1: &v11_btc1_loop169_bcc1
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP169-BCC1
+  description: "loop169-c: bv1 baseline 89.57 + bounce_close_confirm_bars=1 (OB K线收盘确认, 单变量)"
+  magic_number: 207172
+  bounce_close_confirm_bars: 1
+v11-btc1-loop170-sl15: &v11_btc1_loop170_sl15
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP170-SL15
+  description: "loop170-a: bv1 + SmartLock 1.8->1.5 (早锁, 期望减少微亏, 可能减少大赢)"
+  magic_number: 207173
+  smart_lock_trigger_r: 1.5
+
+v11-btc1-loop170-sl20: &v11_btc1_loop170_sl20
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP170-SL20
+  description: "loop170-b: bv1 + SmartLock 1.8->2.0 (推迟锁, 期望让大赢突破 3R)"
+  magic_number: 207174
+  smart_lock_trigger_r: 2.0
+
+v11-btc1-loop170-sl18p3: &v11_btc1_loop170_sl18p3
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP170-SL18P3
+  description: "loop170-c: bv1 + SmartLock pct 0.5->0.3 (锁更紧, 期望改善稳定性)"
+  magic_number: 207175
+  smart_lock_pct: 0.3
+v11-btc1-loop171-sl18p2: &v11_btc1_loop171_sl18p2
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP171-SL18P2
+  description: "loop171-a: bv1 + SmartLock 1.8/0.2 (极紧锁, 期望改善 PF)"
+  magic_number: 207176
+  smart_lock_pct: 0.2
+
+v11-btc1-loop171-sl17p3: &v11_btc1_loop171_sl17p3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP171-SL17P3
+  description: "loop171-b: bv1 + SmartLock 1.7/0.3 (略早锁 + 紧锁, 期望 +单数)"
+  magic_number: 207177
+  smart_lock_trigger_r: 1.7
+
+v11-btc1-loop171-sl19p3: &v11_btc1_loop171_sl19p3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP171-SL19P3
+  description: "loop171-c: bv1 + SmartLock 1.9/0.3 (略晚锁 + 紧锁, 期望保留大赢)"
+  magic_number: 207178
+  smart_lock_trigger_r: 1.9
+v11-btc1-loop172-bb020: &v11_btc1_loop172_bb020
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP172-BB020
+  description: "loop172-a: bv1 + bounce_pct_min 0.22->0.20 (放宽 OB 反弹下限, 期望 +15 单)"
+  magic_number: 207179
+  bad_bounce_min_pct: 0.20
+
+v11-btc1-loop172-bb030: &v11_btc1_loop172_bb030
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP172-BB030
+  description: "loop172-b: bv1 + bounce_pct_max 0.28->0.30 (放宽 OB 反弹上限, 期望 +10 单)"
+  magic_number: 207180
+  bad_bounce_max_pct: 0.30
+
+v11-btc1-loop172-mos03: &v11_btc1_loop172_mos03
+  <<: *v11_btc1_loop168_origEA
+  version: V11-BTC1-LOOP172-MOS03
+  description: "loop172-c: bv1 + min_ob_strength 0.3 (降低 OB 强度门槛, 期望 +20 单)"
+  magic_number: 207181
+  min_ob_strength: 0.3
