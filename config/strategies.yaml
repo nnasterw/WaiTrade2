@@ -46613,3 +46613,23 @@ v11-btc1-loop192-btc-spread15: &v11_btc1_loop192_btc_spread15
   magic_number: 207247
   enable_btc_profile: true
   btc_min_ob_spread_mult: 1.5
+v11-btc1-loop193-sp1-sl4: &v11_btc1_loop193_sp1_sl4
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP193-SP1-SL4
+  description: "loop193-a: loop192-btc-spread1 (269 单) + smart_lock_pct 0.3->0.4 (略松锁保留大赢, 期望 WR 回升)"
+  magic_number: 207248
+  smart_lock_pct: 0.4
+
+v11-btc1-loop193-sp1-sl5: &v11_btc1_loop193_sp1_sl5
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP193-SP1-SL5
+  description: "loop193-b: loop192-btc-spread1 + smart_lock_pct 0.3->0.5 (默认锁)"
+  magic_number: 207249
+  smart_lock_pct: 0.5
+
+v11-btc1-loop193-sp1-btc-max05: &v11_btc1_loop193_sp1_btc_max05
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP193-SP1-BTC-MAX05
+  description: "loop193-c: loop192-btc-spread1 + btc_max_lot_size 9.0->0.5 (限制 BTC profile 加仓, 期望月度稳定)"
+  magic_number: 207250
+  btc_max_lot_size: 0.5
