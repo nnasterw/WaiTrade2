@@ -46429,3 +46429,59 @@ v11-btc1-loop184-btc-buf3: &v11_btc1_loop184_btc_buf3
   magic_number: 207217
   enable_btc_profile: true
   btc_sl_buffer_atr: 3.0
+v11-btc1-loop185-buf20: &v11_btc1_loop185_buf20
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP185-BUF20
+  description: "loop185-a: loop170-sl18p3 + enable_btc_profile=true + sl_buffer_atr=2.0 (BTC profile + 大 SL 缓冲, 期望月度稳定)"
+  magic_number: 207224
+  enable_btc_profile: true
+  sl_buffer_atr: 2.0
+
+v11-btc1-loop185-buf25: &v11_btc1_loop185_buf25
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP185-BUF25
+  description: "loop185-b: loop170-sl18p3 + enable_btc_profile=true + sl_buffer_atr=2.5 (更大 SL 缓冲)"
+  magic_number: 207225
+  enable_btc_profile: true
+  sl_buffer_atr: 2.5
+
+v11-btc1-loop185-buf25-max: &v11_btc1_loop185_buf25_max
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP185-BUF25-MAX
+  description: "loop185-c: loop170-sl18p3 + enable_btc_profile=true + sl_buffer_atr=2.5 + btc_max_lot_size=0.5 (双保护)"
+  magic_number: 207226
+  enable_btc_profile: true
+  sl_buffer_atr: 2.5
+  btc_max_lot_size: 0.5
+v11-btc1-loop186-rb-rf-mi: &v11_btc1_loop186_rb_rf_mi
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP186-RB-RF-MI
+  description: "loop186-a: loop170-sl18p3 + range_breakout + range_fade + mitigation_entry (3 个 False 默认参数启用)"
+  magic_number: 207227
+  enable_range_breakout: true
+  enable_range_fade: true
+  enable_mitigation_entry: true
+
+v11-btc1-loop186-all-5: &v11_btc1_loop186_all_5
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP186-ALL-5
+  description: "loop186-b: loop170-sl18p3 + 5 个 False 默认参数启用 (range_breakout/fade/mitigation/dual_zone/loose_sweep)"
+  magic_number: 207228
+  enable_range_breakout: true
+  enable_range_fade: true
+  enable_mitigation_entry: true
+  enable_dual_zone_channel: true
+  enable_loose_sweep: true
+
+v11-btc1-loop186-all-7: &v11_btc1_loop186_all_7
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP186-ALL-7
+  description: "loop186-c: loop170-sl18p3 + 7 个 False 默认参数启用 (再 + strong_sweep_reversal + swp_continuation)"
+  magic_number: 207229
+  enable_range_breakout: true
+  enable_range_fade: true
+  enable_mitigation_entry: true
+  enable_dual_zone_channel: true
+  enable_loose_sweep: true
+  enable_strong_sweep_reversal: true
+  enable_swp_continuation_confirm: true
