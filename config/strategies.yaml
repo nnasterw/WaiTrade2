@@ -46142,3 +46142,119 @@ v11-btc1-loop172-mos03: &v11_btc1_loop172_mos03
   description: "loop172-c: bv1 + min_ob_strength 0.3 (降低 OB 强度门槛, 期望 +20 单)"
   magic_number: 207181
   min_ob_strength: 0.3
+v11-btc1-loop173-bcc0: &v11_btc1_loop173_bcc0
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP173-BCC0
+  description: "loop173-a: loop170-sl18p3 (89.75) + bounce_close_confirm_bars 1->0 (OB K线确认移除, 期望 +单数)"
+  magic_number: 207182
+  bounce_close_confirm_bars: 0
+
+v11-btc1-loop173-be150: &v11_btc1_loop173_be150
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP173-BE150
+  description: "loop173-b: loop170-sl18p3 + breakeven_r 1.30->1.50 (BE 推迟, 期望突破大赢)"
+  magic_number: 207183
+  breakeven_r: 1.50
+
+v11-btc1-loop173-belp5: &v11_btc1_loop173_belp5
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP173-BELP5
+  description: "loop173-c: loop170-sl18p3 + breakeven_lock_r 0.30->0.50 (BE 锁更多利润)"
+  magic_number: 207184
+  breakeven_lock_r: 0.50
+v11-btc1-loop174-htfshape: &v11_btc1_loop174_htfshape
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP174-HTFSHAPE
+  description: "loop174-a: loop170-sl18p3 (89.75) + HTF shape filter (4h 形态过滤, 期望提升大赢单突破 3R)"
+  magic_number: 207185
+  enable_entry_htf_shape_filter: true
+  entry_htf_shape_tf: 240
+  entry_htf_shape_bars: 4
+
+v11-btc1-loop174-htfshape1h: &v11_btc1_loop174_htfshape1h
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP174-HTFSHAPE1H
+  description: "loop174-b: loop170-sl18p3 + HTF shape 1h (更精细过滤)"
+  magic_number: 207186
+  enable_entry_htf_shape_filter: true
+  entry_htf_shape_tf: 60
+  entry_htf_shape_bars: 8
+
+v11-btc1-loop174-htfshapeaggr: &v11_btc1_loop174_htfshapeaggr
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP174-HTFSHAPEAGGR
+  description: "loop174-c: loop170-sl18p3 + HTF shape 4h + max same body 1.0 + range pos 0.3 (aggressive filter)"
+  magic_number: 207187
+  enable_entry_htf_shape_filter: true
+  entry_htf_shape_tf: 240
+  entry_htf_shape_bars: 4
+  entry_htf_max_same_body: 1.0
+  entry_htf_max_range_pos: 0.3
+v11-btc1-loop175-fvgmbos: &v11_btc1_loop175_fvgmbos
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP175-FVGMBOS
+  description: "loop175-a: loop170-sl18p3 (89.75) + FVG + MicroBOS 双信号源 (loop49 历史参考模式, 期望 +40-60 单)"
+  magic_number: 207188
+  enable_fvg: true
+  fvg_min_gap_atr: 0.05
+  enable_micro_bos_retest: true
+
+v11-btc1-loop175-pullback: &v11_btc1_loop175_pullback
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP175-PULLBACK
+  description: "loop175-b: loop170-sl18p3 + Bounce 确认后等回调入场 (期望提升入场质量)"
+  magic_number: 207189
+  enable_confirm_pullback: true
+  confirm_pullback_pct: 0.50
+  confirm_pullback_wait_sec: 60
+  confirm_pullback_max_adverse_pct: 0.20
+
+v11-btc1-loop175-ticknoise: &v11_btc1_loop175_ticknoise
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP175-TICKNOISE
+  description: "loop175-c: loop170-sl18p3 + Tick Noise Gate (改善 tick 噪音, 期望提升 WR)"
+  magic_number: 207190
+  enable_tick_noise_gate: true
+  tick_noise_gate_lookback: 20
+  tick_noise_gate_min_dir_ratio: 0.6
+  tick_noise_gate_max_range_atr: 0.5
+v11-btc1-loop176-sl185: &v11_btc1_loop176_sl185
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP176-SL185
+  description: "loop176-a: SmartLock 1.8/0.3 (最佳) + trigger 1.8->1.85 (精细微调)"
+  magic_number: 207191
+  smart_lock_trigger_r: 1.85
+
+v11-btc1-loop176-sl18p35: &v11_btc1_loop176_sl18p35
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP176-SL18P35
+  description: "loop176-b: SmartLock pct 0.3->0.35 (中间值微调)"
+  magic_number: 207192
+  smart_lock_pct: 0.35
+
+v11-btc1-loop176-sl18p25: &v11_btc1_loop176_sl18p25
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP176-SL18P25
+  description: "loop176-c: SmartLock pct 0.3->0.25 (略紧)"
+  magic_number: 207193
+  smart_lock_pct: 0.25
+v11-btc1-loop177-loosesweep: &v11_btc1_loop177_loosesweep
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP177-LOOSESWEEP
+  description: "loop177-a: loop170-sl18p3 + enable_loose_sweep=true (宽松流动性扫损)"
+  magic_number: 207194
+  enable_loose_sweep: true
+
+v11-btc1-loop177-mitigate: &v11_btc1_loop177_mitigate
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP177-MITIGATE
+  description: "loop177-b: loop170-sl18p3 + enable_mitigation_entry=true (mitigation 入场)"
+  magic_number: 207195
+  enable_mitigation_entry: true
+
+v11-btc1-loop177-dual: &v11_btc1_loop177_dual
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP177-DUAL
+  description: "loop177-c: loop170-sl18p3 + enable_dual_zone_channel=true (双 zone 通道)"
+  magic_number: 207196
+  enable_dual_zone_channel: true
