@@ -46404,3 +46404,28 @@ v11-btc1-loop183-tex60-slp4: &v11_btc1_loop183_tex60_slp4
   magic_number: 207214
   btc_time_exit_bars: 60
   smart_lock_pct: 0.4
+v11-btc1-loop184-btc-modest: &v11_btc1_loop184_btc_modest
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP184-BTC-MODEST
+  description: "loop184-a: loop170-sl18p3 + enable_btc_profile=true + btc_max_lot_size=0.3 (BTC profile 谨慎模式)"
+  magic_number: 207215
+  enable_btc_profile: true
+  btc_max_lot_size: 0.3
+  smart_lock_pct: 0.3
+
+v11-btc1-loop184-btc-nostrong: &v11_btc1_loop184_btc_nostrong
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP184-BTC-NOSTRONG
+  description: "loop184-b: loop170-sl18p3 + enable_btc_profile=true + btc_max_lot_size=0.5 + btc_liquidity_only=false (放宽 BTC 流动性过滤)"
+  magic_number: 207216
+  enable_btc_profile: true
+  btc_max_lot_size: 0.5
+  btc_liquidity_only: false
+
+v11-btc1-loop184-btc-buf3: &v11_btc1_loop184_btc_buf3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP184-BTC-BUF3
+  description: "loop184-c: loop170-sl18p3 + enable_btc_profile=true + btc_sl_buffer_atr=3.0 (大 SL 缓冲)"
+  magic_number: 207217
+  enable_btc_profile: true
+  btc_sl_buffer_atr: 3.0
