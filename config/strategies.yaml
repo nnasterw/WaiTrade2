@@ -46281,3 +46281,70 @@ v11-btc1-loop178-loose+sl20: &v11_btc1_loop178_loose_sl20
   magic_number: 207199
   enable_loose_sweep: true
   smart_lock_trigger_r: 2.0
+v11-btc1-loop179-m3: &v11_btc1_loop179_m3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP179-M3
+  description: "loop179-a: loop170-sl18p3 (89.75) + bar_period_min=3 (M3 BarTF, 期望 +50% 单数突破周单数瓶颈)"
+  magic_number: 207200
+  bar_period_min: 3
+
+v11-btc1-loop179-m3-sl25: &v11_btc1_loop179_m3_sl25
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP179-M3-SL25
+  description: "loop179-b: loop170-sl18p3 + bar_period_min=3 + smart_lock_pct=0.25 (M3 + 紧锁)"
+  magic_number: 207201
+  bar_period_min: 3
+  smart_lock_pct: 0.25
+
+v11-btc1-loop179-m3-sl20: &v11_btc1_loop179_m3_sl20
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP179-M3-SL20
+  description: "loop179-c: loop170-sl18p3 + bar_period_min=3 + smart_lock_trigger=2.0 (M3 + 推迟锁)"
+  magic_number: 207202
+  bar_period_min: 3
+  smart_lock_trigger_r: 2.0
+v11-btc1-loop180-btcprof: &v11_btc1_loop180_btcprof
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP180-BTCPROF
+  description: "loop180-a: loop170-sl18p3 + enable_btc_profile=true (BTC profile 启用, 期望 BTC 专用 liquidity_sweep/state_filter 提供高质量入场)"
+  magic_number: 207203
+  enable_btc_profile: true
+
+v11-btc1-loop180-btcprof-08: &v11_btc1_loop180_btcprof_08
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP180-BTCPROF-08
+  description: "loop180-b: loop170-sl18p3 + enable_btc_profile=true + btc_max_lot_size=0.8 (适度风险控制)"
+  magic_number: 207204
+  enable_btc_profile: true
+  btc_max_lot_size: 0.8
+
+v11-btc1-loop180-btcprof-sl25: &v11_btc1_loop180_btcprof_sl25
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP180-BTCPROF-SL25
+  description: "loop180-c: loop170-sl18p3 + enable_btc_profile=true + smart_lock_pct=0.25 (BTC profile + 紧锁)"
+  magic_number: 207205
+  enable_btc_profile: true
+  smart_lock_pct: 0.25
+v11-btc1-loop181-btc-st: &v11_btc1_loop181_btc_st
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP181-BTC-ST
+  description: "loop181-a: loop170-sl18p3 + enable_btc_profile=true + btc_enable_state_filter=false (BTC profile + 禁用 state filter, 期望更多入场但保留稳定性)"
+  magic_number: 207206
+  enable_btc_profile: true
+  btc_enable_state_filter: false
+
+v11-btc1-loop181-btc-slbuf: &v11_btc1_loop181_btc_slbuf
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP181-BTC-SLBUF
+  description: "loop181-b: loop170-sl18p3 + enable_btc_profile=true + btc_sl_buffer_atr=2.0 (BTC profile + 大 SL 缓冲)"
+  magic_number: 207207
+  enable_btc_profile: true
+  btc_sl_buffer_atr: 2.0
+
+v11-btc1-loop181-btc-htfdir: &v11_btc1_loop181_btc_htfdir
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP181-BTC-HTFDIR
+  description: "loop181-c: loop170-sl18p3 + enable_btc_profile=true + enable_htf_direction_gate=true (BTC profile + HTF 方向门控)"
+  magic_number: 207208
+  enable_btc_profile: true
+  enable_htf_direction_gate: true
