@@ -46549,3 +46549,44 @@ v11-btc1-loop189-score-5: &v11_btc1_loop189_score_5
   magic_number: 207238
   enable_scoring: true
   min_score: 5
+v11-btc1-loop190-spread15: &v11_btc1_loop190_spread15
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP190-SPREAD15
+  description: "loop190-a: loop170-sl18p3 + min_ob_spread_mult 2.0->1.5 (放宽 OB 跨度倍数过滤, 期望更多 OB)"
+  magic_number: 207239
+  min_ob_spread_mult: 1.5
+
+v11-btc1-loop190-spread12: &v11_btc1_loop190_spread12
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP190-SPREAD12
+  description: "loop190-b: loop170-sl18p3 + min_ob_spread_mult 2.0->1.2 (更大放宽)"
+  magic_number: 207240
+  min_ob_spread_mult: 1.2
+
+v11-btc1-loop190-spread10: &v11_btc1_loop190_spread10
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP190-SPREAD10
+  description: "loop190-c: loop170-sl18p3 + min_ob_spread_mult 2.0->1.0 (极度放宽)"
+  magic_number: 207241
+  min_ob_spread_mult: 1.0
+v11-btc1-loop191-sp10-sl4: &v11_btc1_loop191_sp10_sl4
+  <<: *v11_btc1_loop190_spread10
+  version: V11-BTC1-LOOP191-SP10-SL4
+  description: "loop191-a: loop190-spread10 + smart_lock_pct 0.3->0.4 (放宽 OB spread + 略松锁保留大赢)"
+  magic_number: 207242
+  smart_lock_pct: 0.4
+
+v11-btc1-loop191-sp10-sl5: &v11_btc1_loop191_sp10_sl5
+  <<: *v11_btc1_loop190_spread10
+  version: V11-BTC1-LOOP191-SP10-SL5
+  description: "loop191-b: loop190-spread10 + smart_lock_pct 0.3->0.5 (默认锁)"
+  magic_number: 207243
+  smart_lock_pct: 0.5
+
+v11-btc1-loop191-sp10-rsr3: &v11_btc1_loop191_sp10_rsr3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP191-SP10-RSR3
+  description: "loop191-c: loop170-sl18p3 + min_ob_spread_mult 1.0 + min_risk_spread_ratio=3.0 (放宽 OB + 放宽风险比)"
+  magic_number: 207244
+  min_ob_spread_mult: 1.0
+  min_risk_spread_ratio: 3.0
