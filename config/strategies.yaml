@@ -46348,3 +46348,59 @@ v11-btc1-loop181-btc-htfdir: &v11_btc1_loop181_btc_htfdir
   magic_number: 207208
   enable_btc_profile: true
   enable_htf_direction_gate: true
+v11-btc1-loop182-sa2: &v11_btc1_loop182_sa2
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP182-SA2
+  description: "loop182-a: loop170-sl18p3 + enable_strong_addon=true + max_count=2 (强加仓 2 次, loop164 addon 100% WR 是亮点)"
+  magic_number: 207209
+  enable_strong_addon: true
+  strong_addon_max_count: 2
+  strong_addon_trigger_r: 1.0
+  strong_addon_step_r: 1.0
+  strong_addon_lot_mult: 0.5
+  strong_addon_risk_mult: 0.5
+
+v11-btc1-loop182-sa3: &v11_btc1_loop182_sa3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP182-SA3
+  description: "loop182-b: loop170-sl18p3 + enable_strong_addon=true + max_count=3 (强加仓 3 次, 更激进)"
+  magic_number: 207210
+  enable_strong_addon: true
+  strong_addon_max_count: 3
+  strong_addon_trigger_r: 1.0
+  strong_addon_step_r: 1.0
+  strong_addon_lot_mult: 0.5
+  strong_addon_risk_mult: 0.5
+
+v11-btc1-loop182-sa08: &v11_btc1_loop182_sa08
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP182-SA08
+  description: "loop182-c: loop170-sl18p3 + enable_strong_addon=true + trigger 0.8 + max_count=2 (早触发加仓)"
+  magic_number: 207211
+  enable_strong_addon: true
+  strong_addon_max_count: 2
+  strong_addon_trigger_r: 0.8
+  strong_addon_step_r: 1.0
+  strong_addon_lot_mult: 0.5
+  strong_addon_risk_mult: 0.5
+v11-btc1-loop183-tex60: &v11_btc1_loop183_tex60
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP183-TEX60
+  description: "loop183-a: loop170-sl18p3 + btc_time_exit_bars 80->60 (减少持仓时间, 期望提高 turnover 和月度稳定性)"
+  magic_number: 207212
+  btc_time_exit_bars: 60
+
+v11-btc1-loop183-tex100: &v11_btc1_loop183_tex100
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP183-TEX100
+  description: "loop183-b: loop170-sl18p3 + btc_time_exit_bars 80->100 (延长持仓时间, 期望大赢单突破)"
+  magic_number: 207213
+  btc_time_exit_bars: 100
+
+v11-btc1-loop183-tex60-slp4: &v11_btc1_loop183_tex60_slp4
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP183-TEX60-SLP4
+  description: "loop183-c: loop170-sl18p3 + btc_time_exit_bars 60 + smart_lock_pct 0.4 (减少持仓 + 略松锁)"
+  magic_number: 207214
+  btc_time_exit_bars: 60
+  smart_lock_pct: 0.4
