@@ -214,7 +214,9 @@ input bool   InpConsolidateOB    = true;     // 鍚堝苟閲嶅彔OB
 input double InpSpreadFloor      = 0.0;      // 鏈€灏弒pread涓嬮檺(0=浣跨敤瀹炴椂spread)
 
 // 鈹€鈹€ Impulse鍙傛暟 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
-input double InpImpulseATRMult   = 1.5;      // Impulse鍒ゅ畾闃堝€?ATR鍊嶆暟)
+input double InpImpulseATRMult   = 1.5;
+input double InpBtcImpulseATRMult = 1.5;  // BTC profile 启用时 impulse 阈值 (0=跟随 InpImpulseATRMult)
+input int    InpBTCMaxMonthlyEntries = -1; // BTC profile 月度最大 OB zone 数 (-1=禁用)      // Impulse鍒ゅ畾闃堝€?ATR鍊嶆暟)
 input int    InpImpulseLookback  = 3;        // Impulse瑙傚療绐楀彛(bars)
 input int    InpATRPeriod        = 14;       // ATR璁＄畻鍛ㄦ湡
 

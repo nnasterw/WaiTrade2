@@ -46653,3 +46653,36 @@ v11-btc1-loop194-month40: &v11_btc1_loop194_month40
   description: "loop194-c: loop192-btc-spread1 + btc_max_monthly_entries=40 (月度 OB 限制 40)"
   magic_number: 207253
   btc_max_monthly_entries: 40
+v11-btc1-loop199-iat1: &v11_btc1_loop199_iat1
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP199-IAT1
+  description: "loop199-a: loop192-btc-spread1 + btc_impulse_atr_mult=1.0 (EA 源码: BTC profile 放宽 impulse 阈值, 期望更多 OB)"
+  magic_number: 207254
+  btc_impulse_atr_mult: 1.0
+
+v11-btc1-loop199-iat08: &v11_btc1_loop199_iat08
+  <<: *v11_btc1_loop192_btc_spread1
+  version: V11-BTC1-LOOP199-IAT08
+  description: "loop199-b: loop192-btc-spread1 + btc_impulse_atr_mult=0.8 (更宽松)"
+  magic_number: 207255
+  btc_impulse_atr_mult: 0.8
+v11-btc1-loop200-iat1-mex30: &v11_btc1_loop200_iat1_mex30
+  <<: *v11_btc1_loop199_iat1
+  version: V11-BTC1-LOOP200-IAT1-MEX30
+  description: "loop200-a: loop199-iat1 (284 单) + btc_max_monthly_entries=30 (EA 源码正确版月度限制, 期望月度稳定)"
+  magic_number: 207256
+  btc_max_monthly_entries: 30
+
+v11-btc1-loop200-iat1-mex40: &v11_btc1_loop200_iat1_mex40
+  <<: *v11_btc1_loop199_iat1
+  version: V11-BTC1-LOOP200-IAT1-MEX40
+  description: "loop200-b: loop199-iat1 + btc_max_monthly_entries=40 (月度限制 40)"
+  magic_number: 207257
+  btc_max_monthly_entries: 40
+
+v11-btc1-loop200-iat1-mex50: &v11_btc1_loop200_iat1_mex50
+  <<: *v11_btc1_loop199_iat1
+  version: V11-BTC1-LOOP200-IAT1-MEX50
+  description: "loop200-c: loop199-iat1 + btc_max_monthly_entries=50 (月度限制 50)"
+  magic_number: 207258
+  btc_max_monthly_entries: 50

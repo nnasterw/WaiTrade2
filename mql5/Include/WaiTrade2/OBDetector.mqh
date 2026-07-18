@@ -44,7 +44,8 @@ bool IsImpulse(const MqlRates &rates[], int count, int start_idx, int direction,
       move = rates[start_idx].high - low_min;
    }
 
-   double threshold = InpImpulseATRMult > 0 ? InpImpulseATRMult : 1.5;
+   double threshold = (UseBTCProfile() && InpBtcImpulseATRMult > 0 ? InpBtcImpulseATRMult : InpImpulseATRMult);
+   if(threshold <= 0) threshold = 1.5;
    return (move > atr * threshold);
 }
 
