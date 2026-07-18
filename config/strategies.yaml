@@ -46699,3 +46699,24 @@ v11-btc1-loop201-bp20: &v11_btc1_loop201_bp20
   description: "loop201-b: loop199-iat1 + btc_min_body_pct=20 (更大放宽)"
   magic_number: 207260
   btc_min_body_pct: 20
+v11-btc1-loop202-bp35: &v11_btc1_loop202_bp35
+  <<: *v11_btc1_loop201_bp30
+  version: V11-BTC1-LOOP202-BP35
+  description: "loop202-a: loop201-bp30 (324 单) + btc_min_body_pct 30->35 (略严格, 期望月度稳定)"
+  magic_number: 207261
+  btc_min_body_pct: 35
+
+v11-btc1-loop202-iat12: &v11_btc1_loop202_iat12
+  <<: *v11_btc1_loop201_bp30
+  version: V11-BTC1-LOOP202-IAT12
+  description: "loop202-b: loop201-bp30 + btc_impulse_atr_mult 1.0->1.2 (略严格 impulse)"
+  magic_number: 207262
+  btc_impulse_atr_mult: 1.2
+
+v11-btc1-loop202-bp35-iat12: &v11_btc1_loop202_bp35_iat12
+  <<: *v11_btc1_loop201_bp30
+  version: V11-BTC1-LOOP202-BP35-IAT12
+  description: "loop202-c: loop201-bp30 + btc_min_body_pct 35 + btc_impulse_atr_mult 1.2 (双略严格组合)"
+  magic_number: 207263
+  btc_min_body_pct: 35
+  btc_impulse_atr_mult: 1.2
