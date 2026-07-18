@@ -46720,3 +46720,16 @@ v11-btc1-loop202-bp35-iat12: &v11_btc1_loop202_bp35_iat12
   magic_number: 207263
   btc_min_body_pct: 35
   btc_impulse_atr_mult: 1.2
+v11-btc1-loop203-sd100: &v11_btc1_loop203_sd100
+  <<: *v11_btc1_loop201_bp30
+  version: V11-BTC1-LOOP203-SD100
+  description: "loop203-a: loop201-bp30 (324 单) + btc_scan_depth=100 (EA 源码: BTC profile 扫描深度收紧, 期望月度更稳定)"
+  magic_number: 207264
+  btc_scan_depth: 100
+
+v11-btc1-loop203-sd50: &v11_btc1_loop203_sd50
+  <<: *v11_btc1_loop201_bp30
+  version: V11-BTC1-LOOP203-SD50
+  description: "loop203-b: loop201-bp30 + btc_scan_depth=50 (更严格)"
+  magic_number: 207265
+  btc_scan_depth: 50

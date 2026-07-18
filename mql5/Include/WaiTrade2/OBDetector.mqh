@@ -1060,10 +1060,11 @@ void DetectOrderBlocks(const MqlRates &rates[], int count, OBZone &zones[], int 
    if(InpRangeBreakoutOnly)
       return;
 
+   int scan_depth = (UseBTCProfile() && InpBTCScanDepth > 0) ? InpBTCScanDepth : InpOBScanDepth;
    int scan_start = count - (InpImpulseLookback + 1);
    int scan_end = 1;
-   if(InpOBScanDepth > 0 && count > InpOBScanDepth + 4)
-      scan_end = count - 4 - InpOBScanDepth;
+   if(scan_depth > 0 && count > scan_depth + 4)
+      scan_end = count - 4 - scan_depth;
 
    for(int i = scan_start; i >= scan_end; i--)
    {
