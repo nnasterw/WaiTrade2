@@ -46733,3 +46733,16 @@ v11-btc1-loop203-sd50: &v11_btc1_loop203_sd50
   description: "loop203-b: loop201-bp30 + btc_scan_depth=50 (更严格)"
   magic_number: 207265
   btc_scan_depth: 50
+v11-btc1-loop206-slb10: &v11_btc1_loop206_slb10
+  <<: *v11_btc1_loop202_iat12
+  version: V11-BTC1-LOOP206-SLB10
+  description: "loop206-a: loop202-iat12 (349 单) + btc_smart_lock_pct_boost=0.1 (EA 源码: BTC profile SmartLock 更紧 0.6, 期望月度利润保留 + WFYS 提升)"
+  magic_number: 207266
+  btc_smart_lock_pct_boost: 0.1
+
+v11-btc1-loop206-slb20: &v11_btc1_loop206_slb20
+  <<: *v11_btc1_loop202_iat12
+  version: V11-BTC1-LOOP206-SLB20
+  description: "loop206-b: loop202-iat12 + btc_smart_lock_pct_boost=0.2 (更紧锁 0.7)"
+  magic_number: 207267
+  btc_smart_lock_pct_boost: 0.2
