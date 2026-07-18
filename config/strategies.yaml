@@ -46808,3 +46808,52 @@ v11-btc1-loop216-bbm32: &v11_btc1_loop216_bbm32
   description: "loop216-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.32 + max 0.28 (mult 0.32 略严)"
   magic_number: 207276
   bad_bounce_mult: 0.32
+v11-btc1-loop217-bbm30-bbmin20: &v11_btc1_loop217_bbm30_bbmin20
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP217-BBM30-BBMIN20
+  description: "loop217-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.30 + bad_bounce_min_pct 0.22->0.20 (loop210 最佳 + 略放宽下限)"
+  magic_number: 207277
+  bad_bounce_mult: 0.30
+  bad_bounce_min_pct: 0.20
+
+v11-btc1-loop218-bbm30-bp25: &v11_btc1_loop218_bbm30_bp25
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP218-BBM30-BP25
+  description: "loop218-a: loop170-sl18p3 + bad_bounce_mult 0.30 + bounce_pct 0.30->0.25 (放宽主 bounce 阈值)"
+  magic_number: 207278
+  bad_bounce_mult: 0.30
+  bounce_pct: 0.25
+v11-btc1-loop219-bbm30-sl40: &v11_btc1_loop219_bbm30_sl40
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP219-BBM30-SL40
+  description: "loop219-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.30 + smart_lock_pct 0.3->0.4 (loop210 甜区 + 略松锁保留大赢)"
+  magic_number: 207279
+  bad_bounce_mult: 0.30
+  smart_lock_pct: 0.4
+
+v11-btc1-loop220-bbm30-sl35: &v11_btc1_loop220_bbm30_sl35
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP220-BBM30-SL35
+  description: "loop220-a: loop170-sl18p3 + bad_bounce_mult 0.30 + smart_lock_pct 0.35 (loop210 + 中间 SL)"
+  magic_number: 207280
+  bad_bounce_mult: 0.30
+  smart_lock_pct: 0.35
+
+v11-btc1-loop221-bbm30-t20: &v11_btc1_loop221_bbm30_t20
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP221-BBM30-T20
+  description: "loop221-a: loop170-sl18p3 + bad_bounce_mult 0.30 + smart_lock_trigger_r 1.8->2.0 (loop210 + 推迟锁)"
+  magic_number: 207281
+  bad_bounce_mult: 0.30
+  smart_lock_trigger_r: 2.0
+v11-btc1-loop222-bbm30-btc: &v11_btc1_loop222_bbm30_btc
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP222-BBM30-BTC
+  description: "loop222: loop210 最佳 (bbm30, WFYS 82.92) + BTC profile 4 个 EA 源码改动 (spread/body/scan/impulse) + bad_bounce_mult 0.30"
+  magic_number: 207282
+  bad_bounce_mult: 0.30
+  enable_btc_profile: true
+  btc_min_ob_spread_mult: 1.0
+  btc_impulse_atr_mult: 1.2
+  btc_min_body_pct: 30.0
+  btc_scan_depth: 100
