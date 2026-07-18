@@ -68,7 +68,8 @@ bool IsInNoOBWindow(int hour)
 
 bool PassOBBodyPct(const MqlRates &bar)
 {
-   if(InpMinOBBodyPct <= 0)
+   double min_pct = (UseBTCProfile() && InpBtcMinBodyPct > 0) ? InpBtcMinBodyPct : InpMinOBBodyPct;
+   if(min_pct <= 0)
       return true;
 
    double body = MathAbs(bar.open - bar.close);
@@ -76,7 +77,7 @@ bool PassOBBodyPct(const MqlRates &bar)
    if(range <= 0)
       return false;
 
-   return (body / range * 100.0 >= InpMinOBBodyPct);
+   return (body / range * 100.0 >= min_pct);
 }
 
 double CalcBodyPct(const MqlRates &bar)

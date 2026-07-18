@@ -46686,3 +46686,16 @@ v11-btc1-loop200-iat1-mex50: &v11_btc1_loop200_iat1_mex50
   description: "loop200-c: loop199-iat1 + btc_max_monthly_entries=50 (月度限制 50)"
   magic_number: 207258
   btc_max_monthly_entries: 50
+v11-btc1-loop201-bp30: &v11_btc1_loop201_bp30
+  <<: *v11_btc1_loop199_iat1
+  version: V11-BTC1-LOOP201-BP30
+  description: "loop201-a: loop199-iat1 (284 单) + btc_min_body_pct=30 (EA 源码: BTC profile OB body 放宽, 期望更多 OB)"
+  magic_number: 207259
+  btc_min_body_pct: 30
+
+v11-btc1-loop201-bp20: &v11_btc1_loop201_bp20
+  <<: *v11_btc1_loop199_iat1
+  version: V11-BTC1-LOOP201-BP20
+  description: "loop201-b: loop199-iat1 + btc_min_body_pct=20 (更大放宽)"
+  magic_number: 207260
+  btc_min_body_pct: 20
