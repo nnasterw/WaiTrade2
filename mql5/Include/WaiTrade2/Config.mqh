@@ -788,6 +788,7 @@ input double InpBTCSLBufferATR = 1.5;       // BTC SL ATR buffer
 input double InpBTCOBHeightTPMult = 1.5;    // BTC OB楂樺害TP
 input int    InpBTCTimeExitBars = 80;       // BTC瓒呮椂閫€鍑?
 input double InpBTCCapLossR = 0.0;         // BTC 硬损cap R (0=禁用, <0表示loss超过此R则强平)
+input double InpBtcMaxSingleLossR = 0.0;  // BTC profile 单笔最大 loss R (绝对值, 0=禁用, e.g. -1.5 表示 loss 超过 1.5R 即强平)
 input string InpBTCCapLossHours = "";        // BTC Cap loss生效小时(空=全天, CSV e.g. "0,1,2,3,4,5")
 input string InpBTCCapLossDays = "";          // BTC Cap loss生效星期(空=全部, CSV e.g. "5"=周五)
 input int    InpBTCSweepLookbackBars = 12;   // BTC Sweep lookback

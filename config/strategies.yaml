@@ -46746,3 +46746,65 @@ v11-btc1-loop206-slb20: &v11_btc1_loop206_slb20
   description: "loop206-b: loop202-iat12 + btc_smart_lock_pct_boost=0.2 (更紧锁 0.7)"
   magic_number: 207267
   btc_smart_lock_pct_boost: 0.2
+v11-btc1-loop209-cap15: &v11_btc1_loop209_cap15
+  <<: *v11_btc1_loop202_iat12
+  version: V11-BTC1-LOOP209-CAP15
+  description: "loop209-a: loop202-iat12 + btc_max_single_loss_r=-1.5 (EA 源码: BTC 单笔 loss > 1.5R 强平, 期望月度更稳定)"
+  magic_number: 207268
+  btc_max_single_loss_r: -1.5
+
+v11-btc1-loop209-cap20: &v11_btc1_loop209_cap20
+  <<: *v11_btc1_loop202_iat12
+  version: V11-BTC1-LOOP209-CAP20
+  description: "loop209-b: loop202-iat12 + btc_max_single_loss_r=-2.0 (更宽松 cap)"
+  magic_number: 207269
+  btc_max_single_loss_r: -2.0
+v11-btc1-loop210-bbm30: &v11_btc1_loop210_bbm30
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP210-BBM30
+  description: "loop210-a: loop170-sl18p3 (89.75 WFYS) + bad_bounce_mult 0.4->0.3 (放宽 bad bounce 惩罚, 期望更多 OB 入场 + WFYS 提升)"
+  magic_number: 207270
+  bad_bounce_mult: 0.3
+
+v11-btc1-loop211-bbm20: &v11_btc1_loop211_bbm20
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP211-BBM20
+  description: "loop211-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.2 (更大放宽)"
+  magic_number: 207271
+  bad_bounce_mult: 0.2
+v11-btc1-loop212-bbm35-bb30: &v11_btc1_loop212_bbm35_bb30
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP212-BBM35-BB30
+  description: "loop212-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.35 + bad_bounce_max_pct 0.28->0.30 (略放宽 bad bounce 区间+惩罚)"
+  magic_number: 207272
+  bad_bounce_mult: 0.35
+  bad_bounce_max_pct: 0.30
+
+v11-btc1-loop213-bbm30-bb32: &v11_btc1_loop213_bbm30_bb32
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP213-BBM30-BB32
+  description: "loop213-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.3 + bad_bounce_max_pct 0.28->0.32 (更多放宽)"
+  magic_number: 207273
+  bad_bounce_mult: 0.3
+  bad_bounce_max_pct: 0.32
+
+v11-btc1-loop214-bbm25-bb35: &v11_btc1_loop214_bbm25_bb35
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP214-BBM25-BB35
+  description: "loop214-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.25 + bad_bounce_max_pct 0.28->0.35 (激进放宽)"
+  magic_number: 207274
+  bad_bounce_mult: 0.25
+  bad_bounce_max_pct: 0.35
+v11-btc1-loop215-bbm28: &v11_btc1_loop215_bbm28
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP215-BBM28
+  description: "loop215-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.28 + max 0.28 (更严 mult, 保持 max)"
+  magic_number: 207275
+  bad_bounce_mult: 0.28
+
+v11-btc1-loop216-bbm32: &v11_btc1_loop216_bbm32
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP216-BBM32
+  description: "loop216-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.32 + max 0.28 (mult 0.32 略严)"
+  magic_number: 207276
+  bad_bounce_mult: 0.32
