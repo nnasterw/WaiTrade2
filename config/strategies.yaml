@@ -46881,3 +46881,96 @@ v11-btc1-loop225-bbm30-bbmin21-max30: &v11_btc1_loop225_bbm30_bbmin21_max30
   bad_bounce_mult: 0.30
   bad_bounce_min_pct: 0.21
   bad_bounce_max_pct: 0.30
+v11-btc1-loop226-bbm30-spread-only: &v11_btc1_loop226_bbm30_spread_only
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP226-BBM30-SPREAD-ONLY
+  description: "loop226: loop210 (bbm30) + 单一 Btc spread 放宽 (0.5), 看是否在保持 WFYS 基础上增加单数"
+  magic_number: 207286
+  bad_bounce_mult: 0.30
+  enable_btc_profile: true
+  btc_min_ob_spread_mult: 0.5
+
+v11-btc1-loop227-bbm30-body-only: &v11_btc1_loop227_bbm30_body_only
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP227-BBM30-BODY-ONLY
+  description: "loop227: loop210 (bbm30) + 单一 Btc body 放宽 (30), 看是否保持 WFYS 基础上增加单数"
+  magic_number: 207287
+  bad_bounce_mult: 0.30
+  enable_btc_profile: true
+  btc_min_body_pct: 30.0
+
+v11-btc1-loop228-bbm30-scan-only: &v11_btc1_loop228_bbm30_scan_only
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP228-BBM30-SCAN-ONLY
+  description: "loop228: loop210 (bbm30) + 单一 Btc scan_depth 收紧 (50), 期望更少但更高质量 OB"
+  magic_number: 207288
+  bad_bounce_mult: 0.30
+  enable_btc_profile: true
+  btc_scan_depth: 50
+v11-btc1-loop229-no-bad-bounce: &v11_btc1_loop229_no_bad_bounce
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP229-NO-BAD-BOUNCE
+  description: "loop229: 禁用 bad_bounce 过滤 + bounce_pct 0.20, 期望增加 90+ 交易达到周均 2.0"
+  magic_number: 207289
+  bounce_pct: 0.20
+  bad_bounce_min_pct: 0
+  bad_bounce_max_pct: 1.0
+  bad_bounce_mult: 0
+  bad_bounce_max_entry_pos_mult: 0
+  bad_bounce_signal_types: ""
+  bad_bounce_pos_mult_directions: ""
+  bad_bounce_pos_mult_directions2: ""
+
+v11-btc1-loop230-low-bounce: &v11_btc1_loop230_low_bounce
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP230-LOW-BOUNCE
+  description: "loop230: bounce_pct 0.15, 期望极多入场"
+  magic_number: 207290
+  bounce_pct: 0.15
+  bad_bounce_min_pct: 0.1
+  bad_bounce_max_pct: 0.9
+  bad_bounce_mult: 0
+  bad_bounce_max_entry_pos_mult: 0
+  bad_bounce_signal_types: ""
+  bad_bounce_pos_mult_directions: ""
+  bad_bounce_pos_mult_directions2: ""
+v11-btc1-loop231-bbm30-low-strength: &v11_btc1_loop231_bbm30_low_strength
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP231-BBM30-LOW-STRENGTH
+  description: "loop231: loop170 + bad_bounce_mult 0.30 + min_ob_strength 0.3 (放宽 OB 质量过滤, 期望 200+ 单)"
+  magic_number: 207291
+  bad_bounce_mult: 0.30
+  min_ob_strength: 0.3
+
+v11-btc1-loop232-bbm30-min-impulse: &v11_btc1_loop232_bbm30_min_impulse
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP232-BBM30-MIN-IMPULSE
+  description: "loop232: loop170 + bad_bounce_mult 0.30 + min_impulse_body_pct 20 (放宽 Impulse 质量)"
+  magic_number: 207292
+  bad_bounce_mult: 0.30
+  min_impulse_body_pct: 20
+
+v11-btc1-loop233-bbm30-tight-sl: &v11_btc1_loop233_bbm30_tight_sl
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP233-BBM30-TIGHT-SL
+  description: "loop233: loop170 + bad_bounce_mult 0.30 + smart_lock_trigger_r 1.5 (更早锁, 期望更高胜率但可能更少单)"
+  magic_number: 207293
+  bad_bounce_mult: 0.30
+  smart_lock_trigger_r: 1.5
+v11-btc1-loop234-max-trade: &v11_btc1_loop234_max_trade
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP234-MAX-TRADE
+  description: "loop234: 多变量放宽, 期望 200+ 单. bounce_pct 0.25 + min_impulse_body 20 + min_ob_strength 0.4"
+  magic_number: 207294
+  bounce_pct: 0.25
+  min_impulse_body_pct: 20
+  min_ob_strength: 0.4
+  min_ob_spread_mult: 1.5
+
+v11-btc1-loop235-entry-depth: &v11_btc1_loop235_entry_depth
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP235-ENTRY-DEPTH
+  description: "loop235: 关闭 entry_depth_filter (允许浅 OB 入场)"
+  magic_number: 207295
+  entry_depth_filter: false
+  min_impulse_body_pct: 20
