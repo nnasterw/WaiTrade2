@@ -46995,3 +46995,24 @@ v11-btc1-loop237-max-entries: &v11_btc1_loop237_max_entries
   min_ob_strength: 0.2
   min_ob_spread_mult: 1.0
   bad_bounce_mult: 0.3
+v11-btc1-loop238-layered-2: &v11_btc1_loop238_layered_2
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP238-LAYERED-2
+  description: "loop238: loop170 + InpLayeredEntryCount=2 (允许每 OB 2 次入场, 期望单数翻倍)"
+  magic_number: 207298
+  layered_entry_count: 2
+
+v11-btc1-loop239-layered-3: &v11_btc1_loop239_layered_3
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP239-LAYERED-3
+  description: "loop239: loop170 + InpLayeredEntryCount=3 (3 次入场/OB)"
+  magic_number: 207299
+  layered_entry_count: 3
+
+v11-btc1-loop240-bbm30-layered: &v11_btc1_loop240_bbm30_layered
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP240-BBM30-LAYERED
+  description: "loop240: loop170 + bad_bounce_mult 0.30 + LayeredEntry=2 (BB30+Layered)"
+  magic_number: 207300
+  bad_bounce_mult: 0.30
+  layered_entry_count: 2
