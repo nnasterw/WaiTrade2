@@ -46974,3 +46974,24 @@ v11-btc1-loop235-entry-depth: &v11_btc1_loop235_entry_depth
   magic_number: 207295
   entry_depth_filter: false
   min_impulse_body_pct: 20
+v11-btc1-loop236-super-aggressive: &v11_btc1_loop236_super_aggressive
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP236-SUPER-AGGRESSIVE
+  description: "loop236: loop234 + min_impulse_body 10 + bounce 0.22, 期望 200+ 单"
+  magic_number: 207296
+  bounce_pct: 0.22
+  min_impulse_body_pct: 10
+  min_ob_strength: 0.3
+  min_ob_spread_mult: 1.2
+  bad_bounce_mult: 0.3
+
+v11-btc1-loop237-max-entries: &v11_btc1_loop237_max_entries
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP237-MAX-ENTRIES
+  description: "loop237: bounce 0.20 + min_impulse 5 + strength 0.2 + spread 1.0, 最大放宽"
+  magic_number: 207297
+  bounce_pct: 0.20
+  min_impulse_body_pct: 5
+  min_ob_strength: 0.2
+  min_ob_spread_mult: 1.0
+  bad_bounce_mult: 0.3
