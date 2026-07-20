@@ -46857,3 +46857,27 @@ v11-btc1-loop222-bbm30-btc: &v11_btc1_loop222_bbm30_btc
   btc_impulse_atr_mult: 1.2
   btc_min_body_pct: 30.0
   btc_scan_depth: 100
+v11-btc1-loop223-bbm30-bbmin21: &v11_btc1_loop223_bbm30_bbmin21
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP223-BBM30-BBMIN21
+  description: "loop223: loop210 甜区 (bbm30) + 略放宽 bad_bounce_min 0.22->0.21"
+  magic_number: 207283
+  bad_bounce_mult: 0.30
+  bad_bounce_min_pct: 0.21
+
+v11-btc1-loop224-bbm30-bbmax30: &v11_btc1_loop224_bbm30_bbmax30
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP224-BBM30-BBMAX30
+  description: "loop224: loop210 甜区 (bbm30) + 放宽 bad_bounce_max 0.28->0.30"
+  magic_number: 207284
+  bad_bounce_mult: 0.30
+  bad_bounce_max_pct: 0.30
+
+v11-btc1-loop225-bbm30-bbmin21-max30: &v11_btc1_loop225_bbm30_bbmin21_max30
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP225-BBM30-BBMIN21-MAX30
+  description: "loop225: loop210 甜区 (bbm30) + 双放宽 bad_bounce 0.21-0.30"
+  magic_number: 207285
+  bad_bounce_mult: 0.30
+  bad_bounce_min_pct: 0.21
+  bad_bounce_max_pct: 0.30
