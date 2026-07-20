@@ -47016,3 +47016,88 @@ v11-btc1-loop240-bbm30-layered: &v11_btc1_loop240_bbm30_layered
   magic_number: 207300
   bad_bounce_mult: 0.30
   layered_entry_count: 2
+v11-btc1-loop241-microentry-1: &v11_btc1_loop241_microentry_1
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP241-MICROENTRY-1
+  description: "loop241: loop170 + InpMicroEntryCount=1 (允许 OB 并行微入场, 期望增加单数)"
+  magic_number: 207301
+  micro_entry_count: 1
+
+v11-btc1-loop242-bbm30-micro1: &v11_btc1_loop242_bbm30_micro1
+  <<: *v11_btc1_loop170_sl18p3
+  version: V11-BTC1-LOOP242-BBM30-MICRO1
+  description: "loop242: bbm30 + MicroEntry=1 (坏bounce放宽+微入场组合)"
+  magic_number: 207302
+  bad_bounce_mult: 0.30
+  micro_entry_count: 1
+v11-btc1-loop243-micro-bp25: &v11_btc1_loop243_micro_bp25
+  <<: *v11_btc1_loop241_microentry_1
+  version: V11-BTC1-LOOP243-MICRO-BP25
+  description: "loop243: loop241 + bounce_pct 0.25 (放宽入场, 期望 150+ 单达到 2/周)"
+  magic_number: 207303
+  bounce_pct: 0.25
+
+v11-btc1-loop244-micro-min-imp: &v11_btc1_loop244_micro_min_imp
+  <<: *v11_btc1_loop241_microentry_1
+  version: V11-BTC1-LOOP244-MICRO-MIN-IMP
+  description: "loop244: loop241 + min_impulse_body_pct 10 (放宽 Impulse, 期望更多单)"
+  magic_number: 207304
+  min_impulse_body_pct: 10
+
+v11-btc1-loop245-micro-3params: &v11_btc1_loop245_micro_3params
+  <<: *v11_btc1_loop241_microentry_1
+  version: V11-BTC1-LOOP245-MICRO-3PARAMS
+  description: "loop245: loop241 + bp25 + min_imp 10 + spread 1.5 (3 项放宽, 期望突破 2/周)"
+  magic_number: 207305
+  bounce_pct: 0.25
+  min_impulse_body_pct: 10
+  min_ob_spread_mult: 1.5
+
+
+
+
+
+
+v11-btc1-loop169-swplp: &v11_btc1_loop169_swplp
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP169-SWPLP
+  description: "loop169 anchor: sweep_pos_mult 0->0.5 (enable sweep OB entry)"
+  magic_number: 207369
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 1.8
+  smart_lock_pct: 0.5
+  sweep_pos_mult: 0.5
+  # compliance-purified
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+
+
+v11-btc1-loop172-swplp-maxent1:
+  <<: *v11_btc1_loop169_swplp
+  version: V11-BTC1-LOOP172-SWPLP-MAXENT1
+  description: "loop172 single-var (vs loop169-swplp): max_entries_per_ob 3->1 (OB single entry only, sweep provides freq)"
+  magic_number: 207172
+  max_entries_per_ob: 1
+
+v11-btc1-loop172-swplp-slot0:
+  <<: *v11_btc1_loop169_swplp
+  version: V11-BTC1-LOOP172-SWPLP-SLOT0
+  description: "loop172 single-var (vs loop169-swplp): sweep_max_lot_size 0.01->0 (no sweep lot cap, full sweep size)"
+  magic_number: 207272
+  sweep_max_lot_size: 0
+
+v11-btc1-loop172-swplp-bbmin30:
+  <<: *v11_btc1_loop169_swplp
+  version: V11-BTC1-LOOP172-SWPLP-BBMIN30
+  description: "loop172 single-var (vs loop169-swplp): bad_bounce_min_pct 0.22->0.30 (tighter bad-bounce filter)"
+  magic_number: 207372
+  bad_bounce_min_pct: 0.30

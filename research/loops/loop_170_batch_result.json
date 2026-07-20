@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-07-20T23:18:15+08:00",
+  "terminal": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1",
+  "variants": [
+    {
+      "strategy": "v11-btc1-loop170-swplp30",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop170-swplp30.set; expert=WaiTrade2\\WaiTrade_OB sha256=e13556e2f71097d73057c63e84ef658697ba1c76308996d0c5cc460c7c2dd2e0",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 26.661,
+        "balance": 279.91,
+        "trades": 65,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp30_20260620_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 35.776,
+        "balance": 335.49,
+        "trades": 120,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp30_20260421_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "status": "90d_pass"
+    },
+    {
+      "strategy": "v11-btc1-loop170-swplp-obreec60",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop170-swplp-obreec60.set; expert=WaiTrade2\\WaiTrade_OB sha256=e13556e2f71097d73057c63e84ef658697ba1c76308996d0c5cc460c7c2dd2e0",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 26.736,
+        "balance": 300.35,
+        "trades": 70,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-obreec60_20260620_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 35.35,
+        "balance": 372.26,
+        "trades": 132,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-obreec60_20260421_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "status": "completed",
+      "full_720d": {
+        "stage": "full_720d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 337.745,
+        "balance": 779.19,
+        "trades": 558,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-obreec60_20240601_20260531_20260720.txt",
+        "error_tail": ""
+      },
+      "artifacts": {
+        "success": true,
+        "original_report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-obreec60_20240601_20260531_20260720.txt",
+        "trades_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-obreec60_20240601_20260531_20260720.trades.csv",
+        "monthly_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-obreec60_20240601_20260531_20260720.trades_closetime_24m.csv",
+        "wfys_json": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-obreec60_wfys_v22_20260720.json",
+        "log_path": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1\\Tester\\Agent-127.0.0.1-3000\\logs\\20260720.log"
+      }
+    },
+    {
+      "strategy": "v11-btc1-loop170-swplp-maxent2",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop170-swplp-maxent2.set; expert=WaiTrade2\\WaiTrade_OB sha256=e13556e2f71097d73057c63e84ef658697ba1c76308996d0c5cc460c7c2dd2e0",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 26.827,
+        "balance": 300.1,
+        "trades": 69,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-maxent2_20260620_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 35.721,
+        "balance": 344.17,
+        "trades": 172,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop170-swplp-maxent2_20260421_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "status": "90d_pass"
+    }
+  ],
+  "promoted": "v11-btc1-loop170-swplp-obreec60",
+  "workload_budget": 12.0,
+  "workload_used": 11.5,
+  "elapsed_min": 10.061,
+  "completed_at": "2026-07-20T23:28:19+08:00"
+}

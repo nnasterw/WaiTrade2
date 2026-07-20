@@ -1,30 +1,56 @@
 {
   "schema_version": 1,
-  "started_at": "2026-07-17T08:57:00+08:00",
+  "started_at": "2026-07-20T21:55:04+08:00",
   "terminal": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1",
   "variants": [
     {
-      "strategy": "v11-btc1-loop167-ps1off",
+      "strategy": "v11-btc1-loop167-mbosr",
       "prepared": true,
-      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop167-ps1off.set; expert=WaiTrade3\\WaiTrade_OB_BV1_Slim sha256=719fcc368f372663ecc31c18d4c1f96f1a4ea90b0f403341a68b56bd24c94c8e",
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop167-mbosr.set; expert=WaiTrade2\\WaiTrade_OB sha256=e13556e2f71097d73057c63e84ef658697ba1c76308996d0c5cc460c7c2dd2e0",
       "smoke_30d": {
         "stage": "smoke_30d",
         "success": true,
         "returncode": 0,
-        "elapsed_sec": 24.771,
-        "balance": 206.65,
-        "trades": 12,
-        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-ps1off_20260617_20260717_20260717.txt",
+        "elapsed_sec": 32.51,
+        "balance": 287.96,
+        "trades": 11,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-mbosr_20260620_20260720_20260720.txt",
         "error_tail": ""
       },
       "validate_90d": {
         "stage": "validate_90d",
         "success": true,
         "returncode": 0,
-        "elapsed_sec": 32.703,
-        "balance": 384.19,
-        "trades": 41,
-        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-ps1off_20260418_20260717_20260717.txt",
+        "elapsed_sec": 38.628,
+        "balance": 233.54,
+        "trades": 43,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-mbosr_20260421_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "status": "90d_pass"
+    },
+    {
+      "strategy": "v11-btc1-loop167-cpwb",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop167-cpwb.set; expert=WaiTrade2\\WaiTrade_OB sha256=e13556e2f71097d73057c63e84ef658697ba1c76308996d0c5cc460c7c2dd2e0",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 28.057,
+        "balance": 174.05,
+        "trades": 11,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-cpwb_20260620_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 36.521,
+        "balance": 242.19,
+        "trades": 17,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-cpwb_20260421_20260720_20260720.txt",
         "error_tail": ""
       },
       "status": "completed",
@@ -32,25 +58,51 @@
         "stage": "full_720d",
         "success": true,
         "returncode": 0,
-        "elapsed_sec": 377.387,
-        "balance": 859.76,
-        "trades": 195,
-        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-ps1off_20240601_20260531_20260717.txt",
+        "elapsed_sec": 401.475,
+        "balance": -3.74,
+        "trades": 33,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-cpwb_20240601_20260531_20260720.txt",
         "error_tail": ""
       },
       "artifacts": {
         "success": true,
-        "original_report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-ps1off_20240601_20260531_20260717.txt",
-        "trades_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-ps1off_20240601_20260531_20260717.trades.csv",
-        "monthly_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-ps1off_20240601_20260531_20260717.trades_closetime_24m.csv",
-        "wfys_json": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-ps1off_wfys_v22_20260717.json",
-        "log_path": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1\\Tester\\Agent-127.0.0.1-3000\\logs\\20260717.log"
+        "original_report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-cpwb_20240601_20260531_20260720.txt",
+        "trades_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-cpwb_20240601_20260531_20260720.trades.csv",
+        "monthly_csv": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-cpwb_20240601_20260531_20260720.trades_closetime_24m.csv",
+        "wfys_json": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-cpwb_wfys_v22_20260720.json",
+        "log_path": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1\\Tester\\Agent-127.0.0.1-3000\\logs\\20260719.log"
       }
+    },
+    {
+      "strategy": "v11-btc1-loop167-mitonr",
+      "prepared": true,
+      "prepare_detail": "D:\\Code\\codexProject\\WaiTrade2\\mql5\\Presets\\v11-btc1-loop167-mitonr.set; expert=WaiTrade2\\WaiTrade_OB sha256=e13556e2f71097d73057c63e84ef658697ba1c76308996d0c5cc460c7c2dd2e0",
+      "smoke_30d": {
+        "stage": "smoke_30d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 28.255,
+        "balance": 287.96,
+        "trades": 11,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-mitonr_20260620_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "validate_90d": {
+        "stage": "validate_90d",
+        "success": true,
+        "returncode": 0,
+        "elapsed_sec": 36.587,
+        "balance": 133.94,
+        "trades": 53,
+        "report": "D:\\Code\\codexProject\\WaiTrade2\\results\\backtest\\v11-btc1-loop167-mitonr_20260421_20260720_20260720.txt",
+        "error_tail": ""
+      },
+      "status": "90d_pass"
     }
   ],
-  "promoted": "v11-btc1-loop167-ps1off",
+  "promoted": "v11-btc1-loop167-cpwb",
   "workload_budget": 12.0,
-  "workload_used": 7.5,
-  "elapsed_min": 7.783,
-  "completed_at": "2026-07-17T09:04:47+08:00"
+  "workload_used": 11.5,
+  "elapsed_min": 11.879,
+  "completed_at": "2026-07-20T22:06:57+08:00"
 }
