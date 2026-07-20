@@ -1,4 +1,4 @@
-; V11-BTC1-LOOP41 — trend531 + SmartLock 2.0/0.45 (slightly tighter)
+; V11-BTC1-LOOP219-BBM30-SL40 — loop219-a: loop170-sl18p3 + bad_bounce_mult 0.4->0.30 + smart_lock_pct 0.3->0.4 (loop210 甜区 + 略松锁保留大赢)
 InpAdaptiveNoiseDefBuyMult=1.0
 InpAdaptiveNoiseDefSellMult=1.0
 InpAdaptiveNoiseDefOBReentryCd=0
@@ -614,7 +614,7 @@ InpBounceSweetMaxPct=0.34
 InpOutsideBounceSweetMult=0.7
 InpBadBounceMinPct=0.22
 InpBadBounceMaxPct=0.28
-InpBadBounceMult=0.4
+InpBadBounceMult=0.3
 InpBadBounceSignalTypes=OB
 InpBadBounceMaxEntryPosMult=0.0
 InpBadBouncePosMultDirections=
@@ -751,8 +751,8 @@ InpDTAddonBoost=0.0
 InpBarTF=5
 InpBars=300
 InpOBScanDepth=200
-InpVersion=V11-BTC1-LOOP41
-InpMagicNumber=206880
+InpVersion=V11-BTC1-LOOP219-BBM30-SL40
+InpMagicNumber=207279
 InpEnableBTCProfile=false
 InpBTCProfileSymbol=BTC
 InpBTCBouncePct=0.25
@@ -846,8 +846,8 @@ InpBTCBigWinLockToR=0.0
 InpBTCBigWinOnlyHTFTarget=true
 InpBTCEnableMonthlyLossGuard=false
 InpSmartLockEnable=true
-InpSmartLockTriggerR=2.0
-InpSmartLockPct=0.45
+InpSmartLockTriggerR=1.8
+InpSmartLockPct=0.4
 InpBTCMonthlyLossGuardR=-1.5
 InpBTCMonthlyLossGuardOnlyHTFTarget=true
 InpBTCLossCutBars=0

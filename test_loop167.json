@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-07-20T21:49:55+08:00",
+  "terminal": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1",
+  "variants": [
+    {
+      "strategy": "v11-btc1-loop167-mbosr",
+      "prepared": false,
+      "prepare_detail": "Iron Rule strict 失败: \n============================================================\n汇总: 1 个文件, 总违规 5 处\n  通过铁律: 0/1\n  违反铁律: 1/1\n",
+      "status": "repair"
+    }
+  ],
+  "promoted": null,
+  "workload_budget": 12.0,
+  "workload_used": 0.0,
+  "elapsed_min": 0.262,
+  "completed_at": "2026-07-20T21:50:10+08:00"
+}

@@ -47081,23 +47081,25 @@ v11-btc1-loop169-swplp: &v11_btc1_loop169_swplp
 
 
 
-v11-btc1-loop172-swplp-maxent1:
-  <<: *v11_btc1_loop169_swplp
-  version: V11-BTC1-LOOP172-SWPLP-MAXENT1
-  description: "loop172 single-var (vs loop169-swplp): max_entries_per_ob 3->1 (OB single entry only, sweep provides freq)"
-  magic_number: 207172
-  max_entries_per_ob: 1
 
-v11-btc1-loop172-swplp-slot0:
+v11-btc1-loop173-swplp-be05:
   <<: *v11_btc1_loop169_swplp
-  version: V11-BTC1-LOOP172-SWPLP-SLOT0
-  description: "loop172 single-var (vs loop169-swplp): sweep_max_lot_size 0.01->0 (no sweep lot cap, full sweep size)"
-  magic_number: 207272
-  sweep_max_lot_size: 0
+  version: V11-BTC1-LOOP173-SWPLP-BE05
+  description: "loop173 single-var (vs loop169-swplp): breakeven_r 1.0->0.5 (earlier BE lock to limit loss on sweep)"
+  magic_number: 207173
+  breakeven_r: 0.5
+  breakeven_lock_r: 0.3
 
-v11-btc1-loop172-swplp-bbmin30:
+v11-btc1-loop173-swplp-be10:
   <<: *v11_btc1_loop169_swplp
-  version: V11-BTC1-LOOP172-SWPLP-BBMIN30
-  description: "loop172 single-var (vs loop169-swplp): bad_bounce_min_pct 0.22->0.30 (tighter bad-bounce filter)"
-  magic_number: 207372
-  bad_bounce_min_pct: 0.30
+  version: V11-BTC1-LOOP173-SWPLP-BE10
+  description: "loop173 single-var (vs loop169-swplp): breakeven_r 1.0->1.0 (default), breakeven_lock_r 0.4->0.5 (lock more at BE)"
+  magic_number: 207273
+  breakeven_lock_r: 0.5
+
+v11-btc1-loop173-swplp-dtp15:
+  <<: *v11_btc1_loop169_swplp
+  version: V11-BTC1-LOOP173-SWPLP-DTP15
+  description: "loop173 single-var (vs loop169-swplp): strong_dtp_retrace_mult 2.2->1.5 (tighter DTP for sweep winners)"
+  magic_number: 207373
+  strong_dtp_retrace_mult: 1.5
