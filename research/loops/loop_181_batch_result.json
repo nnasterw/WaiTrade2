@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-07-21T16:24:26+08:00",
+  "terminal": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1",
+  "variants": [
+    {
+      "strategy": "v11-btc1-loop181-bv1-adaptive",
+      "prepared": false,
+      "prepare_detail": "EA 来源检查失败: .ex5 缺失: D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1\\MQL5\\Experts\\WaiTrade2\\WaiTrade_OB.ex5",
+      "status": "repair"
+    },
+    {
+      "strategy": "v11-btc1-loop181-bv1-adaptive-strong",
+      "prepared": false,
+      "prepare_detail": "EA 来源检查失败: .ex5 缺失: D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1\\MQL5\\Experts\\WaiTrade2\\WaiTrade_OB.ex5",
+      "status": "repair"
+    },
+    {
+      "strategy": "v11-btc1-loop181-bv1-adaptive-only-loss",
+      "prepared": false,
+      "prepare_detail": "EA 来源检查失败: .ex5 缺失: D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1\\MQL5\\Experts\\WaiTrade2\\WaiTrade_OB.ex5",
+      "status": "repair"
+    }
+  ],
+  "promoted": null,
+  "workload_budget": 12.0,
+  "workload_used": 0.0,
+  "elapsed_min": 1.03,
+  "completed_at": "2026-07-21T16:25:28+08:00"
+}

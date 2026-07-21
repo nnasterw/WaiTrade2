@@ -1,4 +1,4 @@
-; V11-BTC1-BV1 — bv1 baseline restored (SmartLock 1.8/0.5 + bad_bounce 0.22-0.28 + max_lot 1.0)
+; V11-BTC1-LOOP181-BV1-ADAPTIVE — loop181: BV1 + EA源码级自适应 OB body (月度亏损收紧, 盈利放宽)
 InpAdaptiveNoiseDefBuyMult=1.0
 InpAdaptiveNoiseDefSellMult=1.0
 InpAdaptiveNoiseDefOBReentryCd=0
@@ -751,8 +751,8 @@ InpDTAddonBoost=0.0
 InpBarTF=5
 InpBars=300
 InpOBScanDepth=200
-InpVersion=V11-BTC1-BV1
-InpMagicNumber=207001
+InpVersion=V11-BTC1-LOOP181-BV1-ADAPTIVE
+InpMagicNumber=207181
 InpEnableBTCProfile=false
 InpBTCProfileSymbol=BTC
 InpBTCBouncePct=0.25
