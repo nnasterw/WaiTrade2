@@ -44156,4 +44156,229 @@ v11-btc1-loop182-bv1-adaptive-test:
   low_balance_ob_bad_hours: ""
   low_balance_ob_bad_hour_mult: 1.0
   btc_no_entry_hours: ""
+
+v11-btc1-loop183-bv1-sl20-p10:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP183-BV1-SL20-P10
+  description: "loop183: SmartLock 2.0/1.0"
+  magic_number: 207183
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.0
+  smart_lock_pct: 1.0
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop183-bv1-sl25-p08:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP183-BV1-SL25-P08
+  description: "loop183: SmartLock 2.5/0.8"
+  magic_number: 207283
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.5
+  smart_lock_pct: 0.8
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop183-bv1-sl30-p10:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP183-BV1-SL30-P10
+  description: "loop183: SmartLock 3.0/1.0"
+  magic_number: 207383
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop183-bv1-sl35-p12:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP183-BV1-SL35-P12
+  description: "loop183: SmartLock 3.5/1.2"
+  magic_number: 207483
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.5
+  smart_lock_pct: 1.2
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+
+v11-btc1-loop184-bv1-sl28-p09:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP184-BV1-SL28-P09
+  description: "loop184: SmartLock 2.8/0.9 - refine between sl25 and sl30"
+  magic_number: 207184
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.8
+  smart_lock_pct: 0.9
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop184-bv1-sl32-p11:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP184-BV1-SL32-P11
+  description: "loop184: SmartLock 3.2/1.1 - refine above sl30"
+  magic_number: 207284
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.2
+  smart_lock_pct: 1.1
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop184-bv1-sl30-p08:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP184-BV1-SL30-P08
+  description: "loop184: SmartLock 3.0/0.8 - lower pct than sl30-p10"
+  magic_number: 207384
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 0.8
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop184-bv1-sl30-p12:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP184-BV1-SL30-P12
+  description: "loop184: SmartLock 3.0/1.2 - higher pct than sl30-p10"
+  magic_number: 207484
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.2
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+
+v11-btc1-loop185-bv1-sl30p10-lot05:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP185-BV1-SL30P10-LOT05
+  description: "loop185: sl30-p10 (best) + max_lot 0.5 to reduce big-loss month damage"
+  magic_number: 207185
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 0.5
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop185-bv1-sl30p10-lot07:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP185-BV1-SL30P10-LOT07
+  description: "loop185: sl30-p10 + max_lot 0.7"
+  magic_number: 207285
+  bad_bounce_min_pct: 0.22
+  bad_bounce_max_pct: 0.28
+  bad_bounce_mult: 0.4
+  max_lot_size: 0.7
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop185-bv1-sl30p10-bb25:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP185-BV1-SL30P10-BB25
+  description: "loop185: sl30-p10 + bad_bounce 0.25-0.30 (slightly more permissive)"
+  magic_number: 207385
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop185-bv1-sl30p10-bb20:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP185-BV1-SL30P10-BB20
+  description: "loop185: sl30-p10 + bad_bounce 0.20-0.26 (slightly stricter)"
+  magic_number: 207485
+  bad_bounce_min_pct: 0.20
+  bad_bounce_max_pct: 0.26
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
   btc_no_sell_hours: ""

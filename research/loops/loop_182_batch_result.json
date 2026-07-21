@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-07-21T16:47:31+08:00",
+  "terminal": "D:\\Code\\codexProject\\WaiTrade2\\temp\\mt5_portable_btc_bv1",
+  "variants": [
+    {
+      "strategy": "v11-btc1-loop182-bv1-sl30",
+      "prepared": false,
+      "prepare_detail": "EA 来源检查失败: .ex5 早于源码，必须重新编译: D:\\Code\\codexProject\\WaiTrade2\\mql5\\Include\\WaiTrade2\\OBDetector.mqh",
+      "status": "repair"
+    },
+    {
+      "strategy": "v11-btc1-loop182-bv1-default-sl-trail",
+      "prepared": false,
+      "prepare_detail": "EA 来源检查失败: .ex5 早于源码，必须重新编译: D:\\Code\\codexProject\\WaiTrade2\\mql5\\Include\\WaiTrade2\\OBDetector.mqh",
+      "status": "repair"
+    },
+    {
+      "strategy": "v11-btc1-loop182-bv1-adaptive-test",
+      "prepared": false,
+      "prepare_detail": "EA 来源检查失败: .ex5 早于源码，必须重新编译: D:\\Code\\codexProject\\WaiTrade2\\mql5\\Include\\WaiTrade2\\OBDetector.mqh",
+      "status": "repair"
+    }
+  ],
+  "promoted": null,
+  "workload_budget": 12.0,
+  "workload_used": 0.0,
+  "elapsed_min": 0.984,
+  "completed_at": "2026-07-21T16:48:30+08:00"
+}
