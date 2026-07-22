@@ -44625,4 +44625,128 @@ v11-btc1-loop189-bv1-month-oct-dec-hour21:
   low_balance_ob_bad_hours: ""
   low_balance_ob_bad_hour_mult: 1.0
   btc_no_entry_hours: ""
+
+v11-btc1-loop191-bv1-monthfilter-sl30-p15:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP191-BV1-MONTHFILTER-SL30-P15
+  description: "loop191: monthfilter + smart_lock 3.0/1.5 (more profit lock)"
+  magic_number: 207191
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.5
+  entry_months: "1,2,4,5,6,7,8,9,11"
+  no_entry_hours: "5,7,9,13,15,21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop191-bv1-monthfilter-summer:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP191-BV1-MONTHFILTER-SUMMER
+  description: "loop191: entry_months 仅 5,6,7,8 (夏季 only) + smart_lock 3.0/1.0"
+  magic_number: 207291
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  entry_months: "5,6,7,8"
+  no_entry_hours: "5,7,9,13,15,21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop191-bv1-hour20-monthfilter:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP191-BV1-HOUR20-MONTHFILTER
+  description: "loop191: monthfilter + no_entry_hours=20 (hour 20 had 6 losses)"
+  magic_number: 207391
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  entry_months: "1,2,4,5,6,7,8,9,11"
+  no_entry_hours: "5,7,9,13,15,20,21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+
+v11-btc1-loop192-bv1-monthfilter-sl30p15:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP192-BV1-MONTHFILTER-SL30P15
+  description: "loop192: same as 191 monthfilter-sl30-p15 (best at 57.72)"
+  magic_number: 207192
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.5
+  entry_months: "1,2,4,5,6,7,8,9,11"
+  no_entry_hours: "5,7,9,13,15,21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop192-bv1-monthfilter-sl25-p12:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP192-BV1-MONTHFILTER-SL25-P12
+  description: "loop192: sl 2.5/1.2 + monthfilter (refine)"
+  magic_number: 207292
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 2.5
+  smart_lock_pct: 1.2
+  entry_months: "1,2,4,5,6,7,8,9,11"
+  no_entry_hours: "5,7,9,13,15,21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop192-bv1-monthfilter-sl35-p15:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP192-BV1-MONTHFILTER-SL35-P15
+  description: "loop192: sl 3.5/1.5 + monthfilter (most aggressive)"
+  magic_number: 207392
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.5
+  smart_lock_pct: 1.5
+  entry_months: "1,2,4,5,6,7,8,9,11"
+  no_entry_hours: "5,7,9,13,15,21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
   btc_no_sell_hours: ""
