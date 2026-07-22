@@ -44381,4 +44381,84 @@ v11-btc1-loop185-bv1-sl30p10-bb20:
   low_balance_ob_bad_hours: ""
   low_balance_ob_bad_hour_mult: 1.0
   btc_no_entry_hours: ""
+
+v11-btc1-loop186-bv1-bb25-mme30:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP186-BV1-BB25-MME30
+  description: "loop186: bb25 + btc_max_monthly_entries=30 (cap monthly entries to limit big-loss damage)"
+  magic_number: 207186
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  btc_max_monthly_entries: 30
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop186-bv1-bb25-mme20:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP186-BV1-BB25-MME20
+  description: "loop186: bb25 + btc_max_monthly_entries=20 (tighter monthly cap)"
+  magic_number: 207286
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  btc_max_monthly_entries: 20
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop186-bv1-bb25-mme40:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP186-BV1-BB25-MME40
+  description: "loop186: bb25 + btc_max_monthly_entries=40 (looser cap)"
+  magic_number: 207386
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  btc_max_monthly_entries: 40
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop186-bv1-bb25-mmsl10:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP186-BV1-BB25-MMSL10
+  description: "loop186: bb25 + btc_monthly_loss_guard_r=-1.0 (hard stop loss 1R/month)"
+  magic_number: 207486
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  btc_enable_monthly_loss_guard: true
+  btc_monthly_loss_guard_r: -1.0
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
   btc_no_sell_hours: ""
