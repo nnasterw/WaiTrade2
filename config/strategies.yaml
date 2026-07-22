@@ -44461,4 +44461,168 @@ v11-btc1-loop186-bv1-bb25-mmsl10:
   low_balance_ob_bad_hours: ""
   low_balance_ob_bad_hour_mult: 1.0
   btc_no_entry_hours: ""
+
+v11-btc1-loop187-bv1-hour21out-mme20:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP187-BV1-HOUR21OUT-MME20
+  description: "loop187 trend-based: no_entry_hours=21 (100% loss hour) + monthly_max_entries=20 (avoid 28-trade months)"
+  magic_number: 207187
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_entry_hours: "21"
+  monthly_max_entries: 20
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop187-bv1-hour21out-mme15:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP187-BV1-HOUR21OUT-MME15
+  description: "loop187 trend-based: no_entry_hours=21 + monthly_max_entries=15 (stricter monthly cap)"
+  magic_number: 207287
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_entry_hours: "21"
+  monthly_max_entries: 15
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop187-bv1-hour-allbad:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP187-BV1-HOUR-ALLBAD
+  description: "loop187 trend-based: block hours 5,7,9,13,15,21 (only loss hours from trend analysis)"
+  magic_number: 207387
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_entry_hours: "5,7,9,13,15,21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop187-bv1-all-trend:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP187-BV1-ALL-TREND
+  description: "loop187 trend-based: bb25 + hour21out + mme20 (full trend fix)"
+  magic_number: 207487
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_entry_hours: "21"
+  monthly_max_entries: 20
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+
+v11-btc1-loop188-bv1-hour-allbad-monthfilter:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP188-BV1-HOUR-ALLBAD-MONTHFILTER
+  description: "loop188: hour-allbad + entry_months exclude Mar/Oct/Dec (historical loss months)"
+  magic_number: 207188
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_entry_hours: "5,7,9,13,15,21"
+  entry_months: "1,2,4,5,6,7,8,9,11"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop188-bv1-hour-allbad-monthfilter-mme25:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP188-BV1-HOUR-ALLBAD-MONTHFILTER-MME25
+  description: "loop188: hour-allbad + entry_months + monthly_max_entries=25"
+  magic_number: 207288
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  no_entry_hours: "5,7,9,13,15,21"
+  entry_months: "1,2,4,5,6,7,8,9,11"
+  monthly_max_entries: 25
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+
+v11-btc1-loop189-bv1-month-oct-dec:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP189-BV1-MONTH-OCT-DEC
+  description: "loop189: entry_months exclude only Oct+Dec (worst historical months)"
+  magic_number: 207189
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  entry_months: "1,2,3,4,5,6,7,8,9,11"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
+  btc_no_sell_hours: ""
+
+v11-btc1-loop189-bv1-month-oct-dec-hour21:
+  <<: *v11_btc1_qual232
+  version: V11-BTC1-LOOP189-BV1-MONTH-OCT-DEC-HOUR21
+  description: "loop189: exclude Oct+Dec + Hour 21 (100% loss hour)"
+  magic_number: 207289
+  bad_bounce_min_pct: 0.25
+  bad_bounce_max_pct: 0.30
+  bad_bounce_mult: 0.4
+  max_lot_size: 1.0
+  smart_lock_enable: true
+  smart_lock_trigger_r: 3.0
+  smart_lock_pct: 1.0
+  entry_months: "1,2,3,4,5,6,7,8,9,11"
+  no_entry_hours: "21"
+  no_sell_hours: ""
+  monthly_loss_stop_pct: 0.0
+  low_balance_ob_bad_hours: ""
+  low_balance_ob_bad_hour_mult: 1.0
+  btc_no_entry_hours: ""
   btc_no_sell_hours: ""
