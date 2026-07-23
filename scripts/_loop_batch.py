@@ -186,26 +186,35 @@ def find_report(strategy, started_at):
     return candidates[0] if candidates else None
 
 
+def get_strategy_model(strategy):
+    """从 strategies.yaml 读取策略的 model 设置，默认 4 (Real ticks)."""
+    import yaml
+    yaml_path = ROOT / "config" / "strategies.yaml"
+    if not yaml_path.exists():
+        return 4
+    with yaml_path.open('r', encoding='utf-8') as handle:
+        docs = yaml.safe_load(handle) or {}
+    cfg = docs.get(strategy) or {}
+    return str(cfg.get('model', 4))
+
+
 def run_mt5_test(strategy, terminal_path, env, stage, timeout=1200):
-    """执行 MT5 Model 4 回测；Period 由策略配置自动推导，禁止人工覆盖。"""
+    """执行 MT5 回测；Period 由策略配置自动推导，禁止人工覆盖。"""
     if stage == "smoke_30d":
         range_args = ["--days", "30"]
         timeout = min(timeout, 360)
     elif stage == "validate_90d":
         range_args = ["--days", "90"]
-        timeout = min(timeout, 600)
-    elif stage == "full_720d":
-        range_args = ["--from", "2024.06.01", "--to", "2026.05.31"]
     else:
-        raise ValueError("未知阶段: " + stage)
-
-    print("  [" + stage + "] " + strategy + " ...")
+        range_args = ["--from", "2024.06.01", "--to", "2026.05.31"]
+    model = get_strategy_model(strategy)
+    print(f"  [{stage}] {strategy} model={model} ...")
     started_at = time.time()
     cmd = [
         sys.executable, str(ROOT / "scripts" / "mt5_backtest_win.py"),
         "--strategy", strategy, "--symbol", "BTCUSDm",
     ] + range_args + [
-        "--model", "4", "--deposit", "200", "--timeout", str(timeout),
+        "--model", model, "--deposit", "200", "--timeout", str(timeout),
     ]
     result = run_short(cmd, timeout=timeout + 60, env=env)
     elapsed = time.time() - started_at
